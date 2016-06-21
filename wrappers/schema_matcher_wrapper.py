@@ -97,11 +97,13 @@ class MatcherDataset(object):
 
         headers = []
         data = []
+        self.columnMap = []
         for col in self.columns:
             headers.append(col['name'])
             data.append(col['sample'])
-        self.data_sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
-        self.data_sample.columns = headers
+            self.columnMap.append([col['id'], col['name']])
+        self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
+        self.sample.columns = headers
 
     def __str__(self):
         return "<MatcherDataset(" + str(self.ds_key) + ")>"
@@ -158,4 +160,3 @@ if __name__ == "__main__":
 
     print(dm)
     print(dm.dataset)
-

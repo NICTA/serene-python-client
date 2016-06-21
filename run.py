@@ -3,6 +3,8 @@ import logging
 import os
 import datetime
 
+# project
+from wrappers.schema_matcher_wrapper import SchemaMatcher
 
 HERE = os.path.abspath(os.curdir)
 
@@ -15,4 +17,4 @@ logging.basicConfig(filename=os.path.join(HERE, 'data', log_file),
 
 
 if __name__ == "__main__":
-    pass
+    dm = SchemaMatcher()

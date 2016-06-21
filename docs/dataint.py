@@ -51,7 +51,7 @@ dm.dataset['asdf.csv']
 
 # view a column...
 
-dm.dataset['asdf.csv']['junk']
+dm.dataset['asdf.csv'].sample['junk']
 #    1234
 #   98745
 #  987394
