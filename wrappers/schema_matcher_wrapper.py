@@ -46,14 +46,52 @@ class SchemaMatcherSession(object):
             return
         return r.json()
 
-    def post_dataset(self):
+    def post_dataset(self, description, file_path, type_map):
         """
             Args:
-                 dataset_key: int
+                 description: string which describes the dataset to be posted
+                 file_path: string which indicates the location of the dataset to be posted
+                 type_map: dictionary with type map for the dataset
 
             :return:
             """
-        pass
+
+        logging.info('Sending request to the schema matcher server to post a dataset.')
+        try:
+            data = {"description": description, "file": file_path, "typeMap": type_map}
+            r = self.session.post(self.uri_ds, data = data)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during post request: status_code=' + str(r.status_code) +
+                          ', uri=' + self.uri_ds)
+            return
+        return r.json()
+
+    def update_dataset(self, dataset_key, description, type_map):
+        """
+            Args:
+                 description: string which describes the dataset to be posted
+                 dataset_key: integer which is the dataset id
+                 type_map: dictionary with type map for the dataset
+
+            :return:
+            """
+
+        logging.info('Sending request to the schema matcher server to update dataset %d' % dataset_key)
+        uri = urljoin(self.uri_ds, str(dataset_key))
+        try:
+            data = {"description": description, "typeMap": type_map}
+            r = self.session.post(uri, data=data)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during update request: status_code=' + str(r.status_code) +
+                          ', uri=' + uri)
+            return
+        return r.json()
 
     def list_dataset(self, dataset_key):
         """
@@ -66,6 +104,26 @@ class SchemaMatcherSession(object):
         uri = urljoin(self.uri_ds, str(dataset_key))
         try:
             r = self.session.get(uri)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
+                          ', uri=' + uri)
+            return
+        return r.json()
+
+    def delete_dataset(self, dataset_key):
+        """
+            Args:
+                 dataset_key: int
+
+            :return: dictionary
+            """
+        logging.info('Sending request to the schema matcher server to delete dataset.')
+        uri = urljoin(self.uri_ds, str(dataset_key))
+        try:
+            r = self.session.delete(uri)
         except Exception as e:
             logging.error(e)
             return
