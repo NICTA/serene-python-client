@@ -13,9 +13,15 @@ from config import settings as conf_set
 
 class SchemaMatcherSession(object):
     """
+    This is the class which sets up the session for the schema matcher api.
+    It provides wrappers for all calls to the API.
         Attributes:
+            session: Session instance from requests with configuration parameters from config.py
+            uri: general uri for the schema matcher API
+            uri_ds: uri for the dataset endpoint of the schema matcher API
     """
     def __init__(self):
+        """Initialize instance of the SchemaMatcherSession."""
         logging.info('Initialising session to connect to the schema matcher server.')
         self.session = requests.Session()
         self.session.trust_env = conf_set.schema_matcher_server['trust_env']
@@ -24,13 +30,15 @@ class SchemaMatcherSession(object):
 
         # uri to send requests to
         self.uri = conf_set.schema_matcher_server['uri']
-        self.uri_ds = urljoin(self.uri, 'dataset') + '/'
+        self.uri_ds = urljoin(self.uri, 'dataset') + '/' # uri for the dataset endpoint
+        self.uri_model = urljoin(self.uri, 'model') + '/'  # uri for the model endpoint
 
     def __str__(self):
         return "<SchemaMatcherSession at (" + str(self.uri) + ")>"
 
     def list_alldatasets(self):
         """
+        List ids of all datasets in the dataset repository at the Schema Matcher server.
 
         :return: list of dataset keys
         """
@@ -48,12 +56,13 @@ class SchemaMatcherSession(object):
 
     def post_dataset(self, description, file_path, type_map):
         """
+        Post a new dataset to the schema mather server.
             Args:
                  description: string which describes the dataset to be posted
                  file_path: string which indicates the location of the dataset to be posted
                  type_map: dictionary with type map for the dataset
 
-            :return:
+            :return: Dictionary
             """
 
         logging.info('Sending request to the schema matcher server to post a dataset.')
@@ -71,6 +80,7 @@ class SchemaMatcherSession(object):
 
     def update_dataset(self, dataset_key, description, type_map):
         """
+        Update an existing dataset in the repository at the schema matcher server.
             Args:
                  description: string which describes the dataset to be posted
                  dataset_key: integer which is the dataset id
@@ -95,8 +105,9 @@ class SchemaMatcherSession(object):
 
     def list_dataset(self, dataset_key):
         """
+        Get information on a specific dataset from the repository at the schema matcher server.
         Args:
-             dataset_key: int
+             dataset_key: integer which is the key of the dataset
 
         :return: dictionary
         """
@@ -114,6 +125,120 @@ class SchemaMatcherSession(object):
         return r.json()
 
     def delete_dataset(self, dataset_key):
+        """
+        Delete a specific dataset from the repository at the schema matcher server.
+            Args:
+                 dataset_key: int
+
+            :return:
+            """
+        logging.info('Sending request to the schema matcher server to delete dataset.')
+        uri = urljoin(self.uri_ds, str(dataset_key))
+        try:
+            r = self.session.delete(uri)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
+                          ', uri=' + uri)
+            return
+        return r.json()
+
+    def list_allmodels(self):
+        """
+        List ids of all models in the Model repository at the Schema Matcher server.
+
+        :return: list of model keys
+        """
+        logging.info('Sending request to the schema matcher server to list models.')
+        try:
+            r = self.session.get(self.uri_model)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
+                          ', uri=' + self.uri_model)
+            return
+        return r.json()
+
+    def post_model(self, description, feature_config,
+                   model_type = "randomForest",
+                   labels=None, cost_matrix=None,
+                   resampling_strategy=None):
+        """
+        Post a new model to the schema matcher server.
+            Args:
+                 description: string which describes the model to be posted
+                 feature_config: dictionary
+                 model_type: string
+                 labels: dictionary
+                 cost_matrix:
+                 resampling_strategy: string
+
+            :return: model dictionary
+            """
+
+        logging.info('Sending request to the schema matcher server to post a dataset.')
+        try:
+            data = {"description": description, "file": file_path, "typeMap": type_map}
+            r = self.session.post(self.uri_ds, data=data)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during post request: status_code=' + str(r.status_code) +
+                          ', uri=' + self.uri_ds)
+            return
+        return r.json()
+
+    def update_model(self, model_key, **kwargs):
+        """
+        Update an existing model in the model repository at the schema matcher server.
+            Args:
+                 model_key: integer which is the dataset id
+                 kwargs: dictionary of other parameters
+
+            :return:
+            """
+
+        logging.info('Sending request to the schema matcher server to update model %d' % model_key)
+        uri = urljoin(self.uri_model, str(model_key))
+        try:
+            data = {"description": description, "typeMap": type_map}
+            r = self.session.post(uri, data=data)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during update request: status_code=' + str(r.status_code) +
+                          ', uri=' + uri)
+            return
+        return r.json()
+
+    def list_model(self, model_key):
+        """
+        Get information on a specific model in the model repository at the schema matcher server.
+        Args:
+             model_key: int
+
+        :return: dictionary
+        """
+        logging.info('Sending request to the schema matcher server to get dataset info.')
+        uri = urljoin(self.uri_ds, str(dataset_key))
+        try:
+            r = self.session.get(uri)
+        except Exception as e:
+            logging.error(e)
+            return
+        if r.status_code != 200:
+            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
+                          ', uri=' + uri)
+            return
+        return r.json()
+
+    def delete_model(self, dataset_key):
         """
             Args:
                  dataset_key: int
@@ -169,6 +294,25 @@ class MatcherDataset(object):
     def __repr__(self):
         return self.__str__()
 
+class MatcherModel(object):
+    """
+        Attributes:
+
+    """
+
+    def __init__(self):
+        """
+        Args:
+
+        """
+        pass
+
+    def __str__(self):
+        return "<MatcherModel(" + str() + ")>"
+
+    def __repr__(self):
+        return self.__str__()
+
 class SchemaMatcher(object):
     """
         Attributes:
@@ -177,13 +321,13 @@ class SchemaMatcher(object):
 
     def __init__(self):
         """
-
+        Initialize
         """
         logging.info('Initialising schema matcher class object.')
         self.session = SchemaMatcherSession()
 
-        self.ds_keys = self.session.list_alldatasets()  # list of keys of all available datasets
-        self.populate_datasets()
+        self.ds_keys = self.get_dataset_keys()  # list of keys of all available datasets
+        self.dataset = self.populate_datasets()
 
     def __str__(self):
         return "<SchemaMatcherAt(" + str(self.session.uri) + ")>"
@@ -191,15 +335,20 @@ class SchemaMatcher(object):
     def __repr__(self):
         return self.__str__()
 
+    def get_dataset_keys(self):
+        """Obtain the list of keys of all available datasets."""
+        return self.session.list_alldatasets()
+
     def populate_datasets(self):
         """
-        Args:
+        Construct MacherDataset per each dataset key.
 
-        :return:
+        :return: Dictionary for now
         """
-        self.dataset = dict()
+        dataset = dict()
         for ds_key in self.ds_keys:
-            self.dataset[ds_key] = MatcherDataset(self.session.list_dataset(ds_key))
+            dataset[ds_key] = MatcherDataset(self.session.list_dataset(ds_key))
+        return dataset
 
 
 if __name__ == "__main__":
