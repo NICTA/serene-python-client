@@ -14,6 +14,13 @@ dm.dataset
 #   098098345: <DataSet(98793875)>
 # }
 
+# summary of all datasets
+dm.dataset_summary
+#   dataset_id        name   descr     created    modified  num_rows  num_cols
+#  4  42fv87g2    name.csv   test1  2016-04-07  2016-04-07       100        20
+#  5  8ut20yet   phone.csv   test2  2016-04-07  2016-04-07       100        10
+#  6  d55ifgh0  phone2.csv   test3  2016-04-07  2016-04-07       100        10
+
 
 # reference the dataset by the id...
 
@@ -79,6 +86,15 @@ dm.models
 #    Model(567),
 #    Model(4678)
 # ]
+
+# summary for all models
+
+dm.model_summary
+#     model_id  descr     created    modified     status  state_created state_modified
+#  4  42fv87g2   name  2016-04-07  2016-04-07   COMPLETE     2016-04-07     2016-04-07
+#  5  8ut20yet  phone  2016-04-07  2016-04-07  UNTRAINED     2016-04-07     2016-04-07
+#  6  d55ifgh0  phone  2016-04-07  2016-04-07       BUSY     2016-04-07     2016-04-07
+
 
 
 # Create a new model. Trains up a model behind the scene
