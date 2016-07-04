@@ -15,7 +15,7 @@ class InternalDIError(DataIntError):
         self.msg = msg
 
     def __repr__(self):
-        return "InternalDIError in expression='" + repr(self.expr) + "' and message='" + repr(self.msg) + "'"
+        return "InternalDIError in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
 
     def __str__(self):
         return self.__repr__()
@@ -33,7 +33,7 @@ class BadRequestError(DataIntError):
         self.msg = msg
 
     def __repr__(self):
-        return "BadRequestError in expression='" + repr(self.expr) + "' and message='" + repr(self.msg) + "'"
+        return "BadRequestError in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
 
     def __str__(self):
         return self.__repr__()
@@ -52,7 +52,7 @@ class NotFoundError(DataIntError):
         self.msg = msg
 
     def __repr__(self):
-        return "NotFoundError in expression='" + repr(self.expr) + "' and message='" + repr(self.msg) + "'"
+        return "NotFoundError in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
 
     def __str__(self):
         return self.__repr__()
@@ -73,7 +73,7 @@ class OtherError(DataIntError):
 
     def __repr__(self):
         return "OtherError with status_code=" + repr(self.status_code) + \
-               " in expression='" + repr(self.expr) + "' and message='" + repr(self.msg) + "'"
+               " in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
 
     def __str__(self):
         return self.__repr__()

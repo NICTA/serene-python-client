@@ -1,13 +1,10 @@
-
 # Python wrapper for the Schema Matcher API
+
 # external
 import logging
 import requests
-import os
-import datetime
 from urllib.parse import urljoin
 import pandas as pd
-import json
 from wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, InternalDIError
 
 # project
@@ -68,7 +65,7 @@ class SchemaMatcherSession(object):
             response -- response object from request
             expr -- expression where the error occurs
 
-        :return: raise errors
+        :return: None or raise errors
         """
         if response.status_code == 200:
             # there are no errors here
@@ -211,13 +208,13 @@ class SchemaMatcherSession(object):
             data["classes"] = classes
         if model_type:
             data["modelType"] = model_type
-        if labels and type(labels) == dict:
+        if labels:
             data["labelData"] = labels
         if cost_matrix:
             data["costMatrix"] = cost_matrix
         if resampling_strategy:
             data["resamplingStrategy"] = resampling_strategy
-        if feature_config and type(feature_config) == dict and len(feature_config)>0:
+        if feature_config:
             data["features"] = feature_config
         return data
 
@@ -241,7 +238,7 @@ class SchemaMatcherSession(object):
             :return: model dictionary
             """
 
-        logging.info('Sending request to the schema matcher server to post a dataset.')
+        logging.info('Sending request to the schema matcher server to post a model.')
 
         try:
             data = self.process_model_input(feature_config, description, classes,
@@ -358,6 +355,14 @@ class MatcherDataset(object):
     def __repr__(self):
         return self.__str__()
 
+class ModelState(object):
+    """
+    Attributes:
+
+    """
+    def __init__(self):
+        pass
+
 class MatcherModel(object):
     """
         Attributes:
@@ -376,64 +381,3 @@ class MatcherModel(object):
 
     def __repr__(self):
         return self.__str__()
-
-class SchemaMatcher(object):
-    """
-        Attributes:
-
-    """
-
-    def __init__(self):
-        """
-        Initialize
-        """
-        logging.info('Initialising schema matcher class object.')
-        self.session = SchemaMatcherSession()
-
-        self.ds_keys = self.get_dataset_keys()  # list of keys of all available datasets
-        self.dataset = self.populate_datasets()
-
-    def __str__(self):
-        return "<SchemaMatcherAt(" + str(self.session.uri) + ")>"
-
-    def __repr__(self):
-        return self.__str__()
-
-    def get_dataset_keys(self):
-        """Obtain the list of keys of all available datasets."""
-        return self.session.list_alldatasets()
-
-    def populate_datasets(self):
-        """
-        Construct MacherDataset per each dataset key.
-
-        :return: Dictionary for now
-        """
-        dataset = dict()
-        for ds_key in self.ds_keys:
-            dataset[ds_key] = MatcherDataset(self.session.list_dataset(ds_key))
-        return dataset
-
-
-if __name__ == "__main__":
-    proj_dir = os.path.dirname(os.path.abspath(os.curdir))
-
-    # setting up the logging
-    log_file = 'schemamatcher_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S0') + '.log'
-    logging.basicConfig(filename=os.path.join(proj_dir, 'data', log_file),
-                        level=logging.DEBUG, filemode='w+',
-                        format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
-    sess = SchemaMatcherSession()
-    all_ds = sess.list_alldatasets()
-    all_models = sess.list_allmodels()
-
-    model = sess.list_model(all_models[0])
-    features_conf = model["features"]
-
-    sess.post_model(description="blahblah", feature_config=features_conf)
-
-    dm = SchemaMatcher()
-
-    print(dm)
-    print(dm.dataset)

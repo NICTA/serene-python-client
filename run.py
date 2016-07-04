@@ -4,7 +4,7 @@ import os
 import datetime
 
 # project
-from wrappers.schema_matcher_wrapper import SchemaMatcher
+from wrappers.data_integration_py import SchemaMatcher
 
 HERE = os.path.abspath(os.curdir)
 
