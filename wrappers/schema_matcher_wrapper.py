@@ -16,9 +16,10 @@ class SchemaMatcherSession(object):
     This is the class which sets up the session for the schema matcher api.
     It provides wrappers for all calls to the API.
         Attributes:
-            session: Session instance from requests with configuration parameters from config.py
+            session: Session instance with configuration parameters for the schema matcher server from config.py
             uri: general uri for the schema matcher API
             uri_ds: uri for the dataset endpoint of the schema matcher API
+            uri_model: uri for the model endpoint of the schema matcher API
     """
     def __init__(self):
         """Initialize instance of the SchemaMatcherSession."""
@@ -39,6 +40,7 @@ class SchemaMatcherSession(object):
     def list_alldatasets(self):
         """
         List ids of all datasets in the dataset repository at the Schema Matcher server.
+        If the connection fails, empty list is returned and connection error is logged.
 
         :return: list of dataset keys
         """
@@ -47,11 +49,11 @@ class SchemaMatcherSession(object):
             r = self.session.get(self.uri_ds)
         except Exception as e:
             logging.error(e)
-            return
+            return []
         if r.status_code != 200:
             logging.error('Error occurred during request: status_code=' + str(r.status_code) +
                           ', uri=' + self.uri_ds)
-            return
+            return []
         return r.json()
 
     def post_dataset(self, description, file_path, type_map):
@@ -164,7 +166,7 @@ class SchemaMatcherSession(object):
         return r.json()
 
     def post_model(self, description, feature_config,
-                   model_type = "randomForest",
+                   model_type="randomForest",
                    labels=None, cost_matrix=None,
                    resampling_strategy=None):
         """
@@ -182,31 +184,42 @@ class SchemaMatcherSession(object):
 
         logging.info('Sending request to the schema matcher server to post a dataset.')
         try:
-            data = {"description": description, "file": file_path, "typeMap": type_map}
-            r = self.session.post(self.uri_ds, data=data)
+            data = {"description": description, "features": feature_config, "modelType": model_type,
+                    "labelData": labels, "costMatrix": cost_matrix, "resamplingStrategy": resampling_strategy}
+            r = self.session.post(self.uri_model, data=data)
         except Exception as e:
             logging.error(e)
             return
         if r.status_code != 200:
             logging.error('Error occurred during post request: status_code=' + str(r.status_code) +
-                          ', uri=' + self.uri_ds)
+                          ', uri=' + self.uri_model)
             return
         return r.json()
 
-    def update_model(self, model_key, **kwargs):
+    def update_model(self, model_key,
+                     description=None, feature_config=None,
+                     model_type="randomForest",
+                     labels=None, cost_matrix=None,
+                     resampling_strategy=None):
         """
         Update an existing model in the model repository at the schema matcher server.
             Args:
-                 model_key: integer which is the dataset id
-                 kwargs: dictionary of other parameters
+                 model_key: integer which is the key of the model in the repository
+                 description: string which describes the model to be posted
+                 feature_config: dictionary
+                 model_type: string
+                 labels: dictionary
+                 cost_matrix:
+                 resampling_strategy: string
 
-            :return:
+            :return: model dictionary
             """
 
         logging.info('Sending request to the schema matcher server to update model %d' % model_key)
         uri = urljoin(self.uri_model, str(model_key))
         try:
-            data = {"description": description, "typeMap": type_map}
+            data = {"description": description, "features": feature_config, "modelType": model_type,
+                    "labelData": labels, "costMatrix": cost_matrix, "resamplingStrategy": resampling_strategy}
             r = self.session.post(uri, data=data)
         except Exception as e:
             logging.error(e)
@@ -221,12 +234,12 @@ class SchemaMatcherSession(object):
         """
         Get information on a specific model in the model repository at the schema matcher server.
         Args:
-             model_key: int
+             model_key: integer which is the key of the model in the repository
 
         :return: dictionary
         """
         logging.info('Sending request to the schema matcher server to get dataset info.')
-        uri = urljoin(self.uri_ds, str(dataset_key))
+        uri = urljoin(self.uri_model, str(model_key))
         try:
             r = self.session.get(uri)
         except Exception as e:
@@ -238,15 +251,15 @@ class SchemaMatcherSession(object):
             return
         return r.json()
 
-    def delete_model(self, dataset_key):
+    def delete_model(self, model_key):
         """
             Args:
-                 dataset_key: int
+                 model_key: integer which is the key of the model in the repository
 
             :return: dictionary
             """
         logging.info('Sending request to the schema matcher server to delete dataset.')
-        uri = urljoin(self.uri_ds, str(dataset_key))
+        uri = urljoin(self.uri_model, str(model_key))
         try:
             r = self.session.delete(uri)
         except Exception as e:
@@ -284,7 +297,7 @@ class MatcherDataset(object):
         for col in self.columns:
             headers.append(col['name'])
             data.append(col['sample'])
-            self.columnMap.append([col['id'], col['name']])
+            self.columnMap.append([col['id'], col['name'], col['datasetID']])
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
 

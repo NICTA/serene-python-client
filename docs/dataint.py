@@ -89,8 +89,23 @@ model = di.create_model(
     col_types=['name', 'addr', 'phone']
 )
 
+# show model settings
+model.info
+# id
+# modelType
+# classes
+# features
+# costMatrix
+# resamplingStrategy
+# labelData
+# refDaraSets
+# state
+# dateCreated
+# dateModified
+
 
 # by default model shows the current labels for the datasets
+# in case there are no labels/predictions it will be empty?
 
 model
 #           id    label    col_name    dataset  dataset_id  user_labeled
@@ -142,6 +157,10 @@ model
 # 12  zf84hsod  unknown       12334   junk.csv    q25srwty             0
 # 14  a7dybs14  unknown     another   junk.csv    q25srwty             0
 
+
+# add explicitly predictions???
+
+model.predictions
 
 # the accuracy can be obtained...
 

@@ -2,14 +2,14 @@
 
 from setuptools import setup, find_packages
 
-with open('LICENSE') as f:
+with open('LICENSE.txt') as f:
     license = f.read()
 
 with open('README.md') as f:
     readme = f.read()
 
 setup(
-    name='dataint',
+    name='data_integration_py',
     version='0.0.1',
     description='Python Client for the Data Integration Project',
     long_description=readme,
