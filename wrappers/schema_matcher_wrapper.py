@@ -1,5 +1,5 @@
-# Python wrapper for the Schema Matcher API
 
+# Python wrapper for the Schema Matcher API
 # external
 import logging
 import requests
@@ -8,6 +8,7 @@ import datetime
 from urllib.parse import urljoin
 import pandas as pd
 import json
+from wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, InternalDIError
 
 # project
 from config import settings as conf_set
@@ -54,8 +55,36 @@ class SchemaMatcherSession(object):
         self.uri_ds = urljoin(self.uri, 'dataset') + '/' # uri for the dataset endpoint
         self.uri_model = urljoin(self.uri, 'model') + '/'  # uri for the model endpoint
 
-    def __str__(self):
+    def __repr__(self):
         return "<SchemaMatcherSession at (" + str(self.uri) + ")>"
+
+    def __str__(self):
+        return self.__repr__()
+
+    def handle_errors(self, response, expr):
+        """
+        Raise errors based on response status_code
+        Args:
+            response -- response object from request
+            expr -- expression where the error occurs
+
+        :return: raise errors
+        """
+        if response.status_code == 200:
+            # there are no errors here
+            return
+
+        if response.status_code == 400:
+            logging.error("BadRequest in " + str(expr) + ": message='" + str(response.json()['message']) + "'")
+            raise BadRequestError(expr, response.json()['message'])
+        elif response.status_code == 404:
+            logging.error("NotFound in " + str(expr) + ": message='" + str(response.json()['message']) + "'")
+            raise NotFoundError(expr, response.json()['message'])
+        else:
+            logging.error("Other error with status_code=" + str(response.status_code) +
+                          " in " + str(expr) + ": message='" + str(response.json()['message']) + "'")
+            raise OtherError(response.status_code, expr, response.json()['message'])
+
 
     def list_alldatasets(self):
         """
@@ -69,11 +98,8 @@ class SchemaMatcherSession(object):
             r = self.session.get(self.uri_ds)
         except Exception as e:
             logging.error(e)
-            return []
-        if r.status_code != 200:
-            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
-                          ', uri=' + self.uri_ds)
-            return []
+            raise InternalDIError("list_alldatasets", e)
+        self.handle_errors(r, "GET " + self.uri_ds)
         return r.json()
 
     def post_dataset(self, description, file_path, type_map):
@@ -93,11 +119,8 @@ class SchemaMatcherSession(object):
             r = self.session.post(self.uri_ds, json=data)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during post request: status_code=' + str(r.status_code) +
-                          ', uri=' + self.uri_ds)
-            return
+            raise InternalDIError("post_dataset", e)
+        self.handle_errors(r, "POST " + self.uri_ds)
         return r.json()
 
     def update_dataset(self, dataset_key, description, type_map):
@@ -118,11 +141,8 @@ class SchemaMatcherSession(object):
             r = self.session.post(uri, data=data)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during update request: status_code=' + str(r.status_code) +
-                          ', uri=' + uri)
-            return
+            raise InternalDIError("update_dataset", e)
+        self.handle_errors(r, "PATCH " + uri)
         return r.json()
 
     def list_dataset(self, dataset_key):
@@ -139,11 +159,8 @@ class SchemaMatcherSession(object):
             r = self.session.get(uri)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
-                          ', uri=' + uri)
-            return
+            raise InternalDIError("list_dataset", e)
+        self.handle_errors(r, "GET " + uri)
         return r.json()
 
     def delete_dataset(self, dataset_key):
@@ -160,11 +177,8 @@ class SchemaMatcherSession(object):
             r = self.session.delete(uri)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
-                          ', uri=' + uri)
-            return
+            raise InternalDIError("delete_dataset", e)
+        self.handle_errors(r, "DELETE " + uri)
         return r.json()
 
     def list_allmodels(self):
@@ -178,11 +192,8 @@ class SchemaMatcherSession(object):
             r = self.session.get(self.uri_model)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
-                          ', uri=' + self.uri_model)
-            return
+            raise InternalDIError("list_allmodels", e)
+        self.handle_errors(r, "GET " + self.uri_model)
         return r.json()
 
     def process_model_input(self, feature_config,
@@ -238,11 +249,8 @@ class SchemaMatcherSession(object):
             r = self.session.post(self.uri_model, json=data)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during post request: status_code=' + str(r.status_code) +
-                          ', uri=' + self.uri_model)
-            return
+            raise InternalDIError("post_model", e)
+        self.handle_errors(r, "POST " + self.uri_model)
         return r.json()
 
     def update_model(self, model_key,
@@ -275,11 +283,8 @@ class SchemaMatcherSession(object):
             r = self.session.post(uri, data=data)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during update request: status_code=' + str(r.status_code) +
-                          ', uri=' + uri)
-            return
+            raise InternalDIError("update_model", e)
+        self.handle_errors(r, "PATCH " + uri)
         return r.json()
 
     def list_model(self, model_key):
@@ -296,11 +301,8 @@ class SchemaMatcherSession(object):
             r = self.session.get(uri)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
-                          ', uri=' + uri)
-            return
+            raise InternalDIError("list_model", e)
+        self.handle_errors(r, "GET " + uri)
         return r.json()
 
     def delete_model(self, model_key):
@@ -316,11 +318,8 @@ class SchemaMatcherSession(object):
             r = self.session.delete(uri)
         except Exception as e:
             logging.error(e)
-            return
-        if r.status_code != 200:
-            logging.error('Error occurred during request: status_code=' + str(r.status_code) +
-                          ', uri=' + uri)
-            return
+            raise InternalDIError("delete_model", e)
+        self.handle_errors(r, "DELETE " + uri)
         return r.json()
 
 
