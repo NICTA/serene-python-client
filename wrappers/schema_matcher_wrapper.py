@@ -1,15 +1,35 @@
 # Python wrapper for the Schema Matcher API
 
 # external
-import requests
 import logging
+import requests
 import os
 import datetime
 from urllib.parse import urljoin
 import pandas as pd
+import json
 
 # project
 from config import settings as conf_set
+
+################### helper funcs
+def pretty_print_POST(req):
+    """
+    At this point it is completely built and ready
+    to be fired; it is "prepared".
+
+    However pay attention at the formatting used in
+    this function because it is programmed to be pretty
+    printed and may differ from the actual request.
+    """
+    print('{}\n{}\n{}\n\n{}'.format(
+        '-----------START-----------',
+        req.method + ' ' + req.url,
+        '\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
+        req.body,
+    ))
+###################
+
 
 class SchemaMatcherSession(object):
     """
@@ -70,7 +90,7 @@ class SchemaMatcherSession(object):
         logging.info('Sending request to the schema matcher server to post a dataset.')
         try:
             data = {"description": description, "file": file_path, "typeMap": type_map}
-            r = self.session.post(self.uri_ds, data = data)
+            r = self.session.post(self.uri_ds, json=data)
         except Exception as e:
             logging.error(e)
             return
@@ -165,15 +185,43 @@ class SchemaMatcherSession(object):
             return
         return r.json()
 
-    def post_model(self, description, feature_config,
+    def process_model_input(self, feature_config,
+                   description="",
+                   classes=["unknown"],
                    model_type="randomForest",
                    labels=None, cost_matrix=None,
-                   resampling_strategy=None):
+                   resampling_strategy="ResampleToMean"):
+
+        # TODO: more sophisticated check of input...
+        data = dict()
+        if description:
+            data["description"] = description
+        if classes and type(classes) == list and len(classes)>0:
+            data["classes"] = classes
+        if model_type:
+            data["modelType"] = model_type
+        if labels and type(labels) == dict:
+            data["labelData"] = labels
+        if cost_matrix:
+            data["costMatrix"] = cost_matrix
+        if resampling_strategy:
+            data["resamplingStrategy"] = resampling_strategy
+        if feature_config and type(feature_config) == dict and len(feature_config)>0:
+            data["features"] = feature_config
+        return data
+
+    def post_model(self, feature_config,
+                   description="",
+                   classes=["unknown"],
+                   model_type="randomForest",
+                   labels=None, cost_matrix=None,
+                   resampling_strategy="ResampleToMean"):
         """
         Post a new model to the schema matcher server.
             Args:
-                 description: string which describes the model to be posted
                  feature_config: dictionary
+                 description: string which describes the model to be posted
+                 classes: list of class names
                  model_type: string
                  labels: dictionary
                  cost_matrix:
@@ -183,10 +231,11 @@ class SchemaMatcherSession(object):
             """
 
         logging.info('Sending request to the schema matcher server to post a dataset.')
+
         try:
-            data = {"description": description, "features": feature_config, "modelType": model_type,
-                    "labelData": labels, "costMatrix": cost_matrix, "resamplingStrategy": resampling_strategy}
-            r = self.session.post(self.uri_model, data=data)
+            data = self.process_model_input(feature_config, description, classes,
+                                            model_type, labels, cost_matrix, resampling_strategy)
+            r = self.session.post(self.uri_model, json=data)
         except Exception as e:
             logging.error(e)
             return
@@ -197,16 +246,19 @@ class SchemaMatcherSession(object):
         return r.json()
 
     def update_model(self, model_key,
-                     description=None, feature_config=None,
+                     feature_config,
+                     description="",
+                     classes=["unknown"],
                      model_type="randomForest",
                      labels=None, cost_matrix=None,
-                     resampling_strategy=None):
+                     resampling_strategy="ResampleToMean"):
         """
         Update an existing model in the model repository at the schema matcher server.
             Args:
                  model_key: integer which is the key of the model in the repository
-                 description: string which describes the model to be posted
                  feature_config: dictionary
+                 description: string which describes the model to be posted
+                 classes: list of class names
                  model_type: string
                  labels: dictionary
                  cost_matrix:
@@ -218,8 +270,8 @@ class SchemaMatcherSession(object):
         logging.info('Sending request to the schema matcher server to update model %d' % model_key)
         uri = urljoin(self.uri_model, str(model_key))
         try:
-            data = {"description": description, "features": feature_config, "modelType": model_type,
-                    "labelData": labels, "costMatrix": cost_matrix, "resamplingStrategy": resampling_strategy}
+            data = self.process_model_input(feature_config, description, classes,
+                                            model_type, labels, cost_matrix, resampling_strategy)
             r = self.session.post(uri, data=data)
         except Exception as e:
             logging.error(e)
@@ -375,6 +427,12 @@ if __name__ == "__main__":
 
     sess = SchemaMatcherSession()
     all_ds = sess.list_alldatasets()
+    all_models = sess.list_allmodels()
+
+    model = sess.list_model(all_models[0])
+    features_conf = model["features"]
+
+    sess.post_model(description="blahblah", feature_config=features_conf)
 
     dm = SchemaMatcher()
 
