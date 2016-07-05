@@ -114,7 +114,7 @@ model.info
 # costMatrix
 # resamplingStrategy
 # labelData
-# refDaraSets
+# refDataSets
 # state
 # dateCreated
 # dateModified
