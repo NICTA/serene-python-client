@@ -9,6 +9,7 @@ from wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, 
 from enum import Enum
 from datetime import datetime
 import time
+import numpy as np
 
 # project
 from config import settings as conf_set
@@ -506,6 +507,18 @@ class MatcherModel(object):
 
         # create dataframe with user defined labels and predictions
 
+    def session_update(self, api_session):
+        """
+            Update model from the API.
+            Args:
+                api_session -- schema matcher session
+
+            :return:
+            """
+        cur_model = api_session.list_model(self.model_key)
+        self.update(cur_model)
+
+
     def train(self, api_session, wait=True):
         """
         Send the training request to the API.
@@ -515,13 +528,16 @@ class MatcherModel(object):
 
         :return: boolean -- True if model is trained, False otherwise
         """
-        finished = False
         api_session.train_model(self.model_key) # launch training
 
+        self.session_update(api_session)
+        # training is done if finished
+        finished = self.model_state.status == Status.ERROR or self.model_state.status == Status.COMPLETE
+
         while wait and not(finished):
-            time.sleep(30) # wait for some time
-            cur_model = api_session.list_model(self.model_key) #
-            self.update(cur_model)
+            print("Waiting for training")
+            time.sleep(30)  # wait for some time
+            self.session_update(api_session)
             if self.model_state.status == Status.ERROR or\
                             self.model_state.status == Status.COMPLETE:
                 finished = True # finish waiting if training failed or got complete
@@ -529,25 +545,26 @@ class MatcherModel(object):
         return finished and self.model_state.status == Status.COMPLETE
 
 
-
-    def get_predictions(self, api_session, wait=True):
+    def get_predictions(self, api_session, wait=True, column_map=None):
         """
             Get predictions based on the model.
             Args:
                 api_session -- schema matcher session
                 wait -- boolean indicator whether to wait for the training to finish, default is True.
+                column_map -- optional dictionary to lookup column names based on column ids
 
             :return: Pandas data framework.
             """
-        finished = False
-
         train_status = self.train(api_session, wait) # do training
         api_session.predict_model(self.model_key)  # launch prediction
 
+        self.session_update(api_session)
+        # predictions are available if finished
+        finished = self.model_state.status == Status.ERROR or self.model_state.status == Status.COMPLETE
+
         while wait and not (finished):
-            time.sleep(30)  # wait for some time
-            cur_model = api_session.list_model(self.model_key)  #
-            self.update(cur_model)
+            time.sleep(5)  # wait for some time
+            self.session_update(api_session) # update model
             if self.model_state.status == Status.ERROR or \
                             self.model_state.status == Status.COMPLETE:
                 finished = True  # finish waiting if prediction failed or got complete
@@ -555,23 +572,89 @@ class MatcherModel(object):
         if (finished and self.model_state.status == Status.COMPLETE):
             # prediction has successfully finished
             resp_dict = api_session.get_model_predict(self.model_key)
-            pass
         elif self.model_state.status == Status.ERROR:
             # either training or prediction failed
-            pass
+            raise InternalDIError("Prediction/training failed", self.model_state.message)
+        elif self.model_state.status == Status.BUSY:
+            # either training or prediction is still ongoing
+            raise InternalDIError("Prediction/training still in progress", self.model_state.message)
+        else:
+            raise InternalDIError("Training has not been launched", self.model_state.message)
 
-        # either training or prediction are not complete
-        return
+
+        return self.process_predictions(resp_dict, column_map)
 
 
-    def get_labeldata(self):
-        pass
+    def process_predictions(self, response, column_map=None):
+        """
+            Process column predictions into Pandas data framework.
+            Args:
+                response-- list of column predictions (dictionaries) which is returned by the schema matcher API
+                column_map -- optional dictionary to lookup column names based on column ids
 
-    def get_scores(self):
-        pass
+            :return: Pandas data framework.
+            """
+        headers = ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label", "confidence"]
+        classes = []
+        feature_names = []
+        # additionally scores for all classes and features
+        data = []
+        for col_pred in response:
+            # if column_map is available, lookup the name of the column
+            if column_map:
+                column_name = column_map.get(col_pred["columnID"], np.nan)
+            else:
+                column_name = np.nan
+            # if user provided label for this column, get the label, otherwise NaN
+            actual_lab = matcher_model.label_data.get(col_pred["columnID"], np.nan)
+            conf = col_pred["confidence"]
+            if conf > 0:
+                label = col_pred["label"]
+            else:
+                label = np.nan # training actually failed...
+            new_row = (col_pred["id"], col_pred["columnID"], column_name, col_pred["datasetID"],
+                       actual_lab, label, conf)
+            if len(classes) == 0: # get names of classes
+                classes = col_pred["scores"].keys()
+            if len(feature_names) == 0: # get names of features
+                feature_names = col_pred["features"].keys()
 
-    def get_features(self):
-        pass
+            new_row += tuple(col_pred["scores"].values()) # get scores for all classes
+            new_row += tuple(col_pred["features"].values())  # get features which were used for prediction
+            data.append(new_row)
+
+        all_data = pd.DataFrame(data)
+        all_data.columns = headers + list(classes) + list(feature_names)
+        return all_data
+
+
+    def get_labeldata(self, column_map=None):
+        headers = ["model_id", "column_id", "column_name", "actual_label"]
+        # TODO: add dataset id ???
+        data = []
+        for columnID, label in self.label_data.items():
+            if column_map:
+                column_name = column_map.get(columnID, np.nan)
+            else:
+                column_name = np.nan
+            data.append((self.model_key, columnID, column_name, label))
+
+        sample = pd.DataFrame(data)
+        sample.columns = headers
+        return sample
+
+    def get_scores(self, all_data):
+        # just get a slice of all_data
+        # all_data has columns:
+        # ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label", "confidence"]+ classes + features
+        headers = ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
+                   "confidence"] + self.classes
+        return all_data[headers]
+
+    def get_features(self, all_data):
+        # just get a slice of all_data
+        headers = list(set(all_data.columns).difference(self.classes))
+        return all_data[headers]
 
     def update(self, resp_dict):
         # TODO: check resp_dict
@@ -634,7 +717,7 @@ if __name__ == "__main__":
     model = sess.list_model(all_models[0])
     features_conf = model["features"]
 
-    sess.post_model(feature_config="")
+    #sess.post_model(feature_config="")
 
     matcher_model = MatcherModel(model)
 
