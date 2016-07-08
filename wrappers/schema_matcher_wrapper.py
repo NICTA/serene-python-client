@@ -138,13 +138,13 @@ class SchemaMatcherSession(object):
     def post_dataset(self, description, file_path, type_map):
         """
         Post a new dataset to the schema mather server.
-            Args:
-                 description: string which describes the dataset to be posted
-                 file_path: string which indicates the location of the dataset to be posted
-                 type_map: dictionary with type map for the dataset
+        Args:
+             description: string which describes the dataset to be posted
+             file_path: string which indicates the location of the dataset to be posted
+             type_map: dictionary with type map for the dataset
 
-            :return: Dictionary
-            """
+        :return: Dictionary
+        """
 
         logging.info('Sending request to the schema matcher server to post a dataset.')
         try:
@@ -159,13 +159,13 @@ class SchemaMatcherSession(object):
     def update_dataset(self, dataset_key, description, type_map):
         """
         Update an existing dataset in the repository at the schema matcher server.
-            Args:
-                 description: string which describes the dataset to be posted
-                 dataset_key: integer which is the dataset id
-                 type_map: dictionary with type map for the dataset
+        Args:
+             description: string which describes the dataset to be posted
+             dataset_key: integer which is the dataset id
+             type_map: dictionary with type map for the dataset
 
-            :return:
-            """
+        :return:
+        """
 
         logging.info('Sending request to the schema matcher server to update dataset %d' % dataset_key)
         uri = urljoin(self.uri_ds, str(dataset_key))
@@ -199,11 +199,11 @@ class SchemaMatcherSession(object):
     def delete_dataset(self, dataset_key):
         """
         Delete a specific dataset from the repository at the schema matcher server.
-            Args:
-                 dataset_key: int
+        Args:
+             dataset_key: int
 
-            :return:
-            """
+        :return:
+        """
         logging.info('Sending request to the schema matcher server to delete dataset.')
         uri = urljoin(self.uri_ds, str(dataset_key))
         try:
@@ -229,12 +229,12 @@ class SchemaMatcherSession(object):
         self.handle_errors(r, "GET " + self.uri_model)
         return r.json()
 
-    def process_model_input(self, feature_config,
-                   description="",
-                   classes=["unknown"],
-                   model_type="randomForest",
+    def process_model_input(self, feature_config=None,
+                   description=None,
+                   classes=None,
+                   model_type=None,
                    labels=None, cost_matrix=None,
-                   resampling_strategy="ResampleToMean"):
+                   resampling_strategy=None):
 
         # TODO: more sophisticated check of input...
         data = dict()
@@ -262,17 +262,17 @@ class SchemaMatcherSession(object):
                    resampling_strategy="ResampleToMean"):
         """
         Post a new model to the schema matcher server.
-            Args:
-                 feature_config: dictionary
-                 description: string which describes the model to be posted
-                 classes: list of class names
-                 model_type: string
-                 labels: dictionary
-                 cost_matrix:
-                 resampling_strategy: string
+        Args:
+             feature_config: dictionary
+             description: string which describes the model to be posted
+             classes: list of class names
+             model_type: string
+             labels: dictionary
+             cost_matrix:
+             resampling_strategy: string
 
-            :return: model dictionary
-            """
+        :return: model dictionary
+        """
 
         logging.info('Sending request to the schema matcher server to post a model.')
 
@@ -286,27 +286,22 @@ class SchemaMatcherSession(object):
         self.handle_errors(r, "POST " + self.uri_model)
         return r.json()
 
-    def update_model(self, model_key,
-                     feature_config,
-                     description="",
-                     classes=["unknown"],
-                     model_type="randomForest",
-                     labels=None, cost_matrix=None,
-                     resampling_strategy="ResampleToMean"):
+    def update_model(self, model_key, feature_config, description, classes,
+                     model_type, labels, cost_matrix, resampling_strategy):
         """
         Update an existing model in the model repository at the schema matcher server.
-            Args:
-                 model_key: integer which is the key of the model in the repository
-                 feature_config: dictionary
-                 description: string which describes the model to be posted
-                 classes: list of class names
-                 model_type: string
-                 labels: dictionary
-                 cost_matrix:
-                 resampling_strategy: string
+        Args:
+             model_key: integer which is the key of the model in the repository
+             feature_config: dictionary
+             description: string which describes the model to be posted
+             classes: list of class names
+             model_type: string
+             labels: dictionary
+             cost_matrix:
+             resampling_strategy: string
 
-            :return: model dictionary
-            """
+        :return: model dictionary
+        """
 
         logging.info('Sending request to the schema matcher server to update model %d' % model_key)
         uri = urljoin(self.uri_model, str(model_key))
@@ -340,11 +335,11 @@ class SchemaMatcherSession(object):
 
     def delete_model(self, model_key):
         """
-            Args:
-                 model_key: integer which is the key of the model in the repository
+        Args:
+             model_key: integer which is the key of the model in the repository
 
-            :return: dictionary
-            """
+        :return: dictionary
+        """
         logging.info('Sending request to the schema matcher server to delete model.')
         uri = urljoin(self.uri_model, str(model_key))
         try:
@@ -357,12 +352,11 @@ class SchemaMatcherSession(object):
 
     def train_model(self, model_key):
         """
+        Args:
+             model_key: integer which is the key of the model in the repository
 
-            Args:
-                 model_key: integer which is the key of the model in the repository
-
-            :return: True
-            """
+        :return: True
+        """
         logging.info('Sending request to the schema matcher server to train the model.')
         uri = urljoin(urljoin(self.uri_model, str(model_key)+"/"), "train")
         try:
@@ -375,12 +369,12 @@ class SchemaMatcherSession(object):
 
     def predict_model(self, model_key):
         """
-            Post request to perform prediction based on the model.
-            Args:
-                 model_key: integer which is the key of the model in the repository
+        Post request to perform prediction based on the model.
+        Args:
+             model_key: integer which is the key of the model in the repository
 
-            :return: True
-            """
+        :return: True
+        """
         logging.info('Sending request to the schema matcher server to preform prediction based on the model.')
         uri = urljoin(urljoin(self.uri_model, str(model_key) + "/"), "predict")
         try:
@@ -393,12 +387,12 @@ class SchemaMatcherSession(object):
 
     def get_model_predict(self, model_key):
         """
-            Get predictions based on the model.
-            Args:
-                 model_key: integer which is the key of the model in the repository
+        Get predictions based on the model.
+        Args:
+             model_key: integer which is the key of the model in the repository
 
-            :return: dictionary
-            """
+        :return: dictionary
+        """
         logging.info('Sending request to the schema matcher server to get predictions based on the model.')
         uri = urljoin(urljoin(self.uri_model, str(model_key) + "/"), "predict")
         try:
@@ -431,11 +425,11 @@ class MatcherDataset(object):
 
         headers = []
         data = []
-        self.columnMap = []
+        self.column_map = dict() # mapping column ids to column names
         for col in self.columns:
             headers.append(col['name'])
             data.append(col['sample'])
-            self.columnMap.append([col['id'], col['name'], col['datasetID']])
+            self.column_map[col['id']] = col['name']
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
 
@@ -480,10 +474,11 @@ class MatcherModel(object):
 
     """
 
-    def __init__(self, resp_dict):
+    def __init__(self, resp_dict, column_map=None):
         """
         Args:
-            resp_dict: dictionary which is returned by Schema Matcher API
+            resp_dict -- dictionary which is returned by Schema Matcher API
+            column_map -- optional dictionary for mapping columns fom ids to names
         """
         # TODO: check resp_dict
         try:
@@ -492,6 +487,7 @@ class MatcherModel(object):
             logging.error("Failed to initialize MatcherModel: model key could not be converted to integer.")
             raise InternalDIError("MatcherModel initialization", e)
         self.model_type = resp_dict["modelType"]
+        self.description = resp_dict["description"]
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
         self.resampling_strategy = resp_dict["resamplingStrategy"]
@@ -505,16 +501,22 @@ class MatcherModel(object):
                                       resp_dict["state"]["dateCreated"],
                                       resp_dict["state"]["dateModified"])
 
+        self.column_map = column_map
+
         # create dataframe with user defined labels and predictions
+        self.all_data = self.get_labeldata() # column_map?
+        self.features = pd.DataFrame() # empty data frame
+        self.scores = pd.DataFrame() # empty data frame
+        self.accuracy = np.nan # accuracy not available
 
     def session_update(self, api_session):
         """
-            Update model from the API.
-            Args:
-                api_session -- schema matcher session
+        Update model from the API.
+        Args:
+            api_session -- schema matcher session
 
-            :return:
-            """
+        :return:
+        """
         cur_model = api_session.list_model(self.model_key)
         self.update(cur_model)
 
@@ -545,16 +547,16 @@ class MatcherModel(object):
         return finished and self.model_state.status == Status.COMPLETE
 
 
-    def get_predictions(self, api_session, wait=True, column_map=None):
+    def get_predictions(self, api_session, wait=True):
         """
-            Get predictions based on the model.
-            Args:
-                api_session -- schema matcher session
-                wait -- boolean indicator whether to wait for the training to finish, default is True.
-                column_map -- optional dictionary to lookup column names based on column ids
+        Get predictions based on the model.
+        Args:
+            api_session -- schema matcher session
+            wait -- boolean indicator whether to wait for the training to finish, default is True.
+            column_map -- optional dictionary to lookup column names based on column ids
 
-            :return: Pandas data framework.
-            """
+        :return: Pandas data framework.
+        """
         train_status = self.train(api_session, wait) # do training
         api_session.predict_model(self.model_key)  # launch prediction
 
@@ -581,19 +583,21 @@ class MatcherModel(object):
         else:
             raise InternalDIError("Training has not been launched", self.model_state.message)
 
+        self.all_data = self.process_predictions(resp_dict)
+        self.scores = self.get_scores()
+        self.features = self.get_features()
+        return self.all_data
 
-        return self.process_predictions(resp_dict, column_map)
 
-
-    def process_predictions(self, response, column_map=None):
+    def process_predictions(self, response):
         """
-            Process column predictions into Pandas data framework.
-            Args:
-                response-- list of column predictions (dictionaries) which is returned by the schema matcher API
-                column_map -- optional dictionary to lookup column names based on column ids
+        Process column predictions into Pandas data framework.
+        Args:
+            response-- list of column predictions (dictionaries) which is returned by the schema matcher API
+            column_map -- optional dictionary to lookup column names based on column ids
 
-            :return: Pandas data framework.
-            """
+        :return: Pandas data framework.
+        """
         headers = ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label", "confidence"]
         classes = []
         feature_names = []
@@ -601,12 +605,12 @@ class MatcherModel(object):
         data = []
         for col_pred in response:
             # if column_map is available, lookup the name of the column
-            if column_map:
-                column_name = column_map.get(col_pred["columnID"], np.nan)
+            if self.column_map:
+                column_name = self.column_map.get(col_pred["columnID"], np.nan)
             else:
                 column_name = np.nan
             # if user provided label for this column, get the label, otherwise NaN
-            actual_lab = matcher_model.label_data.get(col_pred["columnID"], np.nan)
+            actual_lab = matcher_model.label_data.get(str(col_pred["columnID"]), np.nan)
             conf = col_pred["confidence"]
             if conf > 0:
                 label = col_pred["label"]
@@ -628,13 +632,16 @@ class MatcherModel(object):
         return all_data
 
 
-    def get_labeldata(self, column_map=None):
+    def get_labeldata(self):
         headers = ["model_id", "column_id", "column_name", "actual_label"]
         # TODO: add dataset id ???
         data = []
+        print("==========labeldata")
+        print(self.column_map)
+        print("==========labeldata")
         for columnID, label in self.label_data.items():
-            if column_map:
-                column_name = column_map.get(columnID, np.nan)
+            if self.column_map:
+                column_name = self.column_map.get(columnID, np.nan)
             else:
                 column_name = np.nan
             data.append((self.model_key, columnID, column_name, label))
@@ -643,20 +650,20 @@ class MatcherModel(object):
         sample.columns = headers
         return sample
 
-    def get_scores(self, all_data):
+    def get_scores(self):
         # just get a slice of all_data
         # all_data has columns:
         # ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label", "confidence"]+ classes + features
         headers = ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
                    "confidence"] + self.classes
-        return all_data[headers]
+        return self.all_data[headers]
 
-    def get_features(self, all_data):
+    def get_features(self):
         # just get a slice of all_data
-        headers = list(set(all_data.columns).difference(self.classes))
-        return all_data[headers]
+        headers = list(set(self.all_data.columns).difference(self.classes))
+        return self.all_data[headers]
 
-    def update(self, resp_dict):
+    def update(self, resp_dict, column_map=None):
         # TODO: check resp_dict
         try:
             self.model_key = int(resp_dict["id"])
@@ -676,15 +683,62 @@ class MatcherModel(object):
                                       resp_dict["state"]["message"],
                                       resp_dict["state"]["dateCreated"],
                                       resp_dict["state"]["dateModified"])
+        if column_map: # update column_map if it's provided
+            self.column_map = column_map
 
-    def add_labels(self):
-        pass
+    def add_labels(self, additional_labels, api_session):
+        """
+        Add label data to the model.
+        Args:
+            additional_labels -- dictionary with additional labels for columns
+            api_session -- Schema Matcher session
+        """
+        # labels in additional_labels extend (in case of conflict override) the ones which are currently defined
+        self.label_data.update(additional_labels)
+        self.session_patch(api_session, labels=self.label_data)
+        self.session_update(api_session) # update model according to the changes on the server
+        # reset all_data, scores and features
+        self.all_data = self.get_labeldata()
+        self.scores = pd.DataFrame()
+        self.features = pd.DataFrame()
 
-    def patch(self):
-        pass
+    def session_patch(self, api_session,
+                     feature_config=None, description=None,
+                     classes=None, model_type=None,
+                     labels=None, cost_matrix=None, resampling_strategy=None):
+        """
+        Update model in the model repository at the schema matcher server.
+        Args:
+            api_session -- Schema Matcher session
+            feature_config -- dictionary
+            description -- string which describes the model to be posted
+            classes -- list of class names
+            model_type -- string
+            labels -- dictionary
+            cost_matrix -- cost matrix
+            resampling_strategy -- string
+        """
+        # send model patch request to the schema matcher API
+        api_session.update_model(self.model_key,
+                     feature_config, description,
+                     classes, model_type,
+                     labels, cost_matrix, resampling_strategy)
+        # refresh model
+        self.session_update(api_session)
+        # reset all_data, scores and features
+        self.all_data = self.get_labeldata()
+        self.scores = pd.DataFrame()
+        self.features = pd.DataFrame()
 
-    def delete(self):
-        pass
+    def session_delete(self, api_session):
+        """
+        Delete model in the model repository at the schema matcher server.
+        It also destroys this instance.
+        Args:
+            api_session -- Schema Matcher session
+        """
+        api_session.delete_model(self.model_key)
+        del self
 
     def show_info(self):
         """Construct a string which summarizes all model parameters."""
@@ -706,7 +760,10 @@ class MatcherModel(object):
 
     def __repr__(self):
         """As indicated in the docs"""
-        return "jjsglg"
+        # show slice of all_data
+        headers = list(set(["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
+                   "confidence"]).intersection(set(self.all_data.columns)))
+        return repr(self.all_data[headers])
 
 if __name__ == "__main__":
 

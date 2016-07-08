@@ -2,7 +2,7 @@
 import dataint
 
 # connect to the server...
-dm = dataint.DataMatcher(
+dm = dataint.SchemaMatcher(
     host="http://localhost",
     port=9000)
 
@@ -99,14 +99,14 @@ dm.model_summary
 
 # Create a new model. Trains up a model behind the scene
 
-model = di.create_model(
+model = dm.create_model(
     name="New Model",
     type=ModelType.RANDOM_FOREST,
     col_types=['name', 'addr', 'phone']
 )
 
 # show model settings
-model.info
+print(model)
 # id
 # modelType
 # classes
@@ -121,7 +121,6 @@ model.info
 
 
 # by default model shows the current labels for the datasets
-# in case there are no labels/predictions it will be empty?
 
 model
 #           id    label    col_name    dataset  dataset_id  user_labeled
@@ -140,7 +139,7 @@ model
 
 # labels can be added, which will re-train a model
 
-model.add_labels({'colnma': 'name', 'junk': 'addr'})
+model.add_labels({'12342': 'name', '12343': 'addr'})
 
 #           id    label    col_name    dataset  dataset_id  user_labeled
 #  2  6ff9sdug     name      colnma  names.csv    08y08yfg             1
@@ -155,6 +154,9 @@ model.add_labels({'colnma': 'name', 'junk': 'addr'})
 # 11  91ytgfd0  unknown       dflgk   junk.csv    q25srwty             0
 # 12  zf84hsod  unknown       12334   junk.csv    q25srwty             0
 # 14  a7dybs14  unknown     another   junk.csv    q25srwty             0
+
+# train/re-train model and perform inference
+model.get_predictions(api_session)
 
 
 # Now the model contains the predictions...
@@ -173,10 +175,6 @@ model
 # 12  zf84hsod  unknown       12334   junk.csv    q25srwty             0
 # 14  a7dybs14  unknown     another   junk.csv    q25srwty             0
 
-
-# add explicitly predictions???
-
-model.predictions
 
 # the accuracy can be obtained...
 
@@ -236,7 +234,7 @@ model.features
 
 # all data shown...
 
-model.all
+model.all_data
 #           id    label    col_name    dataset  dataset_id  user_labeled score_addr score_phone score_unknown score_addr score_name
 #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1       0.06        0.11          0.01       0.83       0.04
 #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1       0.86        0.12          0.05       0.01       0.04
