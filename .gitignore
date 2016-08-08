@@ -3,3 +3,7 @@
 data/
 
 dist/
+
+build/
+
+data_integration_py.egg-info/

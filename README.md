@@ -18,3 +18,4 @@ No tests
 
 ### Run
 
+Consult the [dataint.py](https://github.com/NICTA/data-integration-py).

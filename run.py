@@ -1,7 +1,7 @@
 # external
+import datetime
 import logging
 import os
-import datetime
 
 # project
 from wrappers.data_integration_py import SchemaMatcher

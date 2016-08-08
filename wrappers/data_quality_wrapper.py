@@ -1,1 +1,0 @@
-# Python wrapper for the Data Quality Scoring API

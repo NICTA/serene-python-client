@@ -1,5 +1,5 @@
 
-import dataint
+import data_integration_py as dataint
 
 # connect to the server...
 dm = dataint.SchemaMatcher(
