@@ -8,8 +8,8 @@ class InternalDIError(DataIntError):
         """Exception raised by the Python client.
 
             Attributes:
-                expr -- input expression in which the error occurred
-                msg  -- explanation of the error
+                expr : input expression in which the error occurred
+                msg  : explanation of the error
             """
         self.expr = expr
         self.msg = msg
@@ -25,8 +25,8 @@ class BadRequestError(DataIntError):
         """Exception raised for bad requests to APIs.
 
             Attributes:
-                expr -- input expression in which the error occurred
-                msg  -- explanation of the error
+                expr : input expression in which the error occurred
+                msg  : explanation of the error
             """
         # status_code = 400
         self.expr = expr
@@ -44,8 +44,8 @@ class NotFoundError(DataIntError):
         """Exception raised if API returns not found error.
 
             Attributes:
-                expr -- input expression in which the error occurred
-                msg  -- explanation of the error
+                expr : input expression in which the error occurred
+                msg  : explanation of the error
             """
         # status_code = 404
         self.expr = expr
@@ -63,9 +63,9 @@ class OtherError(DataIntError):
         """Exception raised if API returns some other error.
 
             Attributes:
-                status -- status code returned by API
-                expr -- input expression in which the error occurred
-                msg  -- explanation of the error
+                status : status code returned by API
+                expr : input expression in which the error occurred
+                msg  : explanation of the error
             """
         self.status_code = status_code
         self.expr = expr

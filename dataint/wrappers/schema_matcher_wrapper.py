@@ -5,7 +5,7 @@ import logging
 import requests
 from urllib.parse import urljoin
 import pandas as pd
-from wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, InternalDIError
+from dataint.wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, InternalDIError
 from enum import Enum
 from datetime import datetime
 import time
@@ -33,13 +33,15 @@ def pretty_print_POST(req):
     ))
 
 class Status(Enum):
+    """Enumerator of possible model states."""
     ERROR = "error"
     UNTRAINED = "untrained"
     BUSY = "busy"
     COMPLETE = "complete"
 
 def get_status(status):
-    """helper function"""
+    """Helper function to convert model state
+    from a string to Status Enumerator."""
     if status == "error":
         return Status.ERROR
     if status == "untrained":
@@ -51,7 +53,16 @@ def get_status(status):
     raise InternalDIError("get_status("+str(status)+")", "status not supported.")
 
 def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):
-    """Convert string to datetime object."""
+    """
+    Convert string to datetime object.
+    Args:
+        datetime_string: string which contains datetime object;
+        fmt: format which specifies the pattern of datetime format in the string.
+
+    Returns: datetime on successful conversion.
+    Raises: InternalDIError if conversion fails.
+
+    """
     # here we put "%Y-%m-%dT%H:%M:%SZ" to be the default format
     # T and Z are fixed literals
     # T is time separator
@@ -85,8 +96,25 @@ class SchemaMatcherSession(object):
 
         # uri to send requests to
         self.uri = conf_set.schema_matcher_server['uri']
+        if self.test_connection(): # test connection to the server
+            logging.info("Connection to the server has been established.")
         self.uri_ds = urljoin(self.uri, 'dataset') + '/' # uri for the dataset endpoint
         self.uri_model = urljoin(self.uri, 'model') + '/'  # uri for the model endpoint
+
+    def test_connection(self):
+        """
+
+        Returns:
+
+        """
+        logging.info('Testing connection to the server...')
+        try:
+            r = self.session.get(self.uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalDIError("list_alldatasets", e)
+        self.handle_errors(r, "GET " + self.uri)
+        return True
 
     def __repr__(self):
         return "<SchemaMatcherSession at (" + str(self.uri) + ")>"
@@ -98,10 +126,11 @@ class SchemaMatcherSession(object):
         """
         Raise errors based on response status_code
         Args:
-            response -- response object from request
-            expr -- expression where the error occurs
+            response : response object from request
+            expr : expression where the error occurs
 
-        :return: None or raise errors
+        Returns: None or raise errors.
+        Raises: BadRequestError, NotFoundError, OtherError.
         """
         if response.status_code == 200 or response.status_code == 202:
             # there are no errors here
@@ -124,7 +153,8 @@ class SchemaMatcherSession(object):
         List ids of all datasets in the dataset repository at the Schema Matcher server.
         If the connection fails, empty list is returned and connection error is logged.
 
-        :return: list of dataset keys
+        Returns: list of dataset keys.
+        Raises: InternalDIError on failure.
         """
         logging.info('Sending request to the schema matcher server to list datasets.')
         try:
@@ -143,13 +173,14 @@ class SchemaMatcherSession(object):
              file_path: string which indicates the location of the dataset to be posted
              type_map: dictionary with type map for the dataset
 
-        :return: Dictionary
+        Returns: Dictionary.
         """
 
         logging.info('Sending request to the schema matcher server to post a dataset.')
         try:
-            data = {"description": description, "file": file_path, "typeMap": type_map}
-            r = self.session.post(self.uri_ds, json=data)
+            f = {"file": open(file_path, "rb")}
+            data = {"description": description, "typeMap": type_map}
+            r = self.session.post(self.uri_ds, files=f, json=data)
         except Exception as e:
             logging.error(e)
             raise InternalDIError("post_dataset", e)
@@ -166,7 +197,6 @@ class SchemaMatcherSession(object):
 
         :return:
         """
-
         logging.info('Sending request to the schema matcher server to update dataset %d' % dataset_key)
         uri = urljoin(self.uri_ds, str(dataset_key))
         try:
@@ -182,9 +212,9 @@ class SchemaMatcherSession(object):
         """
         Get information on a specific dataset from the repository at the schema matcher server.
         Args:
-             dataset_key: integer which is the key of the dataset
+             dataset_key: integer which is the key of the dataset.
 
-        :return: dictionary
+        Returns: dictionary.
         """
         logging.info('Sending request to the schema matcher server to get dataset info.')
         uri = urljoin(self.uri_ds, str(dataset_key))
@@ -202,7 +232,7 @@ class SchemaMatcherSession(object):
         Args:
              dataset_key: int
 
-        :return:
+        Returns:
         """
         logging.info('Sending request to the schema matcher server to delete dataset.')
         uri = urljoin(self.uri_ds, str(dataset_key))
@@ -218,7 +248,7 @@ class SchemaMatcherSession(object):
         """
         List ids of all models in the Model repository at the Schema Matcher server.
 
-        :return: list of model keys
+        Returns: list of model keys
         """
         logging.info('Sending request to the schema matcher server to list models.')
         try:
@@ -271,7 +301,7 @@ class SchemaMatcherSession(object):
              cost_matrix:
              resampling_strategy: string
 
-        :return: model dictionary
+        Returns: model dictionary
         """
 
         logging.info('Sending request to the schema matcher server to post a model.')
@@ -300,7 +330,7 @@ class SchemaMatcherSession(object):
              cost_matrix:
              resampling_strategy: string
 
-        :return: model dictionary
+        Returns: model dictionary
         """
 
         logging.info('Sending request to the schema matcher server to update model %d' % model_key)
@@ -321,7 +351,7 @@ class SchemaMatcherSession(object):
         Args:
              model_key: integer which is the key of the model in the repository
 
-        :return: dictionary
+        Returns: dictionary
         """
         logging.info('Sending request to the schema matcher server to get dataset info.')
         uri = urljoin(self.uri_model, str(model_key))
@@ -439,6 +469,18 @@ class MatcherDataset(object):
     def __repr__(self):
         return self.__str__()
 
+    def session_delete(self, api_session):
+        """
+        Delete dataset in the dataset repository at the schema matcher server.
+        It also destroys this instance.
+        Args:
+            api_session : Schema Matcher session
+
+        Returns:
+        """
+        api_session.delete_dataset(self.ds_key)
+        del self
+
 
 class ModelState(object):
     """
@@ -449,7 +491,7 @@ class ModelState(object):
         """
         Initialize instance of class ModelState.
         Args:
-            status -- string
+            status : string
             date_created
             date_modified
         """
@@ -477,8 +519,8 @@ class MatcherModel(object):
     def __init__(self, resp_dict, column_map=None):
         """
         Args:
-            resp_dict -- dictionary which is returned by Schema Matcher API
-            column_map -- optional dictionary for mapping columns fom ids to names
+            resp_dict : dictionary which is returned by Schema Matcher API
+            column_map : optional dictionary for mapping columns fom ids to names
         """
         # TODO: check resp_dict
         try:
@@ -511,9 +553,9 @@ class MatcherModel(object):
 
     def session_update(self, api_session):
         """
-        Update model from the API.
+        Download model updates from the API.
         Args:
-            api_session -- schema matcher session
+            api_session : schema matcher session
 
         Returns:
         """
@@ -525,8 +567,8 @@ class MatcherModel(object):
         """
         Send the training request to the API.
         Args:
-            api_session -- schema matcher session
-            wait -- boolean indicator whether to wait for the training to finish.
+            api_session : schema matcher session
+            wait : boolean indicator whether to wait for the training to finish.
 
         Returns: boolean -- True if model is trained, False otherwise
         """
@@ -551,9 +593,9 @@ class MatcherModel(object):
         """
         Get predictions based on the model.
         Args:
-            api_session -- schema matcher session
-            wait -- boolean indicator whether to wait for the training to finish, default is True.
-            column_map -- optional dictionary to lookup column names based on column ids
+            api_session : schema matcher session
+            wait : boolean indicator whether to wait for the training to finish, default is True.
+            column_map : optional dictionary to lookup column names based on column ids
 
         Returns: Pandas data framework.
         """
@@ -593,8 +635,8 @@ class MatcherModel(object):
         """
         Process column predictions into Pandas data framework.
         Args:
-            response-- list of column predictions (dictionaries) which is returned by the schema matcher API
-            column_map -- optional dictionary to lookup column names based on column ids
+            response: list of column predictions (dictionaries) which is returned by the schema matcher API
+            column_map : optional dictionary to lookup column names based on column ids
 
         Returns: Pandas data framework.
         """
@@ -641,9 +683,9 @@ class MatcherModel(object):
         headers = ["model_id", "column_id", "column_name", "actual_label"]
         # TODO: add dataset id ???
         data = []
-        print("==========labeldata")
-        print(self.column_map)
-        print("==========labeldata")
+        # print("==========labeldata")
+        # print(self.column_map)
+        # print("==========labeldata")
         for columnID, label in self.label_data.items():
             if self.column_map:
                 column_name = self.column_map.get(columnID, np.nan)
@@ -675,10 +717,10 @@ class MatcherModel(object):
 
     def update(self, resp_dict, column_map=None):
         """
-
+        Update the model according to the newly provided parameters.
         Args:
-            resp_dict:
-            column_map:
+            resp_dict: dictionary with new parameters
+            column_map: dictionary of column ids
 
         Returns:
 
@@ -707,10 +749,10 @@ class MatcherModel(object):
 
     def add_labels(self, additional_labels, api_session):
         """
-        Add label data to the model.
+        Add label data to the model and upload the changes to the server.
         Args:
-            additional_labels -- dictionary with additional labels for columns
-            api_session -- Schema Matcher session
+            additional_labels : dictionary with additional labels for columns
+            api_session : Schema Matcher session
 
         Returns:
         """
@@ -730,14 +772,14 @@ class MatcherModel(object):
         """
         Update model in the model repository at the schema matcher server.
         Args:
-            api_session -- Schema Matcher session
-            feature_config -- dictionary
-            description -- string which describes the model to be posted
-            classes -- list of class names
-            model_type -- string
-            labels -- dictionary
-            cost_matrix -- cost matrix
-            resampling_strategy -- string
+            api_session : Schema Matcher session
+            feature_config : dictionary
+            description : string which describes the model to be posted
+            classes : list of class names
+            model_type : string
+            labels : dictionary
+            cost_matrix : cost matrix
+            resampling_strategy : string
 
         Returns:
         """
@@ -758,7 +800,7 @@ class MatcherModel(object):
         Delete model in the model repository at the schema matcher server.
         It also destroys this instance.
         Args:
-            api_session -- Schema Matcher session
+            api_session : Schema Matcher session
 
         Returns:
         """
@@ -796,15 +838,20 @@ if __name__ == "__main__":
     all_ds = sess.list_alldatasets()
     all_models = sess.list_allmodels()
 
-    model = sess.list_model(all_models[0])
-    features_conf = model["features"]
+    filepath = "../../data/59722533.csv"
+    data = {"description": "testing", "typeMap": {}}
+    f = {"file": open(filepath, "rb")}
+    r = sess.session.post(sess.uri_ds, files=f, json=data)
+
+    # model = sess.list_model(all_models[0])
+    # features_conf = model["features"]
 
     #sess.post_model(feature_config="")
 
-    matcher_model = MatcherModel(model)
-
-    sess.train_model(matcher_model.model_key)
-
-    sess.predict_model(matcher_model.model_key)
-
-    sess.get_model_predict(matcher_model.model_key)
+    # matcher_model = MatcherModel(model)
+    #
+    # sess.train_model(matcher_model.model_key)
+    #
+    # sess.predict_model(matcher_model.model_key)
+    #
+    # sess.get_model_predict(matcher_model.model_key)
