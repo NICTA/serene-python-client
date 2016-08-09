@@ -275,7 +275,8 @@ class SchemaMatcherSession(object):
         if model_type:
             data["modelType"] = model_type
         if labels:
-            data["labelData"] = labels
+            lab_str = dict([(str(key),str(val)) for key,val in labels.items()])
+            data["labelData"] = lab_str
         if cost_matrix:
             data["costMatrix"] = cost_matrix
         if resampling_strategy:
@@ -338,7 +339,7 @@ class SchemaMatcherSession(object):
         try:
             data = self.process_model_input(feature_config, description, classes,
                                             model_type, labels, cost_matrix, resampling_strategy)
-            r = self.session.post(uri, data=data)
+            r = self.session.post(uri, json=data)
         except Exception as e:
             logging.error(e)
             raise InternalDIError("update_model", e)
@@ -353,7 +354,7 @@ class SchemaMatcherSession(object):
 
         Returns: dictionary
         """
-        logging.info('Sending request to the schema matcher server to get dataset info.')
+        logging.info('Sending request to the schema matcher server to get model info.')
         uri = urljoin(self.uri_model, str(model_key))
         try:
             r = self.session.get(uri)
@@ -733,6 +734,23 @@ class MatcherModel(object):
         all_data.columns = headers + list(classes) + list(feature_names)
         return all_data
 
+    def calculate_confusionMatrix(self):
+        """
+        Calculate confusion matrix of the model.
+        If all_data is not available for the model, it will return None.
+        Returns: Pandas data frame.
+
+        """
+        if self.all_data.empty:
+            logging.warning("Model all_data is empty. Confusion matrix cannot be calculated.")
+            return None
+
+        # take those rows where actual_label is available
+        available = self.all_data[["actual_label", "predicted_label"]].dropna()
+        y_actu = pd.Series(available["actual_label"], name='Actual')
+        y_pred = pd.Series(available["predicted_label"], name='Predicted')
+        return pd.crosstab(y_actu, y_pred)
+
 
     def get_labeldata(self):
         """
@@ -911,8 +929,24 @@ if __name__ == "__main__":
 
     matcher_model = MatcherModel(model)
 
-    sess.train_model(matcher_model.model_key)
+    # sess.train_model(matcher_model.model_key)
+    #
+    # sess.predict_model(matcher_model.model_key)
+    #
+    # sess.get_model_predict(matcher_model.model_key)
 
-    sess.predict_model(matcher_model.model_key)
+    matcher_model.get_predictions(sess)
+    print(matcher_model)
 
-    sess.get_model_predict(matcher_model.model_key)
+    new_labels = matcher_model.all_data[matcher_model.all_data.actual_label.isnull()]  # show predicted labels where actual label is not available
+    print(new_labels)
+    # further pandas slicing functionality can be used to select the predicted labels
+    rand_label = new_labels.sample(n=1).iloc[0]  # select one random row among newly predicted labels
+    labs = [((rand_label["column_id"]), (rand_label["predicted_label"]))]  # convert it to the form (columnID,label)
+
+    print(labs)
+
+    # new_labelData = {1541478690: 'unknown'}  # this is a new label to be added
+    # matcher_model.add_labels(new_labelData, sess)
+    # print(matcher_model)
+

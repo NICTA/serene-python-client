@@ -8,6 +8,7 @@ import pandas as pd
 
 # project
 from dataint.wrappers import schema_matcher_wrapper as SMW
+from dataint.wrappers.schema_matcher_wrapper import Status
 
 
 class SchemaMatcher(object):
@@ -215,6 +216,14 @@ class SchemaMatcher(object):
         """
         [model.get_predictions(self.session, wait) for model in self.model.values()]
 
+    def error_models(self):
+        """
+        Go through the list of models and return those which have errors.
+        Returns: list of models which have error state.
+        """
+        return dict([(key,model) for key,model in self.model.items()
+                             if model.model_state.status == Status.ERROR])
+
 
 if __name__ == "__main__":
     proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.curdir)))
@@ -227,4 +236,8 @@ if __name__ == "__main__":
 
     dm = SchemaMatcher()
     dm.model
+
+    error_mods = dm.error_models()
+    print(len(error_mods))
+    print(dm.train_models())
 
