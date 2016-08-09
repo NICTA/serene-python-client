@@ -18,9 +18,9 @@ No tests
 
 ### Run
 
-Consult the [dataint.py](https://github.com/NICTA/data-integration-py).
-
 To install the package 'data-integration-py', run
 ```
 python setup.py install
 ```
+
+Consult the [dataint.py](https://github.com/NICTA/data-integration-py) on how to use the library.
