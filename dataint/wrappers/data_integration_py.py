@@ -40,9 +40,26 @@ class SchemaMatcher(object):
         Refresh class attributes especially after new models or datasets have been added or deleted.
         Returns:
         """
+        # first we update datasets since column_map is updated here
+        self.refresh_datasets()
+        # column_map is used to update models
+        self.refresh_models()
+
+    def refresh_datasets(self):
+        """
+        Refresh class attributes related to datasets.
+        Returns:
+        """
         self.ds_keys = self.get_dataset_keys()  # list of keys of all available datasets
-        self.model_keys = self.get_model_keys()  # list of keys of all available models
         self.dataset, self.dataset_summary, self.column_map = self.populate_datasets()
+
+    def refresh_models(self):
+        """
+        Refresh class attributes related to models.
+        Returns:
+        """
+        self.model_keys = self.get_model_keys()  # list of keys of all available models
+        # column_map is used to update models
         self.model, self.model_summary = self.get_model_summary()
 
     def __str__(self):
@@ -153,9 +170,9 @@ class SchemaMatcher(object):
         """
         resp_dict = self.session.post_model(feature_config,
                        description, classes,model_type,
-                       labels, cost_matrix,resampling_strategy)
+                       labels, cost_matrix,resampling_strategy) # send APi request
         new_model = SMW.MatcherModel(resp_dict, self.column_map)
-        self.refresh()
+        self.refresh_models() # we need to update class attributes to include new model
         return new_model
 
     def upload_dataset(self, file_path, description, type_map):
@@ -171,8 +188,32 @@ class SchemaMatcher(object):
 
         """
         new_dataset = SMW.MatcherDataset(self.session.post_dataset(description, file_path, type_map))
-        self.refresh()
+        self.refresh_datasets() # we need to update class attributes to include new datasets
         return new_dataset
+
+    def train_models(self, wait=True):
+        """
+        Launch training for all models in the repository.
+        Please be aware that schema matcher at the moment can handle only one model training at a time.
+        So, running this method with wait=False might not launch training for all models.
+        Args:
+            wait: boolean indicator whether to wait for the training to finish.
+
+        Returns: True if training for all models succeeded.
+        """
+        return all([model.train(self.session, wait) for model in self.model.values()])
+
+    def get_predictions_models(self, wait=True):
+        """
+        Launch prediction for all models for all datasets in the repository.
+        Please be aware that schema matcher at the moment can handle only one model prediction at a time.
+        So, running this method with wait=False might not perform prediction for all models.
+        Args:
+            wait: boolean indicator whether to wait for the training to finish.
+
+        Returns: Nothing, model attributes get updated.
+        """
+        [model.get_predictions(self.session, wait) for model in self.model.values()]
 
 
 if __name__ == "__main__":

@@ -432,6 +432,7 @@ class SchemaMatcherSession(object):
             raise InternalDIError("get_model_predict", e)
         self.handle_errors(r, "GET " + uri)
         return r.json()
+######################################
 
 
 class MatcherDataset(object):
@@ -459,7 +460,7 @@ class MatcherDataset(object):
         for col in self.columns:
             headers.append(col['name'])
             data.append(col['sample'])
-            self.column_map[col['id']] = col['name']
+            self.column_map[int(col['id'])] = col['name']
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
 
@@ -481,11 +482,44 @@ class MatcherDataset(object):
         api_session.delete_dataset(self.ds_key)
         del self
 
+    def construct_labelData(self, filepath):
+        """
+        We want to construct a dictionary {column_id:class_label} for the dataset based on a .csv file.
+        This method reads in .csv as a Pandas data frame, selects columns "column_name" and "class",
+        drops NaN and coverts these two columns into dictionary.
+        We obtain a lookup dictionary
+        where the key is the column name and the value is the class label.
+        Then by using column_map the method builds the required dictionary.
+
+        Args:
+            filepath: string where .csv file is located.
+
+        Returns: dictionary
+
+        """
+        label_data = {}  # we need this dictionary (column_id, class_label)
+        try:
+            frame = pd.read_csv(filepath)
+            # dictionary (column_name, class_label)
+            name_labels = frame[["column_name", "class"]].dropna().set_index('column_name')['class'].to_dict()
+            for col_id, col_name in self.column_map.items():
+                if col_name in name_labels:
+                    label_data[int(col_id)] = name_labels[col_name]
+        except Exception as e:
+            raise InternalDIError("construct_labelData", e)
+
+        return label_data
+######################################
+
 
 class ModelState(object):
     """
+    Class to wrap the model state.
     Attributes:
-
+        status
+        message
+        date_created
+        date_modified
     """
     def __init__(self, status, message, date_created, date_modified):
         """
@@ -512,8 +546,26 @@ class ModelState(object):
 
 class MatcherModel(object):
     """
-        Attributes:
+    Class to wrap the model.
+    Attributes:
+        model_key
+        model_type
+        description
+        features_config
+        cost_matrix
+        resampling_strategy
+        label_data
+        ref_datasets
+        classes
+        date_created
+        date_modified
+        model_state
 
+        column_map
+        all_data
+        features
+        scores
+        accuracy
     """
 
     def __init__(self, resp_dict, column_map=None):
@@ -533,8 +585,15 @@ class MatcherModel(object):
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
         self.resampling_strategy = resp_dict["resamplingStrategy"]
-        self.label_data = resp_dict["labelData"]
-        self.ref_datasets = resp_dict["refDataSets"]
+        self.label_data = {}
+        try:
+            # print(resp_dict["labelData"])
+            # print(type(resp_dict["labelData"]))
+            for col_id, lab in resp_dict["labelData"].items():
+                self.label_data[int(col_id)] = lab
+        except Exception as e:
+            raise InternalDIError("failed to convert labelData",e)
+        self.ref_datasets = set(resp_dict["refDataSets"])
         self.classes = resp_dict["classes"]
         self.date_created = convert_datetime(resp_dict["dateCreated"])
         self.date_modified = convert_datetime(resp_dict["dateModified"])
@@ -579,8 +638,8 @@ class MatcherModel(object):
         finished = self.model_state.status == Status.ERROR or self.model_state.status == Status.COMPLETE
 
         while wait and not(finished):
-            print("Waiting for training")
-            time.sleep(30)  # wait for some time
+            logging.info("Waiting for the training...")
+            time.sleep(10)  # wait for some time
             self.session_update(api_session)
             if self.model_state.status == Status.ERROR or\
                             self.model_state.status == Status.COMPLETE:
@@ -592,6 +651,7 @@ class MatcherModel(object):
     def get_predictions(self, api_session, wait=True):
         """
         Get predictions based on the model.
+        Predictions are done for all datasets in the repository.
         Args:
             api_session : schema matcher session
             wait : boolean indicator whether to wait for the training to finish, default is True.
@@ -652,7 +712,7 @@ class MatcherModel(object):
             else:
                 column_name = np.nan
             # if user provided label for this column, get the label, otherwise NaN
-            actual_lab = matcher_model.label_data.get(str(col_pred["columnID"]), np.nan)
+            actual_lab = self.label_data.get(str(col_pred["columnID"]), np.nan)
             conf = col_pred["confidence"]
             if conf > 0:
                 label = col_pred["label"]
@@ -683,9 +743,6 @@ class MatcherModel(object):
         headers = ["model_id", "column_id", "column_name", "actual_label"]
         # TODO: add dataset id ???
         data = []
-        # print("==========labeldata")
-        # print(self.column_map)
-        # print("==========labeldata")
         for columnID, label in self.label_data.items():
             if self.column_map:
                 column_name = self.column_map.get(columnID, np.nan)
@@ -699,8 +756,8 @@ class MatcherModel(object):
 
     def get_scores(self):
         """
-
-        Returns:
+        Get a slice of all_data which has scores.
+        Returns: Pandas data framework
 
         """
         # just get a slice of all_data
@@ -711,6 +768,10 @@ class MatcherModel(object):
         return self.all_data[headers]
 
     def get_features(self):
+        """
+        Get a slice of all_data which has features.
+        Returns: Pandas data framework
+        """
         # just get a slice of all_data
         headers = list(set(self.all_data.columns).difference(self.classes))
         return self.all_data[headers]
@@ -843,15 +904,15 @@ if __name__ == "__main__":
     f = {"file": open(filepath, "rb")}
     r = sess.session.post(sess.uri_ds, files=f, json=data)
 
-    # model = sess.list_model(all_models[0])
+    model = sess.list_model(all_models[0])
     # features_conf = model["features"]
 
     #sess.post_model(feature_config="")
 
-    # matcher_model = MatcherModel(model)
-    #
-    # sess.train_model(matcher_model.model_key)
-    #
-    # sess.predict_model(matcher_model.model_key)
-    #
-    # sess.get_model_predict(matcher_model.model_key)
+    matcher_model = MatcherModel(model)
+
+    sess.train_model(matcher_model.model_key)
+
+    sess.predict_model(matcher_model.model_key)
+
+    sess.get_model_predict(matcher_model.model_key)
