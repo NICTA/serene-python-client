@@ -155,7 +155,7 @@ print(model)
 # by default model shows the current labels for the datasets
 
 model
-#           id    label    col_name    dataset  dataset_id  user_labeled
+#           id  actual_label    col_name    dataset  dataset_id  user_labeled
 #  2  6ff9sdug  unknown      colnma  names.csv    08y08yfg             0
 #  4  42fv87g2     name        junk   test.csv    js6egdia             0
 #  5  8ut20yet    phone          ph   test.csv    js6egdia             0
@@ -267,7 +267,7 @@ model.features
 # all data shown...
 
 model.all_data
-#           id    label    col_name    dataset  dataset_id  user_labeled score_addr score_phone score_unknown score_addr score_name
+#           id    actual_label  predicted_label  col_name    dataset  dataset_id  user_labeled score_addr score_phone score_unknown score_addr score_name
 #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1       0.06        0.11          0.01       0.83       0.04
 #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1       0.86        0.12          0.05       0.01       0.04
 #  2  6ff9sdug  unknown      colnma  names.csv    08y08yfg             0       0.16        0.11          0.16       0.03       0.04

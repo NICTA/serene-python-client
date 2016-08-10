@@ -241,3 +241,16 @@ if __name__ == "__main__":
     print(len(error_mods))
     print(dm.train_models())
 
+    # print(dm.dataset_summary)
+    # print(dm.column_map)
+
+    model = list(dm.model.values())[0]
+    # print(model.all_data)
+
+    model.get_predictions(dm.session)
+    snap = model.all_data[["column_id","actual_label","predicted_label"]].dropna()
+    equalSnap = snap[snap["actual_label"] == snap["predicted_label"]]
+    print(snap.shape)
+    print(equalSnap.shape)
+    print("Equal: " + str(snap.shape == equalSnap.shape))
+

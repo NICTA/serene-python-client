@@ -427,12 +427,12 @@ class SchemaMatcherSession(object):
         logging.info('Sending request to the schema matcher server to get predictions based on the model.')
         uri = urljoin(urljoin(self.uri_model, str(model_key) + "/"), "predict")
         try:
-            r = self.session.get(uri)
+            resp = self.session.get(uri)
         except Exception as e:
             logging.error(e)
             raise InternalDIError("get_model_predict", e)
-        self.handle_errors(r, "GET " + uri)
-        return r.json()
+        self.handle_errors(resp, "GET " + uri)
+        return resp.json()
 ######################################
 
 
@@ -665,7 +665,7 @@ class MatcherModel(object):
 
         self.session_update(api_session)
         # predictions are available if finished
-        finished = self.model_state.status == Status.ERROR or self.model_state.status == Status.COMPLETE
+        finished = self.model_state.status == Status.COMPLETE
 
         while wait and not (finished):
             time.sleep(5)  # wait for some time
@@ -691,7 +691,6 @@ class MatcherModel(object):
         self.features = self.get_features()
         return self.all_data
 
-
     def process_predictions(self, response):
         """
         Process column predictions into Pandas data framework.
@@ -706,6 +705,7 @@ class MatcherModel(object):
         feature_names = []
         # additionally scores for all classes and features
         data = []
+
         for col_pred in response:
             # if column_map is available, lookup the name of the column
             if self.column_map:
@@ -730,7 +730,11 @@ class MatcherModel(object):
             new_row += tuple(col_pred["features"].values())  # get features which were used for prediction
             data.append(new_row)
 
+        if not len(data):
+            logging.warning("Predictions are not available!")
+            return self.all_data
         all_data = pd.DataFrame(data)
+        # TODO: what should be done if the data is empty?
         all_data.columns = headers + list(classes) + list(feature_names)
         return all_data
 
@@ -746,7 +750,10 @@ class MatcherModel(object):
             return None
 
         # take those rows where actual_label is available
-        available = self.all_data[["actual_label", "predicted_label"]].dropna()
+        try:
+            available = self.all_data[["actual_label", "predicted_label"]].dropna()
+        except Exception as e:
+            raise InternalDIError("confusion_matrix",e)
         y_actu = pd.Series(available["actual_label"], name='Actual')
         y_pred = pd.Series(available["predicted_label"], name='Predicted')
         return pd.crosstab(y_actu, y_pred)
@@ -783,7 +790,10 @@ class MatcherModel(object):
         # ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label", "confidence"]+ classes + features
         headers = ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
                    "confidence"] + self.classes
-        return self.all_data[headers]
+        if len(set(headers).intersection(set(self.all_data.columns))) == len(headers):
+            return self.all_data[headers]
+        logging.warning("Scores are not available for model: " + str(self.model_key))
+        return pd.DataFrame()
 
     def get_features(self):
         """
@@ -917,17 +927,24 @@ if __name__ == "__main__":
     all_ds = sess.list_alldatasets()
     all_models = sess.list_allmodels()
 
-    filepath = "../../data/59722533.csv"
-    data = {"description": "testing", "typeMap": {}}
-    f = {"file": open(filepath, "rb")}
-    r = sess.session.post(sess.uri_ds, files=f, json=data)
+    # filepath = "../../data/59722533.csv"
+    # data = {"description": "testing", "typeMap": {}}
+    # f = {"file": open(filepath, "rb")}
+    # r = sess.session.post(sess.uri_ds, files=f, json=data)
 
     model = sess.list_model(all_models[0])
+    dataset = sess.list_dataset(all_ds[0])
     # features_conf = model["features"]
 
     #sess.post_model(feature_config="")
 
     matcher_model = MatcherModel(model)
+    print(matcher_model)
+    print(matcher_model.column_map)
+
+    matcher_dataset = MatcherDataset(dataset)
+    print(matcher_dataset)
+    print(matcher_dataset.column_map)
 
     # sess.train_model(matcher_model.model_key)
     #
@@ -935,16 +952,20 @@ if __name__ == "__main__":
     #
     # sess.get_model_predict(matcher_model.model_key)
 
-    matcher_model.get_predictions(sess)
-    print(matcher_model)
-
-    new_labels = matcher_model.all_data[matcher_model.all_data.actual_label.isnull()]  # show predicted labels where actual label is not available
-    print(new_labels)
+    # matcher_model.get_predictions(sess)
+    # print(matcher_model)
+    #
+    # print("*********confusion ")
+    # print(matcher_model.calculate_confusionMatrix())
+    #
+    # new_labels = matcher_model.all_data[matcher_model.all_data.actual_label.isnull()]  # show predicted labels where actual label is not available
+    # print("**************************New labels")
+    # print(new_labels)
     # further pandas slicing functionality can be used to select the predicted labels
-    rand_label = new_labels.sample(n=1).iloc[0]  # select one random row among newly predicted labels
-    labs = [((rand_label["column_id"]), (rand_label["predicted_label"]))]  # convert it to the form (columnID,label)
+    # rand_label = new_labels.sample(n=1).iloc[0]  # select one random row among newly predicted labels
+    # labs = [((rand_label["column_id"]), (rand_label["predicted_label"]))]  # convert it to the form (columnID,label)
 
-    print(labs)
+    # print(labs)
 
     # new_labelData = {1541478690: 'unknown'}  # this is a new label to be added
     # matcher_model.add_labels(new_labelData, sess)
