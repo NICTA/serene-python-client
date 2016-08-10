@@ -1,7 +1,7 @@
-
-import data_integration_py as dataint
+import dataint
 
 # connect to the server...
+# host and port are for now taken from the config.settings.py file
 dm = dataint.SchemaMatcher(
     host="http://localhost",
     port=9000)
@@ -76,6 +76,14 @@ dm.dataset['asdf.csv'].sample['junk']
 #   34875
 
 
+# upload a new dataset
+new_dataset = dm.upload_dataset(description="testing", file_path=filepath, type_map={})
+
+# create a dictionary of label data for the new dataset
+# based on the .csv file
+label_data = new_dataset.construct_labelData(filepath)
+
+
 # lists all the models...
 
 dm.models
@@ -97,12 +105,31 @@ dm.model_summary
 
 
 
-# Create a new model. Trains up a model behind the scene
+# Configuration parameters for the model upload
+
+# configuration for the feature calculation
+features = {"activeFeatures": ["num-unique-vals", "prop-unique-vals", "prop-missing-vals"],
+            "activeFeatureGroups": ["stats-of-text-length", "prop-instances-per-class-in-knearestneighbours"],
+            "featureExtractorParams": [
+                {"name": "prop-instances-per-class-in-knearestneighbours", "num-neighbours": 5}]
+            }
+
+# resampling strategy
+resamplingStrategy = "ResampleToMean"
+
+# list of semantic types
+classes = ["year_built", "address", "bathrooms", "bedrooms", "email", "fireplace", "firm_name", "garage",
+           "heating", "house_description", "levels", "mls", "phone", "price", "size", "type", "unknown"]
+
+#description of the model
+descr = "test model"
+
+# Create a new model.
+# Training needs to be called explicitly
 
 model = dm.create_model(
-    name="New Model",
-    type=ModelType.RANDOM_FOREST,
-    col_types=['name', 'addr', 'phone']
+    feature_config=features, classes=classes, description=descr,
+    labels=label_data, resampling_strategy=resamplingStrategy
 )
 
 # show model settings
@@ -253,7 +280,16 @@ model.all_data
 # 14  a7dybs14  unknown     another   junk.csv    q25srwty             0       0.82        0.11          0.01       0.03       0.04
 
 
+# compute confusion matrix
+# possible if training has been done
+confusion_matrix = model.calculate_confusionMatrix()
 
+# train all models
+dm.train_models()
+
+# perform prediction with all models
+# training is done automatically
+dm.get_predictions_models()
 
 
 
