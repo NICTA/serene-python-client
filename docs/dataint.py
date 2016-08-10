@@ -40,6 +40,7 @@ dm.dataset[987298345]
 
 
 # alternatively reference by filename...
+# this does not work now
 
 dm.dataset['asdf.csv']
 # name: asdf.csv
@@ -74,6 +75,10 @@ dm.dataset['asdf.csv'].sample['junk']
 #       4
 #      22
 #   34875
+
+# view summary od datasets as a Pandas data frame
+
+dm.dataset_summary
 
 
 # upload a new dataset
