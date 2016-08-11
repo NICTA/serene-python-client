@@ -464,6 +464,7 @@ class MatcherDataset(object):
             self.column_map[int(col['id'])] = col['name']
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
+        self.columns = self.sample.columns.values.tolist()
 
     def __str__(self):
         return "<MatcherDataset(" + str(self.ds_key) + ")>"

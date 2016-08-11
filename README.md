@@ -13,7 +13,7 @@ To perform data quality scoring, the server for the [data quality scoring API](h
 
 ### How to test
 
-No tests
+No tests have been implemented so far.
 
 
 ### Run
