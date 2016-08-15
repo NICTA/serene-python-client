@@ -89,11 +89,11 @@ label_data = new_dataset.construct_labelData('some_file_with_column_labels.csv')
 
 dm.model
 # {
-#    1234: Model(1234),
-#    2345: Model(2345),
-#    3456: Model(3456),
-#    567: Model(567),
-#    4678: Model(4678)
+#    1234: <MatcherModel(1234)>,
+#    2345: <MatcherModel(2345)>,
+#    3456: <MatcherModel(3456)>,
+#    567:  <MatcherModel(567)>,
+#    4678: <MatcherModel(4678)>
 # }
 
 # summary for all models
@@ -154,7 +154,7 @@ print(model)
 
 # by default model shows the current labels for the dataset columns (ground truth)
 
-model
+model.label_data
 #           id  actual_label column_name    column_id
 #  2  6ff9sdug      unknown      colnma     08y08yfg
 #  4  42fv87g2         name        junk     js6egdia

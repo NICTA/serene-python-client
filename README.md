@@ -15,7 +15,6 @@ To perform data quality scoring, the server for the [data quality scoring API](h
 
 No tests have been implemented so far.
 
-
 ### Run
 
 To install the package 'data-integration-py', run

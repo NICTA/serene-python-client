@@ -916,11 +916,12 @@ class MatcherModel(object):
         return self.show_info()
 
     def __repr__(self):
-        """As indicated in the docs"""
+        """Different from the original docs"""
         # show slice of all_data
-        headers = list(set(["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
-                   "confidence"]).intersection(set(self.all_data.columns)))
-        return repr(self.all_data[headers])
+        # headers = list(set(["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
+        #            "confidence"]).intersection(set(self.all_data.columns)))
+        return "<MatcherModel(" + str(self.model_key) + ")>"
+        # return repr(self.all_data[headers]) # according to the docs
 
 if __name__ == "__main__":
 
