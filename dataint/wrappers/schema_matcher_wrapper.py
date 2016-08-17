@@ -80,6 +80,7 @@ class SchemaMatcherSession(object):
     """
     This is the class which sets up the session for the schema matcher api.
     It provides wrappers for all calls to the API.
+    This is an internal class and should not be explicitly used/called by the user.
         Attributes:
             session: Session instance with configuration parameters for the schema matcher server from config.py
             uri: general uri for the schema matcher API
@@ -112,7 +113,7 @@ class SchemaMatcherSession(object):
             r = self.session.get(self.uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("list_alldatasets", e)
+            raise InternalDIError("Connection test", e)
         self.handle_errors(r, "GET " + self.uri)
         return True
 
@@ -524,7 +525,7 @@ class MatcherDataset(object):
         It also destroys this instance.
 
         """
-        self._matcher.session.delete_dataset(self.id)
+        self._matcher._session.delete_dataset(self.id)
         del self
 
     def update(self, description=None, type_map=None): # TODO: implement
@@ -539,7 +540,7 @@ class MatcherDataset(object):
             description = self.description
         if type_map is None:
             type_map = self.type_map
-        new_dict = self._matcher.session.update_dataset(self.id, description, type_map)
+        new_dict = self._matcher._session.update_dataset(self.id, description, type_map)
         self._refresh(new_dict)
 
     def construct_labelData(self, filepath):
@@ -683,7 +684,7 @@ class MatcherModel(object):
 
         Returns:
         """
-        cur_model = self._matcher.session.list_model(self.id)
+        cur_model = self._matcher._session.list_model(self.id)
         self._refresh(cur_model)
 
 
@@ -695,16 +696,16 @@ class MatcherModel(object):
 
         Returns: boolean -- True if model is trained, False otherwise
         """
-        self._matcher.session.train_model(self.id) # launch training
+        self._matcher._session.train_model(self.id) # launch training
 
-        self._session_update(self._matcher.session)
+        self._session_update(self._matcher._session)
         # training is done if finished
         finished = self.model_state.status == Status.COMPLETE # TODO: change!
 
         while wait and not finished: # TODO: change to thread blocking
             logging.info("Waiting for the training...")
             time.sleep(10)  # wait for some time
-            self._session_update(self._matcher.session)
+            self._session_update(self._matcher._session)
             if self.model_state.status == Status.ERROR or\
                             self.model_state.status == Status.COMPLETE:
                 finished = True # finish waiting if training failed or got complete
@@ -724,23 +725,23 @@ class MatcherModel(object):
 
         Returns: Pandas data framework.
         """
-        train_status = self.train(self._matcher.session, wait) # do training
-        self._matcher.session.predict_model(self.id)  # launch prediction
+        train_status = self.train(self._matcher._session, wait) # do training
+        self._matcher._session.predict_model(self.id)  # launch prediction
 
-        self._session_update(self._matcher.session)
+        self._session_update(self._matcher._session)
         # predictions are available if finished
         finished = self.model_state.status == Status.COMPLETE
 
         while wait and not finished:
             time.sleep(5)  # wait for some time
-            self._session_update(self._matcher.session) # update model
+            self._session_update(self._matcher._session) # update model
             if self.model_state.status == Status.ERROR or \
                             self.model_state.status == Status.COMPLETE:
                 finished = True  # finish waiting if prediction failed or got complete
 
         if finished and self.model_state.status == Status.COMPLETE:
             # prediction has successfully finished
-            resp_dict = self._matcher.session.get_model_predict(self.id)
+            resp_dict = self._matcher._session.get_model_predict(self.id)
         elif self.model_state.status == Status.ERROR:
             # either training or prediction failed
             raise InternalDIError("Prediction/training failed", self.model_state.message)
@@ -953,12 +954,11 @@ class MatcherModel(object):
         if resampling_strategy is None:
             resampling_strategy = self.resampling_strategy
         # send model patch request to the schema matcher API
-        new_dict = self._matcher.session.update_model(self.id,
+        new_dict = self._matcher._session.update_model(self.id,
                                  feature_config, description,
                                  classes, model_type,
                                  labels, cost_matrix, resampling_strategy)
         # refresh model
-        # self._session_update()
         self._refresh(new_dict)
         # reset all_data, scores and features
         self.all_data = self._get_labeldata()
@@ -973,7 +973,7 @@ class MatcherModel(object):
 
         Returns:
         """
-        self._matcher.session.delete_model(self.id)
+        self._matcher._session.delete_model(self.id)
         del self
 
     def show_info(self):

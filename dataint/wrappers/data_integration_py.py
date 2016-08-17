@@ -14,12 +14,12 @@ from dataint.wrappers.schema_matcher_wrapper import Status
 class SchemaMatcher(object):
     """
         Attributes:
-            session : class instance of SchemaMatcherSession;
             datasets : list of the instances of MatcherDataset which correspond to available datasets on the server;
             dataset_summary : pandas dataframework summarizing information about available datasets;
             models : list of instances of MatcherModel which correspond to available models on the server;
             model_summary : pandas dataframework summarizing information about available models;
 
+            _session : class instance of SchemaMatcherSession;
             _column_map : a dictionary with keys as column ids and values as their names;
             _ds_keys : list of keys of all available datasets in the repository on the server;
             _model_keys : list of keys of all available models in the repository on the server;
@@ -30,7 +30,7 @@ class SchemaMatcher(object):
         Initialize class instance of SchemaMatcher.
         """
         logging.info('Initialising schema matcher class object.')
-        self.session = SMW.SchemaMatcherSession()
+        self._session = SMW.SchemaMatcherSession()
 
         # we make all keys internal and try to hide the fact of their existence from the user
         self._ds_keys = self._get_dataset_keys()   # list of keys of all available datasets
@@ -67,18 +67,18 @@ class SchemaMatcher(object):
         self.models, self.model_summary = self._get_model_summary()
 
     def __str__(self):
-        return "<SchemaMatcherAt(" + str(self.session.uri) + ")>"
+        return "<SchemaMatcherAt(" + str(self._session.uri) + ")>"
 
     def __repr__(self):
         return self.__str__()
 
     def _get_dataset_keys(self):
         """Obtain the list of keys of all available datasets."""
-        return self.session.list_alldatasets()
+        return self._session.list_alldatasets()
 
     def _get_model_keys(self):
         """Obtain the list of keys of all available models."""
-        return self.session.list_allmodels()
+        return self._session.list_allmodels()
 
     def _populate_datasets(self):
         """
@@ -96,7 +96,7 @@ class SchemaMatcher(object):
         column_map = dict()
 
         for ds_key in self._ds_keys:
-            dataset = SMW.MatcherDataset(self.session.list_dataset(ds_key), self)
+            dataset = SMW.MatcherDataset(self._session.list_dataset(ds_key), self)
             dataset_summary.append([ds_key, dataset.filename, dataset.description,
                                     dataset.date_created, dataset.date_modified,
                                     dataset.sample.shape[0], dataset.sample.shape[1]])
@@ -120,7 +120,7 @@ class SchemaMatcher(object):
         model_summary = []
         models = []
         for key in self._model_keys:
-            mod = SMW.MatcherModel(self.session.list_model(key), self, column_map=self._column_map)
+            mod = SMW.MatcherModel(self._session.list_model(key), self, column_map=self._column_map)
             model_summary.append([key, mod.description, mod.date_created, mod.date_modified,
                                   mod.model_state.status, mod.model_state.date_created, mod.model_state.date_modified])
             models.append(mod)
@@ -141,7 +141,7 @@ class SchemaMatcher(object):
         Returns: Instance of class MatcherModel corresponding to the model key
 
         """
-        return SMW.MatcherModel(self.session.list_model(model_key), self._column_map)
+        return SMW.MatcherModel(self._session.list_model(model_key), self._column_map)
 
     def _get_dataset(self, dataset_key):
         """
@@ -152,7 +152,7 @@ class SchemaMatcher(object):
         Returns: Instance of class MatcherDataset corresponding to the model key
 
         """
-        return SMW.MatcherDataset(self.session.list_dataset(dataset_key))
+        return SMW.MatcherDataset(self._session.list_dataset(dataset_key))
 
     def create_model(self, feature_config,
                        description="",
@@ -175,9 +175,9 @@ class SchemaMatcher(object):
 
         Returns: MatcherModel
         """
-        resp_dict = self.session.post_model(feature_config,
-                       description, classes,model_type,
-                       labels, cost_matrix,resampling_strategy) # send APi request
+        resp_dict = self._session.post_model(feature_config,
+                                             description, classes, model_type,
+                                             labels, cost_matrix, resampling_strategy) # send APi request
         new_model = SMW.MatcherModel(resp_dict, self._column_map)
         self._refresh_models() # we need to update class attributes to include new model
         # self._model_keys
@@ -196,7 +196,7 @@ class SchemaMatcher(object):
         Returns: newly uploaded MatcherDataset
 
         """
-        new_dataset = SMW.MatcherDataset(self.session.post_dataset(description, file_path, type_map))
+        new_dataset = SMW.MatcherDataset(self._session.post_dataset(description, file_path, type_map))
         self._refresh_datasets() # we need to update class attributes to include new datasets
         # self._ds_keys
         # self.datasets
@@ -248,20 +248,8 @@ if __name__ == "__main__":
     dm = SchemaMatcher()
     dm.models
 
-    # error_mods = dm.error_models()
-    # print(len(error_mods))
-    # print(dm.train_models())
+    error_mods = dm.error_models()
 
-    # print(dm.dataset_summary)
-    # print(dm.column_map)
-
-    model = list(dm.models.values())[0]
-    # print(model.all_data)
-
-    # model.get_predictions(dm.session)
-    # snap = model.all_data[["column_id","actual_label","predicted_label"]].dropna()
-    # equalSnap = snap[snap["actual_label"] == snap["predicted_label"]]
-    # print(snap.shape)
-    # print(equalSnap.shape)
-    # print("Equal: " + str(snap.shape == equalSnap.shape))
+    print(dm.dataset_summary)
+    print(dm.column_map)
 
