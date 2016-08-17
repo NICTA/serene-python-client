@@ -182,6 +182,7 @@ class SchemaMatcher(object):
         self._refresh_models() # we need to update class attributes to include new model
         # self._model_keys
         # self.models
+        # self.model_summary
         return new_model
 
     def create_dataset(self, file_path, description, type_map):
@@ -201,6 +202,7 @@ class SchemaMatcher(object):
         # self._ds_keys
         # self.datasets
         # self._column_map
+        # self.dataset_summary
         return new_dataset
 
     def train_models(self, wait=True):
@@ -246,10 +248,10 @@ if __name__ == "__main__":
                         format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
     dm = SchemaMatcher()
-    dm.models
+    print(dm.models)
 
     error_mods = dm.error_models()
 
     print(dm.dataset_summary)
-    print(dm.column_map)
+    # print(dm.column_map)
 

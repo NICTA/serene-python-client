@@ -168,7 +168,7 @@ model.label_data
 
 # labels can be added, but re-training has to be called later on
 
-model.add_labels({'12342': 'name', '12343': 'addr'},dm.session)
+model.add_labels({'12342': 'name', '12343': 'addr'}, dm._session)
 
 #           id  actual_label column_name    column_id
 #  2  6ff9sdug      unknown      colnma     08y08yfg
@@ -181,7 +181,7 @@ model.add_labels({'12342': 'name', '12343': 'addr'},dm.session)
 # 10  d0h1hskj         name   junk-name     q25srwty
 
 # train/re-train model and perform inference
-model.get_predictions(dm.session)
+model.get_predictions(dm._session)
 
 
 # Now the model contains the predictions...

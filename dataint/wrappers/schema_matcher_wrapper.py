@@ -519,13 +519,33 @@ class MatcherDataset(object):
     def __repr__(self):
         return self.__str__()
 
-    def __del__(self):
+    def delete(self):
         """
         Delete dataset in the dataset repository at the schema matcher server.
+        This method also updates attributes in the matcher instance.
         It also destroys this instance.
 
         """
+        logging.info("Deleting ")
         self._matcher._session.delete_dataset(self.id)
+        # delete references in self._matcher
+        # self._matcher._ds_keys
+        # self._matcher.datasets
+        # self._matcher.dataset_summary
+        # self._matcher._column_map
+
+        self._matcher._ds_keys.remove(self.id)  # remove the key
+        for idx, ds in enumerate(self._matcher.datasets):
+            if ds.id == self.id:
+                del self._matcher.datasets[idx] # we assume that there is only one model with each key
+                break
+        # remove this dataset from dataset_summary
+        self._matcher.dataset_summary = self._matcher.dataset_summary[self._matcher.dataset_summary.dataset_id != self.id]
+        # update column_map
+        if self._matcher._column_map:
+            self._matcher._column_map = {k: v for k, v in self._matcher._column_map.items()
+                                         if k not in self._column_map}
+
         del self
 
     def update(self, description=None, type_map=None): # TODO: implement
@@ -966,14 +986,25 @@ class MatcherModel(object):
         self.features = pd.DataFrame()
         self.user_labels = self.all_data.copy()
 
-    def __del__(self):
+    def delete(self):
         """
         Delete model in the model repository at the schema matcher server.
+        This method also updates attributes in the matcher instance.
         It also destroys this instance.
-
-        Returns:
         """
         self._matcher._session.delete_model(self.id)
+        # we need to delete reference to the model in self._matcher
+        # self._matcher.models
+        # self._matcher.model_summary
+        # self._matcher.model_keys
+
+        self._matcher._model_keys.remove(self.id) # remove the key
+        for idx,model in enumerate(self._matcher.models):
+            if model.id == self.id:
+                del self._matcher.models[idx] # we assume that there is only one model with each key
+                break
+        # remove this model from model_summary
+        self._matcher.model_summary = self._matcher.model_summary[self._matcher.model_summary.model_id != self.id]
         del self
 
     def show_info(self):
