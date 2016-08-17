@@ -180,6 +180,8 @@ class SchemaMatcher(object):
                        labels, cost_matrix,resampling_strategy) # send APi request
         new_model = SMW.MatcherModel(resp_dict, self._column_map)
         self._refresh_models() # we need to update class attributes to include new model
+        # self._model_keys
+        # self.models
         return new_model
 
     def create_dataset(self, file_path, description, type_map):
@@ -196,6 +198,9 @@ class SchemaMatcher(object):
         """
         new_dataset = SMW.MatcherDataset(self.session.post_dataset(description, file_path, type_map))
         self._refresh_datasets() # we need to update class attributes to include new datasets
+        # self._ds_keys
+        # self.datasets
+        # self._column_map
         return new_dataset
 
     def train_models(self, wait=True):
