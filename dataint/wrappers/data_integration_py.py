@@ -15,13 +15,14 @@ class SchemaMatcher(object):
     """
         Attributes:
             session : class instance of SchemaMatcherSession;
-            ds_keys : list of keys of all available datasets in the repository on the server;
-            model_keys : list of keys of all available models in the repository on the server;
-            dataset : dictionary with keys as dataset keys and values as the corresponding instances of MatcherDataset;
+            datasets : list of the instances of MatcherDataset which correspond to available datasets on the server;
             dataset_summary : pandas dataframework summarizing information about available datasets;
-            column_map : a dictionary with keys as column ids and values as their names;
-            model : dictionary with keys as model keys and values as the corresponding instances of MatcherModel;
+            models : list of instances of MatcherModel which correspond to available models on the server;
             model_summary : pandas dataframework summarizing information about available models;
+
+            _column_map : a dictionary with keys as column ids and values as their names;
+            _ds_keys : list of keys of all available datasets in the repository on the server;
+            _model_keys : list of keys of all available models in the repository on the server;
     """
 
     def __init__(self):
@@ -31,37 +32,39 @@ class SchemaMatcher(object):
         logging.info('Initialising schema matcher class object.')
         self.session = SMW.SchemaMatcherSession()
 
-        self.ds_keys = self.get_dataset_keys()   # list of keys of all available datasets , TODO: all keys are internal
-        self.model_keys = self.get_model_keys()  # list of keys of all available models
-        self.dataset, self.dataset_summary, self.column_map = self.populate_datasets()
-        self.model, self.model_summary = self.get_model_summary()
+        # we make all keys internal and try to hide the fact of their existence from the user
+        self._ds_keys = self._get_dataset_keys()   # list of keys of all available datasets
+        self._model_keys = self._get_model_keys()  # list of keys of all available models
 
-    def refresh(self): # TODO: internal
+        self.datasets, self.dataset_summary, self._column_map = self._populate_datasets()
+        self.models, self.model_summary = self._get_model_summary()
+
+    def _refresh(self): # TODO: improve
         """
         Refresh class attributes especially after new models or datasets have been added or deleted.
         Returns:
         """
         # first we update datasets since column_map is updated here
-        self.refresh_datasets()
+        self._refresh_datasets()
         # column_map is used to update models
-        self.refresh_models()
+        self._refresh_models()
 
-    def refresh_datasets(self): # TODO: internal, improve
+    def _refresh_datasets(self): # TODO: improve
         """
         Refresh class attributes related to datasets.
         Returns:
         """
-        self.ds_keys = self.get_dataset_keys()  # list of keys of all available datasets
-        self.dataset, self.dataset_summary, self.column_map = self.populate_datasets()
+        self._ds_keys = self._get_dataset_keys()  # list of keys of all available datasets
+        self.datasets, self.dataset_summary, self._column_map = self._populate_datasets()
 
-    def refresh_models(self): # TODO: internal, optimize
+    def _refresh_models(self): # TODO: optimize
         """
         Refresh class attributes related to models.
         Returns:
         """
-        self.model_keys = self.get_model_keys()  # list of keys of all available models
+        self._model_keys = self._get_model_keys()  # list of keys of all available models
         # column_map is used to update models
-        self.model, self.model_summary = self.get_model_summary()
+        self.models, self.model_summary = self._get_model_summary()
 
     def __str__(self):
         return "<SchemaMatcherAt(" + str(self.session.uri) + ")>"
@@ -69,15 +72,15 @@ class SchemaMatcher(object):
     def __repr__(self):
         return self.__str__()
 
-    def get_dataset_keys(self): # TODO: internal
+    def _get_dataset_keys(self):
         """Obtain the list of keys of all available datasets."""
         return self.session.list_alldatasets()
 
-    def get_model_keys(self): # TODO: internal
+    def _get_model_keys(self):
         """Obtain the list of keys of all available models."""
         return self.session.list_allmodels()
 
-    def populate_datasets(self):  # TODO: internal
+    def _populate_datasets(self):
         """
         This method creates a dictionary (dataset key, instance of MatcherDataset).
         It also collects info on all datasets and puts this information
@@ -87,22 +90,25 @@ class SchemaMatcher(object):
 
         Returns: dictionary of dataset ids, Pandas dataframe, dictionary of all column ids.
         """
-        dataset = dict()
+        datasets = []
         dataset_summary = []
         headers = ['dataset_id', 'name', 'description', 'created', 'modified', "num_rows", "num_cols"]
         column_map = dict()
-        for ds_key in self.ds_keys:
-            dataset[ds_key] = SMW.MatcherDataset(self.session.list_dataset(ds_key))
-            dataset_summary.append([ds_key, dataset[ds_key].filename, dataset[ds_key].description,
-                                    dataset[ds_key].date_created, dataset[ds_key].date_modified,
-                                    dataset[ds_key].sample.shape[0], dataset[ds_key].sample.shape[1]])
-            column_map.update(dataset[ds_key].column_map)
-        dataset_summary = pd.DataFrame(dataset_summary)
-        if not(dataset_summary.empty): # rename columns if data frame is not empty
-            dataset_summary.columns = headers
-        return dataset, dataset_summary, column_map
 
-    def get_model_summary(self): # TODO: internal
+        for ds_key in self._ds_keys:
+            dataset = SMW.MatcherDataset(self.session.list_dataset(ds_key), self)
+            dataset_summary.append([ds_key, dataset.filename, dataset.description,
+                                    dataset.date_created, dataset.date_modified,
+                                    dataset.sample.shape[0], dataset.sample.shape[1]])
+            column_map.update(dataset._column_map)
+            datasets.append(dataset)
+
+        dataset_summary = pd.DataFrame(dataset_summary)
+        if not dataset_summary.empty: # rename columns if data frame is not empty
+            dataset_summary.columns = headers
+        return datasets, dataset_summary, column_map
+
+    def _get_model_summary(self):
         """
         This method creates a dictionary (model key, instance of MatcherModel).
         It also collects info on all models and puts this information
@@ -112,21 +118,21 @@ class SchemaMatcher(object):
         Returns: dictionary of model ids, Pandas dataframe with summary of all models.
         """
         model_summary = []
-        model = dict()
-        for key in self.model_keys:
-            mod = SMW.MatcherModel(self.session.list_model(key), self.column_map)
-            model[key] = mod
+        models = []
+        for key in self._model_keys:
+            mod = SMW.MatcherModel(self.session.list_model(key), self, column_map=self._column_map)
             model_summary.append([key, mod.description, mod.date_created, mod.date_modified,
                                   mod.model_state.status, mod.model_state.date_created, mod.model_state.date_modified])
+            models.append(mod)
 
         model_summary = pd.DataFrame(model_summary)
-        if not (model_summary.empty):  # rename columns if data frame is not empty
+        if not model_summary.empty:  # rename columns if data frame is not empty
             model_summary.columns = ['model_id','description','created','modified',
                                      'status','state_created','state_modified']
-        return model, model_summary
+        return models, model_summary
 
 
-    def get_model(self, model_key): # TODO: internal
+    def _get_model(self, model_key):
         """
         Get the model corresponding to the key.
         Args:
@@ -135,9 +141,9 @@ class SchemaMatcher(object):
         Returns: Instance of class MatcherModel corresponding to the model key
 
         """
-        return SMW.MatcherModel(self.session.list_model(model_key), self.column_map)
+        return SMW.MatcherModel(self.session.list_model(model_key), self._column_map)
 
-    def get_dataset(self, dataset_key): # TODO: internal
+    def _get_dataset(self, dataset_key):
         """
         Get the dataset corresponding to the key.
         Args:
@@ -172,11 +178,11 @@ class SchemaMatcher(object):
         resp_dict = self.session.post_model(feature_config,
                        description, classes,model_type,
                        labels, cost_matrix,resampling_strategy) # send APi request
-        new_model = SMW.MatcherModel(resp_dict, self.column_map)
-        self.refresh_models() # we need to update class attributes to include new model
+        new_model = SMW.MatcherModel(resp_dict, self._column_map)
+        self._refresh_models() # we need to update class attributes to include new model
         return new_model
 
-    def upload_dataset(self, file_path, description, type_map):   ##TODO: rename create_dataset
+    def create_dataset(self, file_path, description, type_map):
         """
         Upload a new dataset to the schema matcher server.
         Refresh SchemaMatcher instance to include the new dataset.
@@ -189,7 +195,7 @@ class SchemaMatcher(object):
 
         """
         new_dataset = SMW.MatcherDataset(self.session.post_dataset(description, file_path, type_map))
-        self.refresh_datasets() # we need to update class attributes to include new datasets
+        self._refresh_datasets() # we need to update class attributes to include new datasets
         return new_dataset
 
     def train_models(self, wait=True):
@@ -202,7 +208,7 @@ class SchemaMatcher(object):
 
         Returns: True if training for all models succeeded.
         """
-        return all([model.train(self.session, wait) for model in self.model.values()])
+        return all([model.train(wait) for model in self.models])
 
     def get_predictions_models(self, wait=True):
         """
@@ -214,15 +220,15 @@ class SchemaMatcher(object):
 
         Returns: Nothing, model attributes get updated.
         """
-        [model.get_predictions(self.session, wait) for model in self.model.values()]
+        [model.get_predictions(wait) for model in self.models]
 
     def error_models(self):
         """
         Go through the list of models and return those which have errors.
         Returns: list of models which have error state.
         """
-        return dict([(key,model) for key,model in self.model.items()
-                             if model.model_state.status == Status.ERROR])
+        return [model for model in self.models
+                if model.model_state.status == Status.ERROR]
 
 
 if __name__ == "__main__":
@@ -235,7 +241,7 @@ if __name__ == "__main__":
                         format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
     dm = SchemaMatcher()
-    dm.model
+    dm.models
 
     # error_mods = dm.error_models()
     # print(len(error_mods))
@@ -244,7 +250,7 @@ if __name__ == "__main__":
     # print(dm.dataset_summary)
     # print(dm.column_map)
 
-    model = list(dm.model.values())[0]
+    model = list(dm.models.values())[0]
     # print(model.all_data)
 
     # model.get_predictions(dm.session)

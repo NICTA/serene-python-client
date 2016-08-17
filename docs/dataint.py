@@ -7,7 +7,7 @@ dm = dataint.SchemaMatcher(
     port=9000)
 
 # lists all the datasets...
-dm.dataset
+dm.datasets
 # {
 #   987394875: <MatcherDataSet(gr7y7ydf)>
 #   583047856: <MatcherDataSet(sdfg764t)>
@@ -24,7 +24,7 @@ dm.dataset_summary
 
 # reference the dataset by the id...
 
-dm.dataset[987298345]
+dm.datasets[987298345]
 # name: asdf.csv
 # dateCreated:  2015-02-01 12:30.123
 # dateModified: 2015-02-04 16:31.382
@@ -42,7 +42,7 @@ dm.dataset[987298345]
 # alternatively reference by filename...
 # this does not work now
 
-dm.dataset['asdf.csv']
+dm.datasets['asdf.csv']
 # filename: asdf.csv
 # date_created:  2015-02-01 12:30.123
 # date_modified: 2015-02-04 16:31.382
@@ -59,7 +59,7 @@ dm.dataset['asdf.csv']
 
 # view a column...
 
-dm.dataset['asdf.csv'].sample['junk']
+dm.datasets['asdf.csv'].sample['junk']
 #    1234
 #   98745
 #  987394
@@ -78,7 +78,7 @@ dm.dataset['asdf.csv'].sample['junk']
 
 
 # upload a new dataset
-new_dataset = dm.upload_dataset(description="testing", file_path=filepath, type_map={})
+new_dataset = dm.create_dataset(description="testing", file_path=filepath, type_map={})
 
 # create a dictionary of label data for the new dataset
 # based on the .csv file which has mandatory columns 'column_name' and 'class'
@@ -87,7 +87,7 @@ label_data = new_dataset.construct_labelData('some_file_with_column_labels.csv')
 
 # lists all the models...
 
-dm.model
+dm.models
 # {
 #    1234: <MatcherModel(1234)>,
 #    2345: <MatcherModel(2345)>,

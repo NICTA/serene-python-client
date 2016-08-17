@@ -439,56 +439,108 @@ class SchemaMatcherSession(object):
 class MatcherDataset(object):
     """
         Attributes:
+            id: dataset id by which it is referred on the server
+            filename: name of the file
+            filepath: string which indicates the location of the file on the server
+            description: description of the file
+            date_created: date when the file was created
+            date_modified: last date when the dataset was modified
+            type_map: optional type map
+            sample: Pandas dataframe with data sample
 
-            session!!
-
+            _matcher
+            _column_map
     """
-    def __init__(self, resp_dict): # TODO: add session attribute
+    def __init__(self, resp_dict, matcher): # TODO: add session attribute
         """
+        Initialize instance of class MatcherDataset.
         Args:
             resp_dict: dictionary which is returned by Schema Matcher API
+            matcher: instance of class SchemaMatcher, it contains session as attribute
         """
+        try:
+            self.id = int(resp_dict["id"])
+        except Exception as e:
+            logging.error("Failed to initialize MatcherDataset: dataset key could not be converted to integer.")
+            raise InternalDIError("MatcherDataset initialization", e)
 
         self.filename = resp_dict['filename']
         self.filepath = resp_dict['path']
         self.description = resp_dict['description']
-        self.ds_key = resp_dict['id'] # TODO: rename to _id
         self.date_created = resp_dict['dateCreated']
         self.date_modified = resp_dict['dateModified']
-        self.columns = resp_dict['columns']
+        self.type_map = resp_dict['typeMap']
+
+        self._matcher = matcher
+
+        headers = []
+        data = []
+        self._column_map = dict() # mapping column ids to column names
+        for col in resp_dict['columns']:
+            headers.append(col['name'])
+            data.append(col['sample'])
+            self._column_map[int(col['id'])] = col['name']
+        self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
+        self.sample.columns = headers
+
+    def _refresh(self, resp_dict):
+        """
+        Refresh instance attributes.
+        Args:
+            resp_dict: dictionary which is returned by Schema Matcher API
+        """
+        try:
+            self.id = int(resp_dict["id"])
+        except Exception as e:
+            logging.error("Failed to initialize MatcherDataset: dataset key could not be converted to integer.")
+            raise InternalDIError("MatcherDataset initialization", e)
+
+        self.filename = resp_dict['filename']
+        self.filepath = resp_dict['path']
+        self.description = resp_dict['description']
+        self.date_created = resp_dict['dateCreated']
+        self.date_modified = resp_dict['dateModified']
         self.type_map = resp_dict['typeMap']
 
         headers = []
         data = []
-        self.column_map = dict() # mapping column ids to column names
-        for col in self.columns:
+        self._column_map = dict() # mapping column ids to column names
+        for col in resp_dict['columns']:
             headers.append(col['name'])
             data.append(col['sample'])
-            self.column_map[int(col['id'])] = col['name']
+            self._column_map[int(col['id'])] = col['name']
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
-        self.columns = self.sample.columns.values.tolist() # TODO: remove
 
     def __str__(self):
-        return "<MatcherDataset(" + str(self.ds_key) + ")>"
+        return "<MatcherDataset(" + str(self.id) + ")>"
 
     def __repr__(self):
         return self.__str__()
 
-    def session_delete(self, api_session): # TODO: overwrite internal del method
+    def __del__(self):
         """
         Delete dataset in the dataset repository at the schema matcher server.
         It also destroys this instance.
-        Args:
-            api_session : Schema Matcher session
 
-        Returns:
         """
-        api_session.delete_dataset(self.ds_key)
+        self._matcher.session.delete_dataset(self.id)
         del self
 
-    def update(self): # TODO: implement
-        pass
+    def update(self, description=None, type_map=None): # TODO: implement
+        """
+        Update the dataset with new description/type_map on the server.
+        If any of the parameters are empty, the current values of the dataset are used.
+        Args:
+            description: new description for the dataset
+            type_map: new type_map for the dataset
+        """
+        if description is None:
+            description = self.description
+        if type_map is None:
+            type_map = self.type_map
+        new_dict = self._matcher.session.update_dataset(self.id, description, type_map)
+        self._refresh(new_dict)
 
     def construct_labelData(self, filepath):
         """
@@ -510,7 +562,7 @@ class MatcherDataset(object):
             frame = pd.read_csv(filepath)
             # dictionary (column_name, class_label)
             name_labels = frame[["column_name", "class"]].dropna().set_index('column_name')['class'].to_dict()
-            for col_id, col_name in self.column_map.items():
+            for col_id, col_name in self._column_map.items():
                 if col_name in name_labels:
                     label_data[int(col_id)] = name_labels[col_name]
         except Exception as e:
@@ -560,13 +612,13 @@ class MatcherModel(object):
         model_type: type of the model
         description: description of the model
         features_config: model configuration of the features
-        cost_matrix
-        resampling_strategy
-        ref_datasets
-        classes
-        date_created
-        date_modified
-        model_state
+        cost_matrix: cost matrix
+        resampling_strategy: resampling strategy of the model
+        ref_datasets: list of dataset ids which are referenced by labeled data
+        classes: list of semantic types
+        date_created: date when model was created
+        date_modified: last date when model was modified
+        model_state: information about model state
 
         _label_data: internal
         _matcher: internal
@@ -837,7 +889,7 @@ class MatcherModel(object):
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
         self.resampling_strategy = resp_dict["resamplingStrategy"]
-        self._label_data = resp_dict["labelData      "]
+        self._label_data = resp_dict["labelData"]
         self.ref_datasets = set(resp_dict["refDataSets"])
         self.classes = resp_dict["classes"]
         self.date_created = convert_datetime(resp_dict["dateCreated"])
@@ -866,7 +918,6 @@ class MatcherModel(object):
         self.user_labels = self.all_data.copy()
         self.scores = pd.DataFrame()
         self.features = pd.DataFrame()
-
 
     def update(self,
                feature_config=None, description=None,
@@ -902,19 +953,20 @@ class MatcherModel(object):
         if resampling_strategy is None:
             resampling_strategy = self.resampling_strategy
         # send model patch request to the schema matcher API
-        self._matcher.session.update_model(self.id,
+        new_dict = self._matcher.session.update_model(self.id,
                                  feature_config, description,
                                  classes, model_type,
                                  labels, cost_matrix, resampling_strategy)
         # refresh model
-        self._session_update()
+        # self._session_update()
+        self._refresh(new_dict)
         # reset all_data, scores and features
         self.all_data = self._get_labeldata()
         self.scores = pd.DataFrame()
         self.features = pd.DataFrame()
         self.user_labels = self.all_data.copy()
 
-    def __del__(self): # TODO: overwrite internal del method
+    def __del__(self):
         """
         Delete model in the model repository at the schema matcher server.
         It also destroys this instance.
@@ -955,48 +1007,3 @@ if __name__ == "__main__":
     sess = SchemaMatcherSession()
     all_ds = sess.list_alldatasets()
     all_models = sess.list_allmodels()
-
-    # filepath = "../../data/59722533.csv"
-    # data = {"description": "testing", "typeMap": {}}
-    # f = {"file": open(filepath, "rb")}
-    # r = sess.session.post(sess.uri_ds, files=f, json=data)
-
-    model = sess.list_model(all_models[0])
-    dataset = sess.list_dataset(all_ds[0])
-    # features_conf = model["features"]
-
-    #sess.post_model(feature_config="")
-
-    matcher_model = MatcherModel(model)
-    print(matcher_model)
-    print(matcher_model._column_map)
-
-    matcher_dataset = MatcherDataset(dataset)
-    print(matcher_dataset)
-    print(matcher_dataset.column_map)
-
-    # sess.train_model(matcher_model.model_key)
-    #
-    # sess.predict_model(matcher_model.model_key)
-    #
-    # sess.get_model_predict(matcher_model.model_key)
-
-    # matcher_model.get_predictions(sess)
-    # print(matcher_model)
-    #
-    # print("*********confusion ")
-    # print(matcher_model.calculate_confusionMatrix())
-    #
-    # new_labels = matcher_model.all_data[matcher_model.all_data.user_label.isnull()]  # show predicted labels where actual label is not available
-    # print("**************************New labels")
-    # print(new_labels)
-    # further pandas slicing functionality can be used to select the predicted labels
-    # rand_label = new_labels.sample(n=1).iloc[0]  # select one random row among newly predicted labels
-    # labs = [((rand_label["column_id"]), (rand_label["predicted_label"]))]  # convert it to the form (columnID,label)
-
-    # print(labs)
-
-    # new_labelData = {1541478690: 'unknown'}  # this is a new label to be added
-    # matcher_model.add_labels(new_labelData, sess)
-    # print(matcher_model)
-
