@@ -912,12 +912,12 @@ class MatcherModel(object):
         # labels in additional_labels extend (in case of conflict override) the ones which are currently defined
         self._label_data.update(additional_labels)
         self.update(labels=self._label_data)
-        self._session_update() # update model according to the changes on the server
-        # reset all_data, scores and features
-        self.all_data = self._get_labeldata()
-        self.user_labels = self.all_data.copy()
-        self.scores = pd.DataFrame()
-        self.features = pd.DataFrame()
+
+        # reset all_data, scores and features --- this is already done in update method
+        # self.all_data = self._get_labeldata()
+        # self.user_labels = self.all_data.copy()
+        # self.scores = pd.DataFrame()
+        # self.features = pd.DataFrame()
 
     def update(self,
                feature_config=None, description=None,
