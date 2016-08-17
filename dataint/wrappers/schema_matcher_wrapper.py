@@ -440,16 +440,19 @@ class MatcherDataset(object):
     """
         Attributes:
 
+            session!!
+
     """
-    def __init__(self, resp_dict):
+    def __init__(self, resp_dict): # TODO: add session attribute
         """
         Args:
             resp_dict: dictionary which is returned by Schema Matcher API
         """
+
         self.filename = resp_dict['filename']
         self.filepath = resp_dict['path']
         self.description = resp_dict['description']
-        self.ds_key = resp_dict['id']
+        self.ds_key = resp_dict['id'] # TODO: rename to _id
         self.date_created = resp_dict['dateCreated']
         self.date_modified = resp_dict['dateModified']
         self.columns = resp_dict['columns']
@@ -464,7 +467,7 @@ class MatcherDataset(object):
             self.column_map[int(col['id'])] = col['name']
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
-        self.columns = self.sample.columns.values.tolist()
+        self.columns = self.sample.columns.values.tolist() # TODO: remove
 
     def __str__(self):
         return "<MatcherDataset(" + str(self.ds_key) + ")>"
@@ -472,7 +475,7 @@ class MatcherDataset(object):
     def __repr__(self):
         return self.__str__()
 
-    def session_delete(self, api_session):
+    def session_delete(self, api_session): # TODO: overwrite internal del method
         """
         Delete dataset in the dataset repository at the schema matcher server.
         It also destroys this instance.
@@ -483,6 +486,9 @@ class MatcherDataset(object):
         """
         api_session.delete_dataset(self.ds_key)
         del self
+
+    def update(self): # TODO: implement
+        pass
 
     def construct_labelData(self, filepath):
         """
@@ -550,35 +556,40 @@ class MatcherModel(object):
     """
     Class to wrap the model.
     Attributes:
-        model_key
-        model_type
-        description
-        features_config
+        id: model key by which the model is refered on the server
+        model_type: type of the model
+        description: description of the model
+        features_config: model configuration of the features
         cost_matrix
         resampling_strategy
-        label_data
         ref_datasets
         classes
         date_created
         date_modified
         model_state
 
-        column_map
-        all_data
-        features
-        scores
-        accuracy
+        _label_data: internal
+        _matcher: internal
+        _column_map: internal
+
+        all_data: Pandas dataframe
+        features: Pandas dataframe
+        scores: Pandas dataframe
+        user_labels: Pandas dataframe
+
     """
 
-    def __init__(self, resp_dict, column_map=None):
+    def __init__(self, resp_dict, matcher, column_map=None):
         """
         Args:
             resp_dict : dictionary which is returned by Schema Matcher API
+            matcher: instance of class SchemaMatcher, it contains session as attribute
             column_map : optional dictionary for mapping columns fom ids to names
         """
         # TODO: check resp_dict
+        # TODO: internal attributes, read-only attributes
         try:
-            self.model_key = int(resp_dict["id"])
+            self.id = int(resp_dict["id"])
         except Exception as e:
             logging.error("Failed to initialize MatcherModel: model key could not be converted to integer.")
             raise InternalDIError("MatcherModel initialization", e)
@@ -587,12 +598,12 @@ class MatcherModel(object):
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
         self.resampling_strategy = resp_dict["resamplingStrategy"]
-        self.label_data = {}
+        self._label_data = {} # this attribute is internal and should not be viewed/modified by the user
         try:
             # print(resp_dict["labelData"])
             # print(type(resp_dict["labelData"]))
             for col_id, lab in resp_dict["labelData"].items():
-                self.label_data[int(col_id)] = lab
+                self._label_data[int(col_id)] = lab
         except Exception as e:
             raise InternalDIError("failed to convert labelData",e)
         self.ref_datasets = set(resp_dict["refDataSets"])
@@ -604,45 +615,44 @@ class MatcherModel(object):
                                       resp_dict["state"]["dateCreated"],
                                       resp_dict["state"]["dateModified"])
 
-        self.column_map = column_map
+
+        self._matcher = matcher  # this attribute is internal and should not be viewed/modified by the user
+        self._column_map = column_map  # this attribute is internal and should not be viewed/modified by the user
 
         # create dataframe with user defined labels and predictions
-        self.all_data = self.get_labeldata() # column_map?
+        self.all_data = self._get_labeldata() # column_map?
         self.features = pd.DataFrame() # empty data frame
         self.scores = pd.DataFrame() # empty data frame
-        self.accuracy = np.nan # accuracy not available
+        self.user_labels = self.all_data.copy()
 
-    def session_update(self, api_session):
+    def _session_update(self):
         """
         Download model updates from the API.
-        Args:
-            api_session : schema matcher session
 
         Returns:
         """
-        cur_model = api_session.list_model(self.model_key)
-        self.update(cur_model)
+        cur_model = self._matcher.session.list_model(self.id)
+        self._refresh(cur_model)
 
 
-    def train(self, api_session, wait=True):
+    def train(self, wait=True):
         """
         Send the training request to the API.
         Args:
-            api_session : schema matcher session
             wait : boolean indicator whether to wait for the training to finish.
 
         Returns: boolean -- True if model is trained, False otherwise
         """
-        api_session.train_model(self.model_key) # launch training
+        self._matcher.session.train_model(self.id) # launch training
 
-        self.session_update(api_session)
+        self._session_update(self._matcher.session)
         # training is done if finished
-        finished = self.model_state.status == Status.ERROR or self.model_state.status == Status.COMPLETE
+        finished = self.model_state.status == Status.COMPLETE # TODO: change!
 
-        while wait and not(finished):
+        while wait and not finished: # TODO: change to thread blocking
             logging.info("Waiting for the training...")
             time.sleep(10)  # wait for some time
-            self.session_update(api_session)
+            self._session_update(self._matcher.session)
             if self.model_state.status == Status.ERROR or\
                             self.model_state.status == Status.COMPLETE:
                 finished = True # finish waiting if training failed or got complete
@@ -650,34 +660,35 @@ class MatcherModel(object):
         return finished and self.model_state.status == Status.COMPLETE
 
 
-    def get_predictions(self, api_session, wait=True):
+    def get_predictions(self, wait=True, dataset_id=None): # TODO: additional parameter for dataset_id
         """
         Get predictions based on the model.
-        Predictions are done for all datasets in the repository.
+        Predictions are done for all datasets in the repository if dataset_id=None.
+        If a dataset id is passed to the method, prediction will be done only for this dataset.
         Args:
-            api_session : schema matcher session
             wait : boolean indicator whether to wait for the training to finish, default is True.
-            column_map : optional dictionary to lookup column names based on column ids
+            dataset_id: dataset id for which the prediction should be done;
+                        if None, prediction is done for all datasets (this is default).
 
         Returns: Pandas data framework.
         """
-        train_status = self.train(api_session, wait) # do training
-        api_session.predict_model(self.model_key)  # launch prediction
+        train_status = self.train(self._matcher.session, wait) # do training
+        self._matcher.session.predict_model(self.id)  # launch prediction
 
-        self.session_update(api_session)
+        self._session_update(self._matcher.session)
         # predictions are available if finished
         finished = self.model_state.status == Status.COMPLETE
 
-        while wait and not (finished):
+        while wait and not finished:
             time.sleep(5)  # wait for some time
-            self.session_update(api_session) # update model
+            self._session_update(self._matcher.session) # update model
             if self.model_state.status == Status.ERROR or \
                             self.model_state.status == Status.COMPLETE:
                 finished = True  # finish waiting if prediction failed or got complete
 
-        if (finished and self.model_state.status == Status.COMPLETE):
+        if finished and self.model_state.status == Status.COMPLETE:
             # prediction has successfully finished
-            resp_dict = api_session.get_model_predict(self.model_key)
+            resp_dict = self._matcher.session.get_model_predict(self.id)
         elif self.model_state.status == Status.ERROR:
             # either training or prediction failed
             raise InternalDIError("Prediction/training failed", self.model_state.message)
@@ -687,21 +698,20 @@ class MatcherModel(object):
         else:
             raise InternalDIError("Training has not been launched", self.model_state.message)
 
-        self.all_data = self.process_predictions(resp_dict)
-        self.scores = self.get_scores()
-        self.features = self.get_features()
+        self.all_data = self._process_predictions(resp_dict)
+        self.scores = self._get_scores()
+        self.features = self._get_features()
         return self.all_data
 
-    def process_predictions(self, response):
+    def _process_predictions(self, response):
         """
         Process column predictions into Pandas data framework.
         Args:
             response: list of column predictions (dictionaries) which is returned by the schema matcher API
-            column_map : optional dictionary to lookup column names based on column ids
 
         Returns: Pandas data framework.
         """
-        headers = ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label", "confidence"]
+        headers = ["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label", "confidence"]
         classes = []
         feature_names = []
         # additionally scores for all classes and features
@@ -709,12 +719,12 @@ class MatcherModel(object):
 
         for col_pred in response:
             # if column_map is available, lookup the name of the column
-            if self.column_map:
-                column_name = self.column_map.get(col_pred["columnID"], np.nan)
+            if self._column_map:
+                column_name = self._column_map.get(col_pred["columnID"], np.nan)
             else:
                 column_name = np.nan
             # if user provided label for this column, get the label, otherwise NaN
-            actual_lab = self.label_data.get(str(col_pred["columnID"]), np.nan)
+            actual_lab = self._label_data.get(str(col_pred["columnID"]), np.nan)
             conf = col_pred["confidence"]
             if conf > 0:
                 label = col_pred["label"]
@@ -743,69 +753,71 @@ class MatcherModel(object):
         """
         Calculate confusion matrix of the model.
         If all_data is not available for the model, it will return None.
-        Returns: Pandas data frame.
 
+        Returns: Pandas data frame.
         """
         if self.all_data.empty:
             logging.warning("Model all_data is empty. Confusion matrix cannot be calculated.")
             return None
 
-        # take those rows where actual_label is available
+        # take those rows where user_label is available
         try:
-            available = self.all_data[["actual_label", "predicted_label"]].dropna()
+            available = self.all_data[["user_label", "predicted_label"]].dropna()
         except Exception as e:
             raise InternalDIError("confusion_matrix",e)
-        y_actu = pd.Series(available["actual_label"], name='Actual')
+        y_actu = pd.Series(available["user_label"], name='Actual')
         y_pred = pd.Series(available["predicted_label"], name='Predicted')
         return pd.crosstab(y_actu, y_pred)
 
-
-    def get_labeldata(self):
+    def _get_labeldata(self):
         """
+        Creates a Pandas dataframe which contains user specified labels for columns.
 
-        Returns:
+        Returns: Pandas dataframe with columns
+                "model_id", "column_id", "column_name", "user_label".
 
         """
-        headers = ["model_id", "column_id", "column_name", "actual_label"]
+        headers = ["model_id", "column_id", "column_name", "user_label"]
         # TODO: add dataset id ???
         data = []
-        for columnID, label in self.label_data.items():
-            if self.column_map:
-                column_name = self.column_map.get(columnID, np.nan)
+        for columnID, label in self._label_data.items():
+            if self._column_map:
+                column_name = self._column_map.get(columnID, np.nan)
             else:
                 column_name = np.nan
-            data.append((self.model_key, columnID, column_name, label))
+            data.append((self.id, columnID, column_name, label))
 
-        sample = pd.DataFrame(data)
+        sample = pd.DataFrame(data).dropna()
         sample.columns = headers
         return sample
 
-    def get_scores(self):
+    def _get_scores(self):
         """
-        Get a slice of all_data which has scores.
+        Get a slice of all_data which has scores for classes.
         Returns: Pandas data framework
 
         """
         # just get a slice of all_data
         # all_data has columns:
-        # ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label", "confidence"]+ classes + features
-        headers = ["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
+        # ["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label", "confidence"]+ classes + features
+        headers = ["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label",
                    "confidence"] + self.classes
         if len(set(headers).intersection(set(self.all_data.columns))) == len(headers):
             return self.all_data[headers]
-        logging.warning("Scores are not available for model: " + str(self.model_key))
+        logging.warning("Scores are not available for model: " + str(self.id))
         return pd.DataFrame()
 
-    def get_features(self):
+    def _get_features(self):
         """
-        Get a slice of all_data which has features.
+        Get a slice of all_data which has features calculated for columns in the dataset repo.
+
         Returns: Pandas data framework
         """
         # just get a slice of all_data
         headers = list(set(self.all_data.columns).difference(self.classes))
         return self.all_data[headers]
 
-    def update(self, resp_dict, column_map=None):
+    def _refresh(self, resp_dict, column_map=None):
         """
         Update the model according to the newly provided parameters.
         Args:
@@ -817,7 +829,7 @@ class MatcherModel(object):
         """
         # TODO: check resp_dict
         try:
-            self.model_key = int(resp_dict["id"])
+            self.id = int(resp_dict["id"])
         except Exception as e:
             logging.error("Failed to initialize MatcherModel: model key could not be converted to integer.")
             raise InternalDIError("MatcherModel initialization", e)
@@ -825,7 +837,7 @@ class MatcherModel(object):
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
         self.resampling_strategy = resp_dict["resamplingStrategy"]
-        self.label_data = resp_dict["labelData"]
+        self._label_data = resp_dict["labelData      "]
         self.ref_datasets = set(resp_dict["refDataSets"])
         self.classes = resp_dict["classes"]
         self.date_created = convert_datetime(resp_dict["dateCreated"])
@@ -835,34 +847,35 @@ class MatcherModel(object):
                                       resp_dict["state"]["dateCreated"],
                                       resp_dict["state"]["dateModified"])
         if column_map: # update column_map if it's provided
-            self.column_map = column_map
+            self._column_map = column_map
 
-    def add_labels(self, additional_labels, api_session):
+    def add_labels(self, additional_labels):
         """
         Add label data to the model and upload the changes to the server.
         Args:
             additional_labels : dictionary with additional labels for columns
-            api_session : Schema Matcher session
 
         Returns:
         """
         # labels in additional_labels extend (in case of conflict override) the ones which are currently defined
-        self.label_data.update(additional_labels)
-        self.session_patch(api_session, labels=self.label_data)
-        self.session_update(api_session) # update model according to the changes on the server
+        self._label_data.update(additional_labels)
+        self.update(labels=self._label_data)
+        self._session_update() # update model according to the changes on the server
         # reset all_data, scores and features
-        self.all_data = self.get_labeldata()
+        self.all_data = self._get_labeldata()
+        self.user_labels = self.all_data.copy()
         self.scores = pd.DataFrame()
         self.features = pd.DataFrame()
 
-    def session_patch(self, api_session,
-                     feature_config=None, description=None,
-                     classes=None, model_type=None,
-                     labels=None, cost_matrix=None, resampling_strategy=None):
+
+    def update(self,
+               feature_config=None, description=None,
+               classes=None, model_type=None,
+               labels=None, cost_matrix=None, resampling_strategy=None):
         """
         Update model in the model repository at the schema matcher server.
+        If any of the parameters is None, this method will take the current model value for it.
         Args:
-            api_session : Schema Matcher session
             feature_config : dictionary
             description : string which describes the model to be posted
             classes : list of class names
@@ -873,38 +886,52 @@ class MatcherModel(object):
 
         Returns:
         """
+        # if any of the parameters is None, then take the current one
+        if feature_config is None:
+            feature_config = self.features_config
+        if description is None:
+            description = self.description
+        if classes is None:
+            classes = self.classes
+        if model_type is None:
+            model_type = self.model_type
+        if labels is None:
+            labels = self._label_data
+        if cost_matrix is None:
+            cost_matrix = self.cost_matrix
+        if resampling_strategy is None:
+            resampling_strategy = self.resampling_strategy
         # send model patch request to the schema matcher API
-        api_session.update_model(self.model_key,
-                     feature_config, description,
-                     classes, model_type,
-                     labels, cost_matrix, resampling_strategy)
+        self._matcher.session.update_model(self.id,
+                                 feature_config, description,
+                                 classes, model_type,
+                                 labels, cost_matrix, resampling_strategy)
         # refresh model
-        self.session_update(api_session)
+        self._session_update()
         # reset all_data, scores and features
-        self.all_data = self.get_labeldata()
+        self.all_data = self._get_labeldata()
         self.scores = pd.DataFrame()
         self.features = pd.DataFrame()
+        self.user_labels = self.all_data.copy()
 
-    def session_delete(self, api_session):
+    def __del__(self): # TODO: overwrite internal del method
         """
         Delete model in the model repository at the schema matcher server.
         It also destroys this instance.
-        Args:
-            api_session : Schema Matcher session
 
         Returns:
         """
-        api_session.delete_model(self.model_key)
+        self._matcher.session.delete_model(self.id)
         del self
 
     def show_info(self):
         """Construct a string which summarizes all model parameters."""
-        return "model_key: " + repr(self.model_key) + "\n"\
+        return "model_key: " + repr(self.id) + "\n"\
                + "model_type: " + repr(self.model_type) + "\n"\
                + "features_config: " + repr(self.features_config) + "\n"\
                + "cost_matrix: " + repr(self.cost_matrix) + "\n"\
                + "resampling_strategy: " + repr(self.resampling_strategy) + "\n"\
-               + "label_data: " + repr(self.label_data) + "\n"\
+               + "label_data: " + repr(self._label_data) + "\n"\
                + "ref_datasets: " + repr(self.ref_datasets) + "\n"\
                + "classes: " + repr(self.classes) + "\n"\
                + "date_created: " + str(self.date_created) + "\n"\
@@ -918,9 +945,9 @@ class MatcherModel(object):
     def __repr__(self):
         """Different from the original docs"""
         # show slice of all_data
-        # headers = list(set(["model_id", "column_id", "column_name", "dataset_id", "actual_label", "predicted_label",
+        # headers = list(set(["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label",
         #            "confidence"]).intersection(set(self.all_data.columns)))
-        return "<MatcherModel(" + str(self.model_key) + ")>"
+        return "<MatcherModel(" + str(self.id) + ")>"
         # return repr(self.all_data[headers]) # according to the docs
 
 if __name__ == "__main__":
@@ -942,7 +969,7 @@ if __name__ == "__main__":
 
     matcher_model = MatcherModel(model)
     print(matcher_model)
-    print(matcher_model.column_map)
+    print(matcher_model._column_map)
 
     matcher_dataset = MatcherDataset(dataset)
     print(matcher_dataset)
@@ -960,7 +987,7 @@ if __name__ == "__main__":
     # print("*********confusion ")
     # print(matcher_model.calculate_confusionMatrix())
     #
-    # new_labels = matcher_model.all_data[matcher_model.all_data.actual_label.isnull()]  # show predicted labels where actual label is not available
+    # new_labels = matcher_model.all_data[matcher_model.all_data.user_label.isnull()]  # show predicted labels where actual label is not available
     # print("**************************New labels")
     # print(new_labels)
     # further pandas slicing functionality can be used to select the predicted labels

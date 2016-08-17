@@ -31,12 +31,12 @@ class SchemaMatcher(object):
         logging.info('Initialising schema matcher class object.')
         self.session = SMW.SchemaMatcherSession()
 
-        self.ds_keys = self.get_dataset_keys()   # list of keys of all available datasets
+        self.ds_keys = self.get_dataset_keys()   # list of keys of all available datasets , TODO: all keys are internal
         self.model_keys = self.get_model_keys()  # list of keys of all available models
         self.dataset, self.dataset_summary, self.column_map = self.populate_datasets()
         self.model, self.model_summary = self.get_model_summary()
 
-    def refresh(self):
+    def refresh(self): # TODO: internal
         """
         Refresh class attributes especially after new models or datasets have been added or deleted.
         Returns:
@@ -46,7 +46,7 @@ class SchemaMatcher(object):
         # column_map is used to update models
         self.refresh_models()
 
-    def refresh_datasets(self):
+    def refresh_datasets(self): # TODO: internal, improve
         """
         Refresh class attributes related to datasets.
         Returns:
@@ -54,7 +54,7 @@ class SchemaMatcher(object):
         self.ds_keys = self.get_dataset_keys()  # list of keys of all available datasets
         self.dataset, self.dataset_summary, self.column_map = self.populate_datasets()
 
-    def refresh_models(self):
+    def refresh_models(self): # TODO: internal, optimize
         """
         Refresh class attributes related to models.
         Returns:
@@ -69,15 +69,15 @@ class SchemaMatcher(object):
     def __repr__(self):
         return self.__str__()
 
-    def get_dataset_keys(self):
+    def get_dataset_keys(self): # TODO: internal
         """Obtain the list of keys of all available datasets."""
         return self.session.list_alldatasets()
 
-    def get_model_keys(self):
+    def get_model_keys(self): # TODO: internal
         """Obtain the list of keys of all available models."""
         return self.session.list_allmodels()
 
-    def populate_datasets(self):
+    def populate_datasets(self):  # TODO: internal
         """
         This method creates a dictionary (dataset key, instance of MatcherDataset).
         It also collects info on all datasets and puts this information
@@ -102,7 +102,7 @@ class SchemaMatcher(object):
             dataset_summary.columns = headers
         return dataset, dataset_summary, column_map
 
-    def get_model_summary(self):
+    def get_model_summary(self): # TODO: internal
         """
         This method creates a dictionary (model key, instance of MatcherModel).
         It also collects info on all models and puts this information
@@ -126,7 +126,7 @@ class SchemaMatcher(object):
         return model, model_summary
 
 
-    def get_model(self, model_key):
+    def get_model(self, model_key): # TODO: internal
         """
         Get the model corresponding to the key.
         Args:
@@ -137,7 +137,7 @@ class SchemaMatcher(object):
         """
         return SMW.MatcherModel(self.session.list_model(model_key), self.column_map)
 
-    def get_dataset(self, dataset_key):
+    def get_dataset(self, dataset_key): # TODO: internal
         """
         Get the dataset corresponding to the key.
         Args:
@@ -176,7 +176,7 @@ class SchemaMatcher(object):
         self.refresh_models() # we need to update class attributes to include new model
         return new_model
 
-    def upload_dataset(self, file_path, description, type_map):
+    def upload_dataset(self, file_path, description, type_map):   ##TODO: rename create_dataset
         """
         Upload a new dataset to the schema matcher server.
         Refresh SchemaMatcher instance to include the new dataset.
