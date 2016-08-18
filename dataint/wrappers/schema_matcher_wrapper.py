@@ -782,6 +782,8 @@ class MatcherModel(object):
 
         while wait and not finished:
             time.sleep(3)  # wait for some time
+            # The sleep function is an OS call that differs from busy wait in that it doesn't block the thread.
+            # TODO: should we switch to threading.Event?
             self._session_update() # update model
             if self.model_state.status == Status.ERROR or \
                             self.model_state.status == Status.COMPLETE:
