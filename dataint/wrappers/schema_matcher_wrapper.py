@@ -180,8 +180,9 @@ class SchemaMatcherSession(object):
         logging.info('Sending request to the schema matcher server to post a dataset.')
         try:
             f = {"file": open(file_path, "rb")}
-            data = {"description": description, "typeMap": type_map}
-            r = self.session.post(self.uri_ds, files=f, json=data)
+            logging.info("****POsting with description " + str(description))
+            data = {"description": str(description), "typeMap": type_map}
+            r = self.session.post(self.uri_ds,  data=data, files=f)
         except Exception as e:
             logging.error(e)
             raise InternalDIError("post_dataset", e)
@@ -452,7 +453,7 @@ class MatcherDataset(object):
             _matcher
             _column_map
     """
-    def __init__(self, resp_dict, matcher): # TODO: add session attribute
+    def __init__(self, resp_dict, matcher):
         """
         Initialize instance of class MatcherDataset.
         Args:
@@ -484,6 +485,19 @@ class MatcherDataset(object):
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
 
+
+    def __eq__(self,other):
+        if isinstance(other, MatcherDataset):
+            return (self.id == other.id) and (self.filepath == other.filepath) \
+                   and (self.filename == other.filename) and (self.description == other.description) \
+                   and (self.date_modified == other.date_modified) \
+                   and (self.date_created == other.date_created) and (self.sample.equals(other.sample)) \
+                   and (self._column_map == other._column_map)
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def _refresh(self, resp_dict):
         """
         Refresh instance attributes.
@@ -512,6 +526,7 @@ class MatcherDataset(object):
             self._column_map[int(col['id'])] = col['name']
         self.sample = pd.DataFrame(data).transpose()  # TODO: define dtypes based on typeMap
         self.sample.columns = headers
+
 
     def __str__(self):
         return "<MatcherDataset(" + str(self.id) + ")>"
@@ -548,7 +563,7 @@ class MatcherDataset(object):
 
         del self
 
-    def update(self, description=None, type_map=None): # TODO: implement
+    def update(self, description=None, type_map=None):
         """
         Update the dataset with new description/type_map on the server.
         If any of the parameters are empty, the current values of the dataset are used.
@@ -562,6 +577,8 @@ class MatcherDataset(object):
             type_map = self.type_map
         new_dict = self._matcher._session.update_dataset(self.id, description, type_map)
         self._refresh(new_dict)
+        # TODO: we need to update _matcher.datasets and _matcher.dataset_summary
+        self._matcher._refresh_dataset(self)
 
     def construct_labelData(self, filepath):
         """
@@ -621,6 +638,15 @@ class ModelState(object):
                + ", modified on " + str(self.date_modified)\
                + ", message " + repr(self.message) + ")"
 
+    def __eq__(self, other):
+        if isinstance(other, ModelState):
+            return self.status == other.status and self.date_created == other.date_created \
+                   and self.date_modified == other.date_modified
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __str__(self):
         return self.__repr__()
 
@@ -660,7 +686,6 @@ class MatcherModel(object):
             column_map : optional dictionary for mapping columns fom ids to names
         """
         # TODO: check resp_dict
-        # TODO: internal attributes, read-only attributes
         try:
             self.id = int(resp_dict["id"])
         except Exception as e:
@@ -698,11 +723,24 @@ class MatcherModel(object):
         self.scores = pd.DataFrame() # empty data frame
         self.user_labels = self.all_data.copy()
 
+    def __eq__(self, other):
+        if isinstance(other, MatcherModel):
+            return (self.id == other.id) and (self.model_type == other.model_type) \
+                   and (self.model_state == other.model_state) and (self.date_created == other.date_created) \
+                   and (self.date_modified == other.date_modified) and (self.classes == other.classes) \
+                   and (self.ref_datasets == other.ref_datasets) \
+                   and (self.features_config == other.features_config) and (self.description == other.description) \
+                   and (self.all_data.equals(other.all_data)) and (self.scores.equals(other.scores)) \
+                   and (self.features.equals(other.features)) and (self.user_labels.equals(other.user_labels))
+        return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+
     def _session_update(self):
         """
         Download model updates from the API.
-
-        Returns:
         """
         cur_model = self._matcher._session.list_model(self.id)
         self._refresh(cur_model)
@@ -718,14 +756,15 @@ class MatcherModel(object):
         """
         self._matcher._session.train_model(self.id) # launch training
 
-        self._session_update(self._matcher._session)
+        self._session_update()
         # training is done if finished
-        finished = self.model_state.status == Status.COMPLETE # TODO: change!
+        finished = self.model_state.status == Status.COMPLETE\
+                   or self.model_state.status == Status.ERROR
 
         while wait and not finished: # TODO: change to thread blocking
             logging.info("Waiting for the training...")
-            time.sleep(10)  # wait for some time
-            self._session_update(self._matcher._session)
+            time.sleep(5)  # wait for some time
+            self._session_update()
             if self.model_state.status == Status.ERROR or\
                             self.model_state.status == Status.COMPLETE:
                 finished = True # finish waiting if training failed or got complete
@@ -745,16 +784,17 @@ class MatcherModel(object):
 
         Returns: Pandas data framework.
         """
-        train_status = self.train(self._matcher._session, wait) # do training
+        train_status = self.train(wait) # do training
         self._matcher._session.predict_model(self.id)  # launch prediction
 
-        self._session_update(self._matcher._session)
+        self._session_update()
         # predictions are available if finished
-        finished = self.model_state.status == Status.COMPLETE
+        finished = self.model_state.status == Status.COMPLETE\
+                   or self.model_state.status == Status.ERROR
 
         while wait and not finished:
-            time.sleep(5)  # wait for some time
-            self._session_update(self._matcher._session) # update model
+            time.sleep(3)  # wait for some time
+            self._session_update() # update model
             if self.model_state.status == Status.ERROR or \
                             self.model_state.status == Status.COMPLETE:
                 finished = True  # finish waiting if prediction failed or got complete
@@ -909,6 +949,7 @@ class MatcherModel(object):
         self.model_type = resp_dict["modelType"]
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
+        self.description = resp_dict["description"]
         self.resampling_strategy = resp_dict["resamplingStrategy"]
         self._label_data = resp_dict["labelData"]
         self.ref_datasets = set(resp_dict["refDataSets"])
@@ -921,6 +962,15 @@ class MatcherModel(object):
                                       resp_dict["state"]["dateModified"])
         if column_map: # update column_map if it's provided
             self._column_map = column_map
+
+        # refresh _matcher
+        self._matcher._refresh_model(self)
+
+        # reset all_data, scores and features
+        self.all_data = self._get_labeldata()
+        self.scores = pd.DataFrame()
+        self.features = pd.DataFrame()
+        self.user_labels = self.all_data.copy()
 
     def add_labels(self, additional_labels):
         """
@@ -980,11 +1030,6 @@ class MatcherModel(object):
                                  labels, cost_matrix, resampling_strategy)
         # refresh model
         self._refresh(new_dict)
-        # reset all_data, scores and features
-        self.all_data = self._get_labeldata()
-        self.scores = pd.DataFrame()
-        self.features = pd.DataFrame()
-        self.user_labels = self.all_data.copy()
 
     def delete(self):
         """

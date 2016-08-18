@@ -66,6 +66,51 @@ class SchemaMatcher(object):
         # column_map is used to update models
         self.models, self.model_summary = self._get_model_summary()
 
+    def _refresh_dataset(self, matcher_ds):
+        """
+        Refresh class attributes for datasets.
+        The changes affect only those datasets which have matcher_ds.id.
+        Args:
+            matcher_ds: MatcherDataset
+        Returns: Nothing
+        """
+        # update list of datasets
+        for idx, ds in enumerate(self.datasets):
+            if ds.id == matcher_ds.id:
+                if ds == matcher_ds: # no changes are needed!
+                    break
+                self.datasets[idx] = matcher_ds
+                # column_map should not change!
+                break
+        # in dataset_summary only description can change
+        rows = self.dataset_summary[self.dataset_summary.dataset_id == matcher_ds.id].index.tolist()
+        self.dataset_summary.set_value(rows, 'description', matcher_ds.description)
+
+
+    def _refresh_model(self, matcher_model):
+        """
+        Refresh class attributes related to models.
+        The changes affect only those models which have matcher_model.id.
+        Args:
+            matcher_model: MatcherModel
+        """
+        # update list of models
+        for idx, mod in enumerate(self.models):
+            if mod.id == matcher_model.id:
+                if mod == matcher_model: # no changes are needed!!!
+                    break
+                self.models[idx] = matcher_model
+                # column_map should not change!
+                break
+        # model_summary can change drastically
+        rows = self.model_summary[self.model_summary.model_id == matcher_model.id].index.tolist()
+        self.model_summary.set_value(rows, 'description', matcher_model.description)
+        self.model_summary.set_value(rows, 'created', matcher_model.date_created)
+        self.model_summary.set_value(rows, 'modified', matcher_model.date_modified)
+        self.model_summary.set_value(rows, 'status', matcher_model.model_state.status)
+        self.model_summary.set_value(rows, 'state_created', matcher_model.model_state.date_created)
+        self.model_summary.set_value(rows, 'state_modified', matcher_model.model_state.date_modified)
+
     def __str__(self):
         return "<SchemaMatcherAt(" + str(self._session.uri) + ")>"
 
@@ -178,7 +223,7 @@ class SchemaMatcher(object):
         resp_dict = self._session.post_model(feature_config,
                                              description, classes, model_type,
                                              labels, cost_matrix, resampling_strategy) # send APi request
-        new_model = SMW.MatcherModel(resp_dict, self._column_map)
+        new_model = SMW.MatcherModel(resp_dict, self, self._column_map)
         self._refresh_models() # we need to update class attributes to include new model
         # self._model_keys
         # self.models
@@ -197,7 +242,8 @@ class SchemaMatcher(object):
         Returns: newly uploaded MatcherDataset
 
         """
-        new_dataset = SMW.MatcherDataset(self._session.post_dataset(description, file_path, type_map))
+        new_dataset = SMW.MatcherDataset(self._session.post_dataset(description, file_path, type_map),
+                                         self)
         self._refresh_datasets() # we need to update class attributes to include new datasets
         # self._ds_keys
         # self.datasets
