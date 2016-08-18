@@ -86,6 +86,36 @@ class SchemaMatcher(object):
         rows = self.dataset_summary[self.dataset_summary.dataset_id == matcher_ds.id].index.tolist()
         self.dataset_summary.set_value(rows, 'description', matcher_ds.description)
 
+    def _remove_dataset(self, matcher_ds):
+        """
+        Remove dataset from schema matcher attributes.
+        The changes affect only those datasets which have matcher_ds.id.
+        Args:
+            matcher_ds: MatcherDataset
+        Returns: Nothing
+        """
+        self._ds_keys.remove(matcher_ds.id)  # remove the key
+        self.datasets = [ds for ds in self.datasets if ds.id != matcher_ds.id]
+        # remove this dataset from dataset_summary
+        self.dataset_summary = self.dataset_summary[self.dataset_summary.dataset_id != matcher_ds.id]
+        # update column_map
+        if self._column_map:
+            self._column_map = {k: v for k, v in self._column_map.items()
+                                         if k not in matcher_ds._column_map}
+
+    def _remove_model(self, matcher_model):
+        """
+        Remove model from schema matcher attributes.
+        The changes affect only those models which have matcher_model.id.
+        Args:
+            matcher_model: MatcherModel
+        Returns: Nothing
+        """
+        self._model_keys.remove(matcher_model.id)  # remove the key
+        self.models = [ds for ds in self.models if ds.id != matcher_model.id]
+        # remove this dataset from dataset_summary
+        self.model_summary = self.model_summary[self.model_summary.model_id != matcher_model.id]
+
 
     def _refresh_model(self, matcher_model):
         """
