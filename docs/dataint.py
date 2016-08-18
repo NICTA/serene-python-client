@@ -8,11 +8,11 @@ dm = dataint.SchemaMatcher(
 
 # lists all the datasets...
 dm.datasets
-# {
-#   987394875: <MatcherDataSet(gr7y7ydf)>
-#   583047856: <MatcherDataSet(sdfg764t)>
-#   098098345: <MatcherDataSet(98793875)>
-# }
+# [
+#  <MatcherDataSet(gr7y7ydf)>,
+#  <MatcherDataSet(sdfg764t)>,
+#  <MatcherDataSet(98793875)>
+# ]
 
 # summary of all datasets as a Pandas data frame
 dm.dataset_summary
@@ -22,31 +22,17 @@ dm.dataset_summary
 #  6  d55ifgh0  phone2.csv   test3          2016-04-07  2016-04-07       100        10
 
 
-# reference the dataset by the id...
+# select 1 dataset from the list
 
-dm.datasets[987298345]
-# name: asdf.csv
-# dateCreated:  2015-02-01 12:30.123
-# dateModified: 2015-02-04 16:31.382
-# columns: colna, junk, ph, home-phone
-# sample:
-#
-#   colna   junk          ph   home-phone
-#    1234    345  0294811111  76382687234
-#   98745     as  0287364857  87598374958
-#  987394    sjk  0358798753  09183098235
-#      22  837fh  0928059834  98734985798
-#   34875   kdjf  0980394805  02398098345
+dm.datasets[0]
+# Available attributes for the dataset...
 
-
-# alternatively reference by filename...
-# this does not work now
-
-dm.datasets['asdf.csv']
 # filename: asdf.csv
+# filepath: ./asdf.csv
+# description: sample dataset
 # date_created:  2015-02-01 12:30.123
 # date_modified: 2015-02-04 16:31.382
-# columns: colna, junk, ph, home-phone
+# type_map: {}
 # sample:
 #
 #   colna   junk          ph   home-phone
@@ -59,7 +45,7 @@ dm.datasets['asdf.csv']
 
 # view a column...
 
-dm.datasets['asdf.csv'].sample['junk']
+dm.datasets[0].sample['junk']
 #    1234
 #   98745
 #  987394
@@ -88,13 +74,13 @@ label_data = new_dataset.construct_labelData('some_file_with_column_labels.csv')
 # lists all the models...
 
 dm.models
-# {
-#    1234: <MatcherModel(1234)>,
-#    2345: <MatcherModel(2345)>,
-#    3456: <MatcherModel(3456)>,
-#    567:  <MatcherModel(567)>,
-#    4678: <MatcherModel(4678)>
-# }
+# [
+#    <MatcherModel(1234)>,
+#    <MatcherModel(2345)>,
+#    <MatcherModel(3456)>,
+#    <MatcherModel(567)>,
+#    <MatcherModel(4678)>
+# ]
 
 # summary for all models
 
@@ -154,8 +140,8 @@ print(model)
 
 # by default model shows the current labels for the dataset columns (ground truth)
 
-model.label_data
-#           id  actual_label column_name    column_id
+model.user_labels
+#           id   user_label column_name    column_id
 #  2  6ff9sdug      unknown      colnma     08y08yfg
 #  4  42fv87g2         name        junk     js6egdia
 #  5  8ut20yet        phone          ph     js6egdia
@@ -168,9 +154,9 @@ model.label_data
 
 # labels can be added, but re-training has to be called later on
 
-model.add_labels({'12342': 'name', '12343': 'addr'}, dm._session)
+model.add_labels({'12342': 'name', '12343': 'addr'})
 
-#           id  actual_label column_name    column_id
+#           id   user_label column_name    column_id
 #  2  6ff9sdug      unknown      colnma     08y08yfg
 #  4  42fv87g2         name        junk     js6egdia
 #  5  8ut20yet        phone          ph     js6egdia
@@ -181,13 +167,14 @@ model.add_labels({'12342': 'name', '12343': 'addr'}, dm._session)
 # 10  d0h1hskj         name   junk-name     q25srwty
 
 # train/re-train model and perform inference
-model.get_predictions(dm._session)
+# all datasets will be used
+model.get_predictions()
 
 
 # Now the model contains the predictions...
 
 model
-#     dataset_id    predicted_label  confidence column_name model_id actual_label column_id
+#     dataset_id    predicted_label  confidence column_name model_id  user_label column_id
 # 0   1717853384              price    0.250000      colnma   345683       price     745894
 # 1   1717853384          firm_name    0.150000        firm   345683   firm_name     473863
 # 2   1717853384               type    0.250000        smth   345683        type     74e894
@@ -201,9 +188,8 @@ model
 
 # shortcut to view the user labels...
 
-model.user_labels # currently
-model._get_labeldata()
-#     model_id  actual_label column_name    column_id
+model.user_labels
+#     model_id   user_label column_name    column_id
 #  2  6ff9sdug      unknown      colnma     08y08yfg
 #  4  42fv87g2         name        junk     js6egdia
 #  5  8ut20yet        phone          ph     js6egdia
@@ -217,7 +203,7 @@ model._get_labeldata()
 # the model scores can also be viewed...
 
 model.scores
-#     dataset_id    predicted_label  confidence column_name model_id actual_label column_id  price firm_name address email  unknown type ...
+#     dataset_id    predicted_label  confidence column_name model_id  user_label column_id  price firm_name address email  unknown type ...
 # 0   1717853384              price    0.250000      colnma   345683       price     745894  0.25       0.08     0.1  0.03      0.1  0.1
 # 1   1717853384          firm_name    0.150000        firm   345683   firm_name     473863  0.05       0.15     0.1  0.03      0.1  0.1
 # 2   1717853384               type    0.250000        smth   345683        type     74e894  0.20       0.08     0.1  0.03      0.1 0.25
@@ -230,7 +216,7 @@ model.scores
 # the full feature list can also be viewed...
 
 model.features
-#           id    label    col_name    dataset  dataset_id  user_labeled alpha_ratio  number_at_signs  number_slashes  digit_ratio  number_of_words  number_of_ats
+#           id    label    col_name    dataset  dataset_id     feature_0 alpha_ratio  number_at_signs  number_slashes  digit_ratio  number_of_words  number_of_ats
 #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1         0.5             0.62             0.0          0.4             0.11            0.0
 #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1         0.5             0.62             0.0          0.4             0.11            0.0
 #  2  6ff9sdug  unknown      colnma  names.csv    08y08yfg             0         0.5             0.62             0.0          0.4             0.11            0.0
@@ -251,7 +237,7 @@ model.features
 # all data shown...
 
 model.all_data
-#           id    actual_label  predicted_label  col_name    dataset  dataset_id  user_labeled score_addr score_phone score_unknown score_addr score_name features...
+#           id user_label  predicted_label  col_name    dataset  dataset_id  user_labeled score_addr score_phone score_unknown score_addr score_name features...
 #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1       0.06        0.11          0.01       0.83       0.04
 #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1       0.86        0.12          0.05       0.01       0.04
 #  2  6ff9sdug  unknown      colnma  names.csv    08y08yfg             0       0.16        0.11          0.16       0.03       0.04
@@ -270,7 +256,7 @@ model.all_data
 
 
 # compute confusion matrix
-# possible if training has been done
+# possible if training and prediction have been done
 confusion_matrix = model.calculate_confusionMatrix()
 
 # train all models
@@ -283,10 +269,10 @@ dm.get_predictions_models()
 
 # get models in the Error state
 dm.error_models()
-# {
-#    1234: Model(1234),
-#    2345: Model(2345),
-#    3456: Model(3456),
-#    567: Model(567),
-#    4678: Model(4678)
-# }
+# [
+#   Model(1234),
+#   Model(2345),
+#   Model(3456),
+#   Model(567),
+#   Model(4678)
+# ]
