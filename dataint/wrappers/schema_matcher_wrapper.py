@@ -588,7 +588,6 @@ class MatcherDataset(object):
             type_map = self.type_map
         new_dict = self._matcher._session.update_dataset(self.id, description, type_map)
         self._refresh(new_dict)
-        # TODO: we need to update _matcher.datasets and _matcher.dataset_summary
         self._matcher._refresh_dataset(self)
 
     def construct_labelData(self, filepath):
