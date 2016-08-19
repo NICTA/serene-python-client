@@ -1,4 +1,6 @@
-# data integration python client
+"""
+The Data Integration Python client
+"""
 
 # external
 import datetime

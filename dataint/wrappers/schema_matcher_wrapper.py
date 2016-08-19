@@ -1,4 +1,6 @@
-# Python wrapper for the Schema Matcher API
+"""
+Python wrapper for the Schema Matcher API.
+"""
 
 # external
 import logging
