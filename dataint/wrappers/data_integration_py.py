@@ -42,7 +42,9 @@ class SchemaMatcher(object):
     def _refresh(self): # TODO: improve
         """
         Refresh class attributes especially after new models or datasets have been added or deleted.
-        Returns:
+
+        Returns: Nothing.
+
         """
         # first we update datasets since column_map is updated here
         self._refresh_datasets()
@@ -52,7 +54,9 @@ class SchemaMatcher(object):
     def _refresh_datasets(self): # TODO: improve
         """
         Refresh class attributes related to datasets.
-        Returns:
+
+        Returns: Nothing.
+
         """
         self._ds_keys = self._get_dataset_keys()  # list of keys of all available datasets
         self.datasets, self.dataset_summary, self._column_map = self._populate_datasets()
@@ -60,7 +64,9 @@ class SchemaMatcher(object):
     def _refresh_models(self): # TODO: optimize
         """
         Refresh class attributes related to models.
-        Returns:
+
+        Returns: Nothing.
+
         """
         self._model_keys = self._get_model_keys()  # list of keys of all available models
         # column_map is used to update models
@@ -70,9 +76,12 @@ class SchemaMatcher(object):
         """
         Refresh class attributes for datasets.
         The changes affect only those datasets which have matcher_ds.id.
+
         Args:
             matcher_ds: MatcherDataset
+
         Returns: Nothing
+
         """
         # update list of datasets
         for idx, ds in enumerate(self.datasets):
@@ -90,9 +99,12 @@ class SchemaMatcher(object):
         """
         Remove dataset from schema matcher attributes.
         The changes affect only those datasets which have matcher_ds.id.
+
         Args:
             matcher_ds: MatcherDataset
+
         Returns: Nothing
+
         """
         self._ds_keys.remove(matcher_ds.id)  # remove the key
         self.datasets = [ds for ds in self.datasets if ds.id != matcher_ds.id]
@@ -107,9 +119,12 @@ class SchemaMatcher(object):
         """
         Remove model from schema matcher attributes.
         The changes affect only those models which have matcher_model.id.
+
         Args:
             matcher_model: MatcherModel
+
         Returns: Nothing
+
         """
         self._model_keys.remove(matcher_model.id)  # remove the key
         self.models = [ds for ds in self.models if ds.id != matcher_model.id]
@@ -121,8 +136,12 @@ class SchemaMatcher(object):
         """
         Refresh class attributes related to models.
         The changes affect only those models which have matcher_model.id.
+
         Args:
             matcher_model: MatcherModel
+
+        Returns: Nothing.
+
         """
         # update list of models
         for idx, mod in enumerate(self.models):
@@ -164,6 +183,7 @@ class SchemaMatcher(object):
         Finally, this methods creates a dictionary to map column ids to column names.
 
         Returns: dictionary of dataset ids, Pandas dataframe, dictionary of all column ids.
+
         """
         datasets = []
         dataset_summary = []
@@ -191,6 +211,7 @@ class SchemaMatcher(object):
         model_key, description, date created, date modified, model status, its creation date and modification date.
 
         Returns: dictionary of model ids, Pandas dataframe with summary of all models.
+
         """
         model_summary = []
         models = []
@@ -210,6 +231,7 @@ class SchemaMatcher(object):
     def _get_model(self, model_key):
         """
         Get the model corresponding to the key.
+
         Args:
             model_key : key of the model at the Schema Matcher server
 
@@ -221,6 +243,7 @@ class SchemaMatcher(object):
     def _get_dataset(self, dataset_key):
         """
         Get the dataset corresponding to the key.
+
         Args:
             dataset_key : key of the dataset at the Schema Matcher server
 
@@ -239,6 +262,7 @@ class SchemaMatcher(object):
         """
         Post a new model to the schema matcher server.
         Refresh SchemaMatcher instance to include the new model.
+
         Args:
              feature_config : dictionary
              description : string which describes the model to be posted
@@ -249,6 +273,7 @@ class SchemaMatcher(object):
              resampling_strategy : string
 
         Returns: MatcherModel
+
         """
         resp_dict = self._session.post_model(feature_config,
                                              description, classes, model_type,
@@ -264,6 +289,7 @@ class SchemaMatcher(object):
         """
         Upload a new dataset to the schema matcher server.
         Refresh SchemaMatcher instance to include the new dataset.
+
         Args:
             description: string which describes the dataset to be posted
             file_path: string which indicates the location of the dataset to be posted
@@ -286,10 +312,12 @@ class SchemaMatcher(object):
         Launch training for all models in the repository.
         Please be aware that schema matcher at the moment can handle only one model training at a time.
         So, running this method with wait=False might not launch training for all models.
+
         Args:
             wait: boolean indicator whether to wait for the training to finish.
 
         Returns: True if training for all models succeeded.
+
         """
         return all([model.train(wait) for model in self.models])
 
@@ -298,17 +326,21 @@ class SchemaMatcher(object):
         Launch prediction for all models for all datasets in the repository.
         Please be aware that schema matcher at the moment can handle only one model prediction at a time.
         So, running this method with wait=False might not perform prediction for all models.
+
         Args:
             wait: boolean indicator whether to wait for the training to finish.
 
         Returns: Nothing, model attributes get updated.
+
         """
         [model.get_predictions(wait) for model in self.models]
 
     def error_models(self):
         """
         Go through the list of models and return those which have errors.
+
         Returns: list of models which have error state.
+
         """
         return [model for model in self.models
                 if model.model_state.status == Status.ERROR]

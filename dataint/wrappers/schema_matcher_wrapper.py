@@ -55,6 +55,7 @@ def get_status(status):
 def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):
     """
     Convert string to datetime object.
+
     Args:
         datetime_string: string which contains datetime object;
         fmt: format which specifies the pattern of datetime format in the string.
@@ -81,6 +82,7 @@ class SchemaMatcherSession(object):
     This is the class which sets up the session for the schema matcher api.
     It provides wrappers for all calls to the API.
     This is an internal class and should not be explicitly used/called by the user.
+
         Attributes:
             session: Session instance with configuration parameters for the schema matcher server from config.py
             uri: general uri for the schema matcher API
@@ -126,12 +128,15 @@ class SchemaMatcherSession(object):
     def handle_errors(self, response, expr):
         """
         Raise errors based on response status_code
+
         Args:
             response : response object from request
             expr : expression where the error occurs
 
         Returns: None or raise errors.
+
         Raises: BadRequestError, NotFoundError, OtherError.
+
         """
         if response.status_code == 200 or response.status_code == 202:
             # there are no errors here
@@ -388,6 +393,7 @@ class SchemaMatcherSession(object):
              model_key: integer which is the key of the model in the repository
 
         Returns: True
+
         """
         logging.info('Sending request to the schema matcher server to train the model.')
         uri = urljoin(urljoin(self.uri_model, str(model_key)+"/"), "train")
@@ -402,10 +408,12 @@ class SchemaMatcherSession(object):
     def predict_model(self, model_key):
         """
         Post request to perform prediction based on the model.
+
         Args:
              model_key: integer which is the key of the model in the repository
 
         Returns: True
+
         """
         logging.info('Sending request to the schema matcher server to preform prediction based on the model.')
         uri = urljoin(urljoin(self.uri_model, str(model_key) + "/"), "predict")
@@ -420,10 +428,12 @@ class SchemaMatcherSession(object):
     def get_model_predict(self, model_key):
         """
         Get predictions based on the model.
+
         Args:
              model_key: integer which is the key of the model in the repository
 
         Returns: dictionary
+
         """
         logging.info('Sending request to the schema matcher server to get predictions based on the model.')
         uri = urljoin(urljoin(self.uri_model, str(model_key) + "/"), "predict")
@@ -455,9 +465,11 @@ class MatcherDataset(object):
     def __init__(self, resp_dict, matcher):
         """
         Initialize instance of class MatcherDataset.
+
         Args:
             resp_dict: dictionary which is returned by Schema Matcher API
             matcher: instance of class SchemaMatcher, it contains session as attribute
+
         """
         try:
             self.id = int(resp_dict["id"])
@@ -500,8 +512,11 @@ class MatcherDataset(object):
     def _refresh(self, resp_dict):
         """
         Refresh instance attributes.
+
         Args:
             resp_dict: dictionary which is returned by Schema Matcher API
+
+        Returns: Nothing.
         """
         try:
             self.id = int(resp_dict["id"])
@@ -539,6 +554,8 @@ class MatcherDataset(object):
         This method also updates attributes in the matcher instance.
         It also destroys this instance.
 
+        Returns: Nothing.
+
         """
         logging.info("Deleting MatcherDataset %d" % self.id)
         self._matcher._session.delete_dataset(self.id)
@@ -555,9 +572,13 @@ class MatcherDataset(object):
         """
         Update the dataset with new description/type_map on the server.
         If any of the parameters are empty, the current values of the dataset are used.
+
         Args:
             description: new description for the dataset
             type_map: new type_map for the dataset
+
+        Returns: Nothing.
+
         """
         if description is None:
             description = self.description
@@ -601,6 +622,7 @@ class MatcherDataset(object):
 class ModelState(object):
     """
     Class to wrap the model state.
+
     Attributes:
         status
         message
@@ -610,6 +632,7 @@ class ModelState(object):
     def __init__(self, status, message, date_created, date_modified):
         """
         Initialize instance of class ModelState.
+
         Args:
             status : string
             date_created
@@ -642,6 +665,7 @@ class ModelState(object):
 class MatcherModel(object):
     """
     Class to wrap the model.
+
     Attributes:
         id: model key by which the model is refered on the server
         model_type: type of the model
@@ -737,10 +761,12 @@ class MatcherModel(object):
     def train(self, wait=True):
         """
         Send the training request to the API.
+
         Args:
             wait : boolean indicator whether to wait for the training to finish.
 
         Returns: boolean -- True if model is trained, False otherwise
+
         """
         self._matcher._session.train_model(self.id) # launch training
 
@@ -765,12 +791,14 @@ class MatcherModel(object):
         Get predictions based on the model.
         Predictions are done for all datasets in the repository if dataset_id=None.
         If a dataset id is passed to the method, prediction will be done only for this dataset.
+
         Args:
             wait : boolean indicator whether to wait for the training to finish, default is True.
             dataset_id: dataset id for which the prediction should be done;
                         if None, prediction is done for all datasets (this is default).
 
         Returns: Pandas data framework.
+
         """
         train_status = self.train(wait) # do training
         self._matcher._session.predict_model(self.id)  # launch prediction
@@ -809,10 +837,12 @@ class MatcherModel(object):
     def _process_predictions(self, response):
         """
         Process column predictions into Pandas data framework.
+
         Args:
             response: list of column predictions (dictionaries) which is returned by the schema matcher API
 
         Returns: Pandas data framework.
+
         """
         headers = ["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label", "confidence"]
         classes = []
@@ -858,6 +888,7 @@ class MatcherModel(object):
         If all_data is not available for the model, it will return None.
 
         Returns: Pandas data frame.
+
         """
         if self.all_data.empty:
             logging.warning("Model all_data is empty. Confusion matrix cannot be calculated.")
@@ -897,6 +928,7 @@ class MatcherModel(object):
     def _get_scores(self):
         """
         Get a slice of all_data which has scores for classes.
+
         Returns: Pandas data framework
 
         """
@@ -915,6 +947,7 @@ class MatcherModel(object):
         Get a slice of all_data which has features calculated for columns in the dataset repo.
 
         Returns: Pandas data framework
+
         """
         # just get a slice of all_data
         headers = list(set(self.all_data.columns).difference(self.classes))
@@ -923,11 +956,12 @@ class MatcherModel(object):
     def _refresh(self, resp_dict, column_map=None):
         """
         Update the model according to the newly provided parameters.
+
         Args:
             resp_dict: dictionary with new parameters
             column_map: dictionary of column ids
 
-        Returns:
+        Returns: Nothing.
 
         """
         # TODO: check resp_dict
@@ -965,10 +999,12 @@ class MatcherModel(object):
     def add_labels(self, additional_labels):
         """
         Add label data to the model and upload the changes to the server.
+
         Args:
             additional_labels : dictionary with additional labels for columns
 
-        Returns:
+        Returns: Nothing.
+
         """
         # labels in additional_labels extend (in case of conflict override) the ones which are currently defined
         self._label_data.update(additional_labels)
@@ -987,6 +1023,7 @@ class MatcherModel(object):
         """
         Update model in the model repository at the schema matcher server.
         If any of the parameters is None, this method will take the current model value for it.
+
         Args:
             feature_config : dictionary
             description : string which describes the model to be posted

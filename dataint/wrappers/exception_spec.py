@@ -20,6 +20,7 @@ class InternalDIError(DataIntError):
     def __str__(self):
         return self.__repr__()
 
+
 class BadRequestError(DataIntError):
     def __init__(self, expr, msg):
         """Exception raised for bad requests to APIs.
