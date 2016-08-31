@@ -1,0 +1,194 @@
+{
+    "version": "0.1",
+    "id": "3",
+    "name": "EmployeeAddresses.csv",
+    "columns": [
+        {
+            "id": "0",
+            "name": "FirstName"
+        },
+        {
+            "id": "1",
+            "name": "LastName"
+        },
+        {
+            "id": "2",
+            "name": "address"
+        },
+        {
+            "id": "3",
+            "name": "postcode"
+        }
+    ],
+    "attributes": [
+        {
+            "id": "0",
+            "name": "FirstName_LastName",
+            "label": "concatenate",
+            "columnIds": [
+                "0", "1"
+            ],
+            "sql": "select FirstName+' '+LastName from 'EmployeeAddresses.csv'"
+        },
+        {
+            "id": "1",
+            "name": "address_1",
+            "label": "split",
+            "columnIds": [
+                "2"
+            ],
+            "sql": "select SUBSTRING(address, 1, CHARINDEX(',', address)) from 'EmployeeAddresses.csv'"
+        },
+        {
+            "id": "2",
+            "name": "address_2",
+            "label": "split",
+            "columnIds": [
+                "2"
+            ],
+            "sql": "select SUBSTRING(address, CHARINDEX(',', address)+1, CHARINDEX(',', address, CHARINDEX(',', address)+1)) from 'EmployeeAddresses.csv'"
+        },
+        {
+            "id": "3",
+            "name": "address_3",
+            "label": "split",
+            "columnIds": [
+                "2"
+            ],
+            "sql": "select SUBSTRING(address, CHARINDEX(',', address, CHARINDEX(',', address)+1)+1,LEN(address)) from 'EmployeeAddresses.csv'"
+        },
+        {
+            "id": "4",
+            "name": "postcode",
+            "label": "ident",
+            "columnIds": [
+                "3"
+            ],
+            "sql": "select postcode from 'EmployeeAddresses.csv'"
+        }
+    ],
+    "ontology": [
+        "/home/rue009/Projects/DFAT/SchemaMapping/Transformations/tests/example/dataintegration_report_ontology.owl"
+    ],
+    "semanticModel": {
+        "nodes": [
+            {
+                "id": "0",
+                "label": ":Person",
+                "type": "ClassNode"
+            },
+            {
+                "id": "1",
+                "label": "Person.name",
+                "type": "DataNode"
+            },
+            {
+                "id": "2",
+                "label": ":Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": "3",
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": "4",
+                "label": ":City",
+                "type": "ClassNode"
+            },
+            {
+                "id": "5",
+                "label": "City.name",
+                "type": "DataNode"
+            },
+            {
+                "id": "6",
+                "label": ":State",
+                "type": "ClassNode"
+            },
+            {
+                "id": "7",
+                "label": "State.name",
+                "type": "DataNode"
+            },
+            {
+                "id": "8",
+                "label": "Place.postalCode",
+                "type": "DataNode"
+            }
+        ],
+        "links": [
+            {
+                "source": "0",
+                "target": "2",
+                "label": "livesIn",
+                "type": "ObjectProperty"
+            },
+            {
+                "source": "0",
+                "target": "1",
+                "label": "name",
+                "type": "DataProperty"
+            },
+            {
+                "source": "2",
+                "target": "3",
+                "label": "name",
+                "type": "DataProperty"
+            },
+            {
+                "source": "2",
+                "target": "8",
+                "label": "postalCode",
+                "type": "DataProperty"
+            },
+            {
+                "source": "2",
+                "target": "4",
+                "label": "isPartOf",
+                "type": "ObjectProperty"
+            },
+            {
+                "source": "4",
+                "target": "6",
+                "label": "state",
+                "type": "ObjectProperty"
+            },
+            {
+                "source": "4",
+                "target": "5",
+                "label": "name",
+                "type": "DataProperty"
+            },
+            {
+                "source": "6",
+                "target": "7",
+                "label": "name",
+                "type": "DataProperty"
+            }
+        ]
+    },
+    "mappings": [
+        {
+            "attribute": "0",
+            "node": "1"
+        },
+        {
+            "attribute": "1",
+            "node": "3"
+        },
+        {
+            "attribute": "2",
+            "node": "5"
+        },
+        {
+            "attribute": "3",
+            "node": "7"
+        },
+        {
+            "attribute": "4",
+            "node": "8"
+        }
+    ]
+}

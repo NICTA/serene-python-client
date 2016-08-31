@@ -1,0 +1,83 @@
+digraph  {
+	graph [fontname="times:bold",
+		label="getCities.csv",
+		overlap=False,
+		remincross=true,
+		splines=true
+	];
+	node [label="\N"];
+	subgraph cluster1 {
+		graph [color=brown,
+			fontcolor=brown,
+			fontname=times,
+			label=source,
+			rank=same,
+			style=dotted
+		];
+		4		 [color=brown,
+			label=state,
+			shape=box,
+			style=dotted];
+		5		 [color=brown,
+			label=city,
+			shape=box,
+			style=dotted];
+	}
+	subgraph cluster2 {
+		graph [color=blue,
+			fontcolor=blue,
+			fontname=times,
+			label=transformations,
+			rank=same,
+			style=dotted
+		];
+		6		 [label=state,
+			shape=box,
+			style=rounded];
+		7		 [label=city,
+			shape=box,
+			style=rounded];
+	}
+	0	 [color=white,
+		fillcolor=green,
+		label=":State",
+		shape=ellipse,
+		style=filled];
+	1	 [color=white,
+		fillcolor=lightgrey,
+		label="State.name",
+		shape=plaintext,
+		style=filled];
+	0 -> 1	 [fontname="times-italic",
+		label=name,
+		style=dashed];
+	1 -> 6	 [arrowhead=inv,
+		arrowtail=inv,
+		color=blue];
+	2	 [color=white,
+		fillcolor=green,
+		label=":City",
+		shape=ellipse,
+		style=filled];
+	2 -> 0	 [fontname="times-italic",
+		label=state];
+	3	 [color=white,
+		fillcolor=lightgrey,
+		label="City.name",
+		shape=plaintext,
+		style=filled];
+	2 -> 3	 [fontname="times-italic",
+		label=name,
+		style=dashed];
+	3 -> 7	 [arrowhead=inv,
+		arrowtail=inv,
+		color=blue];
+	6 -> 4	 [arrowhead=diamond,
+		color=brown,
+		fontname="times-italic",
+		label=ident];
+	7 -> 5	 [arrowhead=diamond,
+		color=brown,
+		fontname="times-italic",
+		label=ident];
+}

@@ -1,0 +1,92 @@
+{
+    "version": "0.1",
+    "id": "5",
+    "name": "getCities.csv",
+    "columns": [
+        {
+            "id": "0",
+            "name": "state"
+        },
+        {
+            "id": "1",
+            "name": "city"
+        }
+    ],
+    "attributes": [
+        {
+            "id": "0",
+            "name": "state",
+            "label": "ident",
+            "columnIds": [
+                "0"
+            ],
+            "sql": "select state from 'getCities.csv'"
+        },
+        {
+            "id": "1",
+            "name": "city",
+            "label": "ident",
+            "columnIds": [
+                "1"
+            ],
+            "sql": "select city from 'getCities.csv'"
+        }
+    ],
+    "ontology": [
+        "/home/rue009/Projects/DFAT/SchemaMapping/Transformations/tests/example/dataintegration_report_ontology.owl"
+    ],
+    "semanticModel": {
+        "nodes": [
+            {
+                "id": "0",
+                "label": ":State",
+                "type": "ClassNode"
+            },
+            {
+                "id": "1",
+                "label": "State.name",
+                "type": "DataNode"
+            },
+            {
+                "id": "2",
+                "label": ":City",
+                "type": "ClassNode"
+            },
+            {
+                "id": "3",
+                "label": "City.name",
+                "type": "DataNode"
+            }
+        ],
+        "links": [
+            {
+                "source": "2",
+                "target": "0",
+                "label": "state",
+                "type": "ObjectProperty"
+            },
+            {
+                "source": "0",
+                "target": "1",
+                "label": "name",
+                "type": "DataProperty"
+            },
+            {
+                "source": "2",
+                "target": "3",
+                "label": "name",
+                "type": "DataProperty"
+            }
+        ]
+    },
+    "mappings": [
+        {
+            "attribute": "0",
+            "node": "1"
+        },
+        {
+            "attribute": "1",
+            "node": "3"
+        }
+    ]
+}

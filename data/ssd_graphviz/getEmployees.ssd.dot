@@ -1,0 +1,83 @@
+digraph  {
+	graph [fontname="times:bold",
+		label="getEmployees.csv",
+		overlap=False,
+		remincross=true,
+		splines=true
+	];
+	node [label="\N"];
+	subgraph cluster1 {
+		graph [color=brown,
+			fontcolor=brown,
+			fontname=times,
+			label=source,
+			rank=same,
+			style=dotted
+		];
+		4		 [color=brown,
+			label=employer,
+			shape=box,
+			style=dotted];
+		5		 [color=brown,
+			label=employee,
+			shape=box,
+			style=dotted];
+	}
+	subgraph cluster2 {
+		graph [color=blue,
+			fontcolor=blue,
+			fontname=times,
+			label=transformations,
+			rank=same,
+			style=dotted
+		];
+		6		 [label=employer,
+			shape=box,
+			style=rounded];
+		7		 [label=employee,
+			shape=box,
+			style=rounded];
+	}
+	0	 [color=white,
+		fillcolor=green,
+		label=":Organization",
+		shape=ellipse,
+		style=filled];
+	1	 [color=white,
+		fillcolor=lightgrey,
+		label="Organization.name",
+		shape=plaintext,
+		style=filled];
+	0 -> 1	 [fontname="times-italic",
+		label=name,
+		style=dashed];
+	1 -> 6	 [arrowhead=inv,
+		arrowtail=inv,
+		color=blue];
+	2	 [color=white,
+		fillcolor=green,
+		label=":Person",
+		shape=ellipse,
+		style=filled];
+	2 -> 0	 [fontname="times-italic",
+		label=worksFor];
+	3	 [color=white,
+		fillcolor=lightgrey,
+		label="Person.name",
+		shape=plaintext,
+		style=filled];
+	2 -> 3	 [fontname="times-italic",
+		label=name,
+		style=dashed];
+	3 -> 7	 [arrowhead=inv,
+		arrowtail=inv,
+		color=blue];
+	6 -> 4	 [arrowhead=diamond,
+		color=brown,
+		fontname="times-italic",
+		label=ident];
+	7 -> 5	 [arrowhead=diamond,
+		color=brown,
+		fontname="times-italic",
+		label=ident];
+}
