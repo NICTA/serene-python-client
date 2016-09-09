@@ -65,6 +65,8 @@ class ColIndexGenerator(object):
 #           columns   : a, b
 #           condition : a.category == 'date' and b.category == 'time' and abs(a.place - b.place) == 1
 #           expression: a.orig_name + ' ' + b.orig_name
+
+
 def calculateDateTime(a, b):
     """calculate column DateTime given two columns a and b"""
     if a.category == 'date' and b.category == 'time' and abs(a.place - b.place) == 1:
@@ -91,6 +93,7 @@ def concatenateColumns(new_name, cols, delimiter = ' '):
     str_cols = [str(col).replace(' ', '') for col in cols]
     iter_fn.__name__ = 'concatenateColumns_'+ '_'.join(str_cols)
     return iter_fn
+
 
 def templateConcatenateConsequent(column_headers, category, new_name, delimiter = ' '):
     """
@@ -142,7 +145,7 @@ def templateFormat(column_headers, category, format_func, new_name):
             list of functions which are to be applied to a Pandas data framework
 
     """
-    return [formatColumn(format_func, col.orig_name, new_name)\
+    return [formatColumn(format_func, col.orig_name, new_name)
             for col in column_headers if col.category == category]
 
 
@@ -160,9 +163,8 @@ def processTransformation(column_headers, transformation):
             list of functions which are to be applied to a Pandas data framework
     """
     # check transformation
-    if type(transformation) != dict and transformation.keys() != set(['category', 'template',\
-                                                                      'delimiter', 'new_name',\
-                                                                      'format_func']):
+    if type(transformation) != dict and \
+                    transformation.keys() != {'category', 'template', 'delimiter', 'new_name', 'format_func'}:
         print("Error: transformation is not specified correctly.")
         return None
 
@@ -244,8 +246,8 @@ if __name__ == "__main__":
     # for cols in to_process:
     #     categories += [col.category for col in cols]
     # categories = set(categories)
-    categories = ['city', 'flight', 'name', 'country', 'address',\
-                  'birthdate', 'datetime', 'phone', 'airport', \
+    categories = ['city', 'flight', 'name', 'country', 'address',
+                  'birthdate', 'datetime', 'phone', 'airport',
                   'passport', 'time', 'date', 'ship', 'port']
 
 ################## specifying transformations
@@ -287,5 +289,3 @@ if __name__ == "__main__":
             funcs += new_funcs
             for f in new_funcs:
                 print(f)
-
-
