@@ -126,49 +126,49 @@
             {
                 "source": "0",
                 "target": "3",
-                "label": "bornIn",
+                "label": ":bornIn",
                 "type": "ObjectProperty"
             },
             {
                 "source": "0",
                 "target": "1",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             },
             {
                 "source": "0",
                 "target": "2",
-                "label": "birthDate",
+                "label": ":birthDate",
                 "type": "DataProperty"
             },
             {
                 "source": "3",
                 "target": "5",
-                "label": "state",
+                "label": ":state",
                 "type": "ObjectProperty"
             },
             {
                 "source": "3",
                 "target": "4",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             },
             {
                 "source": "0",
                 "target": "7",
-                "label": "worksFor",
+                "label": ":worksFor",
                 "type": "ObjectProperty"
             },
             {
                 "source": "5",
                 "target": "6",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             },
             {
                 "source": "7",
                 "target": "8",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             }
         ]

@@ -15,23 +15,28 @@ digraph  {
 			style=dotted
 		];
 		9		 [color=brown,
-			label=name,
+			label="0
+name",
 			shape=box,
 			style=dotted];
 		10		 [color=brown,
-			label=birthDate,
+			label="1
+birthDate",
 			shape=box,
 			style=dotted];
 		11		 [color=brown,
-			label=city,
+			label="2
+city",
 			shape=box,
 			style=dotted];
 		12		 [color=brown,
-			label=state,
+			label="3
+state",
 			shape=box,
 			style=dotted];
 		13		 [color=brown,
-			label=workplace,
+			label="4
+workplace",
 			shape=box,
 			style=dotted];
 	}
@@ -43,30 +48,37 @@ digraph  {
 			rank=same,
 			style=dotted
 		];
-		14		 [label=name,
+		14		 [label="0
+name",
 			shape=box,
 			style=rounded];
-		15		 [label=birthDate,
+		15		 [label="1
+birthDate",
 			shape=box,
 			style=rounded];
-		16		 [label=city,
+		16		 [label="2
+city",
 			shape=box,
 			style=rounded];
-		17		 [label=state,
+		17		 [label="3
+state",
 			shape=box,
 			style=rounded];
-		18		 [label=workplace,
+		18		 [label="4
+workplace",
 			shape=box,
 			style=rounded];
 	}
 	0	 [color=white,
 		fillcolor=green,
-		label=":Person",
+		label="0
+:Person",
 		shape=ellipse,
 		style=filled];
 	1	 [color=white,
 		fillcolor=lightgrey,
-		label="Person.name",
+		label="1
+Person.name",
 		shape=plaintext,
 		style=filled];
 	0 -> 1	 [fontname="times-italic",
@@ -74,7 +86,8 @@ digraph  {
 		style=dashed];
 	2	 [color=white,
 		fillcolor=lightgrey,
-		label="Person.birthdate",
+		label="2
+Person.birthdate",
 		shape=plaintext,
 		style=filled];
 	0 -> 2	 [fontname="times-italic",
@@ -82,14 +95,16 @@ digraph  {
 		style=dashed];
 	3	 [color=white,
 		fillcolor=green,
-		label=":City",
+		label="3
+:City",
 		shape=ellipse,
 		style=filled];
 	0 -> 3	 [fontname="times-italic",
 		label=bornIn];
 	7	 [color=white,
 		fillcolor=green,
-		label=":Organization",
+		label="7
+:Organization",
 		shape=ellipse,
 		style=filled];
 	0 -> 7	 [fontname="times-italic",
@@ -102,7 +117,8 @@ digraph  {
 		color=blue];
 	4	 [color=white,
 		fillcolor=lightgrey,
-		label="City.name",
+		label="4
+City.name",
 		shape=plaintext,
 		style=filled];
 	3 -> 4	 [fontname="times-italic",
@@ -110,7 +126,8 @@ digraph  {
 		style=dashed];
 	5	 [color=white,
 		fillcolor=green,
-		label=":State",
+		label="5
+:State",
 		shape=ellipse,
 		style=filled];
 	3 -> 5	 [fontname="times-italic",
@@ -120,7 +137,8 @@ digraph  {
 		color=blue];
 	6	 [color=white,
 		fillcolor=lightgrey,
-		label="State.name",
+		label="6
+State.name",
 		shape=plaintext,
 		style=filled];
 	5 -> 6	 [fontname="times-italic",
@@ -131,7 +149,8 @@ digraph  {
 		color=blue];
 	8	 [color=white,
 		fillcolor=lightgrey,
-		label="Organization.name",
+		label="8
+Organization.name",
 		shape=plaintext,
 		style=filled];
 	7 -> 8	 [fontname="times-italic",

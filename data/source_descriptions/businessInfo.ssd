@@ -109,43 +109,43 @@
             {
                 "source": "0",
                 "target": "2",
-                "label": "ceo",
+                "label": ":ceo",
                 "type": "ObjectProperty"
             },
             {
                 "source": "0",
                 "target": "1",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             },
             {
                 "source": "2",
                 "target": "3",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             },
             {
                 "source": "0",
                 "target": "4",
-                "label": "location",
+                "label": ":location",
                 "type": "ObjectProperty"
             },
             {
                 "source": "4",
                 "target": "5",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             },
             {
                 "source": "4",
                 "target": "6",
-                "label": "isPartOf",
+                "label": ":isPartOf",
                 "type": "ObjectProperty"
             },
             {
                 "source": "6",
                 "target": "7",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             }
         ]

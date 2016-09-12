@@ -15,11 +15,13 @@ digraph  {
 			style=dotted
 		];
 		4		 [color=brown,
-			label=state,
+			label="0
+state",
 			shape=box,
 			style=dotted];
 		5		 [color=brown,
-			label=city,
+			label="1
+city",
 			shape=box,
 			style=dotted];
 	}
@@ -31,21 +33,25 @@ digraph  {
 			rank=same,
 			style=dotted
 		];
-		6		 [label=state,
+		6		 [label="0
+state",
 			shape=box,
 			style=rounded];
-		7		 [label=city,
+		7		 [label="1
+city",
 			shape=box,
 			style=rounded];
 	}
 	0	 [color=white,
 		fillcolor=green,
-		label=":State",
+		label="0
+:State",
 		shape=ellipse,
 		style=filled];
 	1	 [color=white,
 		fillcolor=lightgrey,
-		label="State.name",
+		label="1
+State.name",
 		shape=plaintext,
 		style=filled];
 	0 -> 1	 [fontname="times-italic",
@@ -56,14 +62,16 @@ digraph  {
 		color=blue];
 	2	 [color=white,
 		fillcolor=green,
-		label=":City",
+		label="2
+:City",
 		shape=ellipse,
 		style=filled];
 	2 -> 0	 [fontname="times-italic",
 		label=state];
 	3	 [color=white,
 		fillcolor=lightgrey,
-		label="City.name",
+		label="3
+City.name",
 		shape=plaintext,
 		style=filled];
 	2 -> 3	 [fontname="times-italic",

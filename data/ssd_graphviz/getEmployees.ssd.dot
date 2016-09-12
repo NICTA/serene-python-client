@@ -15,11 +15,13 @@ digraph  {
 			style=dotted
 		];
 		4		 [color=brown,
-			label=employer,
+			label="0
+employer",
 			shape=box,
 			style=dotted];
 		5		 [color=brown,
-			label=employee,
+			label="1
+employee",
 			shape=box,
 			style=dotted];
 	}
@@ -31,21 +33,25 @@ digraph  {
 			rank=same,
 			style=dotted
 		];
-		6		 [label=employer,
+		6		 [label="0
+employer",
 			shape=box,
 			style=rounded];
-		7		 [label=employee,
+		7		 [label="1
+employee",
 			shape=box,
 			style=rounded];
 	}
 	0	 [color=white,
 		fillcolor=green,
-		label=":Organization",
+		label="0
+:Organization",
 		shape=ellipse,
 		style=filled];
 	1	 [color=white,
 		fillcolor=lightgrey,
-		label="Organization.name",
+		label="1
+Organization.name",
 		shape=plaintext,
 		style=filled];
 	0 -> 1	 [fontname="times-italic",
@@ -56,14 +62,16 @@ digraph  {
 		color=blue];
 	2	 [color=white,
 		fillcolor=green,
-		label=":Person",
+		label="2
+:Person",
 		shape=ellipse,
 		style=filled];
 	2 -> 0	 [fontname="times-italic",
 		label=worksFor];
 	3	 [color=white,
 		fillcolor=lightgrey,
-		label="Person.name",
+		label="3
+Person.name",
 		shape=plaintext,
 		style=filled];
 	2 -> 3	 [fontname="times-italic",

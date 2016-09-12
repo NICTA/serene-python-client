@@ -15,19 +15,23 @@ digraph  {
 			style=dotted
 		];
 		8		 [color=brown,
-			label=company,
+			label="0
+company",
 			shape=box,
 			style=dotted];
 		9		 [color=brown,
-			label=ceo,
+			label="1
+ceo",
 			shape=box,
 			style=dotted];
 		10		 [color=brown,
-			label=city,
+			label="2
+city",
 			shape=box,
 			style=dotted];
 		11		 [color=brown,
-			label=state,
+			label="3
+state",
 			shape=box,
 			style=dotted];
 	}
@@ -39,85 +43,97 @@ digraph  {
 			rank=same,
 			style=dotted
 		];
-		12		 [label=company,
+		12		 [label="0
+company",
 			shape=box,
 			style=rounded];
-		13		 [label=ceo,
+		13		 [label="1
+ceo",
 			shape=box,
 			style=rounded];
-		14		 [label=city,
+		14		 [label="2
+city",
 			shape=box,
 			style=rounded];
-		15		 [label=state,
+		15		 [label="3
+state",
 			shape=box,
 			style=rounded];
 	}
 	0	 [color=white,
 		fillcolor=green,
-		label=":Organization",
+		label="0
+:Organization",
 		shape=ellipse,
 		style=filled];
 	1	 [color=white,
 		fillcolor=lightgrey,
-		label="Organization.name",
+		label="1
+Organization.name",
 		shape=plaintext,
 		style=filled];
 	0 -> 1	 [fontname="times-italic",
-		label=name,
+		label=":name",
 		style=dashed];
 	2	 [color=white,
 		fillcolor=green,
-		label=":Person",
+		label="2
+:Person",
 		shape=ellipse,
 		style=filled];
 	0 -> 2	 [fontname="times-italic",
-		label=ceo];
+		label=":ceo"];
 	4	 [color=white,
 		fillcolor=green,
-		label=":City",
+		label="4
+:City",
 		shape=ellipse,
 		style=filled];
 	0 -> 4	 [fontname="times-italic",
-		label=location];
+		label=":location"];
 	1 -> 12	 [arrowhead=inv,
 		arrowtail=inv,
 		color=blue];
 	3	 [color=white,
 		fillcolor=lightgrey,
-		label="Person.name",
+		label="3
+Person.name",
 		shape=plaintext,
 		style=filled];
 	2 -> 3	 [fontname="times-italic",
-		label=name,
+		label=":name",
 		style=dashed];
 	3 -> 13	 [arrowhead=inv,
 		arrowtail=inv,
 		color=blue];
 	5	 [color=white,
 		fillcolor=lightgrey,
-		label="City.name",
+		label="5
+City.name",
 		shape=plaintext,
 		style=filled];
 	4 -> 5	 [fontname="times-italic",
-		label=name,
+		label=":name",
 		style=dashed];
 	6	 [color=white,
 		fillcolor=green,
-		label=":State",
+		label="6
+:State",
 		shape=ellipse,
 		style=filled];
 	4 -> 6	 [fontname="times-italic",
-		label=isPartOf];
+		label=":isPartOf"];
 	5 -> 14	 [arrowhead=inv,
 		arrowtail=inv,
 		color=blue];
 	7	 [color=white,
 		fillcolor=lightgrey,
-		label="State.name",
+		label="7
+State.name",
 		shape=plaintext,
 		style=filled];
 	6 -> 7	 [fontname="times-italic",
-		label=name,
+		label=":name",
 		style=dashed];
 	7 -> 15	 [arrowhead=inv,
 		arrowtail=inv,

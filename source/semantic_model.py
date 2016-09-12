@@ -4,7 +4,7 @@ import logging
 import matplotlib.pyplot as plt
 import pygraphviz as pgv
 import json
-
+from source.columns import SemanticType
 
 def read_sd(fname):
     """
@@ -21,6 +21,7 @@ def read_sd(fname):
 
 class SemanticModel(object):
     """
+    Semantic model is implemented as a networkx MultiDiGraph: multi-links and self-loops are supported.
     Attributes:
         graph: networkx graph representation of the semantic model
     """
@@ -39,10 +40,66 @@ class SemanticModel(object):
             self.graph.add_edge(int(l["source"]), int(l["target"]),
                                 attr_dict={"type": l["type"], "label": l["label"]})
 
-    def convert_graphviz(self):
+
+    def del_classnode(self, node_id):
+        """
+        Delete a class node with node_id from the semantic model.
+        Adjacent links and data nodes will be deleted as well.
+        :param node_id:
+        :return:
+        """
+        pass
+
+    def del_datanode(self, node_id):
+        """
+        Delete a data node with node_id from the semantic model.
+        Adjacent links will be deleted as well.
+        :param node_id:
+        :return:
+        """
+        pass
+
+    def add_classnode(self, name, prefix=None):
+        """
+        Add a class node to the semantic model.
+        We need to specify the class name and prefix from the ontology.
+        By default prefix is None which means that the base prefix is used.
+        This base prefix is specified in the ontology.
+        :param name:
+        :param prefix:
+        :return:
+        """
+        pass
+
+    def add_datanode(self, name, class_node_id, prefix=None):
+        """
+        Add a data node to the semantic model which is associated with the class node.
+        We need to specify the name and prefix from the ontology.
+        By default prefix is None which means that the base prefix is used.
+        This base prefix is specified in the ontology.
+        :param name:
+        :param prefix:
+        :return:
+        """
+        pass
+
+    def add_link(self, source_class_id, target_class_id, name, prefix=None):
+        """
+
+        :param source_class_id:
+        :param target_class_id:
+        :param name:
+        :param prefix:
+        :return:
+        """
+        pass
+
+
+    def convert_graphviz(self, display_id=False):
         """
         Convert the semantic model to graphviz.
-        :return:
+        :param display_id: boolean which indicates whether to include ids into labels
+        :return: pygraphviz AGraph object
         """
         # empty graphviz
         g = pgv.AGraph(strict=False,
@@ -51,13 +108,16 @@ class SemanticModel(object):
                        overlap=False,
                        splines='true')
         for (n, n_dict) in self.graph.nodes(data=True):
+            lab = n_dict['label']
+            if display_id:
+                lab = str(n) + "\n" + lab
             if n_dict['type'] == 'ClassNode':
-                g.add_node(n, label=n_dict['label'],
+                g.add_node(n, label=lab,
                            color='white',
                            style="filled",
                            fillcolor='green', shape='ellipse')
             else:
-                g.add_node(n, label=n_dict['label'],
+                g.add_node(n, label=lab,
                            shape='plaintext',
                            color='white',
                            style='filled',
@@ -67,11 +127,14 @@ class SemanticModel(object):
         g.add_subgraph(self.graph.nodes(data=False))
 
         for (start, end, e_dict) in self.graph.edges(data=True):
+            lab = e_dict['label']
+            if display_id:
+                lab = lab
             if e_dict["type"] == "ObjectProperty":
-                g.add_edge(start, end, label=e_dict['label']
+                g.add_edge(start, end, label=lab
                            , fontname='times-italic')
             else:
-                g.add_edge(start, end, label=e_dict['label'],
+                g.add_edge(start, end, label=lab,
                            style="dashed"
                            , fontname='times-italic')
 
@@ -158,12 +221,29 @@ class SemanticModel(object):
                + " nodes and " + str(self.graph.number_of_nodes()) + " edges as " + \
                self.graph.__repr__() + ">"
 
-    def getSemanticTypes(self):
+    def get_data_nodes(self):
         """
-        Construct list of semantic types from the semantic model.
-        :return:
+        Construct list of data nodes with associated class nodes.
+        :return: list of tuples
         """
-        pass
+        data_nodes = []
+        for (source, target, e_dict) in self.graph.edges(data=True):
+            if e_dict['type'] == 'DataProperty':
+                class_node = self.graph.node[source]
+                data_nodes.append((class_node['label'],e_dict['label']))
+        return data_nodes
+
+    def get_class_nodes(self):
+        """
+        Construct list of class nodes.
+        :return: list of tuples
+        """
+        class_nodes = []
+        for (n, n_dict) in self.graph.nodes(data=True):
+            if n_dict['type'] == 'ClassNode':
+                class_nodes.append((n_dict['label'], None))
+        return class_nodes
+
 
 if __name__ == "__main__":
     data_dir = os.path.join(os.getcwd(), 'data')

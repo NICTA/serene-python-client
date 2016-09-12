@@ -72,11 +72,22 @@ class SemanticType(object):
         class_node: uri of the class node in the ontology
         data_node: uri of the data node in the ontology, it's None in case type is ClassNode
     """
-    def __init__(self, class_uri, data_uri):
-        self.class_node = class_uri  # uri of the class node from the ontology
-        self.data_node = data_uri  # uri of the data node from the ontology
+    def __init__(self, class_uri, data_uri=None, class_label=None, data_label=None):
+        self.class_uri = class_uri  # uri of the class node from the ontology
+        self.data_uri = data_uri  # uri of the data node from the ontology
+        self.class_node = class_label  # labe of the class node from the ontology
+        self.data_node = data_label  # label of the data node from the ontology
         # type corresponds to ClassNode or DataNode
         if data_uri is None:
             self.type = 'ClassNode'
         else:
             self.type = 'DataNode'
+
+    def __str__(self):
+        if self.type == 'ClassNode':
+            return "(" + str(self.class_node) + ",_)"
+        return "(" + str(self.class_node) + "," + str(self.data_node) + ")"
+
+    def __repr__(self):
+        return self.__str__()
+

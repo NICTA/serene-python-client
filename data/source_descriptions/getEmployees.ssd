@@ -62,19 +62,19 @@
             {
                 "source": "2",
                 "target": "0",
-                "label": "worksFor",
+                "label": ":worksFor",
                 "type": "ObjectProperty"
             },
             {
                 "source": "0",
                 "target": "1",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             },
             {
                 "source": "2",
                 "target": "3",
-                "label": "name",
+                "label": ":name",
                 "type": "DataProperty"
             }
         ]
