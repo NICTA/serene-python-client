@@ -69,7 +69,7 @@ sm.add_ontology(on)
 #============
 
 # now we can add CSV files into the Semantic Source Description
-ssd = sm.to_ssd("/some/junk/test1.csv")
+ssd = sm.predict("/some/junk/test1.csv")
 
 # we can now see what the algorithm predicted
 ssd
