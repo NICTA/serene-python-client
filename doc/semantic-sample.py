@@ -67,6 +67,7 @@ sm.add_ontology(on)
 >>> <SemanticModeller 98y3498yrt>
 """
 
+# list all the class nodes
 sm.class_nodes
 """
 >>>
@@ -79,6 +80,7 @@ sm.class_nodes
 ]
 """
 
+# list all the data nodes
 sm.data_nodes
 """
 >>>
