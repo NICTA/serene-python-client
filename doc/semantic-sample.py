@@ -63,13 +63,119 @@ on = (
 
 # add the ontology to the SemanticModeller
 sm.add_ontology(on)
+"""
+>>> <SemanticModeller 98y3498yrt>
+"""
 
+sm.class_nodes
+"""
+>>>
+[
+    ClassNode(Person, [name, dob, phone])
+    ClassNode(Car, [name, address, phone])
+    ClassNode(Event, [location, time, date])
+    ClassNode(Location, [lat, long])
+    ClassNode(City, [name])
+]
+"""
+
+sm.data_nodes
+"""
+>>>
+[
+    DataNode(name, ClassNode(Person))
+    DataNode(dob, ClassNode(Person))
+    DataNode(phone, ClassNode(Person))
+    DataNode(location, ClassNode(Event))
+    DataNode(time, ClassNode(Event))
+    DataNode(date, ClassNode(Event))
+    ...
+]
+"""
 #============
 # PREDICT
 #============
 
-# now we can add CSV files into the Semantic Source Description
-ssd = sm.predict("/some/junk/test1.csv")
+# once we load the file, the columns exist in the SemanticSourceDescription(SSD),
+# but they have no DataNodes assigned...
+ssd = sm.load("/some/junk/test1.csv")
+ssd
+"""
+>>>
+[
+    Column(name, 1) -> None
+    Column(birth, 2) -> None
+    Column(city, 3) -> None
+    Column(state, 4) -> None
+    Column(workplace, 5) -> None
+]
+"""
+
+# the file associated with the SSD
+ssd.file
+"""
+>>> /some/junk/test1.csv
+"""
+
+# show the data (or a sample in a Pandas dataframe)
+ssd.df
+"""
+>>>
+      SA1_MAINCODE_2011  SA1_7DIGITCODE_2011  SA2_MAINCODE_2011
+0            10101100101              1100101          101011001
+1            10101100102              1100102          101011001
+2            10101100103              1100103          101011001
+3            10101100104              1100104          101011001
+4            10101100105              1100105          101011001
+5            10101100106              1100106          101011001
+...
+"""
+
+# we can assign DataNodes to the columns manually...
+ssd.map(Column("name"), DataNode("name", "Person"))
+"""
+>>>
+[
+    Column(name, 1) -> DataNode(name, ClassNode(Person))
+    Column(birth, 2) -> None
+    Column(city, 3) -> None
+    Column(state, 4) -> None
+    Column(workplace, 5) -> None
+]
+"""
+
+# we can also add transforms manually as lambda functions...
+ssd.map(Column("birth"), DataNode("dob", "Person"), transform=pd.to_datetime)
+"""
+>>>
+[
+    Column(name, 1) -> DataNode(name, ClassNode(Person))
+    Column(birth, 2) -> Transform(1) -> DataNode(dob, ClassNode(Person))
+    Column(city, 3) -> None
+    Column(state, 4) -> None
+    Column(workplace, 5) -> None
+]
+"""
+
+# we can view the transform table like so...
+ssd.transform
+"""
+>>>
+    {
+        Transform(1): {
+           'id': 1
+           'source_columns': [1]
+           'name': ''
+           'label': ''
+           'sql': 'select * from $1'
+           'func': <function <lambda> at 0x76523401>
+           'sample': [987345, 34598754, 345879, ...]
+        }
+    }
+"""
+
+# we can also try to auto-fill the SSD
+ssd.predict()
 
 # we can now see what the algorithm predicted
 ssd
