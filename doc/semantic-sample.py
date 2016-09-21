@@ -94,9 +94,10 @@ sm.data_nodes
     ...
 ]
 """
-#============
-# PREDICT
-#============
+
+#=========================
+# CREATING SEMANTIC MODELS
+#=========================
 
 # once we load the file, the columns exist in the SemanticSourceDescription(SSD),
 # but they have no DataNodes assigned...
@@ -188,24 +189,6 @@ ssd
     Column(birth, 2) -> DataNode(dob, ClassNode(Person))
     Column(city, 3) -> Transform(1) -> DataNode(name, ClassNode(City))
     Column(state, 4) -> Transform(4) -> DataNode(name, ClassNode(State))
-    Column(workplace, 5) -> None
-    ClassNode(Person) -> Link(is_a) -> ClassNode(OldPerson)
-    ClassNode(Person) -> Link(has_a) -> ClassNode(Car)
-]
-"""
-
-#==========
-# EDITING
-#==========
-# we can now edit the SemanticSourceDescription...
-ssd
-"""
->>>
-[
-    Column(name, 1) -> Transform(1) -> DataNode(name, ClassNode(Person))
-    Column(birth, 2) -> DataNode(dob, ClassNode(Person))
-    Column(city, 3) -> Transform(fix_city, 1) -> DataNode(name, ClassNode(City))
-    Column(state, 4) -> Transform(ident, 4) -> DataNode(name, ClassNode(State))
     Column(workplace, 5) -> None
     ClassNode(Person) -> Link(is_a) -> ClassNode(OldPerson)
     ClassNode(Person) -> Link(has_a) -> ClassNode(Car)
