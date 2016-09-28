@@ -36,10 +36,34 @@ class SemanticModeller(object):
         self.ontologies = []
         if ontologies is not None:
             for o in ontologies:
-                self.ontologies.append(Ontology(o))
+                self.add_ontology(Ontology(o))
 
         _logger.debug("Config set to:", self.config)
         _logger.debug("Ontologies set to:", self.ontologies)
+
+    def add_ontology(self, ontology):
+        """
+        Adds an ontology to the list...
+        :param ontology:
+        :return:
+        """
+        if type(ontology) == Ontology:
+            self.ontologies.append(ontology)
+        elif type(ontology) == str:
+            # attempt to open from a file...
+            self.add_ontology(Ontology(ontology))
+        else:
+            raise Exception("Failed to add ontology: {}".format(ontology))
+
+        return self
+
+    @staticmethod
+    def flatten(xs):
+        return [x for y in xs for x in y]
+
+    @property
+    def class_nodes(self):
+        return self.flatten(o.class_nodes for o in self.ontologies)
 
 
 class Ontology(object):
@@ -54,6 +78,7 @@ class Ontology(object):
         """
         if file is not None:
             _logger.debug("Importing {} from file.".format(file))
+            self.load(file)
         else:
             self._prefixes = {
                 "xml": "xml:/some/xml/resource",
@@ -64,6 +89,23 @@ class Ontology(object):
             self._uri = ""
             self._graph = nx.DiGraph()
             self._class_table = {}
+
+    def load(self, filename):
+        """
+
+        :param filename:
+        :return:
+        """
+        _logger.info("Extracting ontology from file {}.".format(filename))
+        self._prefixes = {
+            "xml": "xml:/some/xml/resource",
+            "uri": "uri:/some/uri/resource",
+            "owl": "owl:/some/owl/resource"
+        }
+
+        self._uri = ""
+        self._graph = nx.DiGraph()
+        self._class_table = {}
 
     def prefix(self, prefix, uri):
         """
@@ -100,7 +142,25 @@ class Ontology(object):
                       "nodes={}, prefix={}, parent={}"
                       .format(name, nodes, prefix, parent))
 
-        cn = ClassNode(name, nodes, prefix, parent)
+        # if the parent does not exist, refuse to create the class
+        parent_class = None
+        if parent is not None:
+            if parent not in self._class_table:
+                raise Exception("Failed to create class {}. "
+                                "Parent class '{}' does not exist"
+                                .format(name, parent))
+            else:
+                parent_class = self._class_table[parent]
+
+        # build up the node list...
+        node_dict = {}
+        if type(nodes) == dict:
+            node_dict = nodes
+        elif type(nodes) == list:
+            node_dict = {k: str for k in nodes}
+
+        # now we create a class node object...
+        cn = ClassNode(name, node_dict, prefix, parent_class)
 
         # if the name is in the class table, then we
         # need to remove it from the graph...
@@ -138,6 +198,11 @@ class Ontology(object):
 
         return self
 
+    @property
+    def class_nodes(self):
+        """The class node objects"""
+        return self._class_table.values()
+
 
 class ClassNode(object):
     """
@@ -152,13 +217,13 @@ class ClassNode(object):
         :param parent:
         """
         self.name = name
-        self.nodes = [DataNode(n) for n in nodes] if nodes is not None else []
+        self.nodes = [DataNode(n) for n in nodes.keys()] if nodes is not None else []
         self.prefix = prefix
         self.parent = parent
 
-    def __str__(self):
+    def __repr__(self):
         nodes = [n.name for n in self.nodes]
-        return "ClassNode({}, {})".format(self.name, ", ".join(nodes))
+        return "ClassNode({}, [{}])".format(self.name, ", ".join(nodes))
 
 
 class DataNode(object):
@@ -172,7 +237,7 @@ class DataNode(object):
         """
         self.name = name
 
-    def __str__(self):
+    def __repr__(self):
         return "DataNode({})".format(self.name)
 
 
@@ -187,5 +252,5 @@ class Link(object):
         """
         self.name = name
 
-    def __str__(self):
+    def __repr__(self):
         return "Link({})".format(self.name)

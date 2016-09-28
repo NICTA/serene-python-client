@@ -1,3 +1,30 @@
+"""
+ input
+  Some knowledge about the ontology or where you want to end up...
+  /some/junk/test1.csv  - contains columns: name, birth, city, state, workplace
+  /some/junk/test2.csv  - contains columns: state, city
+  /some/junk/test3.csv  - contains columns: company, ceo, city, state
+  /some/junk/test4.csv  - contains columns: employer, employee
+  /some/junk/test5.csv  - contains columns: zipcode, city, state
+  ..
+  ..
+  ..
+  ...
+ output
+  SSD: semantic source description files
+    /some/junk/test1.ssd
+    /some/junk/test2.ssd
+    /some/junk/test3.ssd
+    /some/junk/test4.ssd
+    /some/junk/test5.ssd
+    ...
+    ...
+    ...
+"""
+
+# ===========
+#    SETUP
+# ===========
 
 import dataint
 
@@ -32,3 +59,10 @@ on = (dataint.Ontology()
       .relationship("City", "is_in", "State"))
 
 print(on)
+
+# add the ontology to the SemanticModeller
+sm.add_ontology(on)
+
+# list all the class nodes
+print(sm.class_nodes)
+
