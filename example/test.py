@@ -44,25 +44,49 @@ print(sm)
 on = (dataint.Ontology()
       .prefix("asd", "asd:/9e8rgyusdgfiuhsdf.dfguhudfh")
       .uri("http://www.semanticweb.org/data_integration_project/report_example_ontology")
-      .class_node("Person", ["name", "address", "phone"], prefix="xsd")
-      .class_node(
-        "Car",
-        {
-            "make": str,
-            "model": str,
-            "VIN": int
-        })
-      .relationship("Person", "owns", "Car")
+      .class_node("Person", ["name", "phone"], prefix="xsd")
       .class_node("Location")
-      .class_node("City", parent="Location")
-      .class_node("State", parent="Location")
-      .relationship("City", "is_in", "State"))
+      .class_node("City", is_a="Location")
+      .class_node("State", is_a="Location")
+      .class_node("Address", {"name": str, "postcode": int}, is_a="Location")
+      .relationship("Person", "lives-at", "Address")
+      .relationship("Address", "is_in", "City")
+      .relationship("Address", "is_in", "State"))
 
+print()
+print("Ontology built:")
 print(on)
 
 # add the ontology to the SemanticModeller
 sm.add_ontology(on)
 
 # list all the class nodes
-print(sm.class_nodes)
+print()
+print("Listing class nodes...")
+for cn in sm.class_nodes:
+    print(cn)
 
+
+# list all the data nodes
+print()
+print("Listing data nodes...")
+for dn in sm.data_nodes:
+    print(dn)
+
+# list all the links
+print()
+print("Listing the links...")
+for link in sm.links:
+    print(link)
+
+# ==========================
+#  CREATING SEMANTIC MODELS
+# ==========================
+
+# once we load the file, the columns exist in the SemanticSourceDescription(SSD),
+# but they have no DataNodes assigned...
+import os
+print(">>>>>>>", os.path.abspath(os.curdir))
+ssd = sm.to_ssd("example/resources/data/EmployeeAddresses.csv")
+
+print(ssd.df)
