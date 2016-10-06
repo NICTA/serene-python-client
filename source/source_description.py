@@ -77,7 +77,7 @@ def read_ontology(fname):
     g = rdflib.Graph()
     try:
         logging.info("Trying to read ontology in Turtle RDF.")
-        g.parse(file=open(fname),format="turtle")
+        g.parse(file=open(fname), format="turtle")
     except Exception as e:
         print(e)
         logging.error("Failed to read ontology in "+ str(fname) + ": " + e.__repr__())
@@ -270,7 +270,7 @@ class SourceDescription(object):
         :param ontol: rdflib ontology graph
         :return: list of instances SemanticType
         """
-        namespaces = dict([(y.split("#")[0], x) for (x, y) in ontol.namespaces()])
+        namespaces = {(y.split("#")[0], x) for x, y in ontol.namespaces()}
         data_nodes = []
         for d in ontol.subjects(RDF.type, OWL.DatatypeProperty): # these are data properties
             d_pref, d_lab = d.toPython().split("#")

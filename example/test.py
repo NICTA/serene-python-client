@@ -27,6 +27,9 @@
 # ===========
 
 import dataint
+import pandas as pd
+
+from dataint import SemanticModeller, Ontology, DataNode, Link, Column, ClassNode
 
 # start with a SemanticModeller object...
 sm = dataint.SemanticModeller(
@@ -44,8 +47,8 @@ print(sm)
 on = (dataint.Ontology()
       .prefix("asd", "asd:/9e8rgyusdgfiuhsdf.dfguhudfh")
       .uri("http://www.semanticweb.org/data_integration_project/report_example_ontology")
-      .class_node("Person", ["name", "phone"], prefix="xsd")
-      .class_node("Location")
+      .class_node("Person", ["name", "phone"])
+      .class_node("Location", prefix="xsd")
       .class_node("City", is_a="Location")
       .class_node("State", is_a="Location")
       .class_node("Address", {"name": str, "postcode": int}, is_a="Location")
@@ -66,7 +69,6 @@ print("Listing class nodes...")
 for cn in sm.class_nodes:
     print(cn)
 
-
 # list all the data nodes
 print()
 print("Listing data nodes...")
@@ -85,8 +87,40 @@ for link in sm.links:
 
 # once we load the file, the columns exist in the SemanticSourceDescription(SSD),
 # but they have no DataNodes assigned...
-import os
-print(">>>>>>>", os.path.abspath(os.curdir))
 ssd = sm.to_ssd("example/resources/data/EmployeeAddresses.csv")
 
-print(ssd.df)
+print()
+print("Printing ssd...")
+print(ssd)
+
+# show the original file location...
+print()
+print("Printing filename...")
+print(ssd.file)
+
+# show the data (a Pandas data frame)
+#print("Printing dataframe...")
+#print(ssd.df)
+
+# show the initial mapping
+print()
+print("Printing mapping...")
+for m in ssd.mappings:
+    print(m)
+
+# you can assign the DataNodes to columns manually...
+ssd.map(Column("postcode"), DataNode("postcode", ClassNode("Address")))
+
+print()
+print("Printing mapping...")
+for m in ssd.mappings:
+    print(m)
+
+# you can assign the DataNodes to columns manually...
+ssd.map(Column("FirstName"), DataNode("name", ClassNode("Person")), transform=pd.to_datetime)
+
+print()
+print("Printing mapping...")
+for m in ssd.mappings:
+    print(m)
+

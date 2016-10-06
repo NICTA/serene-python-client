@@ -3,6 +3,9 @@
 """
 import logging
 import networkx as nx
+import random
+import string
+
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -160,9 +163,17 @@ class Ontology(SemanticBase):
         """
         Loads an Ontology from a file. The file must be in .owl RDF format.
 
+        WARNING: What do we do about the same prefix values!!! unclear.
+                Should they be merged? Should ClassNodes simply be referred to
+                by the prefix under the hood?
+
         :param filename: The name of the .owl file.
         :return:
         """
+        def rand_str(N=5):
+            chars = string.ascii_uppercase + string.digits
+            return ''.join(random.SystemRandom().choice(chars) for _ in range(N))
+
         _logger.info("Extracting ontology from file {}.".format(filename))
 
         # REMOVE!!! These are just junk values...
@@ -172,7 +183,8 @@ class Ontology(SemanticBase):
             "owl": "owl:/some/owl/resource"
         }
         self._uri = "junk"
-        self.class_node("Person", ["name", "address"])
+
+        self.class_node(rand_str(), [rand_str(), rand_str()])
 
     def prefix(self, prefix, uri):
         """
@@ -215,9 +227,9 @@ class ClassNode(object):
         :param parent: The parent object if applicable
         """
         self.name = name
-        self.nodes = [DataNode(n, self) for n in nodes.keys()] if nodes is not None else []
         self.prefix = prefix
         self.parent = parent
+        self.nodes = [DataNode(n, self) for n in nodes.keys()] if nodes is not None else []
 
     def __repr__(self):
         nodes = [n.name for n in self.nodes]
@@ -228,6 +240,13 @@ class ClassNode(object):
             parent = ", parent={}".format(self.parent.name)
 
         return "ClassNode({}, [{}]{})".format(self.name, ", ".join(nodes), parent)
+
+    def __eq__(self, other):
+        return (self.name == other.name) \
+               and (self.prefix == other.prefix)
+
+    def __hash__(self):
+        return id(self)
 
 
 class DataNode(object):
@@ -244,9 +263,16 @@ class DataNode(object):
         """
         self.name = name
         self.parent = parent
+        self.prefix = parent.prefix
 
     def __repr__(self):
         return "DataNode({}, ClassNode({}))".format(self.name, self.parent.name)
+
+    def __eq__(self, other):
+        return (self.name == other.name) and (self.parent == other.parent)
+
+    def __hash__(self):
+        return id(self)
 
 
 class Link(object):
