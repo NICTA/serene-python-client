@@ -71,4 +71,4 @@ class Searchable(object):
 
         msg = "Failed to find item. {} is ambiguous: {}".format(item, candidates)
         _logger.error(msg)
-        raise Exception(msg)
+        raise LookupError(msg)

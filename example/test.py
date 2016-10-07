@@ -29,7 +29,7 @@
 import dataint
 import pandas as pd
 
-from dataint import SemanticModeller, Ontology, DataNode, Link, Column, ClassNode
+from dataint import SemanticModeller, Ontology, DataNode, Link, Column, ClassNode, Transform
 
 # start with a SemanticModeller object...
 sm = dataint.SemanticModeller(
@@ -47,7 +47,7 @@ print(sm)
 on = (dataint.Ontology()
       .prefix("asd", "asd:/9e8rgyusdgfiuhsdf.dfguhudfh")
       .uri("http://www.semanticweb.org/data_integration_project/report_example_ontology")
-      .class_node("Person", ["name", "phone"])
+      .class_node("Person", ["first-name", "last-name", "name", "phone"])
       .class_node("Location", prefix="xsd")
       .class_node("City", is_a="Location")
       .class_node("State", is_a="Location")
@@ -108,15 +108,69 @@ print("Printing mapping...")
 for m in ssd.mappings:
     print(m)
 
-# you can assign the DataNodes to columns manually...
-ssd.map(Column("postcode"), DataNode("postcode"))
 
+# you can assign the DataNodes to columns manually...
 print()
 print("Adding one map...")
+ssd.map(Column("postcode"), DataNode("postcode"))
 print(ssd)
 
 # you can assign the DataNodes with a transform...
-ssd.map(Column("FirstName"), DataNode("name"), transform=pd.to_datetime)
 print()
-print("Adding a map with a transform")
+print("Ambiguities in the DataNode name will lead to an error:")
+try:
+    ssd.map(Column("FirstName"), DataNode("name"))
+except LookupError as err:
+    print("Error: {0}".format(err))
+print()
+print("This can be resolved by specifying the class node ")
+
+ssd.map(Column("FirstName"), DataNode("Person", "name"))
+
+print(ssd)
+
+# you can assign the DataNodes with a transform...
+print()
+print("We can also add transforms")
+ssd.map(Column("FirstName"), DataNode("Person", "name"), transform=lambda x: x.lower())
+ssd.map(Column("address"), DataNode("Address", "name"), transform=lambda x: x.upper())
+print(ssd)
+
+# transforms
+print()
+print("Printing single transform:")
+print(ssd.transforms[0])
+
+print()
+print("Printing single transform with find:")
+print(ssd.find(Transform(1)))
+
+print()
+print("Printing all transforms:")
+print(ssd.transforms)
+
+# samples...
+print()
+print("You can sample columns")
+print(ssd.sample(Column("address")))
+print()
+print("You can add transforms to samples as a preview")
+print(ssd.sample(Column("address"), Transform(0)))
+
+
+# we can also try to auto-fill the SSD
+ssd.predict()
+print()
+print("Predicted model...")
+print(ssd)
+
+print()
+print("Show just the predictions...")
+for p in ssd.predictions:
+    print(p)
+
+# we can then correct it
+ssd.map(Column("LastName"), DataNode("Person", "last-name"))
+print()
+print("Corrected model...")
 print(ssd)
