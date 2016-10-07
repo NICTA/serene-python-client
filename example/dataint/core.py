@@ -4,6 +4,7 @@ License...
 import logging
 import pandas as pd
 
+from .utils import Searchable
 from .semantics import Ontology, DataNode, ClassNode, Link
 
 _logger = logging.getLogger()
@@ -71,38 +72,6 @@ class SemanticModeller(object):
         ssd = SemanticSourceDesc(filename, self)
         return ssd
 
-    def _data_node_lookup(self, data_node):
-        """
-        Takes a DataNode object, and uses the name property to
-        find the true match in the data node mapping. This allows
-        users to use the short hand:
-
-        DataNode("name")
-
-        rather than
-
-        DataNode("name", ClassNode("Parent"))
-
-        :param data_node: A DataNode object
-        :return:
-        """
-        dns = self.data_nodes
-
-        matches = [dn for dn in dns if data_node.name == dn.name]
-
-        if len(matches) == 0:
-            # if not found throw error...
-            msg = "Failed to find DataNode: " + data_node.name
-            _logger.error(msg)
-            raise Exception(msg)
-        elif len(matches) == 1:
-            return matches[0]
-        else:
-            # if ambiguities throw error
-            msg = "DataNode name {} is ambiguous: {}".format(data_node.name, matches)
-            _logger.error(msg)
-            raise Exception(msg)
-
     @staticmethod
     def flatten(xs):
         return [x for y in xs for x in y]
@@ -144,53 +113,35 @@ class SemanticSourceDesc(object):
 
     def map(self, column, data_node, transform=None):
         """
+        Adds a link between the column and data_node for the
+        mapping. A transform can also be applied to change
+        the column.
 
         :param column:
         :param data_node:
+        :param transform:
         :return:
         """
         columns = self._mapping.keys()
         data_nodes = self._model.data_nodes
 
         # find the matching items in the list using these attributes
-        col = self.find_match(columns, column)
-        dn = self.find_match(data_nodes, data_node)
+        col = Column.search(columns, column)
+        dn = DataNode.search(data_nodes, data_node)
+
+        if col is None:
+            msg = "Failed to find column: {}".format(column)
+            _logger.error(msg)
+            raise Exception(msg)
+
+        if dn is None:
+            msg = "Failed to find data node: {}".format(data_node)
+            _logger.error(msg)
+            raise Exception(msg)
+
         self._mapping[col] = Mapping(col, dn, transform)
+
         return self
-
-    @staticmethod
-    def find_match(container, item):
-        """
-        Takes a named object (object with a .name property, say Column
-        or a DataNode), and uses the name property to
-        find the true match in the column mapping. This allows
-        users to use the short hand:
-
-        Column("name")
-
-        rather than
-
-        Column("name", "/some/file.csv", <SomeDataFrame>, 9)
-
-        :param container: An iterable of named objects
-        :param item: The item to find.
-        :return:
-        """
-        matches = [x for x in container if x == item]
-
-        if len(matches) == 0:
-            # if not found throw error...
-            msg = "Failed to find item: " + item.name
-            _logger.error(msg)
-            raise Exception(msg)
-        elif len(matches) == 1:
-            return matches[0]
-        else:
-            # if ambiguities throw error
-            msg = "Item name '{}' is ambiguous: {}".format(item.name, matches)
-            _logger.error(msg)
-            raise Exception(msg)
-
 
     @property
     def mappings(self):
@@ -201,18 +152,27 @@ class SemanticSourceDesc(object):
         Displays the maps of columns to the data nodes of the Ontology
         :return:
         """
-        return str(self.mappings)
+        map_str = '\n\t'.join(str(m) for m in self.mappings)
+        return "[\n\t{}\n]".format(map_str)
 
 
-class Column(object):
+class Column(Searchable):
     """
     Holds a reference to the original data column
     """
+    # now we setup the search parameters...
+    getters = [
+        lambda col: col.name,
+        lambda col: col.index,
+        lambda col: col.filename
+    ]
+
     def __init__(self, name, df=None, filename=None, index=None):
         self.df = df
         self.filename = filename
         self.name = name
         self.index = index
+        super().__init__()
 
     def __repr__(self):
         """

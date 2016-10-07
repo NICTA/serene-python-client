@@ -109,18 +109,14 @@ for m in ssd.mappings:
     print(m)
 
 # you can assign the DataNodes to columns manually...
-ssd.map(Column("postcode"), DataNode("postcode", ClassNode("Address")))
+ssd.map(Column("postcode"), DataNode("postcode"))
 
 print()
-print("Printing mapping...")
-for m in ssd.mappings:
-    print(m)
+print("Adding one map...")
+print(ssd)
 
-# you can assign the DataNodes to columns manually...
-ssd.map(Column("FirstName"), DataNode("name", ClassNode("Person")), transform=pd.to_datetime)
-
+# you can assign the DataNodes with a transform...
+ssd.map(Column("FirstName"), DataNode("name"), transform=pd.to_datetime)
 print()
-print("Printing mapping...")
-for m in ssd.mappings:
-    print(m)
-
+print("Adding a map with a transform")
+print(ssd)

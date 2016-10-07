@@ -6,6 +6,7 @@ import networkx as nx
 import random
 import string
 
+from .utils import Searchable
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -170,9 +171,9 @@ class Ontology(SemanticBase):
         :param filename: The name of the .owl file.
         :return:
         """
-        def rand_str(N=5):
+        def rand_str(n=5):
             chars = string.ascii_uppercase + string.digits
-            return ''.join(random.SystemRandom().choice(chars) for _ in range(N))
+            return ''.join(random.SystemRandom().choice(chars) for _ in range(n))
 
         _logger.info("Extracting ontology from file {}.".format(filename))
 
@@ -229,7 +230,7 @@ class ClassNode(object):
         self.name = name
         self.prefix = prefix
         self.parent = parent
-        self.nodes = [DataNode(n, self) for n in nodes.keys()] if nodes is not None else []
+        self.nodes = [DataNode(self, n) for n in nodes.keys()] if nodes is not None else []
 
     def __repr__(self):
         nodes = [n.name for n in self.nodes]
@@ -249,30 +250,57 @@ class ClassNode(object):
         return id(self)
 
 
-class DataNode(object):
+class DataNode(Searchable):
     """
         A DataNode is an attribute of a ClassNode. This can correspond to a
         column in a dataset.
     """
-    def __init__(self, name, parent):
-        """
-        A DataNode is initialized with name and a parent ClassNode object...
+    # the search parameters...
+    getters = [
+        lambda node: node.name,
+        lambda node: node.parent.name if node.parent else None,
+        lambda node: node.parent.prefix if node.parent else None
+    ]
 
-        :param name: The name of the DataNode or data column
-        :param parent: The parent ClassNode object...
+    def __init__(self, *names):
         """
-        self.name = name
-        self.parent = parent
-        self.prefix = parent.prefix
+        A DataNode is initialized with name and a parent ClassNode object.
+        A DataNode can be initialized in the following ways:
+
+        DataNode(ClassNode("Person"), "name")
+        DataNode("Person", "name)
+        DataNode("name")
+
+        :param names: The name of the parent classnode and the name of the DataNode
+        """
+        if len(names) == 1:
+            # initialized with DataNode("name") - for lookups only...
+            self.name = names[0]
+            self.parent = None
+
+        elif len(names) == 2:
+            # here the first element is now the parent...
+            parent = names[0]
+
+            if type(parent) == ClassNode:
+                # initialized with DataNode(ClassNode("Person"), "name")
+                self.parent = parent
+            else:
+                # initialized with DataNode("Person", "name")
+                self.parent = ClassNode(parent)
+            self.name = names[1]
+
+        else:
+            msg = "Insufficient args for DataNode construction."
+            raise Exception(msg)
+
+        super().__init__()
 
     def __repr__(self):
-        return "DataNode({}, ClassNode({}))".format(self.name, self.parent.name)
-
-    def __eq__(self, other):
-        return (self.name == other.name) and (self.parent == other.parent)
-
-    def __hash__(self):
-        return id(self)
+        if self.parent:
+            return "DataNode({}, {})".format(self.parent.name, self.name)
+        else:
+            return "DataNode({})".format(self.name)
 
 
 class Link(object):

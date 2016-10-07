@@ -85,12 +85,12 @@ sm.data_nodes
 """
 >>>
 [
-    DataNode(name, ClassNode(Person))
-    DataNode(dob, ClassNode(Person))
-    DataNode(phone, ClassNode(Person))
-    DataNode(location, ClassNode(Event))
-    DataNode(time, ClassNode(Event))
-    DataNode(date, ClassNode(Event))
+    DataNode(Person, name)
+    DataNode(Person, dob)
+    DataNode(Person, phone)
+    DataNode(Event, location)
+    DataNode(Event, time)
+    DataNode(Event, date)
     ...
 ]
 """
@@ -139,7 +139,7 @@ ssd.map(Column("name"), DataNode("name", "Person"))
 """
 >>>
 [
-    Column(name, 1) -> DataNode(name, ClassNode(Person))
+    Column(name, 1) -> DataNode(Person, name)
     Column(birth, 2) -> None
     Column(city, 3) -> None
     Column(state, 4) -> None
@@ -152,8 +152,8 @@ ssd.map(Column("birth"), DataNode("dob", "Person"), transform=pd.to_datetime)
 """
 >>>
 [
-    Column(name, 1) -> DataNode(name, ClassNode(Person))
-    Column(birth, 2) -> Transform(1) -> DataNode(dob, ClassNode(Person))
+    Column(name, 1) -> DataNode(Person, name)
+    Column(birth, 2) -> Transform(1) -> DataNode(Person, dob)
     Column(city, 3) -> None
     Column(state, 4) -> None
     Column(workplace, 5) -> None
@@ -185,10 +185,10 @@ ssd
 """
 >>>
 [
-    Column(name, 1) -> Transform(1) -> DataNode(name, ClassNode(Person))
+    Column(name, 1) -> Transform(1) -> DataNode(Person, name)
     Column(birth, 2) -> DataNode(dob, ClassNode(Person))
-    Column(city, 3) -> Transform(1) -> DataNode(name, ClassNode(City))
-    Column(state, 4) -> Transform(4) -> DataNode(name, ClassNode(State))
+    Column(city, 3) -> Transform(1) -> DataNode(City, name)
+    Column(state, 4) -> Transform(4) -> DataNode(State, name)
     Column(workplace, 5) -> None
     ClassNode(Person) -> Link(is_a) -> ClassNode(OldPerson)
     ClassNode(Person) -> Link(has_a) -> ClassNode(Car)
@@ -199,10 +199,10 @@ ssd
 ssd.map(Column("workplace"), DataNode("name", "Organization"))
 """
 >>> [
-        Column(name, 1) -> Transform(1) -> DataNode(name, ClassNode(Person))
+        Column(name, 1) -> Transform(1) -> DataNode(Person, name)
         Column(birth, 2) -> DataNode(dob, ClassNode(Person))
-        Column(city, 3) -> Transform(fix_city, 1) -> DataNode(name, ClassNode(City))
-        Column(state, 4) -> Transform(ident, 4) -> DataNode(name, ClassNode(State))
+        Column(city, 3) -> Transform(fix_city, 1) -> DataNode(City, name)
+        Column(state, 4) -> Transform(ident, 4) -> DataNode(State, name)
         Column(workplace, 5) -> DataNode(name, ClassNode(Organization))
         ClassNode(Person) -> Link(is_a) -> ClassNode(OldPerson)
         ClassNode(Person) -> Link(has_a) -> ClassNode(Car)
@@ -210,13 +210,13 @@ ssd.map(Column("workplace"), DataNode("name", "Organization"))
 """
 
 # we can also add transforms
-ssd.map(Column("city"), DataNode("name", "City"), transform=lambda c: str.lowercase(c))
+ssd.map(Column("city"), DataNode("City", "name"), transform=lambda c: c.lower())
 """
 >>> [
-        Column(name, 1) -> Transform(1) -> DataNode(name, ClassNode(Person))
+        Column(name, 1) -> Transform(1) -> DataNode(Person, name)
         Column(birth, 2) -> DataNode(dob, ClassNode(Person))
-        Column(city, 3) -> Transform(transform_1, 1) -> DataNode(name, ClassNode(City))
-        Column(state, 4) -> Transform(ident, 4) -> DataNode(name, ClassNode(State))
+        Column(city, 3) -> Transform(2) -> DataNode(City, name)
+        Column(state, 4) -> Transform(ident, 4) -> DataNode(State, name)
         Column(workplace, 5) -> DataNode(name, ClassNode(Organization))
         ClassNode(Person) -> Link(is_a) -> ClassNode(OldPerson)
         ClassNode(Person) -> Link(has_a) -> ClassNode(Car)
