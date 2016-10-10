@@ -176,7 +176,6 @@ class SemanticModel(object):
         # # nx.draw(self.graph)
         # plt.show()
 
-
     def visualize(self):
         """
         Draw the semantic model.
@@ -185,21 +184,23 @@ class SemanticModel(object):
         # graph layout
         try:
             pos = nx.nx_agraph.graphviz_layout(self.graph)
-        except:
+        except Exception:
             pos = nx.spring_layout(self.graph, iterations=20)
 
         # circles for class nodes and squares for data nodes
-        class_nodes = [n for (n,n_dict) in self.graph.nodes(data=True)
-                       if n_dict["type"]=='ClassNode']
+        class_nodes = [n for (n, n_dict) in self.graph.nodes(data=True)
+                       if n_dict["type"] == 'ClassNode']
         print(class_nodes)
+
         data_nodes = [n for (n, n_dict) in self.graph.nodes(data=True)
-                       if n_dict["type"] == 'DataNode']
+                      if n_dict["type"] == 'DataNode']
         print(data_nodes)
 
         nx.draw_networkx_nodes(self.graph, pos,
                                nodelist=class_nodes, alpha=0.4,
                                node_color='w',
                                node_shape='o')
+
         nx.draw_networkx_nodes(self.graph, pos,
                                nodelist=data_nodes, alpha=0.4,
                                node_color='g',
@@ -207,7 +208,7 @@ class SemanticModel(object):
 
         nx.draw_networkx_edges(self.graph, pos)
 
-        labels = dict([(n, n_dict["label"]) for (n,n_dict) in self.graph.nodes(data=True)])
+        labels = dict([(n, n_dict["label"]) for (n, n_dict) in self.graph.nodes(data=True)])
 
         nx.draw_networkx_labels(self.graph, pos, labels, font_size=10)
 

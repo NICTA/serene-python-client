@@ -6,9 +6,11 @@ import pandas as pd
 import collections
 import time
 import random
+import networkx as nx
+import matplotlib.pyplot as plt
 
 from .utils import Searchable
-from .semantics import Ontology, DataNode, ClassNode, Link
+from .semantics import Ontology, DataNode, ClassNode, Link, SemanticBase
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -96,7 +98,7 @@ class SemanticModeller(object):
         return self._ontologies
 
 
-class SemanticSourceDesc(object):
+class SemanticSourceDesc(SemanticBase):
     """
         Semantic source description is the translator betweeen a data
         file (csv file) and the source description (.ssd file).
@@ -110,6 +112,10 @@ class SemanticSourceDesc(object):
         self._mapping = {}
         self._model = model
         self._transforms = TransformList()
+        self._links = LinkList()
+
+        # TODO: Descend properly from the SemanticBase!
+        super().__init__()
 
         # initialize the mapping...
         for i, name in enumerate(self.df.columns):
@@ -158,6 +164,34 @@ class SemanticSourceDesc(object):
             raise Exception(msg)
         return t
 
+    def _find_class(self, cls):
+        """
+
+        :param cls:
+        :return:
+        """
+        classes = set(m.node.parent for m in self._mapping.values() if m.node is not None)
+
+        c = ClassNode.search(classes, cls)
+        if c is None:
+            msg = "Failed to find Class: {}".format(c)
+            _logger.error(msg)
+            raise Exception(msg)
+        return c
+
+    def _find_link(self, link):
+        """
+
+        :param link:
+        :return:
+        """
+        link_ = Link.search(self._links, link)
+        if link_ is None:
+            msg = "Failed to find Link: {}".format(link)
+            _logger.error(msg)
+            raise Exception(msg)
+        return link_
+
     def find(self, item):
         """
         Helper function to locate objects using shorthands e.g.
@@ -173,10 +207,14 @@ class SemanticSourceDesc(object):
             return self._find_data_node(item)
         elif type(item) == Column:
             return self._find_column(item)
+        elif type(item) == ClassNode:
+            return self._find_class(item)
+        elif type(item) == Link:
+            return self._find_link(item)
         else:
             raise TypeError("This type is not supported in find().")
 
-    def map(self, column, data_node, transform=None, predicted=False):
+    def map(self, column, data_node, transform=None):
         """
         Adds a link between the column and data_node for the
         mapping. A transform can also be applied to change
@@ -185,6 +223,20 @@ class SemanticSourceDesc(object):
         :param column:
         :param data_node:
         :param transform:
+        :return:
+        """
+        return self._map(column, data_node, transform, predicted=False)
+
+    def _map(self, column, data_node, transform=None, predicted=False):
+        """
+        [Internal] Adds a link between the column and data_node for the
+        mapping. A transform can also be applied to change
+        the column.
+
+        :param column:
+        :param data_node:
+        :param transform:
+        :param predicted: Is the mapping predicted or not
         :return:
         """
         col = self._find_column(column)
@@ -200,6 +252,36 @@ class SemanticSourceDesc(object):
             self._transforms.append(t)
 
         self._mapping[col] = Mapping(col, dn, t, predicted)
+
+        return self
+
+    def link(self, src, dst, relationship):
+        """
+        Adds a link between ClassNodes. The relationship must
+        exist in the ontology
+
+        :param src:
+        :param dst:
+        :param relationship:
+        :return:
+        """
+        s_class = self._find_class(src)
+        d_class = self._find_class(dst)
+
+        # now check that the link is in the ontology...
+        parent_links = self._model.links
+        target_link = Link(relationship, s_class, d_class)
+        link = Link.search(parent_links, target_link)
+
+        if link is None:
+            msg = "Link {} does not exist in the ontology.".format(relationship)
+            _logger.error(msg)
+            raise Exception(msg)
+        elif link in self._links:
+            msg = "Link {} is already in the links"
+            _logger.info(msg)
+        else:
+            self._links.append(link)
 
         return self
 
@@ -231,6 +313,43 @@ class SemanticSourceDesc(object):
             t = self._find_transform(transform)
             return list(map(t.func, samples))
 
+    def remove(self, item):
+        """
+        Remove the links
+
+        :return:
+        """
+        if type(item) == Transform:
+            elem = self._find_transform(item)
+            self._transforms.remove(elem)
+
+        elif type(item) == DataNode:
+            elem = self._find_data_node(item)
+            key = None
+            for k, v in self._mapping.items():
+                if v.node == elem:
+                    key = k
+                    break
+            del self._mapping[key]
+
+        elif type(item) == Column:
+            elem = self._find_column(item)
+            key = None
+            for k, v in self._mapping.items():
+                if v.col == elem:
+                    key = k
+                    break
+            del self._mapping[key]
+
+        elif type(item) == Link:
+            elem = self._find_link(item)
+            self._links.remove(elem)
+
+        else:
+            raise TypeError("This type is not supported in remove().")
+
+        return self
+
     def predict(self):
         """
         Attempt to predict the mappings and transforms for the
@@ -239,7 +358,7 @@ class SemanticSourceDesc(object):
         :return:
         """
         print("Calculating prediction...")
-        time.sleep(3)
+        time.sleep(1)
         print("Done.")
         for mapping in self._mapping.values():
             if mapping.node is None:
@@ -249,10 +368,17 @@ class SemanticSourceDesc(object):
 
                 print("Value {} predicted for {} with probability 0.882".format(node, mapping.column))
 
-                self.map(mapping.column, node, predicted=True)
+                self._map(mapping.column, node, predicted=True)
             else:
                 # these are the user labelled data points...
                 pass
+
+    def show(self):
+        """
+        Draw the semantic model.
+        :return:
+        """
+        self._model.ontologies[2].show()
 
     @property
     def predictions(self):
@@ -266,16 +392,28 @@ class SemanticSourceDesc(object):
     def transforms(self):
         return self._transforms
 
+    @property
+    def links(self):
+        return self._links
+
     def __repr__(self):
         """
         Displays the maps of columns to the data nodes of the Ontology
         :return:
         """
-        map_str = '\n\t'.join(str(m) for m in self.mappings)
-        return "[\n\t{}\n]".format(map_str)
+        map_str = [str(m) for m in self.mappings]
+        link_str = [str(link) for link in self.links]
+
+        items = map_str + link_str
+        full_str = '\n\t'.join(items)
+
+        return "[\n\t{}\n]".format(full_str)
 
 
 class TransformList(collections.MutableSequence):
+    """
+    Container type for Transform objects in the Semantic Source Description
+    """
 
     def __init__(self, *args):
         self.list = list()
@@ -306,10 +444,44 @@ class TransformList(collections.MutableSequence):
     def __repr__(self):
         transforms = []
         for v in self.list:
-            #transform = json.dumps(v.str_dict(), sort_keys=False, indent=4)
             s = "Transform({}): {}".format(v.id, v)
             transforms.append(s)
         return '\n'.join(transforms)
+
+
+class LinkList(collections.MutableSequence):
+    """
+    Container type for Link objects in the Semantic Source Description
+    """
+
+    def __init__(self, *args):
+        self.list = list()
+        self.extend(list(args))
+
+    @staticmethod
+    def check(v):
+        if not isinstance(v, Link):
+            raise TypeError("Only Link types permitted")
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, i):
+        return self.list[i]
+
+    def __delitem__(self, i):
+        del self.list[i]
+
+    def __setitem__(self, i, v):
+        self.check(v)
+        self.list[i] = v
+
+    def insert(self, i, v):
+        self.check(v)
+        self.list.insert(i, v)
+
+    def __repr__(self):
+        return '\n'.join(self.list)
 
 
 class Column(Searchable):
@@ -372,7 +544,7 @@ class Mapping(object):
 
         # we add an asterix to denote predicted values...
         if self.predicted:
-            s += ' [*]'
+            s = '{} [*]'.format(s)
         return s
 
 

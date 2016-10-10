@@ -59,6 +59,7 @@ on = (
       .add_class_node("City", parent="Location")
       .add_class_node("State", parent="Location")
       .add_relationship("City", "is_in", "State")
+      .add_relationship("Person", "lives-in", "City")
   )
 
 # add the ontology to the SemanticModeller
@@ -148,13 +149,13 @@ ssd.map(Column("name"), DataNode("name", "Person"))
 """
 
 # we can also add transforms manually as lambda functions...
-ssd.map(Column("birth"), DataNode("dob", "Person"), transform=pd.to_datetime)
+ssd.map(Column("city"), DataNode("City", "name"), transform=lambda x: x.lower())
 """
 >>>
 [
     Column(name, 1) -> DataNode(Person, name)
-    Column(birth, 2) -> Transform(1) -> DataNode(Person, dob)
-    Column(city, 3) -> None
+    Column(birth, 2) -> None
+    Column(city, 3) -> Transform(1) -> DataNode("City", "name")
     Column(state, 4) -> None
     Column(workplace, 5) -> None
 ]
@@ -167,14 +168,26 @@ ssd.transform
     {
         Transform(1): {
            'id': 1
-           'source_columns': [1]
            'name': ''
            'label': ''
            'sql': 'select * from $1'
            'func': <function <lambda> at 0x76523401>
-           'sample': [987345, 34598754, 345879, ...]
         }
     }
+"""
+
+# we can also add links
+ssd.link(ClassNode("Person"), ClassNode("City"), relationship="lives-in")
+"""
+>>>
+[
+    Column(name, 1) -> DataNode(Person, name)
+    Column(birth, 2) -> Transform(1) -> DataNode(City, name)
+    Column(city, 3) -> None
+    Column(state, 4) -> None
+    Column(workplace, 5) -> None
+    ClassNode(Person) -> Link(lives-in) -> ClassNode(City)
+]
 """
 
 # we can also try to auto-fill the SSD

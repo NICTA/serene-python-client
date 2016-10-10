@@ -5,6 +5,7 @@ import logging
 import networkx as nx
 import random
 import string
+import matplotlib.pyplot as plt
 
 from .utils import Searchable
 
@@ -99,6 +100,52 @@ class SemanticBase(object):
             {self._LINK: Link(link, src, dst)})
 
         return self
+
+    def show(self):
+        """
+        Show the graph using pyplot
+        :return:
+        """
+        # graph layout
+        #try:
+        #    pos = nx.nx_agraph.graphviz_layout(self._graph)
+        #except Exception:
+        #    pos = nx.spring_layout(self._graph, iterations=20)
+
+        # # circles for class nodes and squares for data nodes
+        # class_nodes = [n for (n, n_dict) in self.graph.nodes(data=True)
+        #                if n_dict["type"] == 'ClassNode']
+        # print(class_nodes)
+        #
+        # data_nodes = [n for (n, n_dict) in self.graph.nodes(data=True)
+        #               if n_dict["type"] == 'DataNode']
+        # print(data_nodes)
+        #
+        # nx.draw_networkx_nodes(self.graph, pos,
+        #                        nodelist=class_nodes, alpha=0.4,
+        #                        node_color='w',
+        #                        node_shape='o')
+        #
+        # nx.draw_networkx_nodes(self.graph, pos,
+        #                        nodelist=data_nodes, alpha=0.4,
+        #                        node_color='g',
+        #                        node_shape='s')
+        #
+        # nx.draw_networkx_edges(self.graph, pos)
+        #
+        # labels = dict([(n, n_dict["label"]) for (n, n_dict) in self.graph.nodes(data=True)])
+        #
+        # nx.draw_networkx_labels(self.graph, pos, labels, font_size=10)
+
+        # nx.draw(self.graph)
+
+        #nx.draw_networkx_nodes(self._graph, pos, nodelist=[x.name for x in self.class_nodes])
+        print("WAAAA><><><><><><")
+        print(self._graph.edges())
+        print(self._graph.nodes())
+        print(",.,.,.,.,.,.,")
+        nx.draw(self._graph)
+        plt.show(block=True)
 
     @staticmethod
     def flatten(xs):
@@ -210,13 +257,21 @@ class Ontology(SemanticBase):
         return self
 
 
-class ClassNode(object):
+class ClassNode(Searchable):
     """
         ClassNode objects hold the 'types' of the ontology or semantic model.
         A ClassNode can have multiple DataNodes. A DataNode corresponds to an
         attribute or a column in a dataset.
         A ClassNode can link to another ClassNode via a Link.
     """
+    # the search parameters...
+    getters = [
+        lambda node: node.name,
+        lambda node: node.nodes if len(node.nodes) else None,
+        lambda node: node.prefix if node.prefix else None,
+        lambda node: node.parent if node.parent else None
+    ]
+
     def __init__(self, name, nodes=None, prefix=None, parent=None):
         """
         A ClassNode is initialized with a name, a list of string nodes
@@ -303,11 +358,28 @@ class DataNode(Searchable):
             return "DataNode({})".format(self.name)
 
 
-class Link(object):
+class Link(Searchable):
     """
         A Link is a relationship between ClassNodes.
     """
-    def __init__(self, name, src, dst):
+    @staticmethod
+    def node_match(node):
+        if node.src is None:
+            return None
+        if node.dst is None:
+            return None
+        return node.src.name, node.dst.name
+
+    # the search parameters...
+    getters = [
+        lambda node: node.name,
+        node_match
+    ]
+
+    # special link names...
+    SUBCLASS = "subclass"
+
+    def __init__(self, name, src=None, dst=None):
         """
         The link can be initialized with a name, and also
         holds the source and destination ClassNode references.

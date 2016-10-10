@@ -49,10 +49,11 @@ on = (dataint.Ontology()
       .uri("http://www.semanticweb.org/data_integration_project/report_example_ontology")
       .class_node("Person", ["first-name", "last-name", "name", "phone"])
       .class_node("Location", prefix="xsd")
-      .class_node("City", is_a="Location")
-      .class_node("State", is_a="Location")
+      .class_node("City", ["name", "zipcode"], is_a="Location")
+      .class_node("State", ["name"], is_a="Location")
       .class_node("Address", {"name": str, "postcode": int}, is_a="Location")
       .relationship("Person", "lives-at", "Address")
+      .relationship("Address", "owned-by", "Person")
       .relationship("Address", "is_in", "City")
       .relationship("Address", "is_in", "State"))
 
@@ -149,14 +150,30 @@ print()
 print("Printing all transforms:")
 print(ssd.transforms)
 
+# links
+
+# we can also add links
+print()
+print("We can link ClassNodes manually:")
+ssd.link(ClassNode("Person"), ClassNode("Address"), relationship="lives-at")
+ssd.link(ClassNode("Address"), ClassNode("Person"), relationship="owned-by")
+print(ssd)
+
+print()
+print("Though note that we can only choose links from the ontology:")
+try:
+    ssd.link(ClassNode("Person"), ClassNode("Address"), relationship="non-existing-link")
+except Exception as err:
+    print("Error: {0}".format(err))
+print()
+
 # samples...
 print()
-print("You can sample columns")
+print("You can also sample columns")
 print(ssd.sample(Column("address")))
 print()
 print("You can add transforms to samples as a preview")
 print(ssd.sample(Column("address"), Transform(0)))
-
 
 # we can also try to auto-fill the SSD
 ssd.predict()
@@ -164,13 +181,25 @@ print()
 print("Predicted model...")
 print(ssd)
 
+# we can just show the predicted models too
 print()
 print("Show just the predictions...")
 for p in ssd.predictions:
     print(p)
 
 # we can then correct it
-ssd.map(Column("LastName"), DataNode("Person", "last-name"))
 print()
-print("Corrected model...")
+print("Now we can correct the model manually if necessary")
+ssd.map(Column("LastName"), DataNode("Person", "last-name"))
 print(ssd)
+
+# we can also remove the elements
+print()
+print("We can remove links with Link or DataNode lookups...")
+ssd.remove(Link("owned-by"))
+print(ssd)
+
+# display
+print()
+print("We can also display the semantic model...")
+ssd.show()
