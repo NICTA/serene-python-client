@@ -94,7 +94,6 @@ class SemanticModel(object):
         """
         pass
 
-
     def convert_graphviz(self, display_id=False):
         """
         Convert the semantic model to graphviz.

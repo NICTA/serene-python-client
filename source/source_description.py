@@ -24,7 +24,7 @@ def generate_initial_sd(fname, sourceId, ontology_uri):
     ssd = OrderedDict()
     source = pd.read_csv(fname)
 
-    ssd["version"] = "0.1" # version of the source description
+    ssd["version"] = "0.1"  # version of the source description
     # identifiers
     ssd["id"] = str(sourceId)
     ssd["name"] = os.path.basename(fname)
@@ -247,7 +247,6 @@ class SourceDescription(object):
         :return:
         """
         pass
-
 
     def get_ontology_class_nodes(self, ontol):
         """

@@ -6,6 +6,7 @@ import networkx as nx
 import random
 import string
 import matplotlib.pyplot as plt
+import pygraphviz as pgv
 
 from .utils import Searchable
 
@@ -139,13 +140,90 @@ class SemanticBase(object):
 
         # nx.draw(self.graph)
 
-        #nx.draw_networkx_nodes(self._graph, pos, nodelist=[x.name for x in self.class_nodes])
-        print("WAAAA><><><><><><")
-        print(self._graph.edges())
-        print(self._graph.nodes())
-        print(",.,.,.,.,.,.,")
-        nx.draw(self._graph)
-        plt.show(block=True)
+        # empty graphviz
+        g = pgv.AGraph(strict=False,
+                       directed=True,
+                       remincross='true',
+                       overlap=False,
+                       splines='true')
+
+        for c in self.class_nodes:
+            g.add_node(c,
+                       label=c.name,
+                       color='white',
+                       style='filled',
+                       fillcolor='#59d0a0',
+                       shape='ellipse',
+                       fontname='helvetica')
+
+        g.write('out.dot')
+
+        # for (n, n_dict) in self.graph.nodes(data=True):
+        #     lab = n_dict['label']
+        #     #if display_id:
+        #     #    lab = str(n) + "\n" + lab
+        #     if n_dict['type'] == 'ClassNode':
+        #         g.add_node(n, label=lab,
+        #                    color='white',
+        #                    style="filled",
+        #                    fillcolor='green', shape='ellipse')
+        #     else:
+        #         g.add_node(n, label=lab,
+        #                    shape='plaintext',
+        #                    color='white',
+        #                    style='filled',
+        #                    fillcolor='lightgrey')
+        #
+        # # put semantic model into cluster
+        # g.add_subgraph(self.graph.nodes(data=False))
+        #
+        # for (start, end, e_dict) in self.graph.edges(data=True):
+        #     lab = e_dict['label']
+        #     #if display_id:
+        #     #    lab = lab
+        #     if e_dict["type"] == "ObjectProperty":
+        #         g.add_edge(start,
+        #                    end,
+        #                    label=lab,
+        #                    fontname='times-italic')
+        #     else:
+        #         g.add_edge(start,
+        #                    end,
+        #                    label=lab,
+        #                    style="dashed",
+        #                    fontname='times-italic')
+
+        #return g
+
+        # g = nx.DiGraph() #self._graph.copy()
+        #
+        # for c in self.class_nodes:
+        #     g.add_node(c)
+        #
+        # for d in self.data_nodes:
+        #     g.add_node(d)
+        #     g.add_edge(d, d.parent)
+        #
+        # print("NODES")
+        # print("><><><><><><")
+        # print(g.nodes())
+        # print("<<><><><><><")
+        #
+        # # nx.draw_networkx_nodes(g,
+        # #                        pos,
+        # #                        nodelist=[str(d) for d in self.data_nodes],
+        # #                        alpha=0.4,
+        # #                        node_color='g',
+        # #                        node_shape='s')
+        # #
+        # nx.draw_networkx_nodes(g,
+        #                        pos,
+        #                        nodelist=[g.node(str(c)) for c in self.class_nodes],
+        #                        alpha=0.4,
+        #                        node_color='w',
+        #                        node_shape='o')
+        # nx.draw(g)
+        # plt.show(block=True)
 
     @staticmethod
     def flatten(xs):
@@ -356,6 +434,12 @@ class DataNode(Searchable):
             return "DataNode({}, {})".format(self.parent.name, self.name)
         else:
             return "DataNode({})".format(self.name)
+
+    # def __eq__(self, other):
+    #     return other.name == self.name and other.parent.name == self.name
+    #
+    # def __hash__(self):
+    #     return id(self)
 
 
 class Link(Searchable):
