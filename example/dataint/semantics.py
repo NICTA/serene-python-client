@@ -5,8 +5,6 @@ import logging
 import networkx as nx
 import random
 import string
-import matplotlib.pyplot as plt
-import pygraphviz as pgv
 
 from .utils import Searchable
 
@@ -101,129 +99,6 @@ class SemanticBase(object):
             {self._LINK: Link(link, src, dst)})
 
         return self
-
-    def show(self):
-        """
-        Show the graph using pyplot
-        :return:
-        """
-        # graph layout
-        #try:
-        #    pos = nx.nx_agraph.graphviz_layout(self._graph)
-        #except Exception:
-        #    pos = nx.spring_layout(self._graph, iterations=20)
-
-        # # circles for class nodes and squares for data nodes
-        # class_nodes = [n for (n, n_dict) in self.graph.nodes(data=True)
-        #                if n_dict["type"] == 'ClassNode']
-        # print(class_nodes)
-        #
-        # data_nodes = [n for (n, n_dict) in self.graph.nodes(data=True)
-        #               if n_dict["type"] == 'DataNode']
-        # print(data_nodes)
-        #
-        # nx.draw_networkx_nodes(self.graph, pos,
-        #                        nodelist=class_nodes, alpha=0.4,
-        #                        node_color='w',
-        #                        node_shape='o')
-        #
-        # nx.draw_networkx_nodes(self.graph, pos,
-        #                        nodelist=data_nodes, alpha=0.4,
-        #                        node_color='g',
-        #                        node_shape='s')
-        #
-        # nx.draw_networkx_edges(self.graph, pos)
-        #
-        # labels = dict([(n, n_dict["label"]) for (n, n_dict) in self.graph.nodes(data=True)])
-        #
-        # nx.draw_networkx_labels(self.graph, pos, labels, font_size=10)
-
-        # nx.draw(self.graph)
-
-        # empty graphviz
-        g = pgv.AGraph(strict=False,
-                       directed=True,
-                       remincross='true',
-                       overlap=False,
-                       splines='true')
-
-        for c in self.class_nodes:
-            g.add_node(c,
-                       label=c.name,
-                       color='white',
-                       style='filled',
-                       fillcolor='#59d0a0',
-                       shape='ellipse',
-                       fontname='helvetica')
-
-        g.write('out.dot')
-
-        # for (n, n_dict) in self.graph.nodes(data=True):
-        #     lab = n_dict['label']
-        #     #if display_id:
-        #     #    lab = str(n) + "\n" + lab
-        #     if n_dict['type'] == 'ClassNode':
-        #         g.add_node(n, label=lab,
-        #                    color='white',
-        #                    style="filled",
-        #                    fillcolor='green', shape='ellipse')
-        #     else:
-        #         g.add_node(n, label=lab,
-        #                    shape='plaintext',
-        #                    color='white',
-        #                    style='filled',
-        #                    fillcolor='lightgrey')
-        #
-        # # put semantic model into cluster
-        # g.add_subgraph(self.graph.nodes(data=False))
-        #
-        # for (start, end, e_dict) in self.graph.edges(data=True):
-        #     lab = e_dict['label']
-        #     #if display_id:
-        #     #    lab = lab
-        #     if e_dict["type"] == "ObjectProperty":
-        #         g.add_edge(start,
-        #                    end,
-        #                    label=lab,
-        #                    fontname='times-italic')
-        #     else:
-        #         g.add_edge(start,
-        #                    end,
-        #                    label=lab,
-        #                    style="dashed",
-        #                    fontname='times-italic')
-
-        #return g
-
-        # g = nx.DiGraph() #self._graph.copy()
-        #
-        # for c in self.class_nodes:
-        #     g.add_node(c)
-        #
-        # for d in self.data_nodes:
-        #     g.add_node(d)
-        #     g.add_edge(d, d.parent)
-        #
-        # print("NODES")
-        # print("><><><><><><")
-        # print(g.nodes())
-        # print("<<><><><><><")
-        #
-        # # nx.draw_networkx_nodes(g,
-        # #                        pos,
-        # #                        nodelist=[str(d) for d in self.data_nodes],
-        # #                        alpha=0.4,
-        # #                        node_color='g',
-        # #                        node_shape='s')
-        # #
-        # nx.draw_networkx_nodes(g,
-        #                        pos,
-        #                        nodelist=[g.node(str(c)) for c in self.class_nodes],
-        #                        alpha=0.4,
-        #                        node_color='w',
-        #                        node_shape='o')
-        # nx.draw(g)
-        # plt.show(block=True)
 
     @staticmethod
     def flatten(xs):

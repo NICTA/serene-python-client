@@ -6,8 +6,9 @@ import pandas as pd
 import collections
 import time
 import random
-import networkx as nx
-import matplotlib.pyplot as plt
+import pygraphviz as pgv
+import os.path
+import webbrowser
 
 from .utils import Searchable
 from .semantics import Ontology, DataNode, ClassNode, Link, SemanticBase
@@ -375,10 +376,11 @@ class SemanticSourceDesc(SemanticBase):
 
     def show(self):
         """
-        Draw the semantic model.
+        Shows the Semantic Modeller in a png.
         :return:
         """
-        self._model.ontologies[2].show()
+        visualizer = SSDVisualizer(self)
+        visualizer.show()
 
     @property
     def predictions(self):
@@ -389,8 +391,20 @@ class SemanticSourceDesc(SemanticBase):
         return list(self._mapping.values())
 
     @property
+    def columns(self):
+        return list(self._mapping.keys())
+
+    @property
     def transforms(self):
-        return self._transforms
+        return list(self._transforms)
+
+    @property
+    def data_nodes(self):
+        return [m.node for m in self.mappings]
+
+    @property
+    def class_nodes(self):
+        return [m.node.parent for m in self.mappings if m.node is not None]
 
     @property
     def links(self):
@@ -408,6 +422,163 @@ class SemanticSourceDesc(SemanticBase):
         full_str = '\n\t'.join(items)
 
         return "[\n\t{}\n]".format(full_str)
+
+
+class SSDVisualizer(object):
+    """
+    Visualizer object for drawing an SSD object
+    """
+
+    def __init__(self, ssd):
+        self.ssd = ssd
+
+    def _draw_columns(self, graph):
+        """
+        Draws the column objects onto the pygraphviz graph
+        :param graph:
+        :return:
+        """
+        for col in self.ssd.columns:
+            graph.add_node(col,
+                           label=col.name,
+                           color='#c06060',
+                           shape='box',
+                           fontname='helvetica')
+
+        graph.add_subgraph(self.ssd.columns,
+                           rank='max',
+                           name='cluster1',
+                           style='dotted',
+                           color='#c06060',
+                           fontcolor='#c06060',
+                           label='source',
+                           fontname='helvetica')
+
+    def _draw_transforms(self, graph):
+        """
+        Draws the Transform objects onto the pygraphviz graph
+        :param graph:
+        :return:
+        """
+        for t in self.ssd.transforms:
+            graph.add_node(t,
+                           label="Transform({})".format(t.id),
+                           color='#6060c0',
+                           shape='box',
+                           fontname='helvetica')
+
+        graph.add_subgraph(self.ssd.transforms,
+                           rank='min',
+                           name='cluster2',
+                           style='dotted',
+                           color='#6060c0',
+                           fontcolor='#6060c0',
+                           label='transforms',
+                           fontname='helvetica')
+
+    def _draw_class_nodes(self, graph):
+        """
+        Draws the ClassNode objects onto the pygraphviz graph
+        :param graph:
+        :return:
+        """
+        for c in self.ssd.class_nodes:
+            graph.add_node(c,
+                           label=c.name,
+                           color='white',
+                           style='filled',
+                           fillcolor='#59d0a0',
+                           shape='ellipse',
+                           fontname='helvetica',
+                           rank='source')
+
+        for link in self.ssd.links:
+            graph.add_edge(link.dst,
+                           link.src,
+                           label=link.name,
+                           color='#59d0a0',
+                           fontname='helvetica')
+
+    def _draw_data_nodes(self, graph):
+        """
+        Draws the DataNode objects onto the pygraphviz graph
+
+        :param graph:
+        :return:
+        """
+        for d in self.ssd.data_nodes:
+            graph.add_node(d,
+                           label=d.name,
+                           color='white',
+                           style='filled',
+                           fillcolor='lightgray',
+                           shape='ellipse',
+                           fontname='helvetica',
+                           rank='same')
+
+            if d.parent is not None:
+                graph.add_edge(d.parent,
+                               d,
+                               color='brown',
+                               fontname='helvetica-italic')
+
+            graph.add_subgraph(self.ssd.data_nodes,
+                               rank='same',
+                               name='cluster3',
+                               style='dotted',
+                               color='lightgray',
+                               fontcolor='lightgray',
+                               label='data nodes',
+                               fontname='helvetica')
+
+    def _draw_mappings(self, graph):
+        """
+        Draws the mappings from columns to transforms to DataNodes
+        in pyGraphViz
+
+        :param g:
+        :return:
+        """
+        for m in self.ssd.mappings:
+            if m.transform is None:
+                graph.add_edge(m.node,
+                               m.column,
+                               color='brown',
+                               fontname='helvetica-italic',
+                               style='dashed')
+            else:
+                graph.add_edge(m.transform,
+                               m.column,
+                               color='brown',
+                               fontname='helvetica-italic',
+                               style='dashed')
+                graph.add_edge(m.node,
+                               m.transform,
+                               color='brown',
+                               fontname='helvetica-italic',
+                               style='dashed')
+
+    def show(self):
+        """
+        Show the graph using pygraphviz
+        :return:
+        """
+        g = pgv.AGraph(strict=False,
+                       directed=True,
+                       remincross='true',
+                       overlap=False,
+                       splines='true',
+                       fontname='helvetica')
+
+        self._draw_class_nodes(g)
+        self._draw_data_nodes(g)
+        self._draw_columns(g)
+        self._draw_transforms(g)
+        self._draw_mappings(g)
+
+        g.write('out.dot')
+        g.draw('out.png', prog='dot')
+        webbrowser.open("file://{}".format(os.path.abspath('out.png')))
 
 
 class TransformList(collections.MutableSequence):
