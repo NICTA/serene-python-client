@@ -9,6 +9,7 @@ import random
 import pygraphviz as pgv
 import os.path
 import webbrowser
+import tempfile
 
 from .utils import Searchable
 from .semantics import Ontology, DataNode, ClassNode, Link, SemanticBase
@@ -429,8 +430,12 @@ class SSDVisualizer(object):
     Visualizer object for drawing an SSD object
     """
 
-    def __init__(self, ssd):
+    def __init__(self, ssd, outfile=None):
         self.ssd = ssd
+        if outfile is None:
+            self.outfile = os.path.join(tempfile.gettempdir(), 'out.png')
+        else:
+            self.outfile = outfile
 
     def _draw_columns(self, graph):
         """
@@ -440,18 +445,20 @@ class SSDVisualizer(object):
         """
         for col in self.ssd.columns:
             graph.add_node(col,
+                           style='filled',
                            label=col.name,
-                           color='#c06060',
+                           color='white', #'#c06060',
                            shape='box',
                            fontname='helvetica')
 
         graph.add_subgraph(self.ssd.columns,
                            rank='max',
                            name='cluster1',
-                           style='dotted',
-                           color='#c06060',
+                           #style='dotted',
+                           color='#f09090',
                            fontcolor='#c06060',
                            label='source',
+                           style='filled',
                            fontname='helvetica')
 
     def _draw_transforms(self, graph):
@@ -463,15 +470,16 @@ class SSDVisualizer(object):
         for t in self.ssd.transforms:
             graph.add_node(t,
                            label="Transform({})".format(t.id),
-                           color='#6060c0',
+                           color='white',
+                           style='filled',
                            shape='box',
                            fontname='helvetica')
 
         graph.add_subgraph(self.ssd.transforms,
                            rank='min',
                            name='cluster2',
-                           style='dotted',
-                           color='#6060c0',
+                           style='filled',
+                           color='#9090f0',
                            fontcolor='#6060c0',
                            label='transforms',
                            fontname='helvetica')
@@ -511,7 +519,8 @@ class SSDVisualizer(object):
                            label=d.name,
                            color='white',
                            style='filled',
-                           fillcolor='lightgray',
+                           #fillcolor='lightgray',
+                           fontcolor='black',
                            shape='ellipse',
                            fontname='helvetica',
                            rank='same')
@@ -519,16 +528,16 @@ class SSDVisualizer(object):
             if d.parent is not None:
                 graph.add_edge(d.parent,
                                d,
-                               color='brown',
+                               color='gray',
                                fontname='helvetica-italic')
 
             graph.add_subgraph(self.ssd.data_nodes,
                                rank='same',
                                name='cluster3',
-                               style='dotted',
-                               color='lightgray',
-                               fontcolor='lightgray',
-                               label='data nodes',
+                               style='filled',
+                               color='#e0e0e0',
+                               fontcolor='#909090',
+                               #label='data nodes',
                                fontname='helvetica')
 
     def _draw_mappings(self, graph):
@@ -576,9 +585,8 @@ class SSDVisualizer(object):
         self._draw_transforms(g)
         self._draw_mappings(g)
 
-        g.write('out.dot')
-        g.draw('out.png', prog='dot')
-        webbrowser.open("file://{}".format(os.path.abspath('out.png')))
+        g.draw(self.outfile, prog='dot')
+        webbrowser.open("file://{}".format(os.path.abspath(self.outfile)))
 
 
 class TransformList(collections.MutableSequence):
