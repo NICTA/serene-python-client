@@ -51,18 +51,16 @@ def generate_initial_sd(fname, sourceId, ontology_uri):
     ssd["semanticModel"] = OrderedDict()
     # should I put additionally uri into node block?
     ssd["semanticModel"]["nodes"] = [
-        OrderedDict([("id","0"), ("label",""), ("type","ClassNode")]),
+        OrderedDict([("id", "0"), ("label", ""), ("type", "ClassNode")]),
         OrderedDict([("id", "1"), ("label", ""), ("type", "DataNode")])
     ]
-    link1 = OrderedDict([("source",""), ("target",""), ("label",""), ("type","ObjectProperty")])
+    link1 = OrderedDict([("source", ""), ("target", ""), ("label", ""), ("type", "ObjectProperty")])
     link2 = OrderedDict([("source", ""), ("target", ""), ("label", ""), ("type", "DataProperty")])
-    ssd["semanticModel"]["links"] = [link1,link2]
+    ssd["semanticModel"]["links"] = [link1, link2]
 
     # mappings
-    ssd["mappings"] = [OrderedDict([("attribute", eCol["id"]),("node","")])
+    ssd["mappings"] = [OrderedDict([("attribute", eCol["id"]), ("node", "")])
                        for eCol in ssd["attributes"]]
-
-
 
     return json.dumps(ssd, indent=4)
 

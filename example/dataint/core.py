@@ -10,9 +10,11 @@ import pygraphviz as pgv
 import os.path
 import webbrowser
 import tempfile
+import json
 
 from .utils import Searchable
 from .semantics import Ontology, DataNode, ClassNode, Link, SemanticBase
+from collections import OrderedDict
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -105,14 +107,14 @@ class SemanticSourceDesc(SemanticBase):
         Semantic source description is the translator betweeen a data
         file (csv file) and the source description (.ssd file).
     """
-    def __init__(self, filename, model):
+    def __init__(self, filename, modeller):
         """
 
         """
         self.df = pd.read_csv(filename)
         self.file = filename
         self._mapping = {}
-        self._model = model
+        self._modeller = modeller
         self._transforms = TransformList()
         self._links = LinkList()
 
@@ -144,7 +146,7 @@ class SemanticSourceDesc(SemanticBase):
         :param data_node:
         :return:
         """
-        data_nodes = self._model.data_nodes
+        data_nodes = self._modeller.data_nodes
         dn = DataNode.search(data_nodes, data_node)
         if dn is None:
             msg = "Failed to find DataNode: {}".format(dn)
@@ -271,7 +273,7 @@ class SemanticSourceDesc(SemanticBase):
         d_class = self._find_class(dst)
 
         # now check that the link is in the ontology...
-        parent_links = self._model.links
+        parent_links = self._modeller.links
         target_link = Link(relationship, s_class, d_class)
         link = Link.search(parent_links, target_link)
 
@@ -366,7 +368,7 @@ class SemanticSourceDesc(SemanticBase):
             if mapping.node is None:
                 print("Predicting value for", mapping.column)
                 # TODO: make real!
-                node = random.choice(self._model.data_nodes)
+                node = random.choice(self._modeller.data_nodes)
 
                 print("Value {} predicted for {} with probability 0.882".format(node, mapping.column))
 
@@ -382,6 +384,30 @@ class SemanticSourceDesc(SemanticBase):
         """
         visualizer = SSDVisualizer(self)
         visualizer.show()
+
+    def _build_ssd(self):
+        """
+        Constructs an SSD
+
+        :return:
+        """
+        d = OrderedDict()
+        d["version"] = self._VERSION
+
+        return {}
+
+    def save(self, file):
+        """
+        Saves the file to an ssd file
+
+        :param file: The output file
+        :return:
+        """
+        ssd_dict = self._build_ssd()
+        ssd_json = json.dumps(ssd_dict, indent=4)
+        with open(file, "w+") as f:
+            f.write(ssd_json)
+        return
 
     @property
     def predictions(self):

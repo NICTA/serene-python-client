@@ -310,12 +310,6 @@ class DataNode(Searchable):
         else:
             return "DataNode({})".format(self.name)
 
-    # def __eq__(self, other):
-    #     return other.name == self.name and other.parent.name == self.name
-    #
-    # def __hash__(self):
-    #     return id(self)
-
 
 class Link(Searchable):
     """
