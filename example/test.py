@@ -203,3 +203,8 @@ print(ssd)
 print()
 print("We can also display the semantic model...")
 ssd.show()
+
+# save
+print()
+print("We can also save the semantic source description...")
+ssd.save(file="out.ssd")

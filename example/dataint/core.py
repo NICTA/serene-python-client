@@ -113,6 +113,8 @@ class SemanticSourceDesc(SemanticBase):
         """
         self.df = pd.read_csv(filename)
         self.file = filename
+        self._VERSION = "0.1"
+        self._id = random.randint(1e8, 1e9-1)
         self._mapping = {}
         self._modeller = modeller
         self._transforms = TransformList()
@@ -246,14 +248,18 @@ class SemanticSourceDesc(SemanticBase):
         col = self._find_column(column)
         dn = self._find_data_node(data_node)
 
-        # intialize the transform (if available)
-        t = None
+        # initialize the transform (if available)
+        # otherwise we use the identity transform...
         if transform is not None:
             if callable(transform):
                 t = Transform(id=None, func=transform)
             else:
                 t = self._find_transform(transform)
-            self._transforms.append(t)
+        else:
+            print("><><><><>< Creating Ident transform {} -> {}".format(column, data_node))
+            t = IdentTransform()
+
+        self._transforms.append(t)
 
         self._mapping[col] = Mapping(col, dn, t, predicted)
 
@@ -393,8 +399,44 @@ class SemanticSourceDesc(SemanticBase):
         """
         d = OrderedDict()
         d["version"] = self._VERSION
+        d["name"] = self.file
+        d["columns"] = [
+            {
+                "id": c.index,
+                "name": c.name
+            } for c in self.columns]
 
-        return {}
+        attr_map = {m: i for i, m in enumerate(self.mappings)}
+
+        d["attributes"] = [
+            {
+                "id": attr_map[m],
+                "name": m.column.name,
+                "label": m.transform.name,
+                "columnIds": [m.column.index],
+                "sql": m.transform.apply(m.column)
+            } for m in self.mappings]
+
+        d["ontology"] = [o.filename for o in self._modeller.ontologies]
+
+        nodes = self.class_nodes + self.data_nodes
+
+        node_map = {m: i for i, m in enumerate(nodes)}
+
+        d["semanticModel"] = {
+            "nodes": [node.ssd_output(index)
+                      for index, node in enumerate(nodes)],
+            "links": [link.ssd_output(node_map)
+                      for link in self.links]
+        }
+
+        d["mappings"] = [
+            {
+                "attribute": attr_map[m],
+                "node": node_map[m.node]
+            } for m in self.mappings]
+
+        return d
 
     def save(self, file):
         """
@@ -494,8 +536,13 @@ class SSDVisualizer(object):
         :return:
         """
         for t in self.ssd.transforms:
+            if type(t) == IdentTransform:
+                transform_text = "Identity"
+            else:
+                transform_text = "Transform({})".format(t.id)
+
             graph.add_node(t,
-                           label="Transform({})".format(t.id),
+                           label=transform_text,
                            color='white',
                            style='filled',
                            shape='box',
@@ -626,8 +673,8 @@ class TransformList(collections.MutableSequence):
 
     @staticmethod
     def check(v):
-        if not isinstance(v, Transform):
-            raise TypeError("Only Transform types permitted")
+        if not issubclass(type(v), Transform):
+            raise TypeError("Only Transform types permitted: {}".format(v))
 
     def __len__(self):
         return len(self.list)
@@ -733,8 +780,8 @@ class Mapping(object):
         if (transform is not None) and (type(node) != DataNode):
             raise TypeError("DataNode type required for 'node' in Mapping object")
 
-        if (transform is not None) and (type(transform) != Transform):
-            raise TypeError("Transform type required for 'transform' in Mapping object")
+        if (transform is not None) and not issubclass(type(transform), Transform):
+            raise TypeError("Transform type required for 'transform' in Mapping object: {}".format(transform))
 
         self.column = column
         self.node = node
@@ -743,7 +790,10 @@ class Mapping(object):
 
     def __repr__(self):
         if self.transform is not None:
-            s = "{} -> Transform({}) -> {}".format(self.column, self.transform.id, self.node)
+            if type(self.transform) == IdentTransform:
+                s = "{} -> {}".format(self.column, self.node)
+            else:
+                s = "{} -> Transform({}) -> {}".format(self.column, self.transform.id, self.node)
         else:
             s = "{} -> {}".format(self.column, self.node)
 
@@ -776,6 +826,10 @@ class Transform(Searchable):
         self.sql = sql if sql is not None else 'SELECT * from {}'.format(name)
         super().__init__()
 
+    @staticmethod
+    def apply(col):
+        return 'SELECT {} from {}'.format(col.name, col.filename)
+
     def __repr__(self):
         return "{{\n" \
                "    id: {}\n" \
@@ -786,3 +840,17 @@ class Transform(Searchable):
 
     def __hash__(self):
         return id(self)
+
+
+class IdentTransform(Transform):
+    """
+    Transform that is just the identity...
+    """
+    def __init__(self, id=None, func=None, name='', sql=None):
+        super().__init__(id, func, name, sql)
+        self.name = "ident"
+        self.func = lambda x: x
+
+    @staticmethod
+    def apply(col):
+        return 'SELECT {} from {}'.format(col.name, col.filename)

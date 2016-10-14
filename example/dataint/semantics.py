@@ -5,6 +5,8 @@ import logging
 import networkx as nx
 import random
 import string
+import tempfile
+import os.path
 
 from .utils import Searchable
 
@@ -152,6 +154,7 @@ class Ontology(SemanticBase):
         if file is not None:
             _logger.debug("Importing {} from file.".format(file))
             self.load(file)
+            self.filename = file
         else:
             # default prefixes...
             self._prefixes = {
@@ -159,6 +162,10 @@ class Ontology(SemanticBase):
                 "uri": "uri:/some/uri/resource",
                 "owl": "owl:/some/owl/resource"
             }
+            self.filename = os.path.join(
+                tempfile.gettempdir(),
+                "{}.owl".format(random.randint(1e7, 1e8-1))
+            )
 
     def load(self, filename):
         """
@@ -240,6 +247,17 @@ class ClassNode(Searchable):
         self.parent = parent
         self.nodes = [DataNode(self, n) for n in nodes.keys()] if nodes is not None else []
 
+    def ssd_output(self, ident):
+        """
+        The output function has not
+        :return:
+        """
+        return {
+            "id": ident,
+            "label": "{}:{}".format(self.prefix, self.name),
+            "type": "ClassNode"
+        }
+
     def __repr__(self):
         nodes = [n.name for n in self.nodes]
 
@@ -304,6 +322,22 @@ class DataNode(Searchable):
 
         super().__init__()
 
+    def ssd_output(self, ident):
+        """
+        The output function has not
+        :return:
+        """
+        if self.parent is None:
+            label = self.name
+        else:
+            label = "{}.{}".format(self.parent.name, self.name)
+
+        return {
+            "id": ident,
+            "label": label,
+            "type": "ClassNode"
+        }
+
     def __repr__(self):
         if self.parent:
             return "DataNode({}, {})".format(self.parent.name, self.name)
@@ -344,6 +378,23 @@ class Link(Searchable):
         self.name = name
         self.src = src
         self.dst = dst
+
+    def ssd_output(self, index_map):
+        """
+
+        :return:
+        """
+        if type(self.src) == ClassNode:
+            link_type = 'ObjectProperty'
+        else:
+            link_type = 'DataProperty'
+
+        return {
+            "source": index_map[self.src],
+            "target": index_map[self.dst],
+            "label": self.name,
+            "type": link_type
+        }
 
     def __repr__(self):
         return "ClassNode({}) -> Link({}) -> ClassNode({})" \

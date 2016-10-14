@@ -3,6 +3,7 @@ import logging
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
+
 class Searchable(object):
     """
     A small object that allows hierarchical search across its properties...
