@@ -13,7 +13,7 @@ import tempfile
 import json
 
 from .utils import Searchable
-from .semantics import Ontology, DataNode, ClassNode, Link, SemanticBase
+from .semantics import Ontology, DataNode, ClassNode, Link, BaseSemantic
 from collections import OrderedDict
 
 _logger = logging.getLogger()
@@ -102,7 +102,7 @@ class SemanticModeller(object):
         return self._ontologies
 
 
-class SemanticSourceDesc(SemanticBase):
+class SemanticSourceDesc(object):
     """
         Semantic source description is the translator betweeen a data
         file (csv file) and the source description (.ssd file).
@@ -120,8 +120,8 @@ class SemanticSourceDesc(SemanticBase):
         self._transforms = TransformList()
         self._links = LinkList()
 
-        # TODO: Descend properly from the SemanticBase!
-        super().__init__()
+        # semantic model
+        # self._model = BaseSemantic()
 
         # initialize the mapping...
         for i, name in enumerate(self.df.columns):
@@ -191,7 +191,7 @@ class SemanticSourceDesc(SemanticBase):
         :param link:
         :return:
         """
-        link_ = Link.search(self._links, link)
+        link_ = Link.search(self.links, link)
         if link_ is None:
             msg = "Failed to find Link: {}".format(link)
             _logger.error(msg)
@@ -248,22 +248,33 @@ class SemanticSourceDesc(SemanticBase):
         col = self._find_column(column)
         dn = self._find_data_node(data_node)
 
-        # initialize the transform (if available)
-        # otherwise we use the identity transform...
+        # add the transform...
+        t = self._add_transform(transform)
+
+        # add the mapping element to the table...
+        self._mapping[col] = Mapping(col, dn, t, predicted)
+
+        return self
+
+    def _add_transform(self, transform):
+        """
+        Initialize the transform (if available)
+        otherwise we use the identity transform...
+
+        :param transform:
+        :return:
+        """
         if transform is not None:
             if callable(transform):
                 t = Transform(id=None, func=transform)
             else:
                 t = self._find_transform(transform)
         else:
-            print("><><><><>< Creating Ident transform {} -> {}".format(column, data_node))
             t = IdentTransform()
 
         self._transforms.append(t)
 
-        self._mapping[col] = Mapping(col, dn, t, predicted)
-
-        return self
+        return t
 
     def link(self, src, dst, relationship):
         """
@@ -287,10 +298,12 @@ class SemanticSourceDesc(SemanticBase):
             msg = "Link {} does not exist in the ontology.".format(relationship)
             _logger.error(msg)
             raise Exception(msg)
-        elif link in self._links:
+        elif link in self.links:
             msg = "Link {} is already in the links"
             _logger.info(msg)
         else:
+            # if it is ok, then add the new link...
+            # self._model.relationship(link.src, link.name, link.dst)
             self._links.append(link)
 
         return self
@@ -353,8 +366,8 @@ class SemanticSourceDesc(SemanticBase):
 
         elif type(item) == Link:
             elem = self._find_link(item)
+            # self._model.remove_link(elem)
             self._links.remove(elem)
-
         else:
             raise TypeError("This type is not supported in remove().")
 
@@ -370,7 +383,7 @@ class SemanticSourceDesc(SemanticBase):
         print("Calculating prediction...")
         time.sleep(1)
         print("Done.")
-        for mapping in self._mapping.values():
+        for mapping in self.mappings:
             if mapping.node is None:
                 print("Predicting value for", mapping.column)
                 # TODO: make real!
@@ -391,53 +404,6 @@ class SemanticSourceDesc(SemanticBase):
         visualizer = SSDVisualizer(self)
         visualizer.show()
 
-    def _build_ssd(self):
-        """
-        Constructs an SSD
-
-        :return:
-        """
-        d = OrderedDict()
-        d["version"] = self._VERSION
-        d["name"] = self.file
-        d["columns"] = [
-            {
-                "id": c.index,
-                "name": c.name
-            } for c in self.columns]
-
-        attr_map = {m: i for i, m in enumerate(self.mappings)}
-
-        d["attributes"] = [
-            {
-                "id": attr_map[m],
-                "name": m.column.name,
-                "label": m.transform.name,
-                "columnIds": [m.column.index],
-                "sql": m.transform.apply(m.column)
-            } for m in self.mappings]
-
-        d["ontology"] = [o.filename for o in self._modeller.ontologies]
-
-        nodes = self.class_nodes + self.data_nodes
-
-        node_map = {m: i for i, m in enumerate(nodes)}
-
-        d["semanticModel"] = {
-            "nodes": [node.ssd_output(index)
-                      for index, node in enumerate(nodes)],
-            "links": [link.ssd_output(node_map)
-                      for link in self.links]
-        }
-
-        d["mappings"] = [
-            {
-                "attribute": attr_map[m],
-                "node": node_map[m.node]
-            } for m in self.mappings]
-
-        return d
-
     def save(self, file):
         """
         Saves the file to an ssd file
@@ -445,11 +411,19 @@ class SemanticSourceDesc(SemanticBase):
         :param file: The output file
         :return:
         """
-        ssd_dict = self._build_ssd()
-        ssd_json = json.dumps(ssd_dict, indent=4)
+        builder = SSDJsonBuilder(self)
+        ssd_json = builder.to_json()
         with open(file, "w+") as f:
             f.write(ssd_json)
         return
+
+    @property
+    def version(self):
+        return self._VERSION
+
+    @property
+    def ontologies(self):
+        return self._modeller.ontologies
 
     @property
     def predictions(self):
@@ -491,6 +465,96 @@ class SemanticSourceDesc(SemanticBase):
         full_str = '\n\t'.join(items)
 
         return "[\n\t{}\n]".format(full_str)
+
+
+class SSDJsonBuilder(object):
+    """
+    Helper class to build up the json output for the
+    """
+    def __init__(self, ssd):
+        """
+
+        :param ssd:
+        """
+        self._ssd = ssd
+        self._all_nodes = self._ssd.class_nodes + self._ssd.data_nodes
+        self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
+        self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
+
+    def to_dict(self):
+        """
+
+        :return:
+        """
+        d = OrderedDict()
+        d["version"] = self._ssd.version
+        d["name"] = self._ssd.file
+        d["columns"] = self.columns
+        d["attributes"] = self.attributes
+        d["ontology"] = [o.filename for o in self._ssd.ontologies]
+        d["semanticModel"] = self.semantic_model
+        d["mappings"] = self.mappings
+
+        return d
+
+    def to_json(self):
+        """
+
+        :return:
+        """
+        return json.dumps(self.to_dict(), indent=4)
+
+    @property
+    def columns(self):
+        """
+
+        :return:
+        """
+        return [
+            {
+                "id": c.index,
+                "name": c.name
+            } for c in self._ssd.columns]
+
+    @property
+    def attributes(self):
+        """
+
+        :return:
+        """
+        return [
+            {
+                "id": self._attr_map[m],
+                "name": m.column.name,
+                "label": m.transform.name,
+                "columnIds": [m.column.index],
+                "sql": m.transform.apply(m.column)
+            } for m in self._ssd.mappings]
+
+    @property
+    def semantic_model(self):
+        """
+
+        :return:
+        """
+        return {
+            "nodes": [node.ssd_output(index)
+                      for index, node in enumerate(self._all_nodes)],
+            "links": [link.ssd_output(self._node_map)
+                      for link in self._ssd.links]
+        }
+
+    @property
+    def mappings(self):
+        """
+
+        :return:
+        """
+        return [
+            {
+                "attribute": self._attr_map[m],
+                "node": self._node_map[m.node]
+            } for m in self._ssd.mappings]
 
 
 class SSDVisualizer(object):

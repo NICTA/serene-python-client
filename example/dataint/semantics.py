@@ -14,7 +14,7 @@ _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
 
-class SemanticBase(object):
+class BaseSemantic(object):
     """
     Semantic Graph is the base object to construct Semantic objects.
     The object allows Class Nodes, DataNodes and Links to be members.
@@ -89,8 +89,12 @@ class SemanticBase(object):
                       "classes {} and {} as '{}'"
                       .format(source, link, dest))
 
-        if (source not in self._class_table) or (dest not in self._class_table):
-            raise Exception("Item {} is not in the class nodes")
+        if source not in self._class_table:
+            msg = "Item {} is not in the class nodes".format(source)
+            raise Exception(msg)
+        elif dest not in self._class_table:
+            msg = "Item {} is not in the class nodes".format(dest)
+            raise Exception(msg)
 
         src = self._class_table[source]
         dst = self._class_table[dest]
@@ -101,6 +105,33 @@ class SemanticBase(object):
             {self._LINK: Link(link, src, dst)})
 
         return self
+
+    def find_class_node(self, name):
+        """
+
+        :param name:
+        :return:
+        """
+        ct = self._class_table
+        if name in ct:
+            return ct[name]
+        else:
+            return None
+
+    def remove_link(self, link):
+        """
+        Removes a link from the graph...
+        :param link:
+        :return:
+        """
+        locate = [x for x in self.links if link == x]
+        if len(locate):
+            target = locate[0]
+            self._graph.remove_edge(target.src, target.dst)
+        else:
+            msg = "Item {} does not exist in the model.".format(link)
+            _logger.error(msg)
+        return
 
     @staticmethod
     def flatten(xs):
@@ -128,7 +159,7 @@ class SemanticBase(object):
         return list(links.values())
 
 
-class Ontology(SemanticBase):
+class Ontology(BaseSemantic):
     """
         The Ontology object holds an ontolgy. This can be specified from
         an OWL file, or built by hand using the SemanticBase construction
@@ -364,7 +395,7 @@ class Link(Searchable):
     ]
 
     # special link names...
-    SUBCLASS = "subclass"
+    _SUBCLASS = "subclass"
 
     def __init__(self, name, src=None, dst=None):
         """
@@ -397,5 +428,8 @@ class Link(Searchable):
         }
 
     def __repr__(self):
-        return "ClassNode({}) -> Link({}) -> ClassNode({})" \
-            .format(self.src.name, self.name, self.dst.name)
+        if (self.src is None) or (self.dst is None):
+            return "Link({})".format(self.name)
+        else:
+            return "ClassNode({}) -> Link({}) -> ClassNode({})" \
+                .format(self.src.name, self.name, self.dst.name)
