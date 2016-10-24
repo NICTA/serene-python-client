@@ -237,9 +237,10 @@ ssd.map(Column("city"), DataNode("City", "name"), transform=lambda c: c.lower())
 """
 
 # we can chain these operators also...
-(ssd.map(ClassNode("Person"), ClassNode("City"), relationship="lives-in")
-    .map(ClassNode("Location"), ClassNode("City"), is_subclass=True)
-    .map(ClassNode("Location"), ClassNode("State"), is_subclass=True))
+(ssd.link(ClassNode("city"), ClassNode("City"), relationship="lives-in")
+    .link(ClassNode("workplace"), ClassNode("City"), is_subclass=True)
+    .link(ClassNode("Location"), ClassNode("State"), is_subclass=True)
+    .map(Column("city"), DataNode("City", "name"), transform=lambda c: c.lower()))
 """
 >>> [
         Column(name, 1) -> Transform(1) -> DataNode(name, ClassNode(Person))

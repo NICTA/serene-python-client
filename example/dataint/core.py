@@ -118,10 +118,9 @@ class SemanticSourceDesc(object):
         self._mapping = {}
         self._modeller = modeller
         self._transforms = TransformList()
-        self._links = LinkList()
 
         # semantic model
-        # self._model = BaseSemantic()
+        self._model = BaseSemantic()
 
         # initialize the mapping...
         for i, name in enumerate(self.df.columns):
@@ -176,7 +175,7 @@ class SemanticSourceDesc(object):
         :param cls:
         :return:
         """
-        classes = set(m.node.parent for m in self._mapping.values() if m.node is not None)
+        classes = set(self.class_nodes)
 
         c = ClassNode.search(classes, cls)
         if c is None:
@@ -245,6 +244,9 @@ class SemanticSourceDesc(object):
         :param predicted: Is the mapping predicted or not
         :return:
         """
+        assert type(column) == Column
+        assert type(data_node) == DataNode
+
         col = self._find_column(column)
         dn = self._find_data_node(data_node)
 
@@ -253,6 +255,9 @@ class SemanticSourceDesc(object):
 
         # add the mapping element to the table...
         self._mapping[col] = Mapping(col, dn, t, predicted)
+
+        # by making this mappint, the class node is now in the SemanticModel...
+        self._model.add_class_node(dn.parent)
 
         return self
 
@@ -302,9 +307,10 @@ class SemanticSourceDesc(object):
             msg = "Link {} is already in the links"
             _logger.info(msg)
         else:
-            # if it is ok, then add the new link...
+            # if it is ok, then add the new link to the SemanticModel...
             # self._model.relationship(link.src, link.name, link.dst)
-            self._links.append(link)
+            # self._links.append(link)
+            self._model.add_link(link)
 
         return self
 
@@ -354,6 +360,14 @@ class SemanticSourceDesc(object):
                     key = k
                     break
             del self._mapping[key]
+            # note that we now need to check whether
+            # we should remove the classNode from the
+            # SemanticModel
+            old = set(self._model.class_nodes)
+            new = set(self.class_nodes)
+            targets = new - old
+            for t in targets:
+                self._model.remove_node(t)
 
         elif type(item) == Column:
             elem = self._find_column(item)
@@ -366,8 +380,8 @@ class SemanticSourceDesc(object):
 
         elif type(item) == Link:
             elem = self._find_link(item)
-            # self._model.remove_link(elem)
-            self._links.remove(elem)
+
+            self._model.remove_link(elem)
         else:
             raise TypeError("This type is not supported in remove().")
 
@@ -447,11 +461,12 @@ class SemanticSourceDesc(object):
 
     @property
     def class_nodes(self):
-        return [m.node.parent for m in self.mappings if m.node is not None]
+        all_nodes = [m.node.parent for m in self.mappings if m.node is not None]
+        return list(set(all_nodes))
 
     @property
     def links(self):
-        return self._links
+        return self._model.links
 
     def __repr__(self):
         """
@@ -763,41 +778,6 @@ class TransformList(collections.MutableSequence):
             s = "Transform({}): {}".format(v.id, v)
             transforms.append(s)
         return '\n'.join(transforms)
-
-
-class LinkList(collections.MutableSequence):
-    """
-    Container type for Link objects in the Semantic Source Description
-    """
-
-    def __init__(self, *args):
-        self.list = list()
-        self.extend(list(args))
-
-    @staticmethod
-    def check(v):
-        if not isinstance(v, Link):
-            raise TypeError("Only Link types permitted")
-
-    def __len__(self):
-        return len(self.list)
-
-    def __getitem__(self, i):
-        return self.list[i]
-
-    def __delitem__(self, i):
-        del self.list[i]
-
-    def __setitem__(self, i, v):
-        self.check(v)
-        self.list[i] = v
-
-    def insert(self, i, v):
-        self.check(v)
-        self.list.insert(i, v)
-
-    def __repr__(self):
-        return '\n'.join(self.list)
 
 
 class Column(Searchable):

@@ -7,6 +7,7 @@ import random
 import string
 import tempfile
 import os.path
+import collections
 
 from .utils import Searchable
 
@@ -27,7 +28,25 @@ class BaseSemantic(object):
         self._uri = ""
         self._graph = nx.DiGraph()
         self._class_table = {}
+        self._links = LinkList()
         self._LINK = "relationship"
+
+    # def add(self, item):
+    #     """
+    #     Adds a ClassNode or a Link to the model
+    #
+    #     :param item:
+    #     :return:
+    #     """
+    #     if type(item) == ClassNode:
+    #         self.class_node(
+    #             item.name,
+    #             item.nodes,
+    #             item.prefix,
+    #             item.parent.name if item.parent else None
+    #         )
+    #     elif type(item) == Link:
+    #         self.link(item.src, item.name, item.dst)
 
     def class_node(self, name, nodes=None, prefix=None, is_a=None):
         """
@@ -63,17 +82,28 @@ class BaseSemantic(object):
         # now we create a class node object...
         cn = ClassNode(name, node_dict, prefix, parent_class)
 
-        # if the name is in the class table, then we
-        # need to remove it from the graph...
-        if name in self._class_table:
-            self._graph.remove_node(self._class_table[name])
-
-        self._class_table[name] = cn
-        self._graph.add_node(cn)
+        self.add_class_node(cn)
 
         return self
 
-    def relationship(self, source, link, dest):
+    def add_class_node(self, node):
+        """
+        Adds the ClassNode node into the Semantic Model
+
+        :param node:
+        :return:
+        """
+        # if the name is in the class table, then we
+        # need to remove it from the graph...
+        #if node.name in self._class_table:
+        #    print("Class node '{}' is in the table".format(node.name))
+        #    self._graph.remove_node(self._class_table[node.name])
+
+        self._class_table[node.name] = node
+
+        self._graph.add_node(node)
+
+    def link(self, source, link, dest):
         """
         This function adds a Link relationship between two class nodes
         in the SemanticBase object. The ClassNode source and dest must
@@ -98,12 +128,24 @@ class BaseSemantic(object):
 
         src = self._class_table[source]
         dst = self._class_table[dest]
+        link = Link(link, src, dst)
 
+        self.add_link(link)
+
+        return self
+
+    def add_link(self, link):
+        """
+
+        :return:
+        """
+        self._links.append(link)
+
+        # we also add the link to the graph...
         self._graph.add_edge(
-            src,
-            dst,
-            {self._LINK: Link(link, src, dst)})
-
+            link.src,
+            link.dst,
+            {self._LINK: link})
         return self
 
     def find_class_node(self, name):
@@ -128,9 +170,20 @@ class BaseSemantic(object):
         if len(locate):
             target = locate[0]
             self._graph.remove_edge(target.src, target.dst)
+            self._links.remove(link)
         else:
             msg = "Item {} does not exist in the model.".format(link)
             _logger.error(msg)
+        return
+
+    def remove_node(self, node):
+        """
+        Removes a node from the graph...
+        :param node: ClassNode to remove
+        :return:
+        """
+        del self._class_table[node.name]
+        self._graph.remove_node(node)
         return
 
     @staticmethod
@@ -155,8 +208,9 @@ class BaseSemantic(object):
     @property
     def links(self):
         """Returns all the links in the graph"""
-        links = nx.get_edge_attributes(self._graph, self._LINK)
-        return list(links.values())
+        # links = nx.get_edge_attributes(self._graph, self._LINK)
+        # return list(links.values())
+        return self._links
 
 
 class Ontology(BaseSemantic):
@@ -433,3 +487,39 @@ class Link(Searchable):
         else:
             return "ClassNode({}) -> Link({}) -> ClassNode({})" \
                 .format(self.src.name, self.name, self.dst.name)
+
+
+class LinkList(collections.MutableSequence):
+    """
+    Container type for Link objects in the Semantic Source Description
+    """
+
+    def __init__(self, *args):
+        self.list = list()
+        self.extend(list(args))
+
+    @staticmethod
+    def check(v):
+        if not isinstance(v, Link):
+            raise TypeError("Only Link types permitted")
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, i):
+        return self.list[i]
+
+    def __delitem__(self, i):
+        del self.list[i]
+
+    def __setitem__(self, i, v):
+        self.check(v)
+        self.list[i] = v
+
+    def insert(self, i, v):
+        self.check(v)
+        self.list.insert(i, v)
+
+    def __repr__(self):
+        return '\n'.join(self.list)
+
