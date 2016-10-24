@@ -336,46 +336,10 @@ ssd.transforms
 ssd.model
 """
 >>> <SemanticModel: 34597898>
-  {
-    "nodes": {
-       2: {
-            "id": 2,
-            "label": "Person",
-            "type": "ClassNode"
-       },
-       3: {
-            "id": 3,
-            "label": "Car",
-            "type": "ClassNode"
-       },
-       4: {
-            "id": 4,
-            "label": "Old Person",
-            "type": "ClassNode"
-       }
-     },
-    "links": [
-       {
-           "source": "Person"
-           "target": "Old Person"
-           "label": "is a"
-           "type": "ObjectProperty"
-       }, {
-           "source": "Person"
-           "target": "Old Person"
-           "label": "is a"
-           "type": "ObjectProperty"
-       }, {
-           "source": "Person"
-           "target": "Old Person"
-           "label": "is a"
-           "type": "ObjectProperty"
-       }
-     ]
 """
 
 # view the class nodes...
-sm.model.nodes
+sm.model.class_nodes
 """
 >>>
 [ClassNode("Person", ["name", "address", "phone"]), ClassNode("Car", ["make", "model", "VIN"]),
@@ -397,17 +361,7 @@ sm.model.links
 # we can look at the columns individually...
 ssd.columns
 """
->> [Column("name", 1), Column("birth", 2), Column("city", 3), Column("state", 4)]
-"""
-
-ssd.col("name")
-"""
->>> <Column("name", 1)>
-"""
-
-ssd.col(1)
-"""
->>> <Column("name", 1)>
+>> [Column("name"), Column("birth"), Column("city"), Column("state")]
 """
 
 dir(ssd.columns[0])
@@ -415,7 +369,7 @@ dir(ssd.columns[0])
 >>> ['__junk__', '___init__', 'name', 'file', 'sample', 'index']
 """
 
-column = ssd.columns
+column = ssd.columns[0]
 column.name
 """
 >>> "name"
@@ -423,4 +377,8 @@ column.name
 column.file
 """
 >>> "/some/file/test.csv"
+"""
+column.index
+"""
+>>> 3
 """

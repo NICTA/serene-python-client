@@ -193,7 +193,7 @@ class BaseSemantic(object):
     @property
     def class_nodes(self):
         """The class node objects in the graph"""
-        return self._class_table.values()
+        return list(self._class_table.values())
 
     @property
     def data_nodes(self):
@@ -521,5 +521,5 @@ class LinkList(collections.MutableSequence):
         self.list.insert(i, v)
 
     def __repr__(self):
-        return '\n'.join(self.list)
+        return '\n'.join(str(link) for link in self.list)
 

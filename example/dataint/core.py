@@ -125,7 +125,10 @@ class SemanticSourceDesc(object):
         # initialize the mapping...
         for i, name in enumerate(self.df.columns):
             column = Column(name, self.df, self.file, i)
-            self._mapping[column] = Mapping(column, None)
+            self._mapping[column] = Mapping(
+                column,
+                node=None,
+                transform=IdentTransform())
 
     def _find_column(self, column):
         """
@@ -250,13 +253,19 @@ class SemanticSourceDesc(object):
         col = self._find_column(column)
         dn = self._find_data_node(data_node)
 
+        m = self._mapping[col]
+        if m.transform in self._transforms:
+            # remove the old one...
+            m = self._mapping[col]
+            self._transforms.remove(m.transform)
+
         # add the transform...
         t = self._add_transform(transform)
 
         # add the mapping element to the table...
         self._mapping[col] = Mapping(col, dn, t, predicted)
 
-        # by making this mappint, the class node is now in the SemanticModel...
+        # by making this mapping, the class node is now in the SemanticModel...
         self._model.add_class_node(dn.parent)
 
         return self
@@ -308,8 +317,6 @@ class SemanticSourceDesc(object):
             _logger.info(msg)
         else:
             # if it is ok, then add the new link to the SemanticModel...
-            # self._model.relationship(link.src, link.name, link.dst)
-            # self._links.append(link)
             self._model.add_link(link)
 
         return self
@@ -355,11 +362,22 @@ class SemanticSourceDesc(object):
         elif type(item) == DataNode:
             elem = self._find_data_node(item)
             key = None
+            value = None
             for k, v in self._mapping.items():
                 if v.node == elem:
                     key = k
+                    value = v
                     break
-            del self._mapping[key]
+
+            # we put the default mapping back in...
+            self._mapping[key] = Mapping(
+                value.column,
+                node=None,
+                transform=IdentTransform()
+            )
+            # we also need to remove the old transform
+            self._transforms.remove(value.transform)
+
             # note that we now need to check whether
             # we should remove the classNode from the
             # SemanticModel
@@ -425,10 +443,8 @@ class SemanticSourceDesc(object):
         :param file: The output file
         :return:
         """
-        builder = SSDJsonBuilder(self)
-        ssd_json = builder.to_json()
         with open(file, "w+") as f:
-            f.write(ssd_json)
+            f.write(self.json)
         return
 
     @property
@@ -438,6 +454,20 @@ class SemanticSourceDesc(object):
     @property
     def ontologies(self):
         return self._modeller.ontologies
+
+    @property
+    def ssd(self):
+        builder = SSDJsonBuilder(self)
+        return builder.to_dict()
+
+    @property
+    def json(self):
+        builder = SSDJsonBuilder(self)
+        return builder.to_json()
+
+    @property
+    def model(self):
+        return self._model
 
     @property
     def predictions(self):
@@ -484,7 +514,7 @@ class SemanticSourceDesc(object):
 
 class SSDJsonBuilder(object):
     """
-    Helper class to build up the json output for the
+    Helper class to build up the json output for the SSD file.
     """
     def __init__(self, ssd):
         """
@@ -492,7 +522,9 @@ class SSDJsonBuilder(object):
         :param ssd:
         """
         self._ssd = ssd
-        self._all_nodes = self._ssd.class_nodes + self._ssd.data_nodes
+        self._all_nodes = [n for n in
+                           self._ssd.class_nodes + self._ssd.data_nodes
+                           if n is not None]
         self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
         self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
 
@@ -569,7 +601,7 @@ class SSDJsonBuilder(object):
             {
                 "attribute": self._attr_map[m],
                 "node": self._node_map[m.node]
-            } for m in self._ssd.mappings]
+            } for m in self._ssd.mappings if m.node is not None]
 
 
 class SSDVisualizer(object):
@@ -594,14 +626,13 @@ class SSDVisualizer(object):
             graph.add_node(col,
                            style='filled',
                            label=col.name,
-                           color='white', #'#c06060',
+                           color='white',
                            shape='box',
                            fontname='helvetica')
 
         graph.add_subgraph(self.ssd.columns,
                            rank='max',
                            name='cluster1',
-                           #style='dotted',
                            color='#f09090',
                            fontcolor='#c06060',
                            label='source',
@@ -616,7 +647,7 @@ class SSDVisualizer(object):
         """
         for t in self.ssd.transforms:
             if type(t) == IdentTransform:
-                transform_text = "Identity"
+                transform_text = "Identity".format(t.id)
             else:
                 transform_text = "Transform({})".format(t.id)
 
@@ -653,8 +684,8 @@ class SSDVisualizer(object):
                            rank='source')
 
         for link in self.ssd.links:
-            graph.add_edge(link.dst,
-                           link.src,
+            graph.add_edge(link.src,
+                           link.dst,
                            label=link.name,
                            color='#59d0a0',
                            fontname='helvetica')
@@ -666,12 +697,12 @@ class SSDVisualizer(object):
         :param graph:
         :return:
         """
-        for d in self.ssd.data_nodes:
+        nodes = [n for n in self.ssd.data_nodes if n is not None]
+        for d in nodes:
             graph.add_node(d,
                            label=d.name,
                            color='white',
                            style='filled',
-                           #fillcolor='lightgray',
                            fontcolor='black',
                            shape='ellipse',
                            fontname='helvetica',
@@ -683,14 +714,13 @@ class SSDVisualizer(object):
                                color='gray',
                                fontname='helvetica-italic')
 
-            graph.add_subgraph(self.ssd.data_nodes,
-                               rank='same',
-                               name='cluster3',
-                               style='filled',
-                               color='#e0e0e0',
-                               fontcolor='#909090',
-                               #label='data nodes',
-                               fontname='helvetica')
+        graph.add_subgraph(nodes,
+                           rank='same',
+                           name='cluster3',
+                           style='filled',
+                           color='#e0e0e0',
+                           fontcolor='#909090',
+                           fontname='helvetica')
 
     def _draw_mappings(self, graph):
         """
@@ -701,13 +731,7 @@ class SSDVisualizer(object):
         :return:
         """
         for m in self.ssd.mappings:
-            if m.transform is None:
-                graph.add_edge(m.node,
-                               m.column,
-                               color='brown',
-                               fontname='helvetica-italic',
-                               style='dashed')
-            else:
+            if m.node is not None:
                 graph.add_edge(m.transform,
                                m.column,
                                color='brown',
@@ -821,7 +845,7 @@ class Mapping(object):
         if type(column) != Column:
             raise TypeError("Column type required for 'column' in Mapping object")
 
-        if (transform is not None) and (type(node) != DataNode):
+        if (node is not None) and (type(node) != DataNode):
             raise TypeError("DataNode type required for 'node' in Mapping object")
 
         if (transform is not None) and not issubclass(type(transform), Transform):
@@ -829,7 +853,7 @@ class Mapping(object):
 
         self.column = column
         self.node = node
-        self.transform = transform
+        self.transform = transform if transform is not None else IdentTransform()
         self.predicted = predicted
 
     def __repr__(self):

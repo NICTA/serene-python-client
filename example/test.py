@@ -144,7 +144,7 @@ print(ssd.transforms[0])
 
 print()
 print("Printing single transform with find:")
-print(ssd.find(Transform(1)))
+print(ssd.find(Transform(6)))
 
 print()
 print("Printing all transforms:")
@@ -173,7 +173,7 @@ print("You can also sample columns")
 print(ssd.sample(Column("address")))
 print()
 print("You can add transforms to samples as a preview")
-print(ssd.sample(Column("address"), Transform(0)))
+print(ssd.sample(Column("address"), Transform(6)))
 
 # we can also try to auto-fill the SSD
 ssd.predict()
@@ -195,9 +195,28 @@ print(ssd)
 
 # we can also remove the elements
 print()
-print("We can remove links with Link or DataNode lookups...")
+print("We can remove links with lookups...")
 ssd.remove(Link("owned-by"))
 print(ssd)
+
+# list all the data nodes
+print()
+print("Listing data nodes...")
+for dn in ssd.data_nodes:
+    print(dn)
+
+
+# we can also remove the elements
+# print()
+# print("We can remove nodes with DataNode lookups...")
+# ssd.remove(DataNode("Person", "last-name"))
+# print(ssd)
+
+# list all the data nodes
+print()
+print("Listing data nodes...")
+for dn in ssd.data_nodes:
+    print(dn)
 
 # display
 print()
@@ -209,3 +228,33 @@ print()
 print("We can also save the semantic source description...")
 ssd.save(file="out.ssd")
 
+# we can access the model:
+print()
+print("The semantic model")
+print(ssd.model)
+
+print()
+print("The semantic model links")
+print(ssd.model.links)
+
+print()
+print("The semantic model nodes")
+print(ssd.model.class_nodes)
+
+# Or print out the json
+print()
+print("The source description JSON:")
+print(ssd.json)
+
+# Or print out the json
+print()
+print("The source description dictionary:")
+print(ssd.ssd['semanticModel'])
+
+print()
+print("Columns")
+print(ssd.columns)
+
+print()
+print("Mappings")
+print(ssd.mappings)
