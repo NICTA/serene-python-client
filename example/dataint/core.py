@@ -471,7 +471,7 @@ class SemanticSourceDesc(object):
 
     @property
     def predictions(self):
-        return list(m for m in self._mapping.values() if m.predicted)
+        return list(m for m in self.mappings if m.predicted)
 
     @property
     def mappings(self):
@@ -487,16 +487,30 @@ class SemanticSourceDesc(object):
 
     @property
     def data_nodes(self):
-        return [m.node for m in self.mappings]
+        return list(m.node for m in self.mappings)
 
     @property
     def class_nodes(self):
-        all_nodes = [m.node.parent for m in self.mappings if m.node is not None]
-        return list(set(all_nodes))
+        return list(set(n.parent for n in self.data_nodes if n is not None))
 
     @property
     def links(self):
-        return self._model.links
+        """
+            The links come from 2 sources. The object links come from
+            what's defined in the semantic model. The data links come
+            from the relevant mappings to the columns. The other links
+            are not necessary.
+        """
+        # grab the object links from the model...
+        object_links = [link for link in self._model.links
+                        if link.link_type == Link.OBJECT_LINK]
+
+        # grab the data links from the model...
+        data_links = [link for link in self._model.links
+                      if link.link_type == Link.DATA_LINK]
+
+        # combine the relevant links...
+        return object_links + [link for link in data_links if link.dst in self.data_nodes]
 
     def __repr__(self):
         """
@@ -504,7 +518,7 @@ class SemanticSourceDesc(object):
         :return:
         """
         map_str = [str(m) for m in self.mappings]
-        link_str = [str(link) for link in self.links]
+        link_str = [str(link) for link in self.links if link.link_type == Link.OBJECT_LINK]
 
         items = map_str + link_str
         full_str = '\n\t'.join(items)
@@ -522,9 +536,11 @@ class SSDJsonBuilder(object):
         :param ssd:
         """
         self._ssd = ssd
+
         self._all_nodes = [n for n in
                            self._ssd.class_nodes + self._ssd.data_nodes
                            if n is not None]
+
         self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
         self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
 
@@ -669,7 +685,10 @@ class SSDVisualizer(object):
 
     def _draw_class_nodes(self, graph):
         """
-        Draws the ClassNode objects onto the pygraphviz graph
+        Draws the ClassNode objects onto the pygraphviz graph.
+
+        Here we just show the model class nodes and links...
+
         :param graph:
         :return:
         """
@@ -684,20 +703,28 @@ class SSDVisualizer(object):
                            rank='source')
 
         for link in self.ssd.links:
-            graph.add_edge(link.src,
-                           link.dst,
-                           label=link.name,
-                           color='#59d0a0',
-                           fontname='helvetica')
+            if link.link_type == Link.OBJECT_LINK:
+                graph.add_edge(link.src,
+                               link.dst,
+                               label=link.name,
+                               color='#59d0a0',
+                               fontname='helvetica')
 
     def _draw_data_nodes(self, graph):
         """
         Draws the DataNode objects onto the pygraphviz graph
 
+        Note that we don't want all the data nodes, just the
+        ones that have been mapped to columns...
+
         :param graph:
         :return:
         """
-        nodes = [n for n in self.ssd.data_nodes if n is not None]
+
+        nodes = [n.node
+                 for n in self.ssd.mappings
+                 if n is not None]
+
         for d in nodes:
             graph.add_node(d,
                            label=d.name,

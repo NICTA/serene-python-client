@@ -31,23 +31,6 @@ class BaseSemantic(object):
         self._links = LinkList()
         self._LINK = "relationship"
 
-    # def add(self, item):
-    #     """
-    #     Adds a ClassNode or a Link to the model
-    #
-    #     :param item:
-    #     :return:
-    #     """
-    #     if type(item) == ClassNode:
-    #         self.class_node(
-    #             item.name,
-    #             item.nodes,
-    #             item.prefix,
-    #             item.parent.name if item.parent else None
-    #         )
-    #     elif type(item) == Link:
-    #         self.link(item.src, item.name, item.dst)
-
     def class_node(self, name, nodes=None, prefix=None, is_a=None):
         """
         This function creates a ClassNode on the semantic object.
@@ -95,11 +78,12 @@ class BaseSemantic(object):
         """
         # if the name is in the class table, then we
         # need to remove it from the graph...
-        #if node.name in self._class_table:
-        #    print("Class node '{}' is in the table".format(node.name))
-        #    self._graph.remove_node(self._class_table[node.name])
-
         self._class_table[node.name] = node
+
+        # now add the data property links
+        for dataNode in node.nodes:
+            link = Link("property", node, dataNode)
+            self.add_link(link)
 
         self._graph.add_node(node)
 
@@ -198,10 +182,9 @@ class BaseSemantic(object):
     @property
     def data_nodes(self):
         """All of the data node objects in the graph"""
-        # we extract the datanodes from the class nodes...
-        cns = self.class_nodes
+        # we grab the data nodes from the class nodes...
         # make sure we don't return any duplicates...
-        data_nodes = set(self.flatten(cn.nodes for cn in cns))
+        data_nodes = set(self.flatten(cn.nodes for cn in self.class_nodes))
 
         return list(data_nodes)
 
@@ -339,7 +322,8 @@ class ClassNode(Searchable):
         """
         return {
             "id": ident,
-            "label": "{}:{}".format(self.prefix, self.name),
+            "label": self.name,
+            "prefix": self.prefix if self.prefix is not None else "owl",
             "type": "ClassNode"
         }
 
@@ -420,7 +404,7 @@ class DataNode(Searchable):
         return {
             "id": ident,
             "label": label,
-            "type": "ClassNode"
+            "type": "DataNode"
         }
 
     def __repr__(self):
@@ -449,7 +433,9 @@ class Link(Searchable):
     ]
 
     # special link names...
-    _SUBCLASS = "subclass"
+    SUBCLASS = "subclass"
+    OBJECT_LINK = "ObjectProperty"
+    DATA_LINK = "DataProperty"
 
     def __init__(self, name, src=None, dst=None):
         """
@@ -463,29 +449,34 @@ class Link(Searchable):
         self.name = name
         self.src = src
         self.dst = dst
+        if type(self.dst) == ClassNode:
+            self.link_type = self.OBJECT_LINK
+        else:
+            self.link_type = self.DATA_LINK
 
     def ssd_output(self, index_map):
         """
+        Returns the SSD output for a link. Note that we need
+        the local reference to the index map, so that we can
+        put the correct source/target link IDs.
 
-        :return:
+        :return: Dictionary with the SSD link labels
         """
-        if type(self.src) == ClassNode:
-            link_type = 'ObjectProperty'
-        else:
-            link_type = 'DataProperty'
-
         return {
             "source": index_map[self.src],
             "target": index_map[self.dst],
             "label": self.name,
-            "type": link_type
+            "type": self.link_type
         }
 
     def __repr__(self):
         if (self.src is None) or (self.dst is None):
             return "Link({})".format(self.name)
-        else:
+        elif self.link_type == self.OBJECT_LINK:
             return "ClassNode({}) -> Link({}) -> ClassNode({})" \
+                .format(self.src.name, self.name, self.dst.name)
+        else:
+            return "ClassNode({}) -> Link({}) -> DataNode({})" \
                 .format(self.src.name, self.name, self.dst.name)
 
 
