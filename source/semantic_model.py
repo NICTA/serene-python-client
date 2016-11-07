@@ -6,6 +6,7 @@ import pygraphviz as pgv
 import json
 from source.columns import SemanticType
 
+
 def read_sd(fname):
     """
     Read in the source description from the file.
@@ -39,7 +40,6 @@ class SemanticModel(object):
         for l in model_dict["links"]:
             self.graph.add_edge(int(l["source"]), int(l["target"]),
                                 attr_dict={"type": l["type"], "label": l["label"]})
-
 
     def del_classnode(self, node_id):
         """

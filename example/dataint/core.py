@@ -2,31 +2,37 @@
 License...
 """
 import logging
-import pandas as pd
-import collections
-import time
 import random
-import pygraphviz as pgv
-import os.path
-import webbrowser
-import tempfile
-import json
+import time
 
-from .utils import Searchable
+import pandas as pd
+
+from .elements import TransformList, Column, Mapping, Transform, IdentTransform
 from .semantics import Ontology, DataNode, ClassNode, Link, BaseSemantic
-from collections import OrderedDict
+from .ssd_util import SSDVisualizer, SSDJsonBuilder
 
+# logging functions...
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
 
 class SemanticModeller(object):
     """
-        SemanticModeller
+        The SemanticModeller holds a collection of ontologies and
+        uses them to generate Semantic Models across datasets.
+
+        Ontologies can be passed to the SemanticModeller with
+        add_ontology. This can be as an Ontology type or as an .owl
+        file.
+
+        To convert a csv file to a SemanticSourceDesc object,
+        use to_ssd().
 
     """
     def __init__(self, config=None, ontologies=None):
         """
+        Builds the SemanticModeller from a list of known
+        ontologies and the config parameters.
 
         :param config: Arguments to configure the Schema Modeller
         :param ontologies: List of ontologies to use for mapping
@@ -58,9 +64,11 @@ class SemanticModeller(object):
 
     def add_ontology(self, ontology):
         """
-        Adds an ontology to the list...
-        :param ontology:
-        :return:
+        Adds an ontology to the list. This method can accept Ontology
+        type objects or .owl files.
+
+        :param ontology: The Ontology object to add, or a .owl filename
+        :return: Updated SemanticModeller object
         """
         if type(ontology) == Ontology:
             self._ontologies.append(ontology)
@@ -75,41 +83,55 @@ class SemanticModeller(object):
     def to_ssd(self, filename):
         """
         Loads in a datafile to transform to an ssd object
-        :param filename:
-        :return:
+
+        :param filename: A CSV file to convert to an SSD
+        :return: SemanticSourceDesc object
         """
         ssd = SemanticSourceDesc(filename, self)
         return ssd
 
     @staticmethod
     def flatten(xs):
+        """Simple flatten from 2D to 1D iterable"""
         return [x for y in xs for x in y]
 
     @property
     def class_nodes(self):
+        """All the class_nodes available in the ontologies"""
         return self.flatten(o.class_nodes for o in self._ontologies)
 
     @property
     def data_nodes(self):
+        """All the data_nodes available in the ontologies"""
         return self.flatten(o.data_nodes for o in self._ontologies)
 
     @property
     def links(self):
+        """All links currently present in the ontologies"""
         return self.flatten(o.links for o in self._ontologies)
 
     @property
     def ontologies(self):
+        """The read-only list of ontologies"""
         return self._ontologies
 
 
 class SemanticSourceDesc(object):
     """
-        Semantic source description is the translator betweeen a data
+        Semantic source description is the translator between a data
         file (csv file) and the source description (.ssd file).
+
+        The SemanticSourceDesc contains the data columns, a transform
+        layer, a mapping between each column to a DataNode, and a
+        semantic model built from the available ontologies.
     """
     def __init__(self, filename, modeller):
         """
+        Builds up a SemanticSourceDesc object given a csv filename
+        and a parent modeller.
 
+        The object contains a Pandas DataFrame of the csv, as
+        well as the mapping, transforms and semantic model.
         """
         self.df = pd.read_csv(filename)
         self.file = filename
@@ -526,426 +548,5 @@ class SemanticSourceDesc(object):
         return "[\n\t{}\n]".format(full_str)
 
 
-class SSDJsonBuilder(object):
-    """
-    Helper class to build up the json output for the SSD file.
-    """
-    def __init__(self, ssd):
-        """
 
-        :param ssd:
-        """
-        self._ssd = ssd
 
-        self._all_nodes = [n for n in
-                           self._ssd.class_nodes + self._ssd.data_nodes
-                           if n is not None]
-
-        self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
-        self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
-
-    def to_dict(self):
-        """
-
-        :return:
-        """
-        d = OrderedDict()
-        d["version"] = self._ssd.version
-        d["name"] = self._ssd.file
-        d["columns"] = self.columns
-        d["attributes"] = self.attributes
-        d["ontology"] = [o.filename for o in self._ssd.ontologies]
-        d["semanticModel"] = self.semantic_model
-        d["mappings"] = self.mappings
-
-        return d
-
-    def to_json(self):
-        """
-
-        :return:
-        """
-        return json.dumps(self.to_dict(), indent=4)
-
-    @property
-    def columns(self):
-        """
-
-        :return:
-        """
-        return [
-            {
-                "id": c.index,
-                "name": c.name
-            } for c in self._ssd.columns]
-
-    @property
-    def attributes(self):
-        """
-
-        :return:
-        """
-        return [
-            {
-                "id": self._attr_map[m],
-                "name": m.column.name,
-                "label": m.transform.name,
-                "columnIds": [m.column.index],
-                "sql": m.transform.apply(m.column)
-            } for m in self._ssd.mappings]
-
-    @property
-    def semantic_model(self):
-        """
-
-        :return:
-        """
-        return {
-            "nodes": [node.ssd_output(index)
-                      for index, node in enumerate(self._all_nodes)],
-            "links": [link.ssd_output(self._node_map)
-                      for link in self._ssd.links]
-        }
-
-    @property
-    def mappings(self):
-        """
-
-        :return:
-        """
-        return [
-            {
-                "attribute": self._attr_map[m],
-                "node": self._node_map[m.node]
-            } for m in self._ssd.mappings if m.node is not None]
-
-
-class SSDVisualizer(object):
-    """
-    Visualizer object for drawing an SSD object
-    """
-
-    def __init__(self, ssd, outfile=None):
-        self.ssd = ssd
-        if outfile is None:
-            self.outfile = os.path.join(tempfile.gettempdir(), 'out.png')
-        else:
-            self.outfile = outfile
-
-    def _draw_columns(self, graph):
-        """
-        Draws the column objects onto the pygraphviz graph
-        :param graph:
-        :return:
-        """
-        for col in self.ssd.columns:
-            graph.add_node(col,
-                           style='filled',
-                           label=col.name,
-                           color='white',
-                           shape='box',
-                           fontname='helvetica')
-
-        graph.add_subgraph(self.ssd.columns,
-                           rank='max',
-                           name='cluster1',
-                           color='#f09090',
-                           fontcolor='#c06060',
-                           label='source',
-                           style='filled',
-                           fontname='helvetica')
-
-    def _draw_transforms(self, graph):
-        """
-        Draws the Transform objects onto the pygraphviz graph
-        :param graph:
-        :return:
-        """
-        for t in self.ssd.transforms:
-            if type(t) == IdentTransform:
-                transform_text = "Identity".format(t.id)
-            else:
-                transform_text = "Transform({})".format(t.id)
-
-            graph.add_node(t,
-                           label=transform_text,
-                           color='white',
-                           style='filled',
-                           shape='box',
-                           fontname='helvetica')
-
-        graph.add_subgraph(self.ssd.transforms,
-                           rank='min',
-                           name='cluster2',
-                           style='filled',
-                           color='#9090f0',
-                           fontcolor='#6060c0',
-                           label='transforms',
-                           fontname='helvetica')
-
-    def _draw_class_nodes(self, graph):
-        """
-        Draws the ClassNode objects onto the pygraphviz graph.
-
-        Here we just show the model class nodes and links...
-
-        :param graph:
-        :return:
-        """
-        for c in self.ssd.class_nodes:
-            graph.add_node(c,
-                           label=c.name,
-                           color='white',
-                           style='filled',
-                           fillcolor='#59d0a0',
-                           shape='ellipse',
-                           fontname='helvetica',
-                           rank='source')
-
-        for link in self.ssd.links:
-            if link.link_type == Link.OBJECT_LINK:
-                graph.add_edge(link.src,
-                               link.dst,
-                               label=link.name,
-                               color='#59d0a0',
-                               fontname='helvetica')
-
-    def _draw_data_nodes(self, graph):
-        """
-        Draws the DataNode objects onto the pygraphviz graph
-
-        Note that we don't want all the data nodes, just the
-        ones that have been mapped to columns...
-
-        :param graph:
-        :return:
-        """
-
-        nodes = [n.node
-                 for n in self.ssd.mappings
-                 if n is not None]
-
-        for d in nodes:
-            graph.add_node(d,
-                           label=d.name,
-                           color='white',
-                           style='filled',
-                           fontcolor='black',
-                           shape='ellipse',
-                           fontname='helvetica',
-                           rank='same')
-
-            if d.parent is not None:
-                graph.add_edge(d.parent,
-                               d,
-                               color='gray',
-                               fontname='helvetica-italic')
-
-        graph.add_subgraph(nodes,
-                           rank='same',
-                           name='cluster3',
-                           style='filled',
-                           color='#e0e0e0',
-                           fontcolor='#909090',
-                           fontname='helvetica')
-
-    def _draw_mappings(self, graph):
-        """
-        Draws the mappings from columns to transforms to DataNodes
-        in pyGraphViz
-
-        :param g:
-        :return:
-        """
-        for m in self.ssd.mappings:
-            if m.node is not None:
-                graph.add_edge(m.transform,
-                               m.column,
-                               color='brown',
-                               fontname='helvetica-italic',
-                               style='dashed')
-                graph.add_edge(m.node,
-                               m.transform,
-                               color='brown',
-                               fontname='helvetica-italic',
-                               style='dashed')
-
-    def show(self):
-        """
-        Show the graph using pygraphviz
-        :return:
-        """
-        g = pgv.AGraph(strict=False,
-                       directed=True,
-                       remincross='true',
-                       overlap=False,
-                       splines='true',
-                       fontname='helvetica')
-
-        self._draw_class_nodes(g)
-        self._draw_data_nodes(g)
-        self._draw_columns(g)
-        self._draw_transforms(g)
-        self._draw_mappings(g)
-
-        g.draw(self.outfile, prog='dot')
-        webbrowser.open("file://{}".format(os.path.abspath(self.outfile)))
-
-
-class TransformList(collections.MutableSequence):
-    """
-    Container type for Transform objects in the Semantic Source Description
-    """
-
-    def __init__(self, *args):
-        self.list = list()
-        self.extend(list(args))
-
-    @staticmethod
-    def check(v):
-        if not issubclass(type(v), Transform):
-            raise TypeError("Only Transform types permitted: {}".format(v))
-
-    def __len__(self):
-        return len(self.list)
-
-    def __getitem__(self, i):
-        return self.list[i]
-
-    def __delitem__(self, i):
-        del self.list[i]
-
-    def __setitem__(self, i, v):
-        self.check(v)
-        self.list[i] = v
-
-    def insert(self, i, v):
-        self.check(v)
-        self.list.insert(i, v)
-
-    def __repr__(self):
-        transforms = []
-        for v in self.list:
-            s = "Transform({}): {}".format(v.id, v)
-            transforms.append(s)
-        return '\n'.join(transforms)
-
-
-class Column(Searchable):
-    """
-    Holds a reference to the original data column
-    """
-    # now we setup the search parameters...
-    getters = [
-        lambda col: col.name,
-        lambda col: col.index,
-        lambda col: col.filename
-    ]
-
-    def __init__(self, name, df=None, filename=None, index=None):
-        self.df = df
-        self.filename = filename
-        self.name = name
-        self.index = index
-        super().__init__()
-
-    def __repr__(self):
-        """
-        Displays the column and the name
-        :return:
-        """
-        return "Column({})".format(self.name)
-
-    def __eq__(self, other):
-        return other.name == self.name
-
-    def __hash__(self):
-        return id(self)
-
-
-class Mapping(object):
-    """
-        A Mapping object that describes the link between a column and
-        a data node. An optional transform can be included.
-    """
-    def __init__(self, column, node=None, transform=None, predicted=False):
-        if type(column) != Column:
-            raise TypeError("Column type required for 'column' in Mapping object")
-
-        if (node is not None) and (type(node) != DataNode):
-            raise TypeError("DataNode type required for 'node' in Mapping object")
-
-        if (transform is not None) and not issubclass(type(transform), Transform):
-            raise TypeError("Transform type required for 'transform' in Mapping object: {}".format(transform))
-
-        self.column = column
-        self.node = node
-        self.transform = transform if transform is not None else IdentTransform()
-        self.predicted = predicted
-
-    def __repr__(self):
-        if self.transform is not None:
-            if type(self.transform) == IdentTransform:
-                s = "{} -> {}".format(self.column, self.node)
-            else:
-                s = "{} -> Transform({}) -> {}".format(self.column, self.transform.id, self.node)
-        else:
-            s = "{} -> {}".format(self.column, self.node)
-
-        # we add an asterix to denote predicted values...
-        if self.predicted:
-            s = '{} [*]'.format(s)
-        return s
-
-
-class Transform(Searchable):
-    """
-        The transform object that describes the transform between
-        the raw column and the datanode type.
-    """
-    _id = 0  # Transform ID value...
-    getters = [
-        lambda t: t.id,
-        lambda t: t.name,
-        lambda t: t.sql
-    ]
-
-    def __init__(self, id=None, func=None, name='', sql=None):
-        if id is None:
-            self.id = Transform._id
-            Transform._id += 1
-        else:
-            self.id = id
-        self.name = name
-        self.func = func
-        self.sql = sql if sql is not None else 'SELECT * from {}'.format(name)
-        super().__init__()
-
-    @staticmethod
-    def apply(col):
-        return 'SELECT {} from {}'.format(col.name, col.filename)
-
-    def __repr__(self):
-        return "{{\n" \
-               "    id: {}\n" \
-               "    name: {}\n" \
-               "    func: {}\n" \
-               "    sql: {}\n" \
-               "}}".format(self.id, self.name, self.func, self.sql)
-
-    def __hash__(self):
-        return id(self)
-
-
-class IdentTransform(Transform):
-    """
-    Transform that is just the identity...
-    """
-    def __init__(self, id=None, func=None, name='', sql=None):
-        super().__init__(id, func, name, sql)
-        self.name = "ident"
-        self.func = lambda x: x
-
-    @staticmethod
-    def apply(col):
-        return 'SELECT {} from {}'.format(col.name, col.filename)
