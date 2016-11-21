@@ -92,71 +92,26 @@ class TestSemanticSourceDesc(unittest.TestCase):
     def test_model(self):
         pass
 
-    @property
-    def predictions(self):
-        """The list of all predicted mappings"""
-        return list(m for m in self.mappings if m.predicted)
+    def test_predictions(self):
+        pass
 
+    def test_mappings(self):
+        pass
 
-    @property
-    def mappings(self):
-        """The list of all current mappings"""
-        return list(self._mapping.values())
+    def test_columns(self):
+        pass
 
+    def test_transforms(self):
+        pass
 
-    @property
-    def columns(self):
-        """The list of columns currently used"""
-        return list(self._mapping.keys())
+    def test_data_nodes(self):
+        pass
 
+    def test_class_nodes(self):
+        pass
 
-    @property
-    def transforms(self):
-        """All available transforms"""
-        return list(self._transforms)
+    def test_links(self):
+        pass
 
-
-    @property
-    def data_nodes(self):
-        """All available data nodes"""
-        return list(m.node for m in self.mappings)
-
-
-    @property
-    def class_nodes(self):
-        """All available class nodes"""
-        return list(set(n.parent for n in self.data_nodes if n is not None))
-
-
-    @property
-    def links(self):
-        """
-            The links in the SSD. The links come from 2 sources. The object links come from
-            what's defined in the semantic model. The data links come
-            from the relevant mappings to the columns. The other links
-            are not necessary.
-        """
-        # grab the object links from the model...
-        object_links = [link for link in self._model.links
-                        if link.link_type == Link.OBJECT_LINK]
-
-        # grab the data links from the model...
-        data_links = [link for link in self._model.links
-                      if link.link_type == Link.DATA_LINK]
-
-        # combine the relevant links...
-        return object_links + [link for link in data_links if link.dst in self.data_nodes]
-
-
-    def __repr__(self):
-        """
-        Displays the maps of columns to the data nodes of the Ontology
-        :return:
-        """
-        map_str = [str(m) for m in self.mappings]
-        link_str = [str(link) for link in self.links if link.link_type == Link.OBJECT_LINK]
-
-        items = map_str + link_str
-        full_str = '\n\t'.join(items)
-
-        return "[\n\t{}\n]".format(full_str)
+    def test_repr(self):
+        pass
