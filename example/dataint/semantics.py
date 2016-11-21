@@ -284,6 +284,13 @@ class Ontology(BaseSemantic):
         self._uri = uri_string
         return self
 
+    def __repr__(self):
+        """
+        String output for the ontology...
+        :return:
+        """
+        return "Ontology({})".format(self.filename)
+
 
 class ClassNode(Searchable):
     """

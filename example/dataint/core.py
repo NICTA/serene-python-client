@@ -60,7 +60,7 @@ class SemanticModeller(object):
                 self.add_ontology(Ontology(o))
 
         _logger.debug("Config set to:", self.config)
-        _logger.debug("Ontologies set to:", self._ontologies)
+        _logger.debug("Ontologies set to: {}".format(self._ontologies))
 
     def add_ontology(self, ontology):
         """
@@ -154,9 +154,15 @@ class SemanticSourceDesc(object):
 
     def _find_column(self, column):
         """
+        Searches for a Column in the system given a abbreviated
+        Column type. e.g. Column("name")
 
-        :param column:
-        :return:
+        would return the full Column object (if it exists in the system):
+
+        Column("name", index=1, file="something.csv")
+
+        :param column: An abbreviated Column type
+        :return: The actual Column in the system, or an error if not found or ambiguous
         """
         columns = self._mapping.keys()
         col = Column.search(columns, column)
@@ -168,9 +174,15 @@ class SemanticSourceDesc(object):
 
     def _find_data_node(self, data_node):
         """
+        Searches for a Datanode in the system given a abbreviated
+        DataNode type. e.g. DataNode("name")
 
-        :param data_node:
-        :return:
+        would return the full DataNode object (if it exists in the system):
+
+        DataNode("name", parent=ClassNode("Person"))
+
+        :param data_node: An abbreviated DataNode type
+        :return: The actual DataNode in the system, or an error if not found or ambiguous
         """
         data_nodes = self._modeller.data_nodes
         dn = DataNode.search(data_nodes, data_node)
@@ -182,9 +194,15 @@ class SemanticSourceDesc(object):
 
     def _find_transform(self, transform):
         """
+        Searches for a Transform in the system given a abbreviated
+        Transform type. e.g. Transform(1)
 
-        :param transform:
-        :return:
+        would return the full Transform object (if it exists in the system):
+
+        Transform(sql="select * from table")
+
+        :param transform: An abbreviated Transform type
+        :return: The actual Transform in the system, or an error if not found or ambiguous
         """
         ts = self._transforms
         t = Transform.search(ts, transform)
@@ -196,9 +214,15 @@ class SemanticSourceDesc(object):
 
     def _find_class(self, cls):
         """
+        Searches for a ClassNode in the system given a abbreviated
+        ClassNode type. e.g. ClassNode('Person')
 
-        :param cls:
-        :return:
+        would return the full Link object (if it exists in the system):
+
+        ClassNode("Person", ["name", "dob", "phone-number"])
+
+        :param cls: An abbreviated ClassNode type
+        :return: The actual ClassNode in the system, or an error if not found or ambiguous
         """
         classes = set(self.class_nodes)
 
@@ -211,9 +235,15 @@ class SemanticSourceDesc(object):
 
     def _find_link(self, link):
         """
+        Searches for a Link in the system given a abbreviated
+        Link type. e.g. Link('owns')
 
-        :param link:
-        :return:
+        would return the full Link object (if it exists in the system):
+
+        Link(src=ClassNode("Person"), dst=ClassNode("Car"), relationship='owns')
+
+        :param link: An abbreviated Link type
+        :return: The actual Link in the system, or an error if not found or ambiguous
         """
         link_ = Link.search(self.links, link)
         if link_ is None:
@@ -250,9 +280,9 @@ class SemanticSourceDesc(object):
         mapping. A transform can also be applied to change
         the column.
 
-        :param column:
-        :param data_node:
-        :param transform:
+        :param column: The source Column
+        :param data_node: The destination DataNode
+        :param transform: The optional transform to be performed on the Column
         :return:
         """
         return self._map(column, data_node, transform, predicted=False)
@@ -263,10 +293,10 @@ class SemanticSourceDesc(object):
         mapping. A transform can also be applied to change
         the column.
 
-        :param column:
-        :param data_node:
-        :param transform:
-        :param predicted: Is the mapping predicted or not
+        :param column: The source Column
+        :param data_node: The destination DataNode
+        :param transform: The optional transform to be performed on the Column
+        :param predicted: Is the mapping predicted or not (internal)
         :return:
         """
         assert type(column) == Column
@@ -317,10 +347,10 @@ class SemanticSourceDesc(object):
         Adds a link between ClassNodes. The relationship must
         exist in the ontology
 
-        :param src:
-        :param dst:
-        :param relationship:
-        :return:
+        :param src: Source ClassNode
+        :param dst: Destination ClassNode
+        :param relationship: The label for the link between the src and dst nodes
+        :return: Updated SSD
         """
         s_class = self._find_class(src)
         d_class = self._find_class(dst)
@@ -373,7 +403,8 @@ class SemanticSourceDesc(object):
 
     def remove(self, item):
         """
-        Remove the links
+        Remove the item. The item can be a transform or
+        a data node, column or link.
 
         :return:
         """
@@ -432,7 +463,7 @@ class SemanticSourceDesc(object):
         Attempt to predict the mappings and transforms for the
         mapping.
 
-        :return:
+        :return: The updated SSD object
         """
         print("Calculating prediction...")
         time.sleep(1)
@@ -440,20 +471,23 @@ class SemanticSourceDesc(object):
         for mapping in self.mappings:
             if mapping.node is None:
                 print("Predicting value for", mapping.column)
+
                 # TODO: make real!
                 node = random.choice(self._modeller.data_nodes)
-
                 print("Value {} predicted for {} with probability 0.882".format(node, mapping.column))
 
                 self._map(mapping.column, node, predicted=True)
             else:
                 # these are the user labelled data points...
                 pass
+        return self
 
     def show(self):
         """
-        Shows the Semantic Modeller in a png.
-        :return:
+        Shows the Semantic Modeller in a png. This uses the SSDVisualizer helper
+        to launch the graphviz image.
+
+        :return: None
         """
         visualizer = SSDVisualizer(self)
         visualizer.show()
@@ -471,54 +505,65 @@ class SemanticSourceDesc(object):
 
     @property
     def version(self):
+        """The SSD version"""
         return self._VERSION
 
     @property
     def ontologies(self):
+        """The read-only list of ontology objects"""
         return self._modeller.ontologies
 
     @property
     def ssd(self):
+        """The SSD as a Python dictionary"""
         builder = SSDJsonBuilder(self)
         return builder.to_dict()
 
     @property
     def json(self):
+        """The SSD as a JSON string"""
         builder = SSDJsonBuilder(self)
         return builder.to_json()
 
     @property
     def model(self):
+        """The read-only semantic model"""
         return self._model
 
     @property
     def predictions(self):
+        """The list of all predicted mappings"""
         return list(m for m in self.mappings if m.predicted)
 
     @property
     def mappings(self):
+        """The list of all current mappings"""
         return list(self._mapping.values())
 
     @property
     def columns(self):
+        """The list of columns currently used"""
         return list(self._mapping.keys())
 
     @property
     def transforms(self):
+        """All available transforms"""
         return list(self._transforms)
 
     @property
     def data_nodes(self):
+        """All available data nodes"""
         return list(m.node for m in self.mappings)
 
     @property
     def class_nodes(self):
+        """All available class nodes"""
         return list(set(n.parent for n in self.data_nodes if n is not None))
 
     @property
     def links(self):
         """
-            The links come from 2 sources. The object links come from
+            The links in the SSD. The links come from 2 sources. The object links come from
             what's defined in the semantic model. The data links come
             from the relevant mappings to the columns. The other links
             are not necessary.
@@ -546,7 +591,3 @@ class SemanticSourceDesc(object):
         full_str = '\n\t'.join(items)
 
         return "[\n\t{}\n]".format(full_str)
-
-
-
-

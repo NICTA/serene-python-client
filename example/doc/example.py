@@ -26,9 +26,13 @@
 #    SETUP
 # ===========
 
-import dataint
-import pandas as pd
-
+try:
+    import dataint
+except ImportError as e:
+    import sys
+    sys.path.insert(0, '.')
+    import dataint
+    
 from dataint import SemanticModeller, Ontology, DataNode, Link, Column, ClassNode, Transform
 
 # start with a SemanticModeller object...
@@ -88,7 +92,7 @@ for link in sm.links:
 
 # once we load the file, the columns exist in the SemanticSourceDescription(SSD),
 # but they have no DataNodes assigned...
-ssd = sm.to_ssd("example/resources/data/EmployeeAddresses.csv")
+ssd = sm.to_ssd("tests/resources/data/EmployeeAddresses.csv")
 
 print()
 print("Printing ssd...")
