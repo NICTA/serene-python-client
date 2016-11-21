@@ -28,11 +28,11 @@ packages = [
 ]
 
 install_requires = [
-    'pandas>=0.18',
+    'pandas>=0.15',
     'unittest2',
     'networkx',
     'numpy',
-    'coverage>=3.6,<3.99'
+    'coverage>=3.6,<4.99'
 ]
 
 long_desc = """The Semantic Modelling Client for Python is a client library for
