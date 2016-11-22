@@ -1,5 +1,5 @@
 import unittest2 as unittest
-import dataint
+import serene
 
 
 class TestSemanticModeller(unittest.TestCase):
@@ -7,7 +7,7 @@ class TestSemanticModeller(unittest.TestCase):
     Tests the SemanticSourceDesc
     """
     def test_junk(self):
-        sm = dataint.SemanticModeller(
+        sm = serene.SemanticModeller(
             config={
                 "kmeans": 5,
                 "threshold": 0.7,

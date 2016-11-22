@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Setup script for Semantic Modelling Python client."""
+"""Setup script for the Serene Python client."""
 
 from __future__ import print_function
 
@@ -20,11 +20,11 @@ import sys
 from setuptools import setup
 
 if sys.version_info < (3, 1):
-    print('semantic-api-client requires python3 version >= 3.3.', file=sys.stderr)
+    print('serene-python-client requires python3 version >= 3.3.', file=sys.stderr)
     sys.exit(1)
 
 packages = [
-    'dataint'
+    'serene'
 ]
 
 install_requires = [
@@ -35,24 +35,24 @@ install_requires = [
     'coverage>=3.6,<4.99'
 ]
 
-long_desc = """The Semantic Modelling Client for Python is a client library for
-accessing the Semantic Modelling API."""
+long_desc = """The Serene Python Client is a client library for
+accessing the Serene Data Integration API."""
 
-import dataint
-version = dataint.__version__
+import serene
+version = serene.__version__
 
 setup(
-    name="semantic-api-python-client",
+    name="serene-python-client",
     version=version,
     description="Semantic Modelling API Client Library for Python",
     long_description=long_desc,
     author="Data61 | CSIRO",
-    url="http://github.com/NICTA/SemanticModellingDemo/",
+    url="http://github.com/NICTA/serene-python-client/",
     install_requires=install_requires,
     packages=packages,
     package_data={},
     license="Apache 2.0",
-    keywords="semantic modelling client",
+    keywords="semantic modelling client serene",
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',

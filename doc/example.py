@@ -27,16 +27,16 @@
 # ===========
 
 try:
-    import dataint
+    import serene
 except ImportError as e:
     import sys
     sys.path.insert(0, '.')
-    import dataint
+    import serene
     
-from dataint import SemanticModeller, Ontology, DataNode, Link, Column, ClassNode, Transform
+from serene import SemanticModeller, Ontology, DataNode, Link, Column, ClassNode, Transform
 
 # start with a SemanticModeller object...
-sm = dataint.SemanticModeller(
+sm = serene.SemanticModeller(
     config={
         "kmeans": 5,
         "threshold": 0.7,
@@ -48,7 +48,7 @@ print(sm)
 
 
 # build up a simple ontology
-on = (dataint.Ontology()
+on = (serene.Ontology()
       .prefix("asd", "asd:/9e8rgyusdgfiuhsdf.dfguhudfh")
       .uri("http://www.semanticweb.org/data_integration_project/report_example_ontology")
       .class_node("Person", ["first-name", "last-name", "name", "phone"])
