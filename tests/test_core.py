@@ -1,10 +1,13 @@
+"""
+License
+"""
 import unittest2 as unittest
 import serene
 
 
 class TestSemanticModeller(unittest.TestCase):
     """
-    Tests the SemanticSourceDesc
+    Tests the SemanticModeller class
     """
     def test_junk(self):
         sm = serene.SemanticModeller(
