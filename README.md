@@ -17,3 +17,10 @@ To install the Serene Python client run:
 ```
 python setup.py install
 ```
+
+## Tests
+
+Tests are located in the tests directory. To run the tests:
+```
+nosetests
+```
