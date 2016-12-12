@@ -42,7 +42,7 @@ class SchemaMatcher(object):
         Initialize class instance of SchemaMatcher.
         """
         logging.info('Initialising schema matcher class object.')
-        self._session = api.Session(host, port, auth, cert, trust_env)
+        self.api = api.Session(host, port, auth, cert, trust_env)
 
         # we make all keys internal and try to hide the fact of their existence from the user
         #self._ds_keys = self._get_dataset_keys()   # list of keys of all available datasets
@@ -53,20 +53,20 @@ class SchemaMatcher(object):
 
     @property
     def datasets(self):
-        s = self._session
-        keys = s.dataset_keys()
+        """Maintains a list of DataSet objects"""
+        keys = self.api.dataset_keys()
         ds = DataSetList()
         for k in keys:
-            ds.append(NewDataSet(s.dataset(k)))
+            ds.append(NewDataSet(self.api.dataset(k), self))
         return ds
 
     @property
     def models(self):
-        s = self._session
-        keys = s.model_keys()
+        """Maintains a list of Model objects"""
+        keys = self.api.model_keys()
         ms = ModelList()
         for k in keys:
-            ms.append(NewModel(s.model(k)))
+            ms.append(NewModel(self.api.model(k), self))
         return ms
 
     # def _refresh(self):
@@ -193,7 +193,7 @@ class SchemaMatcher(object):
     #     self.model_summary.set_value(rows, 'state_modified', matcher_model.model_state.date_modified)
 
     def __str__(self):
-        return "<SchemaMatcher({})>".format(self._session)
+        return "<SchemaMatcher({})>".format(self.api)
 
     def __repr__(self):
         return self.__str__()
@@ -341,15 +341,15 @@ class SchemaMatcher(object):
 
         assert 'unknown' in classes
 
-        json = self._session.post_model(feature_config,
-                                        description,
-                                        classes,
-                                        model_type,
-                                        label_parse(labels),
-                                        cost_matrix,
-                                        resampling_strategy)  # send API request
+        json = self.api.post_model(feature_config,
+                                   description,
+                                   classes,
+                                   model_type,
+                                   label_parse(labels),
+                                   cost_matrix,
+                                   resampling_strategy)  # send API request
 
-        return NewModel(json)
+        return NewModel(json, self)
 
     def create_dataset(self, file_path, description, type_map):
         """
@@ -369,8 +369,8 @@ class SchemaMatcher(object):
         #self._refresh_datasets()  # we need to update class attributes to include new datasets
         #
         #return new_dataset
-        json = self._session.post_dataset(description, file_path, type_map)
-        return NewDataSet(json)
+        json = self.api.post_dataset(description, file_path, type_map)
+        return NewDataSet(json, self)
 
     def remove_dataset(self, key):
         """
@@ -380,9 +380,9 @@ class SchemaMatcher(object):
         :return: None
         """
         if issubclass(type(key), NewDataSet):
-            self._session.delete_dataset(key.id)
+            self.api.delete_dataset(key.id)
         else:
-            self._session.delete_dataset(key)
+            self.api.delete_dataset(key)
 
     def remove_model(self, key):
         """
@@ -392,9 +392,9 @@ class SchemaMatcher(object):
         :return: None
         """
         if issubclass(type(key), NewModel):
-            self._session.delete_model(key.id)
+            self.api.delete_model(key.id)
         else:
-            self._session.delete_model(key)
+            self.api.delete_model(key)
 
     # def train_all(self):
     #     """
@@ -444,11 +444,12 @@ class Column(object):
 
 class NewDataSet(object):
 
-    def __init__(self, json):
+    def __init__(self, json, parent):
         """
         Initialize a DataSet object with a json response
         :param json:
         """
+        self.parent = parent
         self.id = json['id']
         self.columns = [Column(c) for c in json['columns']]
         self.filename = json['filename']
@@ -460,6 +461,15 @@ class NewDataSet(object):
         self.sample = pd.DataFrame({
             c.name: c.sample for c in self.columns
         })
+
+    def __getitem__(self, i):
+        return self.columns[i]
+
+    def __iter__(self):
+        return self.columns.__iter__()
+
+    def __len__(self):
+        return len(self.columns)
 
     def column(self, name):
         candidates = [c for c in self.columns if c.name == name]
@@ -581,7 +591,7 @@ class ModelState(object):
         date_created
         date_modified
     """
-    def __init__(self, json): #status, message, date_modified):
+    def __init__(self, json):  # status, message, date_modified):
         """
         Initialize instance of class ModelState.
 
@@ -616,8 +626,12 @@ class ModelState(object):
 
 class NewModel(object):
     """Holds information about the Model object on the Serene server"""
-    def __init__(self, json):
+    def __init__(self, json, parent):
+
         self._pp = pprint.PrettyPrinter(indent=4)
+
+        self.parent = parent
+        self.api = parent.api
 
         self.description = json['description']
         self.id = json['id']
@@ -651,6 +665,97 @@ class NewModel(object):
             "dateCreated: {}".format(self.date_created),
             "dateModified: {}".format(self.date_modified)
         ])
+
+    @property
+    def _columns(self):
+        # first we grab all the columns out from the datasets
+        return [ds.columns for ds in self.parent.datasets]
+
+    @property
+    def _column_lookup(self):
+        # first we grab all the columns out from the datasets
+        return {item.id: item for sublist in self._columns for item in sublist}
+
+    @property
+    def labels(self):
+        """Returns the label DataFrame, which contains the
+        user-specified columns
+        """
+        keys = [int(k) for k in self.label_data.keys()]
+        labels = [lab for lab in self.label_data.values()]
+
+        return pd.DataFrame({
+            'user_label': labels,
+            'column_name': [self._column_lookup[x].name for x in keys],
+            'column_id': keys
+        })
+
+    def _label_entry(self, col, label):
+        """Prepares the label entry by ensuring the key is a
+           valid string key and the label is also valid"""
+
+        if issubclass(type(col), Column):
+            key = str(col.id)
+        else:
+            key = str(col)
+
+        # ensure that the key is valid...
+        assert \
+            int(key) in self._column_lookup, \
+            "Key '{}' is not in column ids {}".format(key, self._column_lookup.keys())
+
+        # ensure that the label is in the classes...
+        assert \
+            label in self.classes, \
+            "Label '{}' is not in classes {}".format(label, self.classes)
+
+        return str(key), label
+
+    def add_label(self, col, label):
+        """Users can add a label to column col. `col` can be a
+        Column object or a string id
+
+        Args:
+            col: Column object or int id
+            label: The class label (this must exist in the model params)
+
+        Returns:
+            The updated set of labels
+        """
+        key, value = self._label_entry(col, label)
+
+        label_table = self.label_data
+        label_table[key] = value
+
+        json = self.api.update_model(self.id, labels=label_table)
+
+        self.__init__(json, self.parent)
+
+        return self.labels
+
+    def add_labels(self, table):
+        """Users can add a label to column col. `col` can be a
+        Column object or a string id
+
+        Args:
+            table: key-value dict with keys as Column objects or int ids
+                   and the values as the class labels (this must exist in the model params)
+
+        Returns:
+            The updated set of labels
+        """
+        label_table = self.label_data
+
+        for k, v in table.items():
+            key, value = self._label_entry(k, v)
+            label_table[key] = value
+
+        json = self.api.update_model(self.id, labels=label_table)
+
+        self.__init__(json, self.parent)
+
+        return self.labels
+
 
 class ModelList(collections.MutableSequence):
     """

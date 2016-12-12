@@ -248,17 +248,16 @@ class Session(object):
         self._handle_errors(r, "GET " + self._uri_model)
         return r.json()
 
-    def process_model_input(self,
-                            feature_config=None,
-                            description=None,
-                            classes=None,
-                            model_type=None,
-                            labels=None,
-                            cost_matrix=None,
-                            resampling_strategy=None):
-
-        # TODO: more sophisticated check of input...
-        data = dict()
+    def _process_model_input(self,
+                             feature_config=None,
+                             description=None,
+                             classes=None,
+                             model_type=None,
+                             labels=None,
+                             cost_matrix=None,
+                             resampling_strategy=None):
+        """Prepares a json update string for the model update request"""
+        data = {}
         if description:
             data["description"] = description
         if classes:
@@ -266,7 +265,7 @@ class Session(object):
         if model_type:
             data["modelType"] = model_type
         if labels:
-            lab_str = dict([(str(key), str(val)) for key,val in labels.items()])
+            lab_str = {str(key): str(val) for key, val in labels.items()}
             data["labelData"] = lab_str
         if cost_matrix:
             data["costMatrix"] = cost_matrix
@@ -301,16 +300,18 @@ class Session(object):
         if classes is None:
             classes = ["unknown"]
 
+        assert "unknown" in classes
+
         logging.info('Sending request to the schema matcher server to post a model.')
 
         try:
-            data = self.process_model_input(feature_config,
-                                            description,
-                                            classes,
-                                            model_type,
-                                            labels,
-                                            cost_matrix,
-                                            resampling_strategy)
+            data = self._process_model_input(feature_config,
+                                             description,
+                                             classes,
+                                             model_type,
+                                             labels,
+                                             cost_matrix,
+                                             resampling_strategy)
             r = self.session.post(self._uri_model, json=data)
         except Exception as e:
             logging.error(e)
@@ -320,13 +321,13 @@ class Session(object):
 
     def update_model(self,
                      model_key,
-                     feature_config,
-                     description,
-                     classes,
-                     model_type,
-                     labels,
-                     cost_matrix,
-                     resampling_strategy):
+                     feature_config=None,
+                     description=None,
+                     classes=None,
+                     model_type=None,
+                     labels=None,
+                     cost_matrix=None,
+                     resampling_strategy=None):
         """
         Update an existing model in the model repository at the schema matcher server.
         Args:
@@ -345,18 +346,19 @@ class Session(object):
         logging.info('Sending request to the schema matcher server to update model %d' % model_key)
         uri = self._model_endpoint(model_key)
         try:
-            data = self.process_model_input(feature_config,
-                                            description,
-                                            classes,
-                                            model_type,
-                                            labels,
-                                            cost_matrix,
-                                            resampling_strategy)
+            data = self._process_model_input(feature_config,
+                                             description,
+                                             classes,
+                                             model_type,
+                                             labels,
+                                             cost_matrix,
+                                             resampling_strategy)
+
             r = self.session.post(uri, json=data)
         except Exception as e:
             logging.error(e)
             raise InternalError("update_model", e)
-        self._handle_errors(r, "PATCH " + uri)
+        self._handle_errors(r, "POST " + uri)
         return r.json()
 
     def model(self, model_key):

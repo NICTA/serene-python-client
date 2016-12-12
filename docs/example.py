@@ -218,37 +218,56 @@ print(dm.models[0])
 # # model_state: ModelState(<Status.COMPLETE: 'complete'>, created on 2016-08-11 03:02:52, modified on 2016-08-11 03:02:53, message '')
 
 
+print("by default, model shows the current labels for the dataset columns (ground truth)")
 
-print("by default model shows the current labels for the dataset columns (ground truth)")
+model = dm.models[0]
 
-print(model.user_labels)
-#           id   user_label column_name    column_id
-#  2  6ff9sdug      unknown      colnma     08y08yfg
-#  4  42fv87g2         name        junk     js6egdia
-#  5  8ut20yet        phone          ph     js6egdia
-#  6  d55ifgh0        phone  home-phone     js6egdia
-#  7  vbcuw238         name        name     js6egdia
-#  8  jf84hsod      address        addr     js6egdia
-#  9  7db29sdj      address   busn-addr     js6egdia
-# 10  d0h1hskj         name   junk-name     q25srwty
+print(model.labels)
+#       user_label column_name    column_id
+#  2       unknown      colnma     08y08yfg
+#  4          name        junk     zs6egdia
+#  5         phone          ph     hs6egdib
+#  6         phone  home-phone     xs6egdic
+#  7          name        name     bs6egdid
+#  8       address        addr     gs6egdie
+#  9       address   busn-addr     as6egdif
+# 10          name   junk-name     q25srwty
 #
 #
-# # labels can be added, but re-training has to be called later on
+print()
+print("labels can be added, but re-training has to be called later on")
+print(model.add_labels({
+    dm.datasets[0][3]: 'address',
+    dm.datasets[0][4]: 'phone'
+}))
+
+print()
+print("labels can also be added one by one")
+print(model.add_label(
+    dm.datasets[0].column("Product code"),
+    "phone"
+))
+
 #
-# model.add_labels({'12342': 'name', '12343': 'addr'})
+#       user_label column_name    column_id
+#  2       unknown      colnma     08y08yfg
+#  4          name        junk     zs6egdia
+#  5         phone          ph     hs6egdib
+#  6         phone  home-phone     xs6egdic
+#  7          name        name     bs6egdid
+#  8       address        addr     gs6egdie
+#  9       address   busn-addr     as6egdif
+# 10          name   junk-name     q25srwty
+# 11          name    column_1        12342
+# 11          addr    column_2        12343
 #
-# #           id   user_label column_name    column_id
-# #  2  6ff9sdug      unknown      colnma     08y08yfg
-# #  4  42fv87g2         name        junk     js6egdia
-# #  5  8ut20yet        phone          ph     js6egdia
-# #  6  d55ifgh0        phone  home-phone     js6egdia
-# #  7  vbcuw238         name        name     js6egdia
-# #  8  jf84hsod      address        addr     js6egdia
-# #  9  7db29sdj      address   busn-addr     js6egdia
-# # 10  d0h1hskj         name   junk-name     q25srwty
 #
 # # train/re-train model and perform inference
 # # all datasets will be used
+# model.train()
+# print(model.state)
+#
+#
 # model.predict()
 #
 #
