@@ -4,7 +4,7 @@ import logging
 import os
 
 # project
-from dataint.wrappers.data_integration_py import SchemaMatcher
+from serene.wrappers.data_integration_py import SchemaMatcher
 
 HERE = os.path.abspath(os.curdir)
 

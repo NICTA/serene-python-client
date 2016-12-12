@@ -1,9 +1,6 @@
 .idea/
-
 data/
-
 dist/
-
 build/
-
-data_integration_py.egg-info/
+serene-python-client.egg-info/
+__pycache__

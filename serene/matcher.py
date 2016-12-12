@@ -9,8 +9,8 @@ import os
 import pandas as pd
 
 # project
-from serene.wrappers import schema_matcher_wrapper as SMW
-from serene.wrappers.schema_matcher_wrapper import Status
+from .wrappers import schema_matcher as SMW
+from .wrappers.schema_matcher import Status
 
 
 class SchemaMatcher(object):

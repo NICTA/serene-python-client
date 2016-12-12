@@ -7,7 +7,7 @@ import logging
 import requests
 from urllib.parse import urljoin
 import pandas as pd
-from serene.wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, InternalDIError
+from ..exceptions import BadRequestError, NotFoundError, OtherError, InternalDIError
 from enum import Enum
 from datetime import datetime
 import time

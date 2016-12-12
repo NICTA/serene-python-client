@@ -1,3 +1,7 @@
+"""
+Exceptions used in Serene Python Client
+"""
+
 class DataIntError(Exception):
     """Base class for exceptions in this project"""
     pass
