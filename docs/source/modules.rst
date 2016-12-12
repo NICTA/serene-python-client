@@ -1,7 +1,7 @@
-dataint
-=======
+serene
+======
 
 .. toctree::
    :maxdepth: 4
 
-   dataint
+   serene

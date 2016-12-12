@@ -1,5 +1,5 @@
 """
-Python wrapper for the Schema Matcher API.
+Python wrapper for the Serene data integration software.
 """
 
 # external
@@ -7,7 +7,7 @@ import logging
 import requests
 from urllib.parse import urljoin
 import pandas as pd
-from dataint.wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, InternalDIError
+from serene.wrappers.exception_spec import BadRequestError, NotFoundError, OtherError, InternalDIError
 from enum import Enum
 from datetime import datetime
 import time

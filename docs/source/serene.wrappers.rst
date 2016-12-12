@@ -1,37 +1,37 @@
-dataint.wrappers package
-========================
+serene.wrappers package
+=======================
 
 Submodules
 ----------
 
-dataint.wrappers.data_integration_py module
+serene.wrappers.data_integration_py module
 -------------------------------------------
 
-.. automodule:: dataint.wrappers.data_integration_py
+.. automodule:: serene.wrappers.data_integration_py
     :members:
     :undoc-members:
     :show-inheritance:
 
-dataint.wrappers.data_quality_wrapper module
+serene.wrappers.data_quality_wrapper module
 --------------------------------------------
 
-.. automodule:: dataint.wrappers.data_quality_wrapper
+.. automodule:: serene.wrappers.data_quality_wrapper
     :members:
     :undoc-members:
     :show-inheritance:
 
-dataint.wrappers.exception_spec module
+serene.wrappers.exception_spec module
 --------------------------------------
 
-.. automodule:: dataint.wrappers.exception_spec
+.. automodule:: serene.wrappers.exception_spec
     :members:
     :undoc-members:
     :show-inheritance:
 
-dataint.wrappers.schema_matcher_wrapper module
+serene.wrappers.schema_matcher_wrapper module
 ----------------------------------------------
 
-.. automodule:: dataint.wrappers.schema_matcher_wrapper
+.. automodule:: serene.wrappers.schema_matcher_wrapper
     :members:
     :undoc-members:
     :show-inheritance:
@@ -40,7 +40,7 @@ dataint.wrappers.schema_matcher_wrapper module
 Module contents
 ---------------
 
-.. automodule:: dataint.wrappers
+.. automodule:: serene.wrappers
     :members:
     :undoc-members:
     :show-inheritance:

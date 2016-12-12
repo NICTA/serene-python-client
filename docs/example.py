@@ -1,8 +1,8 @@
-import dataint
+import serene
 
 # connect to the server...
 # host and port are for now taken from the config.settings.py file
-dm = dataint.SchemaMatcher(
+dm = serene.SchemaMatcher(
     host="http://localhost",
     port=9000)
 

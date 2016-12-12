@@ -1,5 +1,5 @@
 """
-The Data Integration Python client
+Serene Python client: Data Integration Software
 """
 
 # external
@@ -9,8 +9,8 @@ import os
 import pandas as pd
 
 # project
-from dataint.wrappers import schema_matcher_wrapper as SMW
-from dataint.wrappers.schema_matcher_wrapper import Status
+from serene.wrappers import schema_matcher_wrapper as SMW
+from serene.wrappers.schema_matcher_wrapper import Status
 
 
 class SchemaMatcher(object):

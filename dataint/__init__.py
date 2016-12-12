@@ -1,1 +1,0 @@
-from dataint.wrappers.data_integration_py import SchemaMatcher

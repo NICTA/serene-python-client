@@ -1,17 +1,17 @@
-dataint package
-===============
+serene package
+==============
 
 Subpackages
 -----------
 
 .. toctree::
 
-    dataint.wrappers
+    serene.wrappers
 
 Module contents
 ---------------
 
-.. automodule:: dataint
+.. automodule:: serene
     :members:
     :undoc-members:
     :show-inheritance:
