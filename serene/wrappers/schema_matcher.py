@@ -16,26 +16,6 @@ from enum import Enum
 from urllib.parse import urljoin
 
 
-class Status(Enum):
-    """Enumerator of possible model states."""
-    ERROR = "error"
-    UNTRAINED = "untrained"
-    BUSY = "busy"
-    COMPLETE = "complete"
-
-    @staticmethod
-    def to_status(status):
-        """Helper function to convert model state
-        from a string to Status Enumerator."""
-        if status == "error":
-            return Status.ERROR
-        if status == "untrained":
-            return Status.UNTRAINED
-        if status == "busy":
-            return Status.BUSY
-        if status == "complete":
-            return Status.COMPLETE
-        raise InternalError("to_status({})", "status not supported.".format(status))
 
 
 class Session(object):
@@ -379,7 +359,7 @@ class Session(object):
         self._handle_errors(r, "PATCH " + uri)
         return r.json()
 
-    def list_model(self, model_key):
+    def model(self, model_key):
         """
         Get information on a specific model in the model repository at the schema matcher server.
         Args:
@@ -645,47 +625,10 @@ class Session(object):
 #         return label_data
 #
 #
-# class ModelState(object):
-#     """
-#     Class to wrap the model state.
-#
-#     Attributes:
-#         status
-#         message
-#         date_created
-#         date_modified
-#     """
-#     def __init__(self, status, message, date_modified):
-#         """
-#         Initialize instance of class ModelState.
-#
-#         Args:
-#             status : string
-#             date_created
-#             date_modified
-#         """
-#         self.status = Status.to_status(status)  # convert to Status enum
-#         self.message = message
-#         self.date_modified = convert_datetime(date_modified)
-#
-#     def __repr__(self):
-#         return "ModelState(" + repr(self.status)\
-#                + ", modified on " + str(self.date_modified)\
-#                + ", message " + repr(self.message) + ")"
-#
-#     def __eq__(self, other):
-#         if isinstance(other, ModelState):
-#             return self.status == other.status \
-#                    and self.date_modified == other.date_modified
-#         return False
-#
-#     def __ne__(self, other):
-#         return not self.__eq__(other)
-#
-#     def __str__(self):
-#         return self.__repr__()
-#
-#
+
+
+
+
 # class Model(object):
 #     """
 #     Class to wrap the model.

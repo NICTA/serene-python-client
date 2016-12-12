@@ -10,10 +10,12 @@ import os
 import os.path
 import pandas as pd
 import collections
+import pprint
 
 from .utils import convert_datetime
 from .wrappers import schema_matcher as api
-from .wrappers.schema_matcher import Status
+#from .wrappers.schema_matcher import Status
+from enum import Enum
 
 
 class SchemaMatcher(object):
@@ -57,6 +59,15 @@ class SchemaMatcher(object):
         for k in keys:
             ds.append(NewDataSet(s.dataset(k)))
         return ds
+
+    @property
+    def models(self):
+        s = self._session
+        keys = s.model_keys()
+        ms = ModelList()
+        for k in keys:
+            ms.append(NewModel(s.model(k)))
+        return ms
 
     # def _refresh(self):
     #     """
@@ -290,46 +301,56 @@ class SchemaMatcher(object):
     #     """
     #     return api.DataSet(self._session.list_dataset(dataset_key))
     #
-    # def create_model(self,
-    #                  feature_config,
-    #                  description="",
-    #                  classes=None,
-    #                  model_type="randomForest",
-    #                  labels=None,
-    #                  cost_matrix=None,
-    #                  resampling_strategy="ResampleToMean"):
-    #
-    #     """
-    #     Post a new model to the schema matcher server.
-    #     Refresh SchemaMatcher instance to include the new model.
-    #
-    #     Args:
-    #          feature_config : dictionary
-    #          description : string which describes the model to be posted
-    #          classes : list of class names
-    #          model_type : string
-    #          labels : dictionary
-    #          cost_matrix :
-    #          resampling_strategy : string
-    #
-    #     Returns: MatcherModel
-    #
-    #     """
-    #     if classes is None:
-    #         classes = ["unknown"]
-    #
-    #     resp_dict = self._session.post_model(feature_config,
-    #                                      description,
-    #                                      classes,
-    #                                      model_type,
-    #                                      labels,
-    #                                      cost_matrix,
-    #                                      resampling_strategy) # send API request
-    #     new_model = api.Model(resp_dict, self, self._column_map)
-    #     self._refresh_models()  # we need to update class attributes to include new model
-    #
-    #     return new_model
-    #
+    def create_model(self,
+                     feature_config,
+                     description="",
+                     classes=None,
+                     model_type="randomForest",
+                     labels=None,
+                     cost_matrix=None,
+                     resampling_strategy="ResampleToMean"):
+
+        """
+        Post a new model to the schema matcher server.
+        Refresh SchemaMatcher instance to include the new model.
+
+        Args:
+             feature_config : dictionary
+             description : string which describes the model to be posted
+             classes : list of class names
+             model_type : string
+             labels : dictionary
+             cost_matrix :
+             resampling_strategy : string
+
+        Returns: MatcherModel
+
+        """
+        if classes is None:
+            classes = ["unknown"]
+
+        def column_parse(col):
+            """Turns a column into the id"""
+            if issubclass(type(col), Column):
+                return str(col.id)
+            else:
+                return str(col)
+
+        def label_parse(ld):
+            return {column_parse(k): v for k, v in ld.items()}
+
+        assert 'unknown' in classes
+
+        json = self._session.post_model(feature_config,
+                                        description,
+                                        classes,
+                                        model_type,
+                                        label_parse(labels),
+                                        cost_matrix,
+                                        resampling_strategy)  # send API request
+
+        return NewModel(json)
+
     def create_dataset(self, file_path, description, type_map):
         """
         Upload a new dataset to the schema matcher server.
@@ -362,6 +383,18 @@ class SchemaMatcher(object):
             self._session.delete_dataset(key.id)
         else:
             self._session.delete_dataset(key)
+
+    def remove_model(self, key):
+        """
+        Remove model `key` (can be the id, or the Model object)
+
+        :param key: The key for the model or Model object
+        :return: None
+        """
+        if issubclass(type(key), NewModel):
+            self._session.delete_model(key.id)
+        else:
+            self._session.delete_model(key)
 
     # def train_all(self):
     #     """
@@ -422,11 +455,20 @@ class NewDataSet(object):
         self.path = json['path']
         self.type_map = json['typeMap']
         self.description = json['description']
-        self.date_created = json['dateCreated']
-        self.date_modified = json['dateModified']
+        self.date_created = convert_datetime(json['dateCreated'])
+        self.date_modified = convert_datetime(json['dateModified'])
         self.sample = pd.DataFrame({
             c.name: c.sample for c in self.columns
         })
+
+    def column(self, name):
+        candidates = [c for c in self.columns if c.name == name]
+        if len(candidates) == 1:
+            return candidates[0]
+        elif len(candidates) > 1:
+            raise ValueError("Column name {} is ambiguous.".format(name))
+        else:
+            raise ValueError("Column name {} does not exist.".format(name) )
 
     @property
     def info(self):
@@ -499,12 +541,177 @@ class DataSetList(collections.MutableSequence):
                 elem.id,
                 os.path.basename(elem.filename),
                 elem.description,
-                convert_datetime(elem.date_created),
-                convert_datetime(elem.date_modified),
+                elem.date_created,
+                elem.date_modified,
                 max(c.size for c in elem.columns),
                 len(elem.columns)
             ]
         return df
+
+
+class Status(Enum):
+    """Enumerator of possible model states."""
+    ERROR = "error"
+    UNTRAINED = "untrained"
+    BUSY = "busy"
+    COMPLETE = "complete"
+
+    @staticmethod
+    def to_status(status):
+        """Helper function to convert model state
+        from a string to Status Enumerator."""
+        if status == "error":
+            return Status.ERROR
+        if status == "untrained":
+            return Status.UNTRAINED
+        if status == "busy":
+            return Status.BUSY
+        if status == "complete":
+            return Status.COMPLETE
+        raise ValueError("Status {} is not supported.".format(status))
+
+
+class ModelState(object):
+    """
+    Class to wrap the model state.
+
+    Attributes:
+        status
+        message
+        date_created
+        date_modified
+    """
+    def __init__(self, json): #status, message, date_modified):
+        """
+        Initialize instance of class ModelState.
+
+        Args:
+            status : string
+            date_created
+            date_modified
+        """
+        self.status = Status.to_status(json['status'])  # convert to Status enum
+        self.message = json['message']
+        self.date_modified = convert_datetime(json['dateChanged'])
+
+    def __repr__(self):
+        return "ModelState({}, modified on {}, msg: {})".format(
+            self.status,
+            self.date_modified,
+            self.message
+        )
+
+    # def __eq__(self, other):
+    #     if isinstance(other, ModelState):
+    #         return self.status == other.status \
+    #                and self.date_modified == other.date_modified
+    #     return False
+    #
+    # def __ne__(self, other):
+    #     return not self.__eq__(other)
+    #
+    # def __str__(self):
+    #     return self.__repr__()
+
+
+class NewModel(object):
+    """Holds information about the Model object on the Serene server"""
+    def __init__(self, json):
+        self._pp = pprint.PrettyPrinter(indent=4)
+
+        self.description = json['description']
+        self.id = json['id']
+        self.model_type = json['modelType']
+        self.classes = json['classes']
+        self.features = json['features']
+        self.cost_matrix = json['costMatrix']
+        self.resampling_strategy = json['resamplingStrategy']
+        self.label_data = json['labelData']
+        self.ref_datasets = json['refDataSets']
+        self.model_path = json['modelPath'] if 'modelPath' in json else ''
+        self.state = ModelState(json['state'])
+        self.date_created = convert_datetime(json['dateCreated'])
+        self.date_modified = convert_datetime(json['dateModified'])
+
+    @property
+    def info(self):
+        """Shows the information about the dataset"""
+        return "\n".join([
+            "id: {}".format(self.id),
+            "description: {}".format(self.description),
+            "modelType: {}".format(self.model_type),
+            "classes: {}".format('\n\t'.join(self.classes)),
+            "features: {}".format(self._pp.pprint(self.features)),
+            "cost_matrix: {}".format(self.cost_matrix),
+            "resamplingStrategy: {}".format(self.resampling_strategy),
+            "labelData: {}".format(self._pp.pprint(self.label_data)),
+            "refDataSets: {}".format(self.ref_datasets),
+            "modelPath: {}".format(self.model_path),
+            "state: {}".format(self.state),
+            "dateCreated: {}".format(self.date_created),
+            "dateModified: {}".format(self.date_modified)
+        ])
+
+class ModelList(collections.MutableSequence):
+    """
+    Container type for Model objects in the Serene Python Client
+    """
+
+    def __init__(self, *args):
+        self.list = list()
+        self.extend(list(args))
+
+    @staticmethod
+    def check(v):
+        if not issubclass(type(v), NewModel):
+            raise TypeError("Only Model types permitted: {}".format(v))
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, i):
+        return self.list[i]
+
+    def __delitem__(self, i):
+        msg = "Use SchemaMatcher.remove_model to correctly remove model"
+        logging.error(msg)
+        raise Exception(msg)
+
+    def __setitem__(self, i, v):
+        self.check(v)
+        self.list[i] = v
+
+    def insert(self, i, v):
+        self.check(v)
+        self.list.insert(i, v)
+
+    def __repr__(self):
+        ms = []
+        for v in self.list:
+            s = "Model({})".format(v.id)
+            ms.append(s)
+        return "[{}]".format('\n'.join(ms))
+
+    def to_df(self):
+        df = pd.DataFrame(columns=[
+            'model_id',
+            'description',
+            'created',
+            'modified',
+            'status',
+            'state_modified'
+        ])
+        for elem in self.list:
+            df.loc[len(df)] = [
+                elem.id,
+                elem.description,
+                elem.date_created,
+                elem.date_modified,
+                elem.state.status.name,
+                elem.state.date_modified
+            ]
+        return df
+
 
 if __name__ == "__main__":
     proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.curdir)))

@@ -95,18 +95,15 @@ print(dm.datasets)
 #
 # # lists all the models...
 #
-# dm.models
-# # [
-# #    <MatcherModel(1234)>,
-# #    <MatcherModel(2345)>,
-# #    <MatcherModel(3456)>,
-# #    <MatcherModel(567)>,
-# #    <MatcherModel(4678)>
-# # ]
+print()
+print("Here is a list of all the models on the server:")
+print(dm.models)
 #
 # # summary for all models
 #
-# dm.model_summary
+print()
+print("Summary in table form")
+print(dm.models.to_df())
 # #     model_id  description     created    modified     status  state_created state_modified
 # #  1  42fv87g2         name  2016-04-07  2016-04-07   COMPLETE     2016-04-07     2016-04-07
 # #  2  8ut20yet        phone  2016-04-07  2016-04-07  UNTRAINED     2016-04-07     2016-04-07
@@ -115,34 +112,96 @@ print(dm.datasets)
 #
 #
 #
-# # Configuration parameters for the model upload
+print("Configuration parameters for the model upload")
 #
 # # configuration for the feature calculation
-# features = {"activeFeatures": ["num-unique-vals", "prop-unique-vals", "prop-missing-vals"],
-#             "activeFeatureGroups": ["stats-of-text-length", "prop-instances-per-class-in-knearestneighbours"],
-#             "featureExtractorParams": [
-#                 {"name": "prop-instances-per-class-in-knearestneighbours", "num-neighbours": 5}]
-#             }
+features = {
+    "activeFeatures" : [
+        "num-unique-vals",
+        "prop-unique-vals",
+        "prop-missing-vals",
+        "ratio-alpha-chars",
+        "prop-numerical-chars",
+        "prop-whitespace-chars",
+        "prop-entries-with-at-sign",
+        "prop-entries-with-hyphen",
+        "prop-range-format",
+        "is-discrete",
+        "entropy-for-discrete-values"
+    ],
+    "activeFeatureGroups" : [
+        "inferred-data-type",
+        "stats-of-text-length",
+        "stats-of-numeric-type",
+        "prop-instances-per-class-in-knearestneighbours",
+        "mean-character-cosine-similarity-from-class-examples",
+        "min-editdistance-from-class-examples",
+        "min-wordnet-jcn-distance-from-class-examples",
+        "min-wordnet-lin-distance-from-class-examples"
+    ],
+    "featureExtractorParams" : [
+        {
+            "name" : "prop-instances-per-class-in-knearestneighbours",
+            "num-neighbours" : 3
+        }, {
+            "name" : "min-editdistance-from-class-examples",
+            "max-comparisons-per-class" : 20
+        }, {
+            "name" : "min-wordnet-jcn-distance-from-class-examples",
+            "max-comparisons-per-class" : 20
+        }, {
+            "name" : "min-wordnet-lin-distance-from-class-examples",
+            "max-comparisons-per-class" : 20
+        }
+    ]
+}
+
+# resampling strategy
+resampling_strategy = "ResampleToMean"
+
+# list of semantic types
+classes = ["year_built", "address", "bathrooms", "bedrooms", "email", "fireplace", "firm_name", "garage",
+           "heating", "house_description", "levels", "mls", "phone", "price", "size", "type", "unknown"]
+
+# description of the model
+descr = "test model"
+
+# label data
+label_data = {
+    dm.datasets[0].column('Quality'): 'bedrooms',
+    dm.datasets[0].column('Year'): 'year_built',
+    dm.datasets[0].column('Product code'): 'mls',
+    dm.datasets[1].column('Quality'): 'bedrooms',
+    dm.datasets[1].column('Year'): 'year_built',
+    dm.datasets[1].column('Product code'): 'mls',
+}
+
+
 #
-# # resampling strategy
-# resampling_strategy = "ResampleToMean"
+# Create a new model.
 #
-# # list of semantic types
-# classes = ["year_built", "address", "bathrooms", "bedrooms", "email", "fireplace", "firm_name", "garage",
-#            "heating", "house_description", "levels", "mls", "phone", "price", "size", "type", "unknown"]
+model = dm.create_model(
+    feature_config=features,
+    classes=classes,
+    description=descr,
+    labels=label_data,
+    resampling_strategy=resampling_strategy
+)
+print(model.info)
+
+print()
+print("Now we should see the new model in the list")
+print(dm.models)
+
+print()
+print("We can also remove models")
+dm.remove_model(model.id)
+print(dm.models)
+# Training needs to be called explicitly afterwards
 #
-# #description of the model
-# descr = "test model"
-#
-# # Create a new model.
-#
-# model = dm.create_model(
-#     feature_config=features, classes=classes, description=descr,
-#     labels=label_data, resampling_strategy=resampling_strategy
-# ) # Training needs to be called explicitly afterwards
-#
-# # show model settings
-# print(model)
+# show model settings
+print()
+print(dm.models[0])
 # # model_key: 345683
 # # model_type: randomForest
 # # features_config: {"activeFeatures": ["num-unique-vals", "prop-unique-vals", "prop-missing-vals"],
@@ -157,21 +216,21 @@ print(dm.datasets)
 # # date_created: 2016-08-11 03:02:52
 # # date_modified: 2016-08-11 03:02:52
 # # model_state: ModelState(<Status.COMPLETE: 'complete'>, created on 2016-08-11 03:02:52, modified on 2016-08-11 03:02:53, message '')
-#
-#
-#
-# # by default model shows the current labels for the dataset columns (ground truth)
-#
-# model.user_labels
-# #           id   user_label column_name    column_id
-# #  2  6ff9sdug      unknown      colnma     08y08yfg
-# #  4  42fv87g2         name        junk     js6egdia
-# #  5  8ut20yet        phone          ph     js6egdia
-# #  6  d55ifgh0        phone  home-phone     js6egdia
-# #  7  vbcuw238         name        name     js6egdia
-# #  8  jf84hsod      address        addr     js6egdia
-# #  9  7db29sdj      address   busn-addr     js6egdia
-# # 10  d0h1hskj         name   junk-name     q25srwty
+
+
+
+print("by default model shows the current labels for the dataset columns (ground truth)")
+
+print(model.user_labels)
+#           id   user_label column_name    column_id
+#  2  6ff9sdug      unknown      colnma     08y08yfg
+#  4  42fv87g2         name        junk     js6egdia
+#  5  8ut20yet        phone          ph     js6egdia
+#  6  d55ifgh0        phone  home-phone     js6egdia
+#  7  vbcuw238         name        name     js6egdia
+#  8  jf84hsod      address        addr     js6egdia
+#  9  7db29sdj      address   busn-addr     js6egdia
+# 10  d0h1hskj         name   junk-name     q25srwty
 #
 #
 # # labels can be added, but re-training has to be called later on
