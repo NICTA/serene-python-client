@@ -1,13 +1,17 @@
 """
-Exceptions used in Serene Python Client
+Copyright (C) 2016 Data61 CSIRO
+Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+
+Holds Exceptions used for the Serene Python Client
 """
 
-class DataIntError(Exception):
+
+class SereneError(Exception):
     """Base class for exceptions in this project"""
     pass
 
 
-class InternalDIError(DataIntError):
+class InternalError(SereneError):
     def __init__(self, expr, msg):
         """Exception raised by the Python client.
 
@@ -19,13 +23,13 @@ class InternalDIError(DataIntError):
         self.msg = msg
 
     def __repr__(self):
-        return "InternalDIError in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
+        return "InternalError in expression={} and message={}".format(self.expr, self.msg)
 
     def __str__(self):
         return self.__repr__()
 
 
-class BadRequestError(DataIntError):
+class BadRequestError(SereneError):
     def __init__(self, expr, msg):
         """Exception raised for bad requests to APIs.
 
@@ -38,13 +42,13 @@ class BadRequestError(DataIntError):
         self.msg = msg
 
     def __repr__(self):
-        return "BadRequestError in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
+        return "BadRequestError in expression={} and message={}".format(self.expr, self.msg)
 
     def __str__(self):
         return self.__repr__()
 
 
-class NotFoundError(DataIntError):
+class NotFoundError(SereneError):
     def __init__(self, expr, msg):
         """Exception raised if API returns not found error.
 
@@ -57,18 +61,18 @@ class NotFoundError(DataIntError):
         self.msg = msg
 
     def __repr__(self):
-        return "NotFoundError in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
+        return "NotFoundError in expression={} and message={}".format(self.expr, self.msg)
 
     def __str__(self):
         return self.__repr__()
 
 
-class OtherError(DataIntError):
+class OtherError(SereneError):
     def __init__(self, status_code, expr, msg):
         """Exception raised if API returns some other error.
 
             Attributes:
-                status : status code returned by API
+                status_code : status code returned by API
                 expr : input expression in which the error occurred
                 msg  : explanation of the error
             """
@@ -77,8 +81,8 @@ class OtherError(DataIntError):
         self.msg = msg
 
     def __repr__(self):
-        return "OtherError with status_code=" + repr(self.status_code) + \
-               " in expression=" + repr(self.expr) + " and message=" + repr(self.msg)
+        return "OtherError with status_code={} " \
+               "in expression={} and message={}".format(self.status_code, self.expr, self.msg)
 
     def __str__(self):
         return self.__repr__()

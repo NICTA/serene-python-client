@@ -2,37 +2,17 @@
 Python wrapper for the Serene data integration software.
 """
 
-# external
 import logging
 import requests
-from urllib.parse import urljoin
 import pandas as pd
-from ..exceptions import BadRequestError, NotFoundError, OtherError, InternalDIError
-from enum import Enum
-from datetime import datetime
 import time
 import numpy as np
 
-# project
-from config import settings as conf_set
+from ..exceptions import BadRequestError, NotFoundError, OtherError, InternalError
+from enum import Enum
+from urllib.parse import urljoin
+from datetime import datetime
 
-################### helper funcs
-
-def pretty_print_POST(req):
-    """
-    At this point it is completely built and ready
-    to be fired; it is "prepared".
-
-    However pay attention at the formatting used in
-    this function because it is programmed to be pretty
-    printed and may differ from the actual request.
-    """
-    print('{}\n{}\n{}\n\n{}'.format(
-        '-----------START-----------',
-        req.method + ' ' + req.url,
-        '\n'.join('{}: {}'.format(k, v) for k, v in req.headers.items()),
-        req.body,
-    ))
 
 class Status(Enum):
     """Enumerator of possible model states."""
@@ -41,18 +21,20 @@ class Status(Enum):
     BUSY = "busy"
     COMPLETE = "complete"
 
-def get_status(status):
-    """Helper function to convert model state
-    from a string to Status Enumerator."""
-    if status == "error":
-        return Status.ERROR
-    if status == "untrained":
-        return Status.UNTRAINED
-    if status == "busy":
-        return Status.BUSY
-    if status == "complete":
-        return Status.COMPLETE
-    raise InternalDIError("get_status("+str(status)+")", "status not supported.")
+    @staticmethod
+    def to_status(status):
+        """Helper function to convert model state
+        from a string to Status Enumerator."""
+        if status == "error":
+            return Status.ERROR
+        if status == "untrained":
+            return Status.UNTRAINED
+        if status == "busy":
+            return Status.BUSY
+        if status == "complete":
+            return Status.COMPLETE
+        raise InternalError("get_status({})", "status not supported.".format(status))
+
 
 def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):
     """
@@ -74,9 +56,8 @@ def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):
         converted = datetime.strptime(datetime_string, fmt)
     except Exception as e:
         logging.error("Failed converting string to datetime: " + repr(datetime_string))
-        raise InternalDIError("Failed converting string to datetime: " + repr(datetime_string), e)
+        raise InternalError("Failed converting string to datetime: " + repr(datetime_string), e)
     return converted
-###################
 
 
 class SchemaMatcherSession(object):
@@ -91,35 +72,71 @@ class SchemaMatcherSession(object):
             uri_ds: uri for the dataset endpoint of the schema matcher API
             uri_model: uri for the model endpoint of the schema matcher API
     """
-    def __init__(self):
-        """Initialize instance of the SchemaMatcherSession."""
-        logging.info('Initialising session to connect to the schema matcher server.')
-        self.session = requests.Session()
-        self.session.trust_env = conf_set.schema_matcher_server['trust_env']
-        self.session.auth = conf_set.schema_matcher_server['auth']
-        self.session.cert = conf_set.schema_matcher_server['cert']
-
-        # uri to send requests to
-        self.uri = conf_set.schema_matcher_server['uri']
-        if self.test_connection(): # test connection to the server
-            logging.info("Connection to the server has been established.")
-        self.uri_ds = urljoin(self.uri, 'dataset') + '/' # uri for the dataset endpoint
-        self.uri_model = urljoin(self.uri, 'model') + '/'  # uri for the model endpoint
-
-    def test_connection(self):
+    def __init__(self, host, port,
+                 auth=None, cert=None, trust_env=None):
         """
+        Initialize and maintain a session with the Serene backend
+        :param host: The address of the Serene backend
+        :param port: The port number
+        :param version: The version of the API (default defined in const) e.g. v1.0
+        :param auth: The authentication token (None if non-secure connection)
+        :param cert: The security certificate
+        :param trust_env: The trusted environment token
+        """
+        logging.info('Initialising session to connect to the schema matcher server.')
 
-        Returns:
+        self.session = requests.Session()
+        self.session.trust_env = trust_env
+        self.session.auth = auth
+        self.session.cert = cert
+
+        # root URL for the Serene backend
+        root = "http://{}:{}".format(host, port)
+
+        # this will throw an error an fail the init if not available...
+        self.version = self._test_connection(root)
+
+        self.uri = urljoin(root, self.version + '/')
+
+        self.uri_ds = urljoin(self.uri, 'dataset/')  # + '/'  # uri for the dataset endpoint
+        self.uri_model = urljoin(self.uri, 'model/')  # + '/'  # uri for the model endpoint
+
+    def _test_connection(self, root):
+        """
+        Tests the connection at root. The server response should be a json
+        string indicating the correct version endpoint to use e.g.
+        {'version': 'v1.0'}
+
+        Returns: The version string of the server
 
         """
         logging.info('Testing connection to the server...')
+
         try:
-            r = self.session.get(self.uri)
-        except Exception as e:
+            # test connection to the server
+            req = self.session.get(root)
+
+            # attempt to decode the version...
+            version = req.json()['version']
+
+            logging.info("Connection to the server has been established.")
+            print("Connection to server established: {}".format(root))
+
+            return version
+
+        except requests.exceptions.RequestException as e:
+            msg = "Failed to connect to {}".format(self.uri)
+            print(msg)
+            logging.error(msg)
             logging.error(e)
-            raise InternalDIError("Connection test", e)
-        self.handle_errors(r, "GET " + self.uri)
-        return True
+        except KeyError:
+            msg = "Failed to decode server response"
+            logging.error(msg)
+            raise ConnectionError(msg)
+
+        # here we raise a simpler error to prevent the giant
+        # requests error stack...
+        raise ConnectionError(msg)
 
     def __repr__(self):
         return "<SchemaMatcherSession at (" + str(self.uri) + ")>"
@@ -127,7 +144,8 @@ class SchemaMatcherSession(object):
     def __str__(self):
         return self.__repr__()
 
-    def handle_errors(self, response, expr):
+    @staticmethod
+    def handle_errors(response, expr):
         """
         Raise errors based on response status_code
 
@@ -140,21 +158,22 @@ class SchemaMatcherSession(object):
         Raises: BadRequestError, NotFoundError, OtherError.
 
         """
+        def log_msg(msg_type, status_code, expr, response):
+            logging.error("{} ({}) in {}: message='{}'".format(msg_type, status_code, expr, response))
+
         if response.status_code == 200 or response.status_code == 202:
             # there are no errors here
             return
 
         if response.status_code == 400:
-            logging.error("BadRequest in " + str(expr) + ": message='" + str(response.json()['message']) + "'")
+            log_msg("BadRequest", response.status_code, expr, response)
             raise BadRequestError(expr, response.json()['message'])
         elif response.status_code == 404:
-            logging.error("NotFound in " + str(expr) + ": message='" + str(response.json()['message']) + "'")
+            log_msg("NotFound", response.status_code, expr, response)
             raise NotFoundError(expr, response.json()['message'])
         else:
-            logging.error("Other error with status_code=" + str(response.status_code) +
-                          " in " + str(expr) + ": message='" + str(response.json()['message']) + "'")
+            log_msg("RequestError", response.status_code, expr, response)
             raise OtherError(response.status_code, expr, response.json()['message'])
-
 
     def list_alldatasets(self):
         """
@@ -169,7 +188,7 @@ class SchemaMatcherSession(object):
             r = self.session.get(self.uri_ds)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("list_alldatasets", e)
+            raise InternalError("list_alldatasets", e)
         self.handle_errors(r, "GET " + self.uri_ds)
         return r.json()
 
@@ -191,7 +210,7 @@ class SchemaMatcherSession(object):
             r = self.session.post(self.uri_ds,  data=data, files=f)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("post_dataset", e)
+            raise InternalError("post_dataset", e)
         self.handle_errors(r, "POST " + self.uri_ds)
         return r.json()
 
@@ -212,7 +231,7 @@ class SchemaMatcherSession(object):
             r = self.session.post(uri, data=data)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("update_dataset", e)
+            raise InternalError("update_dataset", e)
         self.handle_errors(r, "PATCH " + uri)
         return r.json()
 
@@ -230,7 +249,7 @@ class SchemaMatcherSession(object):
             r = self.session.get(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("list_dataset", e)
+            raise InternalError("list_dataset", e)
         self.handle_errors(r, "GET " + uri)
         return r.json()
 
@@ -248,7 +267,7 @@ class SchemaMatcherSession(object):
             r = self.session.delete(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("delete_dataset", e)
+            raise InternalError("delete_dataset", e)
         self.handle_errors(r, "DELETE " + uri)
         return r.json()
 
@@ -263,7 +282,7 @@ class SchemaMatcherSession(object):
             r = self.session.get(self.uri_model)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("list_allmodels", e)
+            raise InternalError("list_allmodels", e)
         self.handle_errors(r, "GET " + self.uri_model)
         return r.json()
 
@@ -321,7 +340,7 @@ class SchemaMatcherSession(object):
             r = self.session.post(self.uri_model, json=data)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("post_model", e)
+            raise InternalError("post_model", e)
         self.handle_errors(r, "POST " + self.uri_model)
         return r.json()
 
@@ -350,7 +369,7 @@ class SchemaMatcherSession(object):
             r = self.session.post(uri, json=data)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("update_model", e)
+            raise InternalError("update_model", e)
         self.handle_errors(r, "PATCH " + uri)
         return r.json()
 
@@ -368,7 +387,7 @@ class SchemaMatcherSession(object):
             r = self.session.get(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("list_model", e)
+            raise InternalError("list_model", e)
         self.handle_errors(r, "GET " + uri)
         return r.json()
 
@@ -385,7 +404,7 @@ class SchemaMatcherSession(object):
             r = self.session.delete(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("delete_model", e)
+            raise InternalError("delete_model", e)
         self.handle_errors(r, "DELETE " + uri)
         return r.json()
 
@@ -403,7 +422,7 @@ class SchemaMatcherSession(object):
             r = self.session.get(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("train_model", e)
+            raise InternalError("train_model", e)
         self.handle_errors(r, "GET " + uri)
         return True
 
@@ -423,7 +442,7 @@ class SchemaMatcherSession(object):
             r = self.session.post(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("predict_model", e)
+            raise InternalError("predict_model", e)
         self.handle_errors(r, "POST " + uri)
         return True
 
@@ -443,7 +462,7 @@ class SchemaMatcherSession(object):
             resp = self.session.get(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalDIError("get_model_predict", e)
+            raise InternalError("get_model_predict", e)
         self.handle_errors(resp, "GET " + uri)
         return resp.json()
 ######################################
@@ -477,7 +496,7 @@ class MatcherDataset(object):
             self.id = int(resp_dict["id"])
         except Exception as e:
             logging.error("Failed to initialize MatcherDataset: dataset key could not be converted to integer.")
-            raise InternalDIError("MatcherDataset initialization", e)
+            raise InternalError("MatcherDataset initialization", e)
 
         self.filename = resp_dict['filename']
         self.filepath = resp_dict['path']
@@ -524,7 +543,7 @@ class MatcherDataset(object):
             self.id = int(resp_dict["id"])
         except Exception as e:
             logging.error("Failed to initialize MatcherDataset: dataset key could not be converted to integer.")
-            raise InternalDIError("MatcherDataset initialization", e)
+            raise InternalError("MatcherDataset initialization", e)
 
         self.filename = resp_dict['filename']
         self.filepath = resp_dict['path']
@@ -614,10 +633,9 @@ class MatcherDataset(object):
                 if col_name in name_labels:
                     label_data[int(col_id)] = name_labels[col_name]
         except Exception as e:
-            raise InternalDIError("construct_labelData", e)
+            raise InternalError("construct_labelData", e)
 
         return label_data
-######################################
 
 
 class ModelState(object):
@@ -630,7 +648,7 @@ class ModelState(object):
         date_created
         date_modified
     """
-    def __init__(self, status, message, date_created, date_modified):
+    def __init__(self, status, message, date_modified):
         """
         Initialize instance of class ModelState.
 
@@ -639,20 +657,18 @@ class ModelState(object):
             date_created
             date_modified
         """
-        self.status = get_status(status) # convert to Status enum
+        self.status = Status.to_status(status)  # convert to Status enum
         self.message = message
-        self.date_created = convert_datetime(date_created)
         self.date_modified = convert_datetime(date_modified)
 
     def __repr__(self):
         return "ModelState(" + repr(self.status)\
-               + ", created on " + str(self.date_created)\
                + ", modified on " + str(self.date_modified)\
                + ", message " + repr(self.message) + ")"
 
     def __eq__(self, other):
         if isinstance(other, ModelState):
-            return self.status == other.status and self.date_created == other.date_created \
+            return self.status == other.status \
                    and self.date_modified == other.date_modified
         return False
 
@@ -698,34 +714,37 @@ class MatcherModel(object):
             matcher: instance of class SchemaMatcher, it contains session as attribute
             column_map : optional dictionary for mapping columns fom ids to names
         """
-        # TODO: check resp_dict
+        print(resp_dict)
+
         try:
             self.id = int(resp_dict["id"])
         except Exception as e:
             logging.error("Failed to initialize MatcherModel: model key could not be converted to integer.")
-            raise InternalDIError("MatcherModel initialization", e)
+            raise InternalError("MatcherModel initialization", e)
+
         self.model_type = resp_dict["modelType"]
         self.description = resp_dict["description"]
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
         self.resampling_strategy = resp_dict["resamplingStrategy"]
         self._label_data = {} # this attribute is internal and should not be viewed/modified by the user
+
         try:
             # print(resp_dict["labelData"])
             # print(type(resp_dict["labelData"]))
             for col_id, lab in resp_dict["labelData"].items():
                 self._label_data[int(col_id)] = lab
         except Exception as e:
-            raise InternalDIError("failed to convert labelData",e)
+            raise InternalError("failed to convert labelData", e)
+
         self.ref_datasets = set(resp_dict["refDataSets"])
         self.classes = resp_dict["classes"]
         self.date_created = convert_datetime(resp_dict["dateCreated"])
         self.date_modified = convert_datetime(resp_dict["dateModified"])
         self.model_state = ModelState(resp_dict["state"]["status"],
                                       resp_dict["state"]["message"],
-                                      resp_dict["state"]["dateCreated"],
-                                      resp_dict["state"]["dateModified"])
-
+                                      resp_dict["state"]["dateChanged"])  #,
+                                      #resp_dict["state"]["dateModified"])
 
         self._matcher = matcher  # this attribute is internal and should not be viewed/modified by the user
         self._column_map = column_map  # this attribute is internal and should not be viewed/modified by the user
@@ -750,14 +769,12 @@ class MatcherModel(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
-
     def _session_update(self):
         """
         Download model updates from the API.
         """
         cur_model = self._matcher._session.list_model(self.id)
         self._refresh(cur_model)
-
 
     def train(self, wait=True):
         """
@@ -785,7 +802,6 @@ class MatcherModel(object):
                 finished = True # finish waiting if training failed or got complete
 
         return finished and self.model_state.status == Status.COMPLETE
-
 
     def get_predictions(self, wait=True, dataset_id=None): # TODO: additional parameter for dataset_id
         """
@@ -823,12 +839,12 @@ class MatcherModel(object):
             resp_dict = self._matcher._session.get_model_predict(self.id)
         elif self.model_state.status == Status.ERROR:
             # either training or prediction failed
-            raise InternalDIError("Prediction/training failed", self.model_state.message)
+            raise InternalError("Prediction/training failed", self.model_state.message)
         elif self.model_state.status == Status.BUSY:
             # either training or prediction is still ongoing
-            raise InternalDIError("Prediction/training still in progress", self.model_state.message)
+            raise InternalError("Prediction/training still in progress", self.model_state.message)
         else:
-            raise InternalDIError("Training has not been launched", self.model_state.message)
+            raise InternalError("Training has not been launched", self.model_state.message)
 
         self.all_data = self._process_predictions(resp_dict)
         self.scores = self._get_scores()
@@ -866,7 +882,7 @@ class MatcherModel(object):
                 label = np.nan # training actually failed...
             new_row = (col_pred["id"], col_pred["columnID"], column_name, col_pred["datasetID"],
                        actual_lab, label, conf)
-            if len(classes) == 0: # get names of classes
+            if len(classes) == 0:  # get names of classes
                 classes = col_pred["scores"].keys()
             if len(feature_names) == 0: # get names of features
                 feature_names = col_pred["features"].keys()
@@ -899,7 +915,7 @@ class MatcherModel(object):
         try:
             available = self.all_data[["user_label", "predicted_label"]].dropna()
         except Exception as e:
-            raise InternalDIError("confusion_matrix",e)
+            raise InternalError("confusion_matrix", e)
         y_actu = pd.Series(available["user_label"], name='Actual')
         y_pred = pd.Series(available["predicted_label"], name='Predicted')
         return pd.crosstab(y_actu, y_pred)
@@ -935,7 +951,6 @@ class MatcherModel(object):
         """
         # just get a slice of all_data
         # all_data has columns:
-        # ["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label", "confidence"]+ classes + features
         headers = ["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label",
                    "confidence"] + self.classes
         if len(set(headers).intersection(set(self.all_data.columns))) == len(headers):
@@ -970,7 +985,7 @@ class MatcherModel(object):
             self.id = int(resp_dict["id"])
         except Exception as e:
             logging.error("Failed to initialize MatcherModel: model key could not be converted to integer.")
-            raise InternalDIError("MatcherModel initialization", e)
+            raise InternalError("MatcherModel initialization", e)
         self.model_type = resp_dict["modelType"]
         self.features_config = resp_dict["features"]
         self.cost_matrix = resp_dict["costMatrix"]
@@ -1077,17 +1092,19 @@ class MatcherModel(object):
 
     def show_info(self):
         """Construct a string which summarizes all model parameters."""
-        return "model_key: " + repr(self.id) + "\n"\
-               + "model_type: " + repr(self.model_type) + "\n"\
-               + "features_config: " + repr(self.features_config) + "\n"\
-               + "cost_matrix: " + repr(self.cost_matrix) + "\n"\
-               + "resampling_strategy: " + repr(self.resampling_strategy) + "\n"\
-               + "label_data: " + repr(self._label_data) + "\n"\
-               + "ref_datasets: " + repr(self.ref_datasets) + "\n"\
-               + "classes: " + repr(self.classes) + "\n"\
-               + "date_created: " + str(self.date_created) + "\n"\
-               + "date_modified: " + str(self.date_modified) + "\n"\
-               + "model_state: " + repr(self.model_state) + "\n"
+        return "\n".join([
+            "model_key: " + repr(self.id),
+            "model_type: " + repr(self.model_type),
+            "features_config: " + repr(self.features_config),
+            "cost_matrix: " + repr(self.cost_matrix),
+            "resampling_strategy: " + repr(self.resampling_strategy),
+            "label_data: " + repr(self._label_data),
+            "ref_datasets: " + repr(self.ref_datasets),
+            "classes: " + repr(self.classes),
+            "date_created: " + str(self.date_created),
+            "date_modified: " + str(self.date_modified),
+            "model_state: " + repr(self.model_state)
+        ])
 
     def __str__(self):
         """Show summary of the model"""
@@ -1095,11 +1112,8 @@ class MatcherModel(object):
 
     def __repr__(self):
         """Different from the original docs"""
-        # show slice of all_data
-        # headers = list(set(["model_id", "column_id", "column_name", "dataset_id", "user_label", "predicted_label",
-        #            "confidence"]).intersection(set(self.all_data.columns)))
         return "<MatcherModel(" + str(self.id) + ")>"
-        # return repr(self.all_data[headers]) # according to the docs
+
 
 if __name__ == "__main__":
 

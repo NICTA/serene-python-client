@@ -1,4 +1,4 @@
-# Copyright 2016 CSIRO All Rights Reserved.
+# Copyright 2016 Data61, CSIRO All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -32,7 +32,8 @@ install_requires = [
     'unittest2',
     'networkx',
     'numpy',
-    'coverage>=3.6,<4.99'
+    'coverage>=3.6,<4.99',
+    'requests'
 ]
 
 long_desc = """The Serene Python Client is a client library for

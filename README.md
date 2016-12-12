@@ -1,9 +1,7 @@
 # Serene Python Client
 
-### Overview
-
 The Serene Python Client project provides a Python client to execute various data integration tasks via defined APIs and to interpret responses.
-File [example.py](https://github.com/NICTA/serene-python-client/blob/refactor/docs/example.py) contains initial sketch.
+File [example.py](https://github.com/NICTA/serene-python-client/blob/refactor/docs/example.py) contains some example uses.
 
 
 ### Prerequisites
