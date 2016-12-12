@@ -11,6 +11,7 @@ import os.path
 import pandas as pd
 import collections
 import pprint
+import time
 
 from .utils import convert_datetime
 from .wrappers import schema_matcher as api
@@ -605,23 +606,17 @@ class ModelState(object):
         self.date_modified = convert_datetime(json['dateChanged'])
 
     def __repr__(self):
-        return "ModelState({}, modified on {}, msg: {})".format(
-            self.status,
-            self.date_modified,
-            self.message
-        )
-
-    # def __eq__(self, other):
-    #     if isinstance(other, ModelState):
-    #         return self.status == other.status \
-    #                and self.date_modified == other.date_modified
-    #     return False
-    #
-    # def __ne__(self, other):
-    #     return not self.__eq__(other)
-    #
-    # def __str__(self):
-    #     return self.__repr__()
+        if len(self.message):
+            return "ModelState({}, modified on {}, msg: {})".format(
+                self.status,
+                self.date_modified,
+                self.message
+            )
+        else:
+            return "ModelState({}, modified on {})".format(
+                self.status,
+                self.date_modified
+            )
 
 
 class NewModel(object):
@@ -729,9 +724,13 @@ class NewModel(object):
 
         json = self.api.update_model(self.id, labels=label_table)
 
-        self.__init__(json, self.parent)
+        self._update(json)
 
         return self.labels
+
+    def _update(self, json):
+        """Re-initializes the model based on an updated json string"""
+        self.__init__(json, self.parent)
 
     def add_labels(self, table):
         """Users can add a label to column col. `col` can be a
@@ -752,9 +751,39 @@ class NewModel(object):
 
         json = self.api.update_model(self.id, labels=label_table)
 
-        self.__init__(json, self.parent)
+        self._update(json)
 
         return self.labels
+
+    def train(self):
+        """
+        Send the training request to the API.
+
+        Args:
+            wait : boolean indicator whether to wait for the training to finish.
+
+        Returns: boolean -- True if model is trained, False otherwise
+
+        """
+        self.api.train_model(self.id)  # launch training
+
+        def state():
+            """Query the server for the model state"""
+            json = self.api.model(self.id)
+            self._update(json)
+            return self.state
+
+        def is_finished():
+            """Check if training is finished"""
+            return state().status in {Status.COMPLETE, Status.ERROR}
+
+        print("Waiting for training status...")
+        while not is_finished():
+            logging.info("Waiting for the training to complete...")
+            time.sleep(2)  # wait in polling loop
+
+        logging.info("Training complete.")
+        return state().status == Status.COMPLETE
 
 
 class ModelList(collections.MutableSequence):

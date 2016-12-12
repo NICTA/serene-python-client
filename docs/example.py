@@ -264,8 +264,13 @@ print(model.add_label(
 #
 # # train/re-train model and perform inference
 # # all datasets will be used
-# model.train()
-# print(model.state)
+print()
+print("Next we can train a model")
+print("The initial state for {} is {}".format(model.id, model.state))
+print("Training...")
+model.train()
+print("Done.")
+print("The final state for {} is {}".format(model.id, model.state))
 #
 #
 # model.predict()

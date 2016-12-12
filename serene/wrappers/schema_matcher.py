@@ -407,11 +407,11 @@ class Session(object):
         logging.info('Sending request to the schema matcher server to train the model.')
         uri = urljoin(self._model_endpoint(model_key), "train")
         try:
-            r = self.session.get(uri)
+            r = self.session.post(uri)
         except Exception as e:
             logging.error(e)
             raise InternalError("train_model", e)
-        self._handle_errors(r, "GET " + uri)
+        self._handle_errors(r, "POST " + uri)
         return True
 
     def predict_model(self, model_key):
