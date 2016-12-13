@@ -204,7 +204,12 @@ class SchemaMatcher(object):
 
 
 class Column(object):
-
+    """
+    The Column object is owned by a DataSet. It reflects the Column
+    object from the backend, and contains a sample of the dataset,
+    the logicalType, size stats and an id. The id is used to refer
+    to columns around the project.
+    """
     def __init__(self, json):
         """
         Initialize a Column object using a json table...
@@ -371,7 +376,7 @@ class ModelState(object):
         date_created
         date_modified
     """
-    def __init__(self, json):  # status, message, date_modified):
+    def __init__(self, json):
         """
         Initialize instance of class ModelState.
 
@@ -823,9 +828,6 @@ if __name__ == "__main__":
     dm = SchemaMatcher()
     print(dm.models)
 
-    error_mods = [model for model in dm.models
-                  if model.model_state.status == Status.ERROR]
+    error_mods = [model for model in dm.models if model.is_error]
 
-    print(dm.dataset_summary)
-    # print(dm.column_map)
-
+    print(dm.datasets[0].summary)
