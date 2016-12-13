@@ -4,9 +4,7 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Serene Python client: Data Integration Software
 """
-import datetime
 import logging
-import os.path
 import pandas as pd
 
 from functools import lru_cache
@@ -109,6 +107,7 @@ class SchemaMatcher(object):
 
         y_actu = pd.Series(available["user_label"], name='Actual')
         y_pred = pd.Series(available["label"], name='Predicted')
+
         return pd.crosstab(y_actu, y_pred)
 
     @decache
@@ -137,8 +136,11 @@ class SchemaMatcher(object):
         Returns: MatcherModel
 
         """
+        # the unknown class must be present...
         if classes is None:
             classes = ["unknown"]
+
+        assert 'unknown' in classes
 
         def column_parse(col):
             """Turns a column into the id"""
@@ -148,9 +150,8 @@ class SchemaMatcher(object):
                 return str(col)
 
         def label_parse(ld):
+            """Convert the column requests into a string id"""
             return {column_parse(k): v for k, v in ld.items()}
-
-        assert 'unknown' in classes
 
         json = self.api.post_model(feature_config,
                                    description,
@@ -159,7 +160,7 @@ class SchemaMatcher(object):
                                    label_parse(labels),
                                    cost_matrix,
                                    resampling_strategy)  # send API request
-
+        # create model wrapper...
         return Model(json, self)
 
     @decache
@@ -234,20 +235,3 @@ class SchemaMatcher(object):
 
     def __repr__(self):
         return "<SchemaMatcher({})>".format(self.api)
-
-
-if __name__ == "__main__":
-    proj_dir = os.path.dirname(os.path.dirname(os.path.abspath(os.curdir)))
-
-    # setting up the logging
-    log_file = 'schemamatcher_' + datetime.datetime.now().strftime('%Y%m%d%H%M%S0') + '.log'
-    logging.basicConfig(filename=os.path.join(proj_dir, 'data', log_file),
-                        level=logging.DEBUG, filemode='w+',
-                        format='%(asctime)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
-
-    dm = SchemaMatcher()
-    print(dm.models)
-
-    error_mods = [model for model in dm.models if model.is_error]
-
-    print(dm.datasets[0].summary)
