@@ -30,7 +30,6 @@ packages = [
 install_requires = [
     'pandas>=0.15',
     'unittest2',
-    'networkx',
     'numpy',
     'coverage>=3.6,<4.99',
     'requests'

@@ -8,13 +8,12 @@ File [example.py](https://github.com/NICTA/serene-python-client/blob/refactor/do
 
 To execute schema matching task, the server for [Serene](https://github.com/NICTA/serene) needs to be started.
 
-To perform data quality scoring, the server for the [data quality scoring API](https://github.com/NICTA/data-quality-scoring-api) needs to be started.
-
 
 ### How to test
-
-No tests have been implemented so far.
-
+Nose2 unittests needs to be installed. To run the tests:
+```
+nose tests
+```
 ### Run
 
 To install the package 'serene-python-client', run
