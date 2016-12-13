@@ -445,5 +445,6 @@ print("Done predicting across everything")
 #
 # Print the confusion matrix for all output
 #
+print()
 print("Confusion matrix")
 print(dm.confusion_matrix(output))
