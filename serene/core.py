@@ -14,7 +14,7 @@ import pprint
 import time
 
 from .utils import convert_datetime
-from .wrappers import schema_matcher as api
+from .api import matcher
 from enum import Enum
 
 
@@ -41,7 +41,7 @@ class SchemaMatcher(object):
         Initialize class instance of SchemaMatcher.
         """
         logging.info('Initialising schema matcher class object.')
-        self.api = api.Session(host, port, auth, cert, trust_env)
+        self.api = matcher.Session(host, port, auth, cert, trust_env)
 
     @property
     def datasets(self):
