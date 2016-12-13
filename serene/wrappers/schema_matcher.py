@@ -414,25 +414,29 @@ class Session(object):
         self._handle_errors(r, "POST " + uri)
         return True
 
-    def predict_model(self, model_key):
+    def predict_model(self, model_key, dataset_key=None):
         """
         Post request to perform prediction based on the model.
 
         Args:
-             model_key: integer which is the key of the model in the repository
+            model_key: integer which is the key of the model in the repository
+            dataset_key: integer key for the dataset to predict
 
         Returns: True
 
         """
         logging.info('Sending request to the schema matcher server to preform prediction based on the model.')
-        uri = urljoin(self._model_endpoint(model_key), "predict")
+        uri = urljoin(self._model_endpoint(model_key), "predict/")
         try:
-            r = self.session.post(uri)
+            if dataset_key is None:
+                r = self.session.post(uri)
+            else:
+                r = self.session.post(urljoin(uri, str(dataset_key)))
         except Exception as e:
             logging.error(e)
             raise InternalError("predict_model", e)
         self._handle_errors(r, "POST " + uri)
-        return True
+        return r.json()
 
     def _model_endpoint(self, id):
         """Returns the endpoint url for the model `id`"""

@@ -15,7 +15,6 @@ import time
 
 from .utils import convert_datetime
 from .wrappers import schema_matcher as api
-#from .wrappers.schema_matcher import Status
 from enum import Enum
 
 
@@ -32,7 +31,6 @@ class SchemaMatcher(object):
             _ds_keys : list of keys of all available datasets in the repository on the server;
             _model_keys : list of keys of all available models in the repository on the server;
     """
-
     def __init__(self,
                  host="127.0.0.1",
                  port=8080,
@@ -44,13 +42,6 @@ class SchemaMatcher(object):
         """
         logging.info('Initialising schema matcher class object.')
         self.api = api.Session(host, port, auth, cert, trust_env)
-
-        # we make all keys internal and try to hide the fact of their existence from the user
-        #self._ds_keys = self._get_dataset_keys()   # list of keys of all available datasets
-        #self._model_keys = self._get_model_keys()  # list of keys of all available models
-
-        #self.datasets, self.dataset_summary, self._column_map = self._populate_datasets()
-        #self.models, self.model_summary = self._get_model_summary()
 
     @property
     def datasets(self):
@@ -70,238 +61,29 @@ class SchemaMatcher(object):
             ms.append(NewModel(self.api.model(k), self))
         return ms
 
-    # def _refresh(self):
-    #     """
-    #     Refresh class attributes especially after new models or datasets have been added or deleted.
-    #
-    #     Returns: Nothing.
-    #
-    #     """
-    #     # first we update datasets since column_map is updated here
-    #     self._refresh_datasets()
-    #     # column_map is used to update models
-    #     self._refresh_models()
-    #
-    # def _refresh_datasets(self):
-    #     """
-    #     Refresh class attributes related to datasets.
-    #
-    #     Returns: Nothing.
-    #
-    #     """
-    #     self._ds_keys = self._get_dataset_keys()  # list of keys of all available datasets
-    #     self.datasets, self.dataset_summary, self._column_map = self._populate_datasets()
-    #
-    # def _refresh_models(self):
-    #     """
-    #     Refresh class attributes related to models.
-    #
-    #     Returns: Nothing.
-    #
-    #     """
-    #     self._model_keys = self._get_model_keys()  # list of keys of all available models
-    #     # column_map is used to update models
-    #     self.models, self.model_summary = self._get_model_summary()
-    #
-    # def _refresh_dataset(self, matcher_ds):
-    #     """
-    #     Refresh class attributes for datasets.
-    #     The changes affect only those datasets which have matcher_ds.id.
-    #
-    #     Args:
-    #         matcher_ds: MatcherDataset
-    #
-    #     Returns: Nothing
-    #
-    #     """
-    #     # update list of datasets
-    #     for idx, ds in enumerate(self.datasets):
-    #         if ds.id == matcher_ds.id:
-    #             if ds == matcher_ds:  # no changes are needed!
-    #                 break
-    #             self.datasets[idx] = matcher_ds
-    #             # column_map should not change!
-    #             break
-    #     # in dataset_summary only description can change
-    #     rows = self.dataset_summary[self.dataset_summary.dataset_id == matcher_ds.id].index.tolist()
-    #     self.dataset_summary.set_value(rows, 'description', matcher_ds.description)
+    @staticmethod
+    def confusion_matrix(prediction):
+        """
+        Calculate confusion matrix of the model.
+        If all_data is not available for the model, it will return None.
 
-    # def _remove_dataset(self, matcher_ds):
-    #     """
-    #     Remove dataset from schema matcher attributes.
-    #     The changes affect only those datasets which have matcher_ds.id.
-    #
-    #     Args:
-    #         matcher_ds: MatcherDataset
-    #
-    #     Returns: Nothing
-    #
-    #     """
-    #     self._ds_keys.remove(matcher_ds.id)  # remove the key
-    #     self.datasets = [ds for ds in self.datasets if ds.id != matcher_ds.id]
-    #
-    #     # remove this dataset from dataset_summary
-    #     self.dataset_summary = self.dataset_summary[self.dataset_summary.dataset_id != matcher_ds.id]
-    #
-    #     # update column_map
-    #     if self._column_map:
-    #         self._column_map = {k: v for k, v in self._column_map.items()
-    #                             if k not in matcher_ds._column_map}
+        Args:
+            prediction: The prediction dataframe, must have label and user_label
 
-    # def _remove_model(self, matcher_model):
-    #     """
-    #     Remove model from schema matcher attributes.
-    #     The changes affect only those models which have matcher_model.id.
-    #
-    #     Args:
-    #         matcher_model: MatcherModel
-    #
-    #     Returns: Nothing
-    #
-    #     """
-    #     self._model_keys.remove(matcher_model.id)  # remove the key
-    #     self.models = [ds for ds in self.models if ds.id != matcher_model.id]
-    #     # remove this dataset from dataset_summary
-    #     self.model_summary = self.model_summary[self.model_summary.model_id != matcher_model.id]
-    #
-    # def _refresh_model(self, matcher_model):
-    #     """
-    #     Refresh class attributes related to models.
-    #     The changes affect only those models which have matcher_model.id.
-    #
-    #     Args:
-    #         matcher_model: MatcherModel
-    #
-    #     Returns: Nothing.
-    #
-    #     """
-    #     # update list of models
-    #     for idx, mod in enumerate(self.models):
-    #         if mod.id == matcher_model.id:
-    #             if mod == matcher_model:  # no changes are needed!!!
-    #                 break
-    #             self.models[idx] = matcher_model
-    #             # column_map should not change!
-    #             break
-    #
-    #     # model_summary can change drastically
-    #     rows = self.model_summary[self.model_summary.model_id == matcher_model.id].index.tolist()
-    #     self.model_summary.set_value(rows, 'description', matcher_model.description)
-    #     self.model_summary.set_value(rows, 'created', matcher_model.date_created)
-    #     self.model_summary.set_value(rows, 'modified', matcher_model.date_modified)
-    #     self.model_summary.set_value(rows, 'status', matcher_model.model_state.status)
-    #     self.model_summary.set_value(rows, 'state_created', matcher_model.model_state.date_created)
-    #     self.model_summary.set_value(rows, 'state_modified', matcher_model.model_state.date_modified)
+        Returns: Pandas data frame.
 
-    def __str__(self):
-        return "<SchemaMatcher({})>".format(self.api)
+        """
+        if prediction.empty:
+            logging.warning("Model all_data is empty. Confusion matrix cannot be calculated.")
+            return None
 
-    def __repr__(self):
-        return self.__str__()
+        # take those rows where user_label is available
+        available = prediction[["user_label", "label"]].dropna()
 
-    # def _get_dataset_keys(self):
-    #     """Obtain the list of keys of all available datasets."""
-    #     return self._session.dataset_keys()
-    #
-    # def _get_model_keys(self):
-    #     """Obtain the list of keys of all available models."""
-    #     return self._session.model_keys()
-    #
-    # def _populate_datasets(self):
-    #     """
-    #     This method creates a dictionary (dataset key, instance of MatcherDataset).
-    #     It also collects info on all datasets and puts this information
-    #     into a nice Pandas data framework with the following columns:
-    #     ds_key, file name, description, date created, date modified, num rows, num cols.
-    #     Finally, this methods creates a dictionary to map column ids to column names.
-    #
-    #     Returns: dictionary of dataset ids, Pandas dataframe, dictionary of all column ids.
-    #
-    #     """
-    #     datasets = []
-    #     dataset_summary = []
-    #     headers = ['dataset_id', 'name', 'description', 'created', 'modified', "num_rows", "num_cols"]
-    #     column_map = dict()
-    #
-    #     for ds_key in self._ds_keys:
-    #         dataset = api.DataSet(self._session.dataset(ds_key), self)
-    #         dataset_summary.append([ds_key, dataset.filename, dataset.description,
-    #                                 dataset.date_created, dataset.date_modified,
-    #                                 dataset.sample.shape[0], dataset.sample.shape[1]])
-    #         column_map.update(dataset._column_map)
-    #         datasets.append(dataset)
-    #
-    #     dataset_summary = pd.DataFrame(dataset_summary)
-    #     if not dataset_summary.empty: # rename columns if data frame is not empty
-    #         dataset_summary.columns = headers
-    #     return datasets, dataset_summary, column_map
-    #
-    # def _get_model_summary(self):
-    #     """
-    #     This method creates a dictionary (model key, instance of MatcherModel).
-    #     It also collects info on all models and puts this information
-    #     into a nice Pandas data framework with the following columns:
-    #     model_key, description, date created, date modified, model status, its creation date and modification date.
-    #
-    #     Returns: dictionary of model ids, Pandas dataframe with summary of all models.
-    #
-    #     """
-    #     df = pd.DataFrame({
-    #         'model_id': [],
-    #         'description': [],
-    #         'created': [],
-    #         'modified': [],
-    #         'status': [],
-    #         'state_created': [],
-    #         'state_modified': []
-    #     })
-    #
-    #     models = []
-    #     for key in self._model_keys:
-    #         mod = api.Model(
-    #             self._session.list_model(key),
-    #             self._session,
-    #             column_map=self._column_map
-    #         )
-    #         models.append(mod)
-    #
-    #         # add this row into the table...
-    #         df.loc[len(df)] = [
-    #             key,  # model_id
-    #             mod.description,  # description
-    #             mod.date_created,  # created
-    #             mod.date_modified,  # modified
-    #             mod.model_state.status,  # status
-    #             mod.model_state.date_created,  # state_created
-    #             mod.model_state.date_modified  # state_modified
-    #         ]
-    #
-    #     return models, df
-    #
-    # def _get_model(self, model_key):
-    #     """
-    #     Get the model corresponding to the key.
-    #
-    #     Args:
-    #         model_key : key of the model at the Schema Matcher server
-    #
-    #     Returns: Instance of class MatcherModel corresponding to the model key
-    #
-    #     """
-    #     return api.Model(self._session.list_model(model_key), self, self._column_map)
-    #
-    # def _get_dataset(self, dataset_key):
-    #     """
-    #     Get the dataset corresponding to the key.
-    #
-    #     Args:
-    #         dataset_key : key of the dataset at the Schema Matcher server
-    #
-    #     Returns: Instance of class MatcherDataset corresponding to the model key
-    #
-    #     """
-    #     return api.DataSet(self._session.list_dataset(dataset_key))
-    #
+        y_actu = pd.Series(available["user_label"], name='Actual')
+        y_pred = pd.Series(available["label"], name='Predicted')
+        return pd.crosstab(y_actu, y_pred)
+
     def create_model(self,
                      feature_config,
                      description="",
@@ -365,11 +147,6 @@ class SchemaMatcher(object):
         Returns: newly uploaded MatcherDataset
 
         """
-        #new_dataset = #api.DataSet(self._session.post_dataset(description, file_path, type_map),
-        #              #            self)
-        #self._refresh_datasets()  # we need to update class attributes to include new datasets
-        #
-        #return new_dataset
         json = self.api.post_dataset(description, file_path, type_map)
         return NewDataSet(json, self)
 
@@ -397,32 +174,33 @@ class SchemaMatcher(object):
         else:
             self.api.delete_model(key)
 
-    # def train_all(self):
-    #     """
-    #     Launch training for all models in the repository.
-    #     Please be aware that schema matcher at the moment can handle only one model training at a time.
-    #     So, running this method with wait=False might not launch training for all models.
-    #
-    #     Args: None
-    #
-    #     Returns: True if training for all models succeeded.
-    #
-    #     """
-    #     return all([model.train() for model in self.models])
-    #
-    # def predict_all(self):
-    #     """
-    #     Launch prediction for all models for all datasets in the repository.
-    #     Please be aware that schema matcher at the moment can handle only one model prediction at a time.
-    #     So, running this method with wait=False is not permitted.
-    #
-    #     Args: None
-    #
-    #     Returns: Nothing, model attributes get updated.
-    #
-    #     """
-    #     for model in self.models:
-    #         model.get_predictions()
+    def train_all(self):
+        """
+        Launch training for all models in the repository.
+
+        Args: None
+
+        Returns: True if training for all models succeeded.
+
+        """
+        return all([model.train() for model in self.models])
+
+    def predict_all(self, model, scores=True, features=False):
+        """
+        Launch prediction for all models for all datasets in the repository.
+        Please be aware that schema matcher at the moment can handle only one model prediction at a time.
+        So, running this method with wait=False is not permitted.
+
+        Args: None
+
+        Returns: Nothing, model attributes get updated.
+
+        """
+        results = [model.predict(d, scores, features) for d in self.datasets]
+        return pd.concat(results)
+
+    def __repr__(self):
+        return "<SchemaMatcher({})>".format(self.api)
 
 
 class Column(object):
@@ -482,7 +260,7 @@ class NewDataSet(object):
             raise ValueError("Column name {} does not exist.".format(name) )
 
     @property
-    def info(self):
+    def summary(self):
         """Shows the information about the dataset"""
         return "\n".join([
             "id: {}".format(self.id),
@@ -537,7 +315,8 @@ class DataSetList(collections.MutableSequence):
             ds.append(s)
         return "[{}]".format('\n'.join(ds))
 
-    def to_df(self):
+    @property
+    def summary(self):
         df = pd.DataFrame(columns=[
             'id',
             'name',
@@ -627,6 +406,16 @@ class NewModel(object):
 
         self.parent = parent
         self.api = parent.api
+        self.PREDICT_KEYS = [
+            "column_id",
+            "confidence",
+            "dataset_id",
+            "model_id",
+            "label",
+            "user_label"
+        ]
+        self.PREDICT_SCORE_PRE = "scores"
+        self.PREDICT_FEATURE_PRE = "features"
 
         self.description = json['description']
         self.id = json['id']
@@ -641,70 +430,6 @@ class NewModel(object):
         self.state = ModelState(json['state'])
         self.date_created = convert_datetime(json['dateCreated'])
         self.date_modified = convert_datetime(json['dateModified'])
-
-    @property
-    def info(self):
-        """Shows the information about the dataset"""
-        return "\n".join([
-            "id: {}".format(self.id),
-            "description: {}".format(self.description),
-            "modelType: {}".format(self.model_type),
-            "classes: {}".format('\n\t'.join(self.classes)),
-            "features: {}".format(self._pp.pprint(self.features)),
-            "cost_matrix: {}".format(self.cost_matrix),
-            "resamplingStrategy: {}".format(self.resampling_strategy),
-            "labelData: {}".format(self._pp.pprint(self.label_data)),
-            "refDataSets: {}".format(self.ref_datasets),
-            "modelPath: {}".format(self.model_path),
-            "state: {}".format(self.state),
-            "dateCreated: {}".format(self.date_created),
-            "dateModified: {}".format(self.date_modified)
-        ])
-
-    @property
-    def _columns(self):
-        # first we grab all the columns out from the datasets
-        return [ds.columns for ds in self.parent.datasets]
-
-    @property
-    def _column_lookup(self):
-        # first we grab all the columns out from the datasets
-        return {item.id: item for sublist in self._columns for item in sublist}
-
-    @property
-    def labels(self):
-        """Returns the label DataFrame, which contains the
-        user-specified columns
-        """
-        keys = [int(k) for k in self.label_data.keys()]
-        labels = [lab for lab in self.label_data.values()]
-
-        return pd.DataFrame({
-            'user_label': labels,
-            'column_name': [self._column_lookup[x].name for x in keys],
-            'column_id': keys
-        })
-
-    def _label_entry(self, col, label):
-        """Prepares the label entry by ensuring the key is a
-           valid string key and the label is also valid"""
-
-        if issubclass(type(col), Column):
-            key = str(col.id)
-        else:
-            key = str(col)
-
-        # ensure that the key is valid...
-        assert \
-            int(key) in self._column_lookup, \
-            "Key '{}' is not in column ids {}".format(key, self._column_lookup.keys())
-
-        # ensure that the label is in the classes...
-        assert \
-            label in self.classes, \
-            "Label '{}' is not in classes {}".format(label, self.classes)
-
-        return str(key), label
 
     def add_label(self, col, label):
         """Users can add a label to column col. `col` can be a
@@ -727,10 +452,6 @@ class NewModel(object):
         self._update(json)
 
         return self.labels
-
-    def _update(self, json):
-        """Re-initializes the model based on an updated json string"""
-        self.__init__(json, self.parent)
 
     def add_labels(self, table):
         """Users can add a label to column col. `col` can be a
@@ -777,13 +498,255 @@ class NewModel(object):
             """Check if training is finished"""
             return state().status in {Status.COMPLETE, Status.ERROR}
 
-        print("Waiting for training status...")
+        print("Training model {}...".format(self.id))
         while not is_finished():
             logging.info("Waiting for the training to complete...")
             time.sleep(2)  # wait in polling loop
 
-        logging.info("Training complete.")
+        print("Training complete for {}".format(self.id))
+        logging.info("Training complete for {}.".format(self.id))
         return state().status == Status.COMPLETE
+
+    def predict(self, dataset, scores=True, features=False):
+        """Runs a prediction across the `dataset`"""
+        df = self._full_predict(dataset)
+
+        keys = [k for k in self.PREDICT_KEYS]
+
+        if features:
+            keys += [col for col in df.columns if self.PREDICT_FEATURE_PRE in col]
+
+        if scores:
+            keys += [col for col in df.columns if self.PREDICT_SCORE_PRE in col]
+
+        return df[keys]
+
+    @property
+    def is_error(self):
+        """Returns True if model is in the error state"""
+        return self.state.status == Status.ERROR
+
+    @property
+    def summary(self):
+        """Shows the information about the dataset"""
+        df = {
+            "id": self.id,
+            "description": self.description,
+            "modelType": self.model_type,
+            "classes": self.classes,
+            "features": self.features,
+            "cost_matrix": self.cost_matrix,
+            "resamplingStrategy": self.resampling_strategy,
+            "labelData": self.label_data,
+            "refDataSets": self.ref_datasets,
+            "modelPath": self.model_path,
+            "state": self.state,
+            "dateCreated": self.date_created,
+            "dateModified": self.date_modified
+        }
+        str = self._pp.pformat(df)
+        return str
+
+    @property
+    def labels(self):
+        """Returns the label DataFrame, which contains the
+        user-specified columns
+        """
+        keys = [int(k) for k in self.label_data.keys()]
+        labels = [lab for lab in self.label_data.values()]
+
+        return pd.DataFrame({
+            'user_label': labels,
+            'column_name': [self._column_lookup[x].name for x in keys],
+            'column_id': keys
+        })
+
+    @property
+    def all_data(self):
+        return pd.DataFrame()
+
+    def _full_predict(self, dataset):
+        """
+        Predict the column labels for this dataset
+
+        :param dataset: Can be dataset id or a DataSet object
+
+        :return: Pandas Dataframe with prediction data
+        """
+        if issubclass(type(dataset), NewDataSet):
+            key = dataset.id
+        else:
+            key = int(dataset)
+
+        json = self.api.predict_model(self.id, key)
+
+        df = self._predictions(json)
+
+        return df
+
+    def _update(self, json):
+        """Re-initializes the model based on an updated json string"""
+        self.__init__(json, self.parent)
+
+    def _columns(self):
+        # first we grab all the columns out from the datasets
+        return [ds.columns for ds in self.parent.datasets]
+
+    @property
+    def _column_lookup(self):
+        # first we grab all the columns out from the datasets
+        return {item.id: item for sublist in self._columns() for item in sublist}
+
+    def _label_entry(self, col, label):
+        """Prepares the label entry by ensuring the key is a
+           valid string key and the label is also valid"""
+
+        if issubclass(type(col), Column):
+            key = str(col.id)
+        else:
+            key = str(col)
+
+        # ensure that the key is valid...
+        assert \
+            int(key) in self._column_lookup, \
+            "Key '{}' is not in column ids {}".format(key, self._column_lookup.keys())
+
+        # ensure that the label is in the classes...
+        assert \
+            label in self.classes, \
+            "Label '{}' is not in classes {}".format(label, self.classes)
+
+        return str(key), label
+
+    def _predictions(self, json):
+        """
+        Here we flatten out the nested json returned from Serene
+        into a flat table structure.
+
+        Initially we have:
+            datasetID: {
+                item1 : asdf
+                item2 : qwer
+                nested-item1: {
+                    item1: asdf
+                    item2: qwer
+                }
+                nested-item2: {
+                    item1: asdf
+                    item2: qwer
+                }
+            }
+
+        and we want to flatten it to a DataFrame with:
+
+            'datasetID': [...]
+            'item1': [...]
+            'item2': [...]
+            'nested-item1-item1: [...]
+            'nested-item1-item2: [...]
+            'nested-item2-item1: [...]
+            'nested-item2-item2: [...]
+
+        :param json: JSON returned from the backend
+        :return: Flattened dictionary of lists for each key
+        """
+        table = self._flat_predict(json)
+
+        df = pd.DataFrame(table)
+
+        # now we add the user labels
+        return pd.merge(
+            df,
+            self.labels[['column_id', 'user_label']],
+            on='column_id',
+            how='left'
+        )
+
+    def _flat_predict(self, json):
+        """
+         Here we flatten out the nested json returned from Serene
+        into a flat table structure.
+
+        Initially we have:
+            datasetID: {
+                item1 : asdf
+                item2 : qwer
+                nested-item1: {
+                    item1: asdf
+                    item2: qwer
+                }
+                nested-item2: {
+                    item1: asdf
+                    item2: qwer
+                }
+            }
+
+        and we want to flatten it to a DataFrame with:
+            {
+                'datasetID': [...]
+                'item1': [...]
+                'item2': [...]
+                'nested-item1-item1: [...]
+                'nested-item1-item2: [...]
+                'nested-item2-item1: [...]
+                'nested-item2-item2: [...]
+            }
+
+        :param json: JSON returned from the backend
+        :return: Flattened dictionary of lists for each key
+
+        """
+        # first we need to drop the datasetID key down
+        def update(d, key, val):
+            """Better dictionary update function"""
+            d[key] = val
+            return d
+
+        # first store the IDs for later...
+        datasetID = json['dataSetID']
+        modelID = json['modelID']
+
+        # next drop the key into a "columnID":key inside the child dict
+        dlist = [update(d, "column_id", int(k)) for k, d in json['predictions'].items()]
+
+        # we now want to flatten the nested items
+        flat_list = [self._flatten(d) for d in dlist]
+
+        # now we add the IDs as well
+        final = [update(d, "dataset_id", int(datasetID)) for d in flat_list]
+        final = [update(d, "model_id", int(modelID)) for d in final]
+
+        table = collections.defaultdict(list)
+
+        # WARNING: This is dangerous! If a value is missing it will
+        # break! We need to add np.nan as missing values if there
+        # are missing elements...
+        for d in final:
+            for k, v in d.items():
+                table[k].append(v)
+        return table
+
+    def _flatten(self, d, parent_key='', sep='_'):
+        """
+        Flattens a nested dictionary by squashing the
+        parent keys into the sub-key name with separator
+        e.g.
+            flatten({'a': 1, 'c': {'a': 2, 'b': {'x': 5, 'y' : 10}}, 'd': [1, 2, 3]})
+            >> {'a': 1, 'c_a': 2, 'c_b_x': 5, 'd': [1, 2, 3], 'c_b_y': 10}
+
+        :param d: The nested dictionary
+        :param parent_key: parent key prefix
+        :param sep: The separator to
+        :return:
+        """
+        items = []
+        for k, v in d.items():
+            new_key = parent_key + sep + k if parent_key else k
+            if isinstance(v, collections.MutableMapping):
+                items.extend(self._flatten(v, new_key, sep=sep).items())
+            else:
+                items.append((new_key, v))
+        return dict(items)
 
 
 class ModelList(collections.MutableSequence):
@@ -826,7 +789,8 @@ class ModelList(collections.MutableSequence):
             ms.append(s)
         return "[{}]".format('\n'.join(ms))
 
-    def to_df(self):
+    @property
+    def summary(self):
         df = pd.DataFrame(columns=[
             'model_id',
             'description',

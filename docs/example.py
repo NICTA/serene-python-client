@@ -21,7 +21,7 @@ print(dm.datasets)
 # ]
 #
 # summary of all datasets as a Pandas data frame
-print(dm.datasets.to_df())
+print(dm.datasets.summary)
 #   dataset_id        name   description     created    modified     num_rows  num_cols
 #  4  42fv87g2    name.csv   test1          2016-04-07  2016-04-07       100        20
 #  5  8ut20yet   phone.csv   test2          2016-04-07  2016-04-07       100        10
@@ -30,7 +30,7 @@ print(dm.datasets.to_df())
 #
 # select 1 dataset from the list
 #
-print(dm.datasets[0].info)
+print(dm.datasets[0].summary)
 # Available attributes for the dataset...
 
 # filename: asdf.csv
@@ -67,11 +67,16 @@ print(dm.datasets[0].sample['Month'])
 #      22
 #   34875
 #
-#
+print()
+print("You can also index or iterate over the dataset object to get the columns")
+for col in dm.datasets[0]:
+    print(col)
+
+
 # upload a new dataset
 new_dataset = dm.create_dataset(
     description="testing",
-    file_path="../tests/resources/medium.csv",
+    file_path="tests/resources/medium.csv",
     type_map={}
 )
 
@@ -103,15 +108,21 @@ print(dm.models)
 #
 print()
 print("Summary in table form")
-print(dm.models.to_df())
+print(dm.models.summary)
 # #     model_id  description     created    modified     status  state_created state_modified
 # #  1  42fv87g2         name  2016-04-07  2016-04-07   COMPLETE     2016-04-07     2016-04-07
 # #  2  8ut20yet        phone  2016-04-07  2016-04-07  UNTRAINED     2016-04-07     2016-04-07
 # #  3  d55ifgh0        phone  2016-04-07  2016-04-07       BUSY     2016-04-07     2016-04-07
 # #  4  d55ffgh0        phone  2016-04-07  2016-04-07      ERROR     2016-04-07     2016-04-07
+
+print()
+print("Summary of a single model")
+print(dm.models[0].summary)
 #
 #
 #
+exit()
+print()
 print("Configuration parameters for the model upload")
 #
 # # configuration for the feature calculation
@@ -129,7 +140,7 @@ features = {
         "is-discrete",
         "entropy-for-discrete-values"
     ],
-    "activeFeatureGroups" : [
+    "activeFeatureGroups": [
         "inferred-data-type",
         "stats-of-text-length",
         "stats-of-numeric-type",
@@ -139,19 +150,19 @@ features = {
         "min-wordnet-jcn-distance-from-class-examples",
         "min-wordnet-lin-distance-from-class-examples"
     ],
-    "featureExtractorParams" : [
+    "featureExtractorParams": [
         {
-            "name" : "prop-instances-per-class-in-knearestneighbours",
-            "num-neighbours" : 3
+            "name": "prop-instances-per-class-in-knearestneighbours",
+            "num-neighbours": 3
         }, {
-            "name" : "min-editdistance-from-class-examples",
-            "max-comparisons-per-class" : 20
+            "name": "min-editdistance-from-class-examples",
+            "max-comparisons-per-class": 20
         }, {
-            "name" : "min-wordnet-jcn-distance-from-class-examples",
-            "max-comparisons-per-class" : 20
+            "name": "min-wordnet-jcn-distance-from-class-examples",
+            "max-comparisons-per-class": 20
         }, {
-            "name" : "min-wordnet-lin-distance-from-class-examples",
-            "max-comparisons-per-class" : 20
+            "name": "min-wordnet-lin-distance-from-class-examples",
+            "max-comparisons-per-class": 20
         }
     ]
 }
@@ -187,7 +198,7 @@ model = dm.create_model(
     labels=label_data,
     resampling_strategy=resampling_strategy
 )
-print(model.info)
+print(model.summary)
 
 print()
 print("Now we should see the new model in the list")
@@ -273,7 +284,15 @@ print("Done.")
 print("The final state for {} is {}".format(model.id, model.state))
 #
 #
-# model.predict()
+# now we can predict for each dataset
+ds = dm.datasets[0]
+print()
+print("We now predict for each dataset")
+print(model.predict(ds))
+
+print()
+print("... or we could use the dataset id")
+print(model.predict(ds.id))
 #
 #
 # # Now the model contains the predictions...
@@ -292,7 +311,10 @@ print("The final state for {} is {}".format(model.id, model.state))
 #
 #
 # # shortcut to view the user labels...
-#
+
+print()
+print("check the original labels")
+print(model.labels)
 # model.user_labels
 # #     model_id   user_label column_name    column_id
 # #  2  6ff9sdug      unknown      colnma     08y08yfg
@@ -306,8 +328,9 @@ print("The final state for {} is {}".format(model.id, model.state))
 #
 #
 # # the model scores can also be viewed...
-#
-# model.scores
+print()
+print("Model scores")
+print(model.predict(ds, scores=True))
 # #     dataset_id    predicted_label  confidence column_name model_id  user_label column_id  price firm_name address email  unknown type ...
 # # 0   1717853384              price    0.250000      colnma   345683       price     745894  0.25       0.08     0.1  0.03      0.1  0.1
 # # 1   1717853384          firm_name    0.150000        firm   345683   firm_name     473863  0.05       0.15     0.1  0.03      0.1  0.1
@@ -320,7 +343,10 @@ print("The final state for {} is {}".format(model.id, model.state))
 #
 # # the full feature list can also be viewed...
 #
-# model.features
+# # the model features can also be viewed...
+print()
+print("Model features")
+print(model.predict(ds, scores=False, features=True))
 # #           id    label    col_name    dataset  dataset_id     feature_0 alpha_ratio  number_at_signs  number_slashes  digit_ratio  number_of_words  number_of_ats
 # #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1         0.5             0.62             0.0          0.4             0.11            0.0
 # #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1         0.5             0.62             0.0          0.4             0.11            0.0
@@ -341,7 +367,9 @@ print("The final state for {} is {}".format(model.id, model.state))
 #
 # # all data shown...
 #
-# model.all_data
+print()
+print("All model prediction data")
+print(model.predict(ds, scores=True, features=True))
 # #           id user_label  predicted_label  col_name    dataset  dataset_id  user_labeled score_addr score_phone score_unknown score_addr score_name features...
 # #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1       0.06        0.11          0.01       0.83       0.04
 # #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1       0.86        0.12          0.05       0.01       0.04
@@ -360,24 +388,31 @@ print("The final state for {} is {}".format(model.id, model.state))
 # # 14  a7dybs14  unknown     another   junk.csv    q25srwty             0       0.82        0.11          0.01       0.03       0.04
 #
 #
-# # compute confusion matrix
-# # possible if training and prediction have been done
-# confusion_matrix = model.confusion_matrix()
+# compute confusion matrix on a prediction
+print()
+print("Confusion matrix of the predicted values...")
+print(dm.confusion_matrix(model.predict(ds)))
 #
 # # train all models
-# dm.train_all()
-# # True # if all models have been successfully trained
-#
-# # perform prediction with all models
-# # training is done automatically
-# dm.predict_all()
-#
-# # get models in the Error state
-# dm.error_models()
-# # [
-# #   Model(1234),
-# #   Model(2345),
-# #   Model(3456),
-# #   Model(567),
-# #   Model(4678)
-# # ]
+print()
+print("We can also train all models (may take a while...)")
+dm.train_all()
+print("Done training all models")
+
+# get models in the Error state
+print()
+print("Print the models in the error state")
+for m in dm.models:
+    if m.is_error:
+        print("ERROR in model:")
+        print(m)
+
+# we can also predict across all datasets
+print()
+print()
+print("We can also predict across all datasets (may take a while...)")
+output = dm.predict_all(dm.models[0])
+print(output)
+print("Done predicting across everything")
+print("Confusion matrix")
+print(dm.confusion_matrix(output))
