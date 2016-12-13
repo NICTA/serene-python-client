@@ -10,9 +10,9 @@ To execute schema matching task, the server for [Serene](https://github.com/NICT
 
 
 ### How to test
-Nose2 unittests needs to be installed. To run the tests:
+Nose unittests needs to be installed. To run the tests:
 ```
-nose tests
+nosetests
 ```
 ### Run
 
