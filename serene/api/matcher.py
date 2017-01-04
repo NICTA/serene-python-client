@@ -339,11 +339,13 @@ class Session(object):
         try:
             # test connection to the server
             req = self.session.get(root)
+            logging.info("Server {}".format(root))
+            logging.info(type(req))
 
             # attempt to decode the version...
             version = req.json()['version']
 
-            logging.info("Connection to the server has been established.")
+            logging.info("Connection to server established: {}".format(root))
             print("Connection to server established: {}".format(root))
 
             return version

@@ -47,7 +47,7 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
-# General information about the project.
+# General information about2rEPqdAq the project.
 project = 'data-integration-py'
 copyright = '2016, Natalia Ruemmele, Alex Collins'
 author = 'Natalia Ruemmele, Alex Collins'
