@@ -303,7 +303,8 @@ class Session(object):
             if dataset_key is None:
                 r = self.session.post(uri)
             else:
-                r = self.session.post(urljoin(uri, str(dataset_key)))
+                uri = urljoin(uri, str(dataset_key))
+                r = self.session.post(uri)
         except Exception as e:
             logging.error(e)
             raise InternalError("predict_model", e)

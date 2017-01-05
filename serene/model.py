@@ -282,6 +282,8 @@ class Model(object):
         else:
             key = int(dataset)
 
+        # FIXME: there is no check whether the model is trained or not!
+
         json = self.api.predict_model(self.id, key)
 
         df = self._predictions(json)
