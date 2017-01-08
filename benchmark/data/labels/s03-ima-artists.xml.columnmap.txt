@@ -1,0 +1,5 @@
+"key","column_name","source_name","semantic_type"
+"name","name","data/datasets/museum/data/s03-ima-artists.xml",""
+"nationality","nationality","data/datasets/museum/data/s03-ima-artists.xml","E74_Group---rdf-schema#label"
+"title","title","data/datasets/museum/data/s03-ima-artists.xml","E35_Title---rdf-schema#label"
+"birthDeath","birthDeath","data/datasets/museum/data/s03-ima-artists.xml",""

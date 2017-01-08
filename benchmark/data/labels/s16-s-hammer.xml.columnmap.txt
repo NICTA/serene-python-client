@@ -1,0 +1,3 @@
+"key","column_name","source_name","semantic_type"
+"name","name","data/datasets/museum/data/s16-s-hammer.xml","E78_Collection---rdf-schema#label"
+"item","item","data/datasets/museum/data/s16-s-hammer.xml",""

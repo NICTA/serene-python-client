@@ -1,0 +1,7 @@
+"key","column_name","source_name","semantic_type"
+"Birthdate","Birthdate","data/datasets/soccer/data/bundesliga-2015-2016-rosters.csv","Player---birthDate"
+"Name","Name","data/datasets/soccer/data/bundesliga-2015-2016-rosters.csv","Player---name"
+"Tag","Tag","data/datasets/soccer/data/bundesliga-2015-2016-rosters.csv","Player---tag"
+"Club","Club","data/datasets/soccer/data/bundesliga-2015-2016-rosters.csv","SportsClub---name"
+"Position","Position","data/datasets/soccer/data/bundesliga-2015-2016-rosters.csv","Player---playPosition"
+"Country","Country","data/datasets/soccer/data/bundesliga-2015-2016-rosters.csv","SportsTeam---name"

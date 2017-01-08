@@ -1,0 +1,7 @@
+"key","column_name","source_name","semantic_type"
+"VIDEO","VIDEO","data/datasets/museum/data/s08-s-17-edited.xml","E31_Document---dev#classLink"
+"year","year","data/datasets/museum/data/s08-s-17-edited.xml",""
+"DESCRIPTION","DESCRIPTION","data/datasets/museum/data/s08-s-17-edited.xml","E22_Man-Made_Object---P3_has_note"
+"AUTHOR","AUTHOR","data/datasets/museum/data/s08-s-17-edited.xml","E82_Actor_Appellation---rdf-schema#label"
+"TITLE","TITLE","data/datasets/museum/data/s08-s-17-edited.xml",""
+"IMAGE","IMAGE","data/datasets/museum/data/s08-s-17-edited.xml",""

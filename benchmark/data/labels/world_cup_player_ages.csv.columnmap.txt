@@ -1,0 +1,6 @@
+"key","column_name","source_name","semantic_type"
+"Age","Age","data/datasets/soccer/data/world_cup_player_ages.csv","Player---age"
+"Player","Player","data/datasets/soccer/data/world_cup_player_ages.csv","Player---name"
+"Number","Number","data/datasets/soccer/data/world_cup_player_ages.csv","Player---tag"
+"Position","Position","data/datasets/soccer/data/world_cup_player_ages.csv","Player---playPosition"
+"Country","Country","data/datasets/soccer/data/world_cup_player_ages.csv","SportsTeam---name"

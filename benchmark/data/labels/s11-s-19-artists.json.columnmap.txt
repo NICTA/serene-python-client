@@ -1,0 +1,6 @@
+"key","column_name","source_name","semantic_type"
+"birth_data_and_place","birth_data_and_place","data/datasets/museum/data/s11-s-19-artists.json","E33_Linguistic_Object---P3_has_note"
+"occupation","occupation","data/datasets/museum/data/s11-s-19-artists.json","E33_Linguistic_Object---P3_has_note"
+"artist_name","artist_name","data/datasets/museum/data/s11-s-19-artists.json","E82_Actor_Appellation---rdf-schema#label"
+"long_biography","long_biography","data/datasets/museum/data/s11-s-19-artists.json","E33_Linguistic_Object---P3_has_note"
+"nationality","nationality","data/datasets/museum/data/s11-s-19-artists.json","E74_Group---rdf-schema#label"
