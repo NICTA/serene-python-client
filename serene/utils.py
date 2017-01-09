@@ -28,7 +28,7 @@ def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):
     return converted
 
 
-def construct_labelData(matcher_dataset, filepath):
+def construct_labelData(matcher_dataset, filepath, header_column="column_name", header_label="class"):
     """
     We want to construct a dictionary {column_id:class_label} for the dataset based on a .csv file.
     This method reads in .csv as a Pandas data frame, selects columns "column_name" and "class",
@@ -39,15 +39,17 @@ def construct_labelData(matcher_dataset, filepath):
 
     Args:
         filepath: string where .csv file is located.
+        header_column: header for the column with column names
+        header_label: header for the column with labels
 
     Returns: dictionary
 
     """
     label_data = {}  # we need this dictionary (column_id, class_label)
     try:
-        frame = pd.read_csv(filepath)
+        frame = pd.read_csv(filepath, na_values=[""])
         # dictionary (column_name, class_label)
-        name_labels = frame[["column_name", "class"]].dropna().set_index('column_name')['class'].to_dict()
+        name_labels = frame[[header_column, header_label]].dropna().set_index(header_column)[header_label].to_dict()
         column_map = [(col.id, col.name) for col in matcher_dataset.columns]
         for col_id, col_name in column_map:
             if col_name in name_labels:
