@@ -46,9 +46,6 @@ class DINTModel(AbstractModel):
     def predict(self):
         pass
 
-    def evaluate(self):
-        pass
-
 
 class KarmaDSLModel(AbstractModel):
     def __init__(self):
@@ -66,19 +63,26 @@ class KarmaDSLModel(AbstractModel):
     def predict(self):
         pass
 
-    def evaluate(self):
-        pass
+
 
 class NNetModel(AbstractModel):
+    """
+
+    """
     def __init__(self, *args):
+        """
+
+        Args:
+            *args:
+        """
         assert "model_type" in args
 
         self.column_labeler = Column_Labeler('cnn@charseq')
 
-        if isinstance(args["model_type"], list):
+        if isinstance(args["model_type"], list):  # list of models to ensemble
             # ensemble
             self.model = ensemble()
-        else:
+        else:  # single model/classifier
             if args['model_type'] == "CNN":
                 self.model = self.column_labeler.classifier
                 self.description = "CNN with "
@@ -96,5 +100,10 @@ class NNetModel(AbstractModel):
     def predict(self, test_file):
         pass
 
-    def evaluate(self):
-        pass
+
+class RandomForestModel(NNetModel):
+    def __init__(self):
+        self.model = RF()
+
+if __name__ == "__main__":
+    # Test the NNetModel class
