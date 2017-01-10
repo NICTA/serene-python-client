@@ -179,6 +179,7 @@ class SchemaMatcher(object):
         Returns: newly uploaded MatcherDataset
 
         """
+        logging.debug("Creating dataset {}".format(file_path))
         json = self.api.post_dataset(description, file_path, type_map)
         return DataSet(json, self)
 

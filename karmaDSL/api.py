@@ -148,7 +148,7 @@ class KarmaSession(object):
         uri = urljoin(self._uri, "predict")
         try:
             data = {"folder": folder_name}
-            r = self.session.get(uri)
+            r = self.session.get(uri, json=data)
         except Exception as e:
             logging.error(e)
             raise InternalError("predict_model", e)
@@ -225,7 +225,6 @@ class KarmaSession(object):
             log_msg("RequestError", response.status_code, expr, response)
             raise OtherError(response.status_code, expr, response.json()['message'])
 
-
     def __repr__(self):
         return "<KarmaDSL session at (" + str(self._uri) + ")>"
 
@@ -245,7 +244,7 @@ if __name__ == "__main__":
     print(dsl.list_indexed_folders())
     print(dsl.reset_semantic_labeler())
 
-    print(dsl.post_folder("train_data", ["s1.txt", "s2.txt", "w1.txt", "w2.txt"]))
+    print(dsl.post_folder("train_data", ["s1.txt", "s2.txt", "s3.txt", "s4.txt"]))
 
-    dsl.train_model(["train_data"], [1])
+    dsl.train_model(["train_data"], [1]) # weird stuff happening
 
