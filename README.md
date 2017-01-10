@@ -9,7 +9,7 @@ File [example.py](https://github.com/NICTA/serene-python-client/blob/refactor/do
 To execute schema matching task, the server for [Serene](https://github.com/NICTA/serene) needs to be started.
 
 
-To run evaluation benchmark, the server for Karma DSL needs to be installed.
+
 
 ### How to test
 Nose unittests needs to be installed. To run the tests:
@@ -24,3 +24,7 @@ python setup.py install
 ```
 
 Consult the [example.py](https://github.com/NICTA/serene-python-client/blob/refactor/docs/example.py) on how to use the library.
+
+### Benchmark for evaluation
+
+To run evaluation benchmark, the server for [Karma DSL](https://github.com/NICTA/iswc-2016-semantic-labeling) needs to be installed.

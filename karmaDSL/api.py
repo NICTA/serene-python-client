@@ -13,7 +13,6 @@ from serene.exceptions import BadRequestError, NotFoundError, OtherError, Intern
 from urllib.parse import urljoin
 
 
-
 class KarmaSession(object):
     """
     This is the class which sets up the session for the Karma DSL api.

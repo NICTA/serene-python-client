@@ -12,6 +12,7 @@ from serene.core import SchemaMatcher
 from serene.exceptions import InternalError
 from serene.utils import construct_labelData
 from karmaDSL.api import KarmaSession
+import time
 
 
 domains = ["soccer", "dbpedia", "museum", "weather"]
@@ -119,10 +120,26 @@ class DINTModel(SemanticTyper):
                 logging.warning("Source '{}' not in allowed_sources. Skipping it.".format(source))
                 continue
             # upload source to the schema matcher server
-            # FIXME: InMemoryFileUpload fails!!!
-            matcher_dataset = self.server.create_dataset(file_path=os.path.join("data", "sources", source+".csv"),
-                                                         description="traindata",
-                                                         type_map={})
+            try:
+                matcher_dataset = self.server.create_dataset(file_path=os.path.join("data", "sources", source+".csv"),
+                                                             description="traindata",
+                                                             type_map={})
+            except:
+                logging.warning("Ugly fix for tiny dataset upload...")
+                # FIXME: InMemoryFileUpload fails!!!
+                # ugly fix for this problem: we add empty rows to the file
+                filepath = os.path.join("data", "sources", source+".csv")
+                with open(filepath) as f:
+                    headers = f.readline()
+                    num = len(headers.split(","))
+                empty_line = ','.join(["" for _ in range(num)])
+                empty_lines = '\n'.join([empty_line for _ in range(10000)])
+                with open(filepath, 'a') as f:
+                    f.write(empty_lines)
+                matcher_dataset = self.server.create_dataset(file_path=os.path.join("data", "sources", source + ".csv"),
+                                                             description="traindata",
+                                                             type_map={})
+
             # construct dictionary of labels for the uploaded dataset
             try:
                 label_dict.update(construct_labelData(matcher_dataset, train_labels[idx]))
@@ -132,7 +149,7 @@ class DINTModel(SemanticTyper):
                                                       filepath=os.path.join("data", "labels", source+".columnmap.txt"),
                                                       header_column="column_name",
                                                       header_label="semantic_type"))
-            logging.debug("DINT model label_dict updated.")
+            logging.debug("DINT model label_dict updated: {}".format(label_dict))
 
         # create model on the server with the labels specified
         logging.debug("Creating model on the DINT server with proper config.")
@@ -140,6 +157,7 @@ class DINTModel(SemanticTyper):
         self.classifier = self.server.create_model(self.feature_config,
                                                    classes=classes,
                                                    description=self.description,
+                                                   labels=label_dict,
                                                    resampling_strategy=self.resampling_strategy)
         return True
 
@@ -149,6 +167,7 @@ class DINTModel(SemanticTyper):
         :return:
         """
         logging.info("Training DINTModel.")
+        # TODO: track run time
         return self.classifier.train()
 
     def predict(self, source):
@@ -157,6 +176,7 @@ class DINTModel(SemanticTyper):
         :param source:
         :return:
         """
+        # TODO: track run time
         logging.info("Predicting with DINTModel for source {}".format(source))
         if source not in self.allowed_sources:
             logging.warning("Source '{}' not in allowed_sources. Skipping it.".format(source))
@@ -205,6 +225,7 @@ class KarmaDSLModel(SemanticTyper):
         return True
 
     def train(self):
+        # TODO: track run time
         if self.folder_names and self.train_sizes:
             logging.info("Training KarmaDSL...")
             self.karma_session.train_model(self.folder_names, self.train_sizes)
@@ -218,6 +239,7 @@ class KarmaDSLModel(SemanticTyper):
         :param source:
         :return:
         """
+        # TODO: track run time
         resp = self.karma_session.post_folder("test_data", [source])
         logging.info("Posting source {} to karma dsl server: {}".format(source,resp))
         return self.karma_session.predict_folder("test_data")
@@ -261,8 +283,8 @@ if __name__ == "__main__":
     dint_model = DINTModel(dm, feature_config, resampling_strategy, "DINTModel with ResampleToMean")
 
     #******** setting up KarmaDSL model
-    dsl = KarmaSession(host="localhost", port=8000)
-    dsl_model = KarmaDSLModel(dsl, "default KarmaDSL model")
+    # dsl = KarmaSession(host="localhost", port=8000)
+    # dsl_model = KarmaDSLModel(dsl, "default KarmaDSL model")
 
     # train/test
     train_sources = benchmark["soccer"][:-1]
@@ -270,11 +292,14 @@ if __name__ == "__main__":
     print("# sources in train: %d" % len(train_sources))
     print("# sources in test: %d" % len(test_source))
 
-    # dint_model.define_training_data(train_sources)
-    print(dsl_model.define_training_data(train_sources))
-    print(dsl_model.train())
+    print("Define training data DINT %r" % dint_model.define_training_data(train_sources))
+    # print("Define training data KarmaDSL %r" % dsl_model.define_training_data(train_sources))
+    # print("Train dsl %r" % dsl_model.train())
 
-    print(dsl_model.predict(test_source[0]))
+    # print(dsl_model.predict(test_source[0]))
+
+    print("Train dint %r" % dint_model.train())
+    print(dint_model.predict(test_source[0]))
 
 
 
