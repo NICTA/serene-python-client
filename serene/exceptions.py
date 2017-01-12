@@ -31,13 +31,12 @@ class InternalError(SereneError):
 
 class BadRequestError(SereneError):
     def __init__(self, expr, msg):
-        """Exception raised for bad requests to APIs.
+        """Exception raised for bad requests to APIs (400).
 
             Attributes:
                 expr : input expression in which the error occurred
                 msg  : explanation of the error
             """
-        # status_code = 400
         self.expr = expr
         self.msg = msg
 
@@ -50,13 +49,12 @@ class BadRequestError(SereneError):
 
 class NotFoundError(SereneError):
     def __init__(self, expr, msg):
-        """Exception raised if API returns not found error.
+        """Exception raised if API returns not found error (404).
 
             Attributes:
                 expr : input expression in which the error occurred
                 msg  : explanation of the error
             """
-        # status_code = 404
         self.expr = expr
         self.msg = msg
 
