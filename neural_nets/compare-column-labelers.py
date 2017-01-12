@@ -66,15 +66,6 @@ def get_session(gpu_fraction=0.3):
 
 KTF.set_session(get_session())
 
-# In[53]:
-
-import matplotlib.pyplot as plt
-
-get_ipython().magic(u'matplotlib inline')
-
-
-# In[54]:
-
 class CNN(object):
     """CNN model class"""
 
@@ -667,6 +658,7 @@ class Column_Labeler(object):
                                                                                         y_pred_t)  # np.mean(y_pred_t == y_true)
             if 'fmeasure' in metrics:
                 performance['fmeasure'][t] = sklearn.metrics.f1_score(y_true, y_pred_t, average=metrics_average)
+
             if 'MRR' in metrics:
                 y_pred_proba_t = np.array(
                     [y[t] for y in y_pred_proba])  # extract predictions by classifier t for all cols
@@ -1109,53 +1101,3 @@ performances_df['fmeasure']
 # In[84]:
 
 performances_df['MRR']
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-
-
-# If the maximum of predicted class probabilities is not much larger than their mean, we can choose to set predicted class to 'unknown' (or not, just showing the confidence of the prediction, which in this case would be quite low). Let's look into what threshold should dictate this decision.
-
-# In[42]:
-
-query_cols = copy.deepcopy(labeler.test_cols)
-pred_proba = labeler.predict_proba(query_cols)  # predict class probability vectors for query_cols
-
-# In[111]:
-
-r_mean = {}  # initiate a dict of ratios of top class probability to mean class probability
-for k in labeler.classifier_types:
-    r_mean[k] = [y_pred[k].max() / y_pred[k].mean() for y_pred in pred_proba]
-    #     print(k,':',len(labeler.labels)*np.mean([y_pred[k].mean() for y_pred in pred_proba]))
-    print(k, 'smallest r_mean:', min(r_mean[k]), ', corresponding to argmax probability of',
-          min([y_pred[k].max() for y_pred in pred_proba]))
-
-# Perhaps a good threshold for setting predicted class to 'unknown' (or 'unsure'?) is r_mean_th = 2
-
-
-# In[125]:
-
-k = 'cnn@charfreq'
-plt.hist(r_mean[k])
-plt.xlabel('Confidence of predicted class/Mean class confidence')
-plt.ylabel('Number of predictions')
-plt.title('Prediction certainties for ' + k)
-plt.show()
-
-# In[112]:
-
-# Distribution of predicted class probabilities in the 'least certain prediction'
-k = 'rf@charfreq'
-plt.hist(pred_proba[np.where(r_mean[k] == min(r_mean[k]))[0][0]][k])
-
