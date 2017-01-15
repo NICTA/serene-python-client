@@ -1,107 +1,124 @@
 """This is a test script of model evaluation module."""
+import os.path
+import unittest2 as unittest
+from pandas import read_csv, concat
+from serene.eval import Column
+from serene.eval import ModelEvaluation, Dataset, Model
 
 
-def _get_labels(data_dir_path, datasets):
-    from pandas import read_csv, concat
-    from serene.eval import Column
+class TestEval(unittest.TestCase):
+    """
+    Tests the evaluation code...
+    """
+    DATA_PATH = "tests/resources"
 
-    labels = read_csv(data_dir_path + 'labels.csv')
+    def _get_labels(self, datasets):
+        """
+        Returns a Column label map for the datasets...
+        """
 
-    column_dataset_series = labels['attr_id']
+        labels = read_csv(os.path.join(self.DATA_PATH, 'labels.csv'))
+        
+        column_dataset_series = labels['attr_id']
+    
+        dataset_series = column_dataset_series \
+            .map(lambda column_dataset: column_dataset.rpartition('@')[2]) \
+            .map(lambda dataset: dataset[:-4])
+        
+        column_series = [c.rpartition('@')[0] for c in column_dataset_series]
 
-    dataset_series = column_dataset_series \
-        .map(lambda column_dataset: column_dataset.rpartition('@')[2]) \
-        .map(lambda dataset: dataset[:-4])
+        labels = concat([dataset_series, column_series, labels['class']], axis=1)
+        labels.columns = ['dataset', 'column', 'label']
 
-    column_series = column_dataset_series.map(
-        lambda column_dataset: column_dataset.rpartition('@')[0]
-    )
+        labels = labels.to_records(index=False)
 
-    labels = concat([dataset_series, column_series, labels['class']], axis=1)
-    labels.columns = ['dataset', 'column', 'label']
+        datasets = {dataset.description: dataset for dataset in datasets}
 
-    labels = labels.to_records(index=False)
+        return {
+            Column(name=column, dataset=datasets[dataset]): label
+            for (dataset, column, label) in labels
+            if dataset in datasets
+        }
 
-    datasets = {dataset.description: dataset for dataset in datasets}
+    def test_eval(self):
+        """
+        UnitTest for the evaluation model
+        """
+        model = Model(
+            description='evaluation model',
+            features={
+                "activeFeatures": [
+                    "num-unique-vals",
+                    "prop-unique-vals",
+                    "prop-missing-vals",
+                    "ratio-alpha-chars",
+                    "prop-numerical-chars",
+                    "prop-whitespace-chars",
+                    "prop-entries-with-at-sign",
+                    "prop-entries-with-hyphen",
+                    "prop-range-format",
+                    "is-discrete",
+                    "entropy-for-discrete-values"
+                ],
+                "activeFeatureGroups": [
+                    "inferred-data-type",
+                    "stats-of-text-length",
+                    "stats-of-numeric-type",
+                    "prop-instances-per-class-in-knearestneighbours",
+                    "mean-character-cosine-similarity-from-class-examples",
+                    "min-editdistance-from-class-examples",
+                    "min-wordnet-jcn-distance-from-class-examples",
+                    "min-wordnet-lin-distance-from-class-examples"
+                ],
+                "featureExtractorParams": [
+                    {
+                        "name": "prop-instances-per-class-in-knearestneighbours",
+                        "num-neighbours": 3
+                    }, {
+                        "name": "min-editdistance-from-class-examples",
+                        "max-comparisons-per-class": 20
+                    }, {
+                        "name": "min-wordnet-jcn-distance-from-class-examples",
+                        "max-comparisons-per-class": 20
+                    }, {
+                        "name": "min-wordnet-lin-distance-from-class-examples",
+                        "max-comparisons-per-class": 20
+                    }
+                ]
+            },
+            resampling_strategy="ResampleToMean"
+        )
 
-    return {
-        Column(name=column, dataset=datasets[dataset]): label
-        for (dataset, column, label) in labels
-        if dataset in datasets
-    }
+        datasets = [
+            Dataset(
+                description='homeseekers',
+                file_path=os.path.join(self.DATA_PATH, 'homeseekers.csv')
+            ),
+            Dataset(
+                description='yahoo',
+                file_path=os.path.join(self.DATA_PATH, 'yahoo.csv')
+            ),
+            Dataset(
+                description='texas',
+                file_path=os.path.join(self.DATA_PATH, 'texas.csv')
+            ),
+            Dataset(
+                description='windermere',
+                file_path=os.path.join(self.DATA_PATH, 'windermere.csv')
+            ),
+            Dataset(
+                description='nky',
+                file_path=os.path.join(self.DATA_PATH, 'nky.csv')
+            )
+        ]
 
+        labels = self._get_labels(datasets)
 
-def _test(data_dir_path):
-    from serene.eval import ModelEvaluation, Dataset, Model
+        evaluation = ModelEvaluation(model, datasets, labels)
+        results = evaluation.cross_columns()
 
-    model = Model(
-        description='evaluation model',
-        features={
-            "activeFeatures": [
-                "num-unique-vals",
-                "prop-unique-vals",
-                "prop-missing-vals",
-                "ratio-alpha-chars",
-                "prop-numerical-chars",
-                "prop-whitespace-chars",
-                "prop-entries-with-at-sign",
-                "prop-entries-with-hyphen",
-                "prop-range-format",
-                "is-discrete",
-                "entropy-for-discrete-values"
-            ],
-            "activeFeatureGroups": [
-                "inferred-data-type",
-                "stats-of-text-length",
-                "stats-of-numeric-type",
-                "prop-instances-per-class-in-knearestneighbours",
-                "mean-character-cosine-similarity-from-class-examples",
-                "min-editdistance-from-class-examples",
-                "min-wordnet-jcn-distance-from-class-examples",
-                "min-wordnet-lin-distance-from-class-examples"
-            ],
-            "featureExtractorParams": [
-                {
-                    "name": "prop-instances-per-class-in-knearestneighbours",
-                    "num-neighbours": 3
-                }, {
-                    "name": "min-editdistance-from-class-examples",
-                    "max-comparisons-per-class": 20
-                }, {
-                    "name": "min-wordnet-jcn-distance-from-class-examples",
-                    "max-comparisons-per-class": 20
-                }, {
-                    "name": "min-wordnet-lin-distance-from-class-examples",
-                    "max-comparisons-per-class": 20
-                }
-            ]
-        },
-        resampling_strategy="ResampleToMean"
-    )
+        print(results)
 
-    datasets = [
-        Dataset(
-            description='homeseekers',
-            file_path=data_dir_path + 'homeseekers.csv'),
-        Dataset(
-            description='yahoo',
-            file_path=data_dir_path + 'yahoo.csv'),
-        Dataset(
-            description='texas',
-            file_path=data_dir_path + 'texas.csv'),
-        Dataset(
-            description='windermere',
-            file_path=data_dir_path + 'windermere.csv'),
-        Dataset(
-            description='nky',
-            file_path=data_dir_path + 'nky.csv')
-    ]
+        self.assertEqual(1, 1)
 
-    labels = _get_labels(data_dir_path, datasets)
-
-    evaluation = ModelEvaluation(model, datasets, labels)
-    results = evaluation.cross_columns()
-    print(results)
-
-_test('/Users/lichaoir/Dev/serene/matcher/new-csv-data/')
 
