@@ -5,6 +5,6 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Serene Python client: Data Integration Software
 """
 from serene.const import CODE_VERSION
-#from serene.matcher.core import SchemaMatcher
+from .core import *
 
 __version__ = CODE_VERSION

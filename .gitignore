@@ -1,6 +1,14 @@
 .idea/
+
 data/
 dist/
 build/
 serene-python-client.egg-info/
+
 __pycache__
+*.pyc
+.coverage
+
+out.ssd
+
+data/source_descriptions_copy/

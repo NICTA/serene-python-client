@@ -83,9 +83,6 @@ print(dm.models.summary)
 #  3  d55ifgh0        phone  2016-04-07  2016-04-07       BUSY     2016-04-07     2016-04-07
 #  4  d55ffgh0        phone  2016-04-07  2016-04-07      ERROR     2016-04-07     2016-04-07
 
-print()
-print("Summary of a single model")
-print(dm.models[0].summary)
 
 #
 # build a new model
@@ -145,8 +142,7 @@ resampling_strategy = "ResampleToMean"
 #
 # list of semantic types
 #
-classes = ["year_built", "address", "bathrooms", "bedrooms", "email", "fireplace", "firm_name", "garage",
-           "heating", "house_description", "levels", "mls", "phone", "price", "size", "type", "unknown"]
+classes = ["year", "month", "day", "station-number", "data-quality", "unknown"]
 
 #
 # description of the model
@@ -168,6 +164,16 @@ datasets = [
         file_path=EXAMPLE_DATASET,
         type_map={}
     ),
+    dm.create_dataset(
+        description="testing 3",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    ),
+    dm.create_dataset(
+        description="testing 4",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    ),
 ]
 
 
@@ -178,12 +184,26 @@ for d in datasets:
 # User labelled data
 #
 label_data = {
-    datasets[0].column('Quality'): 'bedrooms',
-    datasets[0].column('Year'): 'year_built',
-    datasets[0].column('Product code'): 'mls',
-    datasets[1].column('Quality'): 'bedrooms',
-    datasets[1].column('Year'): 'year_built',
-    datasets[1].column('Product code'): 'mls',
+    datasets[0].column('Quality'): 'data-quality',
+    datasets[0].column('Year'): 'year',
+    datasets[0].column('Month'): 'month',
+    datasets[0].column('Day'): 'day',
+    datasets[0].column('Bureau of Meteorology station number'): 'station-number',
+    datasets[1].column('Quality'): 'data-quality',
+    datasets[1].column('Year'): 'year',
+    datasets[1].column('Month'): 'month',
+    datasets[1].column('Day'): 'day',
+    datasets[1].column('Bureau of Meteorology station number'): 'station-number',
+    datasets[2].column('Quality'): 'data-quality',
+    datasets[2].column('Year'): 'year',
+    datasets[2].column('Month'): 'month',
+    datasets[2].column('Day'): 'day',
+    datasets[2].column('Bureau of Meteorology station number'): 'station-number',
+    datasets[3].column('Quality'): 'data-quality',
+    datasets[3].column('Year'): 'year',
+    datasets[3].column('Month'): 'month',
+    datasets[3].column('Day'): 'day',
+    datasets[3].column('Bureau of Meteorology station number'): 'station-number'
 }
 
 #
@@ -210,8 +230,6 @@ print("We can also remove models")
 dm.remove_model(model.id)
 print(dm.models)
 
-
-
 #
 # Create a new model for testing.
 #
@@ -225,7 +243,7 @@ new_model = dm.create_model(
 )
 print(model.summary)
 
-
+#
 # Training needs to be called explicitly afterwards
 #
 # show model settings
@@ -274,8 +292,8 @@ print()
 print("labels can be added, but re-training has to be called later on")
 print("refer to the labels with a column ID or a column object...")
 print(new_model.add_labels({
-    datasets[0][3]: 'address',
-    datasets[0][4]: 'phone'
+    datasets[0][3]: 'month',
+    datasets[0][4]: 'day'
 }))
 
 #
@@ -284,7 +302,7 @@ print(new_model.add_labels({
 print()
 print("labels can also be added one by one")
 print(new_model.add_label(
-    datasets[0].column("Product code"), "phone"
+    datasets[0].column("Month"), "month"
 ))
 #       user_label column_name    column_id dataset_id
 #  2       unknown      colnma     08y08yfg  987938475
@@ -321,16 +339,6 @@ evals = [
     ),
     dm.create_dataset(
         description="evaluation 2",
-        file_path=EXAMPLE_DATASET,
-        type_map={}
-    ),
-    dm.create_dataset(
-        description="evaluation 3",
-        file_path=EXAMPLE_DATASET,
-        type_map={}
-    ),
-    dm.create_dataset(
-        description="evaluation 4",
         file_path=EXAMPLE_DATASET,
         type_map={}
     )

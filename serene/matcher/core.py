@@ -101,7 +101,7 @@ class SchemaMatcher(object):
         """
         if prediction.empty:
             logging.warning("Model all_data is empty. Confusion matrix cannot be calculated.")
-            return None
+            return []
 
         # take those rows where user_label is available
         available = prediction[["user_label", "label"]].dropna()
@@ -109,6 +109,10 @@ class SchemaMatcher(object):
         y_actu = pd.Series(available["user_label"], name='Actual')
         y_pred = pd.Series(available["label"], name='Predicted')
 
+        if y_actu.empty or y_pred.empty:
+            logging.warning("Failed to create confusion matrix for {}".format(prediction))
+            return []
+        
         return pd.crosstab(y_actu, y_pred)
 
     @decache

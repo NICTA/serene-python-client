@@ -22,3 +22,9 @@ python setup.py install
 ```
 
 Consult the [example.py](https://github.com/NICTA/serene-python-client/blob/refactor/docs/example.py) on how to use the library.
+
+### Schema Matcher
+To use the schema matcher directly, an example can be found here:
+```
+doc/matcher.py
+```
