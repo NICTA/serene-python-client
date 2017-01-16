@@ -5,9 +5,10 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Serene Python client: Data Integration Software
 """
 import logging
+from functools import lru_cache
+
 import pandas as pd
 
-from functools import lru_cache
 from .api import matcher
 from .dataset import DataSetList, DataSet, Column
 from .model import ModelList, Model

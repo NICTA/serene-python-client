@@ -265,6 +265,7 @@ class Model(object):
         return pd.DataFrame({
             'user_label': labels,
             'column_name': [self._column_lookup[x].name for x in keys],
+            'dataset_id': [self._column_lookup[x].datasetID for x in keys],
             'column_id': keys
         })
 

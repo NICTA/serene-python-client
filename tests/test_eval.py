@@ -1,9 +1,11 @@
 """This is a test script of model evaluation module."""
 import os.path
+
 import unittest2 as unittest
 from pandas import read_csv, concat
-from serene.eval import Column
-from serene.eval import ModelEvaluation, Dataset, Model
+
+from serene.matcher.eval import Column
+from serene.matcher.eval import ModelEvaluation, Dataset, Model
 
 
 class TestEval(unittest.TestCase):

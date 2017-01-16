@@ -5,10 +5,14 @@ except ImportError as e:
     sys.path.insert(0, '.')
     import serene
 
+from serene.matcher import SchemaMatcher
+import os.path
+
+EXAMPLE_DATASET = os.path.join('tests', 'resources', 'medium.csv')
 
 # connect to the server...
 # host and port are for now taken from the config.settings.py file
-dm = serene.SchemaMatcher(
+dm = SchemaMatcher(
     host="localhost",
     port=8080)
 
@@ -21,7 +25,6 @@ print(dm.datasets)
 #  <DataSet(sdfg764t)>,
 #  <DataSet(98793875)>
 # ]
-
 #
 # summary of all datasets as a Pandas data frame
 #
@@ -32,57 +35,11 @@ print(dm.datasets.summary)
 #  6  d55ifgh0  phone2.csv   test3          2016-04-07  2016-04-07       100        10
 
 #
-# select 1 dataset from the list
-#
-print(dm.datasets[0].summary)
-# Available attributes for the dataset...
-
-# filename: asdf.csv
-# filepath: ./asdf.csv
-# description: sample dataset
-# date_created:  2015-02-01 12:30.123
-# date_modified: 2015-02-04 16:31.382
-# type_map: {}
-# sample:
-#
-#   colna   junk          ph   home-phone
-#    1234    345  0294811111  76382687234
-#   98745     as  0287364857  87598374958
-#  987394    sjk  0358798753  09183098235
-#      22  837fh  0928059834  98734985798
-#   34875   kdjf  0980394805  02398098345
-
-#
-# view a column...
-#
-print(dm.datasets[0].sample['Month'])
-#    1234
-#   98745
-#  987394
-#      22
-#   34875
-#    1234
-#   98745
-#  987394
-#      22
-#   34875
-#    1234
-#     745
-#       4
-#      22
-#   34875
-#
-print()
-print("You can also index or iterate over the dataset object to get the columns")
-for col in dm.datasets[0]:
-    print(col)
-
-#
 # upload a new dataset
 #
 new_dataset = dm.create_dataset(
     description="testing",
-    file_path="tests/resources/medium.csv",
+    file_path=EXAMPLE_DATASET,
     type_map={}
 )
 
@@ -94,13 +51,20 @@ print("This should appear in the main set")
 print(dm.datasets)
 
 print()
+print("We can look at the dataset properties")
+print("filename:", new_dataset.filename)
+print("id:", new_dataset.id)
+print("sample: ", new_dataset.sample)
+print("summary:", new_dataset.summary)
+
+print()
 print("We can also delete it")
 dm.remove_dataset(new_dataset)
 
 print()
 print(dm.datasets)
 
-#
+
 # lists all the models...
 #
 print()
@@ -190,15 +154,36 @@ classes = ["year_built", "address", "bathrooms", "bedrooms", "email", "fireplace
 descr = "test model"
 
 #
+# add some training data...
+#
+print("We add some training data...")
+datasets = [
+    dm.create_dataset(
+        description="testing 1",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    ),
+    dm.create_dataset(
+        description="testing 2",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    ),
+]
+
+
+for d in datasets:
+    print(d.filename)
+
+#
 # User labelled data
 #
 label_data = {
-    dm.datasets[0].column('Quality'): 'bedrooms',
-    dm.datasets[0].column('Year'): 'year_built',
-    dm.datasets[0].column('Product code'): 'mls',
-    dm.datasets[1].column('Quality'): 'bedrooms',
-    dm.datasets[1].column('Year'): 'year_built',
-    dm.datasets[1].column('Product code'): 'mls',
+    datasets[0].column('Quality'): 'bedrooms',
+    datasets[0].column('Year'): 'year_built',
+    datasets[0].column('Product code'): 'mls',
+    datasets[1].column('Quality'): 'bedrooms',
+    datasets[1].column('Year'): 'year_built',
+    datasets[1].column('Product code'): 'mls',
 }
 
 #
@@ -224,11 +209,28 @@ print()
 print("We can also remove models")
 dm.remove_model(model.id)
 print(dm.models)
+
+
+
+#
+# Create a new model for testing.
+#
+print("Let's create a model for testing...")
+new_model = dm.create_model(
+    feature_config=features,
+    classes=classes,
+    description=descr,
+    labels=label_data,
+    resampling_strategy=resampling_strategy
+)
+print(model.summary)
+
+
 # Training needs to be called explicitly afterwards
 #
 # show model settings
 print()
-print(dm.models[0])
+print(new_model)
 #{
 #   'classes': ['name', 'address', 'phone', 'unknown'],
 #   'cost_matrix': [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]],
@@ -254,27 +256,26 @@ print(dm.models[0])
 
 print("by default, model shows the current labels for the dataset columns (ground truth)")
 
-model = dm.models[0]
-
-print(model.labels)
-#       user_label column_name    column_id
-#  2       unknown      colnma     08y08yfg
-#  4          name        junk     zs6egdia
-#  5         phone          ph     hs6egdib
-#  6         phone  home-phone     xs6egdic
-#  7          name        name     bs6egdid
-#  8       address        addr     gs6egdie
-#  9       address   busn-addr     as6egdif
-# 10          name   junk-name     q25srwty
+print(new_model.labels)
+#       user_label column_name    column_id dataset_id
+#  2       unknown      colnma     08y08yfg   23452345
+#  4          name        junk     zs6egdia   34575675
+#  5         phone          ph     hs6egdib   23452345
+#  6         phone  home-phone     xs6egdic   23452345
+#  7          name        name     bs6egdid   23452345
+#  8       address        addr     gs6egdie   34575675
+#  9       address   busn-addr     as6egdif   34575675
+# 10          name   junk-name     q25srwty   34575675
 
 #
 # add labels
 #
 print()
 print("labels can be added, but re-training has to be called later on")
-print(model.add_labels({
-    dm.datasets[0][3]: 'address',
-    dm.datasets[0][4]: 'phone'
+print("refer to the labels with a column ID or a column object...")
+print(new_model.add_labels({
+    datasets[0][3]: 'address',
+    datasets[0][4]: 'phone'
 }))
 
 #
@@ -282,44 +283,67 @@ print(model.add_labels({
 #
 print()
 print("labels can also be added one by one")
-print(model.add_label(
-    dm.datasets[0].column("Product code"),
-    "phone"
+print(new_model.add_label(
+    datasets[0].column("Product code"), "phone"
 ))
-#       user_label column_name    column_id
-#  2       unknown      colnma     08y08yfg
-#  4          name        junk     zs6egdia
-#  5         phone          ph     hs6egdib
-#  6         phone  home-phone     xs6egdic
-#  7          name        name     bs6egdid
-#  8       address        addr     gs6egdie
-#  9       address   busn-addr     as6egdif
-# 10          name   junk-name     q25srwty
-# 11          name    column_1        12342
-# 11          addr    column_2        12343
+#       user_label column_name    column_id dataset_id
+#  2       unknown      colnma     08y08yfg  987938475
+#  4          name        junk     zs6egdia  987938475
+#  5         phone          ph     hs6egdib  216186312
+#  6         phone  home-phone     xs6egdic  987938475
+#  7          name        name     bs6egdid  987938475
+#  8       address        addr     gs6egdie  216186312
+#  9       address   busn-addr     as6egdif  216186312
+# 10          name   junk-name     q25srwty  216186312
+# 11          name    column_1        12342  987938475
+# 11          addr    column_2        12343  216186312
 
 
 # train/re-train model and perform inference
 # all datasets will be used
 print()
 print("Next we can train a model")
-print("The initial state for {} is {}".format(model.id, model.state))
+print("The initial state for {} is {}".format(new_model.id, new_model.state))
 print("Training...")
-model.train()
+new_model.train()
 print("Done.")
-print("The final state for {} is {}".format(model.id, model.state))
+print("The final state for {} is {}".format(new_model.id, new_model.state))
 
 #
 # now we can predict for each dataset
-#
-ds = dm.datasets[0]
+print()
+print("First we can add some datasets to test:")
+evals = [
+    dm.create_dataset(
+        description="evaluation 1",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    ),
+    dm.create_dataset(
+        description="evaluation 2",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    ),
+    dm.create_dataset(
+        description="evaluation 3",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    ),
+    dm.create_dataset(
+        description="evaluation 4",
+        file_path=EXAMPLE_DATASET,
+        type_map={}
+    )
+]
+
+ds = evals[0]
 print()
 print("We now predict for each dataset")
-print(model.predict(ds))
+print(new_model.predict(ds))
 
 print()
 print("... or we could use the dataset id")
-print(model.predict(ds.id))
+print(new_model.predict(ds.id))
 #     dataset_id    predicted_label  confidence column_name model_id  user_label column_id
 # 0   1717853384              price    0.250000      colnma   345683       price     745894
 # 1   1717853384          firm_name    0.150000        firm   345683   firm_name     473863
@@ -336,7 +360,7 @@ print(model.predict(ds.id))
 #
 print()
 print("check the original labels")
-print(model.labels)
+print(new_model.labels)
 #     model_id   user_label column_name    column_id
 #  2  6ff9sdug      unknown      colnma     08y08yfg
 #  4  42fv87g2         name        junk     js6egdia
@@ -348,11 +372,11 @@ print(model.labels)
 # 10  d0h1hskj         name   junk-name     q25srwty
 
 #
-# the model scores can also be viewed...
+# now the model scores can also be viewed...
 #
 print()
 print("Model scores")
-print(model.predict(ds, scores=True))
+print(new_model.predict(ds, scores=True))
 #     dataset_id    predicted_label  confidence column_name model_id  user_label column_id  price firm_name address
 # 0   1717853384              price    0.250000      colnma   345683       price     745894  0.25      0.08     0.1
 # 1   1717853384          firm_name    0.150000        firm   345683   firm_name     473863  0.05      0.15     0.1
@@ -367,7 +391,7 @@ print(model.predict(ds, scores=True))
 #
 print()
 print("Model features")
-print(model.predict(ds, scores=False, features=True))
+print(new_model.predict(ds, scores=False, features=True))
 #           id    label    col_name    dataset  dataset_id     feature_0 alpha_ratio  number_at_signs  number_slashes  digit_ratio  number_of_words  number_of_ats
 #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1         0.5             0.62             0.0          0.4             0.11            0.0
 #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1         0.5             0.62             0.0          0.4             0.11            0.0
@@ -390,7 +414,7 @@ print(model.predict(ds, scores=False, features=True))
 #
 print()
 print("All model prediction data")
-print(model.predict(ds, scores=True, features=True))
+print(new_model.predict(ds, scores=True, features=True))
 #           id user_label  predicted_label  col_name    dataset  dataset_id  user_labeled score_addr score_phone score_unknown score_addr
 #  0  asdf87g2     addr     kjhsdfs  names.csv    08y08yfg             1       0.06        0.11          0.01       0.83       0.04
 #  1  djdifgh0    phone         wer  names.csv    08y08yfg             1       0.86        0.12          0.05       0.01       0.04
@@ -413,7 +437,7 @@ print(model.predict(ds, scores=True, features=True))
 #
 print()
 print("Confusion matrix of the predicted values...")
-print(dm.confusion_matrix(model.predict(ds)))
+print(dm.confusion_matrix(new_model.predict(ds)))
 
 #
 # train all models
@@ -438,7 +462,7 @@ for m in dm.models:
 #
 print()
 print("We can also predict across all datasets (may take a while...)")
-output = dm.predict_all(dm.models[0])
+output = dm.predict_all(new_model)
 print(output)
 print("Done predicting across everything")
 
