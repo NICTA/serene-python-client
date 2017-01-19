@@ -275,8 +275,8 @@ class ModelEvaluation:
             column_name:
             prediction.get(column_name, 'unknown')
             for column_name in (
-                self._full_column_name(column, dataset)
-                for dataset, column in test_columns.to_records(index=False)
+                self._full_column_name(record['column'], record['dataset'])
+                for record in test_columns.to_dict(orient='records')
             )
         }
 
@@ -321,6 +321,8 @@ class ModelEvaluation:
                 precision_score(y_true, y_pred, average='macro'),
             'recall_micro':
                 recall_score(y_true, y_pred, average='micro'),
+            'recall_macro':
+                recall_score(y_true, y_pred, average='macro'),
             'f1_micro':
                 f1_score(y_true, y_pred, average='micro'),
             'f1_macro':
