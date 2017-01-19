@@ -17,6 +17,7 @@ import pandas as pd
 from enum import Enum
 from .dataset import DataSet, Column
 from .utils import convert_datetime
+from .eval import load_specs_from_dir, ModelEvaluation
 from functools import lru_cache
 
 
@@ -268,6 +269,17 @@ class Model(object):
             'dataset_id': [self._column_lookup[x].datasetID for x in keys],
             'column_id': keys
         })
+
+    def evaluate(self,
+                 data_dir,
+                 schema_matcher,
+                 *,
+                 labels_file_name='labels.csv',
+                 k=10):
+        """Evaluate this model using provided datasets and labels."""
+        specs = load_specs_from_dir(data_dir, labels_file_name)
+        eval = ModelEvaluation(self, *specs, schema_matcher)
+        return eval.cross_columns(k)
 
     @lru_cache(maxsize=32)
     def _full_predict(self, dataset):

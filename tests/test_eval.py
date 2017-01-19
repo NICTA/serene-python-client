@@ -1,51 +1,20 @@
 """This is a test script of model evaluation module."""
-import os.path
 
 import unittest2 as unittest
-from pandas import read_csv, concat
-
-from serene.matcher.eval import Column
-from serene.matcher.eval import ModelEvaluation, Dataset, Model
+from collections import namedtuple
+from serene.matcher import SchemaMatcher
+from serene.matcher.eval import ModelEvaluation, load_specs_from_dir
 
 
 class TestEval(unittest.TestCase):
-    """
-    Tests the evaluation code...
-    """
-    DATA_PATH = "tests/resources"
+    """This class tests the model evaluation module."""
 
-    def _get_labels(self, datasets):
-        """
-        Returns a Column label map for the datasets...
-        """
-
-        labels = read_csv(os.path.join(self.DATA_PATH, 'labels.csv'))
-        
-        column_dataset_series = labels['attr_id']
-    
-        dataset_series = column_dataset_series \
-            .map(lambda column_dataset: column_dataset.rpartition('@')[2]) \
-            .map(lambda dataset: dataset[:-4])
-        
-        column_series = [c.rpartition('@')[0] for c in column_dataset_series]
-
-        labels = concat([dataset_series, column_series, labels['class']], axis=1)
-        labels.columns = ['dataset', 'column', 'label']
-
-        labels = labels.to_records(index=False)
-
-        datasets = {dataset.description: dataset for dataset in datasets}
-
-        return {
-            Column(name=column, dataset=datasets[dataset]): label
-            for (dataset, column, label) in labels
-            if dataset in datasets
-        }
+    DATA_PATH = "tests/resources/realestate"
 
     def test_eval(self):
-        """
-        UnitTest for the evaluation model
-        """
+        """Test cross-columns evaluation."""
+        Model = namedtuple('Model', 'description features resampling_strategy')
+
         model = Model(
             description='evaluation model',
             features={
@@ -74,7 +43,8 @@ class TestEval(unittest.TestCase):
                 ],
                 "featureExtractorParams": [
                     {
-                        "name": "prop-instances-per-class-in-knearestneighbours",
+                        "name":
+                            "prop-instances-per-class-in-knearestneighbours",
                         "num-neighbours": 3
                     }, {
                         "name": "min-editdistance-from-class-examples",
@@ -91,36 +61,15 @@ class TestEval(unittest.TestCase):
             resampling_strategy="ResampleToMean"
         )
 
-        datasets = [
-            Dataset(
-                description='homeseekers',
-                file_path=os.path.join(self.DATA_PATH, 'homeseekers.csv')
-            ),
-            Dataset(
-                description='yahoo',
-                file_path=os.path.join(self.DATA_PATH, 'yahoo.csv')
-            ),
-            Dataset(
-                description='texas',
-                file_path=os.path.join(self.DATA_PATH, 'texas.csv')
-            ),
-            Dataset(
-                description='windermere',
-                file_path=os.path.join(self.DATA_PATH, 'windermere.csv')
-            ),
-            Dataset(
-                description='nky',
-                file_path=os.path.join(self.DATA_PATH, 'nky.csv')
-            )
-        ]
+        specs = load_specs_from_dir(self.DATA_PATH)
 
-        labels = self._get_labels(datasets)
+        dm = SchemaMatcher(
+            host="localhost",
+            port=8080)
 
-        evaluation = ModelEvaluation(model, datasets, labels)
+        evaluation = ModelEvaluation(model, *specs, dm)
         results = evaluation.cross_columns()
 
         print(results)
 
         self.assertEqual(1, 1)
-
-
