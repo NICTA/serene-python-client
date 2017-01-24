@@ -21,6 +21,86 @@ DatasetSpec = namedtuple('DatasetSpec', 'name path')
 ColumnLabelSpec = namedtuple('ColumnLabelSpec', 'dataset column label')
 
 
+def load_specs_from_dir(dir, labels_file_name='labels.csv'):
+    """
+    Load dataset and label specs from a data directory.
+
+    .. function:: load_specs_from_dir(dir, labels_file_name='labels.csv')
+       :param dir: The path to the directory containing all dataset CSV files
+                   and the column-label spec CSV file.
+       :type dir: str
+       :param labels_file_name: The name of the column-label spec CSV file.
+       :type labels_file_name: str
+       :return: The loaded dataset specs and column-label specs.
+       :rtype: tuple(DatasetSpec, ColumnLabelSpec)
+    """
+    dataset_spec_file_paths = (
+        file_path
+        for file_path in iglob(join(dir, '*.csv'))
+        if basename(file_path) != labels_file_name
+    )
+
+    dataset_specs = [
+        DatasetSpec(name=basename(file_path), path=file_path)
+        for file_path in dataset_spec_file_paths
+    ]
+
+    column_label_specs = [
+        ColumnLabelSpec(**record) for record in
+        read_csv(join(dir, labels_file_name)).to_dict(orient='records')
+    ]
+
+    return (dataset_specs, column_label_specs)
+
+
+def get_sorted_labels(column_label_map):
+    """
+    Sort labels using their corresponding column names.
+
+    .. function: get_sorted_labels(column_label_map)
+       :param column_label_map: The column-name-to-label map.
+       :type column_label_map: dict(str, str)
+       :return: The sorted labels.
+       :rtype: list(str)
+    """
+    return [
+        item[1] for item in
+        sorted(column_label_map.items(), key=lambda item: item[0])
+    ]
+
+
+def scores(y_true, y_pred):
+    """
+    Calculate evaluation scores based on true labels and predicted labels.
+
+    .. function: scores(y_true, y_pred)
+       :param y_true: The true labels.
+       :type y_true: list(str)
+       :param y_pred: The predicted labels.
+       :type y_pred: list(str)
+       :return: The scores.
+       :rtype: dict(str, float)
+    """
+    return {
+        'average_accuracy':
+            average_accuracy(y_true, y_pred),
+        'error_rage':
+            error_rate(y_true, y_pred),
+        'precision_micro':
+            precision_score(y_true, y_pred, average='micro'),
+        'precision_macro':
+            precision_score(y_true, y_pred, average='macro'),
+        'recall_micro':
+            recall_score(y_true, y_pred, average='micro'),
+        'recall_macro':
+            recall_score(y_true, y_pred, average='macro'),
+        'f1_micro':
+            f1_score(y_true, y_pred, average='micro'),
+        'f1_macro':
+            f1_score(y_true, y_pred, average='macro')
+    }
+
+
 def average_accuracy(y_true, y_pred):
     """
     Compute the average accuracy.
@@ -99,11 +179,11 @@ def error_rate(y_true, y_pred):
     return sum(scores) / len(scores)
 
 
-class ModelEvaluation:
+class CrossColumnEvaluation:
     """
-    The class provides model evaluation utilities.
+    The class implements K-Fold cross-validation based on all columns.
 
-    .. class:: ModelEvaluation(model, datasets, column_label_map)
+    .. class:: CrossColumnEvaluation(model, datasets, column_label_map)
        :param model: The model to be evaluated.
        :type model: Model
        :param dataset_specs: The specs of the datasets used for evaluation.
@@ -125,11 +205,11 @@ class ModelEvaluation:
         self._column_label_specs = column_label_specs
         self._schema_matcher = schema_matcher
 
-    def cross_columns(self, k=10):
+    def evaluate(self, k=10):
         """
-        Do a K-Fold cross-validation based on all columns.
+        Do a cross-validation and give the scores.
 
-        .. method:: cross_columns(k=10)
+        .. method:: evaluate(k=10)
            :param k: The number of folds to use for cross-validation.
            :type k: int
            :return: The scores resulting from evaluating the model.
@@ -164,14 +244,18 @@ class ModelEvaluation:
 
             model.train()
 
-            prediction_labels = self._extract_prediction_labels(
-                model.predict(test_dataset), test_dataset, test_columns
+            prediction_labels = get_sorted_labels(
+                self._extract_prediction_labels(
+                    model.predict(test_dataset), test_dataset, test_columns
+                )
             )
 
-            test_labels = self._extract_test_labels(test_columns)
+            test_labels = get_sorted_labels(
+                self._extract_test_labels(test_columns)
+            )
 
             results.append(
-                self._evaluate_result(test_labels, prediction_labels)
+                scores(test_labels, prediction_labels)
             )
 
             self._clean_up(model, datasets)
@@ -300,35 +384,6 @@ class ModelEvaluation:
             for record in test_labels.to_dict(orient='records')
         }
 
-    def _evaluate_result(self, test_labels, prediction_labels):
-        def get_sorted_labels(column_label_map):
-            return [
-                item[1] for item in
-                sorted(column_label_map.items(), key=lambda item: item[0])
-            ]
-
-        y_true = get_sorted_labels(test_labels)
-        y_pred = get_sorted_labels(prediction_labels)
-
-        return {
-            'average_accuracy':
-                average_accuracy(y_true, y_pred),
-            'error_rage':
-                error_rate(y_true, y_pred),
-            'precision_micro':
-                precision_score(y_true, y_pred, average='micro'),
-            'precision_macro':
-                precision_score(y_true, y_pred, average='macro'),
-            'recall_micro':
-                recall_score(y_true, y_pred, average='micro'),
-            'recall_macro':
-                recall_score(y_true, y_pred, average='macro'),
-            'f1_micro':
-                f1_score(y_true, y_pred, average='micro'),
-            'f1_macro':
-                f1_score(y_true, y_pred, average='macro')
-        }
-
     def _clean_up(self, model, datasets):
         self._schema_matcher.remove_model(model.id)
         for dataset in datasets:
@@ -338,33 +393,131 @@ class ModelEvaluation:
         return DataFrame(results).mean().to_dict()
 
 
-def load_specs_from_dir(dir, labels_file_name='labels.csv'):
+class CrossDatasetEvaluation():
     """
-    Load dataset and label specs from a data directory.
+    The class implements K-Fold cross-validation based on all datasets.
 
-    .. function:: load_specs_from_dir(dir, labels_file_name='labels.csv')
-       :param dir: The path to the directory containing all dataset CSV files
-                   and the column-label spec CSV file.
-       :type dir: str
-       :param labels_file_name: The name of the column-label spec CSV file.
-       :type labels_file_name: str
-       :return: The loaded dataset specs and column-label specs.
-       :rtype: tuple
+    The number of folds K is chosen to be equal to the number of datasets.
+
+    .. class:: CrossColumnEvaluation(model, datasets, column_label_map)
+       :param model: The model to be evaluated.
+       :type model: Model
+       :param dataset_specs: The specs of the datasets used for evaluation.
+       :type dataset_specs: list(DatasetSpec)
+       :param column_label_specs: The specs of the columns and true labels.
+       :type column_label_specs: list(ColumnLabelSpec)
+       :param schema_matcher: A SchemaMatcher instance used for talking to API.
+       :type schema_matcher: SchemaMatcher
     """
-    dataset_spec_file_paths = (
-        file_path
-        for file_path in iglob(join(dir, '*.csv'))
-        if basename(file_path) != labels_file_name
-    )
 
-    dataset_specs = [
-        DatasetSpec(name=basename(file_path), path=file_path)
-        for file_path in dataset_spec_file_paths
-    ]
+    def __init__(self,
+                 model,
+                 dataset_specs,
+                 column_label_specs,
+                 schema_matcher):
+        """Initialize a class instance."""
+        self._model = model
+        self._dataset_specs = dataset_specs
+        self._column_label_specs = column_label_specs
+        self._schema_matcher = schema_matcher
 
-    column_label_specs = [
-        ColumnLabelSpec(**record) for record in
-        read_csv(join(dir, labels_file_name)).to_dict(orient='records')
-    ]
+    def evaluate(self):
+        """
+        Do a cross-validation and give the scores.
 
-    return (dataset_specs, column_label_specs)
+        .. method:: evaluate()
+           :return: The scores resulting from evaluating the model.
+           :rtype: dict(str, float)
+        """
+        self._datasets = {
+            spec: self._schema_matcher.create_dataset(
+                description=spec.name + '#EVALUATION',
+                file_path=spec.path,
+                type_map={}
+            )
+            for spec in self._dataset_specs
+        }
+
+        results = [
+            self._evaluate_fold(spec)
+            for spec in self._datasets
+        ]
+
+        return DataFrame(results).mean().to_dict()
+
+    def _evaluate_fold(self, test_dataset_spec):
+        model = self._create_model([
+            spec
+            for spec in self._dataset_specs
+            if spec is not test_dataset_spec
+        ])
+
+        model.train()
+
+        test_dataset = self._datasets[test_dataset_spec]
+
+        predicted_labels = get_sorted_labels(
+            self._extract_prediction_labels(
+                model.predict(test_dataset), test_dataset
+            )
+        )
+
+        test_labels = get_sorted_labels(
+            self._extract_test_labels(
+                test_dataset_spec, test_dataset
+            )
+        )
+
+        self._schema_matcher.remove_model(model.id)
+
+        return scores(test_labels, predicted_labels)
+
+    def _create_model(self, training_dataset_specs):
+        dataset_name_to_spec_map = {
+            spec.name: spec for spec in training_dataset_specs
+        }
+
+        labels = {
+            self._datasets[dataset_spec].column(label_spec.column):
+            label_spec.label
+            for label_spec, dataset_spec in (
+                (label_spec, dataset_name_to_spec_map.get(label_spec.dataset))
+                for label_spec in self._column_label_specs
+            )
+            if dataset_spec is not None
+        }
+
+        classes = list(set(labels.values()) | {'unknown'})
+
+        return self._schema_matcher.create_model(
+            description=self._model.description + '#EVALUATION',
+            feature_config=self._model.features,
+            resampling_strategy=self._model.resampling_strategy,
+            classes=classes,
+            labels=labels
+        )
+
+    def _extract_prediction_labels(self, prediction, test_dataset):
+        prediction = {
+            record['column_id']: record['label'] for record in
+            prediction[['column_id', 'label']].to_dict(orient='records')
+        }
+
+        return {
+            column.name:
+            prediction.get(column.id, 'unknown')
+            for column in test_dataset.columns
+        }
+
+    def _extract_test_labels(self, test_dataset_spec, test_dataset):
+        labels = {
+            spec.column: spec.label
+            for spec in self._column_label_specs
+            if spec.dataset == test_dataset_spec.name
+        }
+
+        return {
+            column.name:
+            labels.get(column.name, 'unknown')
+            for column in test_dataset.columns
+        }

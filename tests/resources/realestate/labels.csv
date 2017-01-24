@@ -14,7 +14,6 @@ yahoo.csv,contact@house_listing,agent_name
 texas.csv,name@agent_information@house_listing,agent_name
 windermere.csv,floors@amenities@house_listing,levels
 homeseekers.csv,levels@residential_listing_-_basic_features@house_listing,levels
-yahoo.csv,stories@house_listing,levels
 texas.csv,stories@house_listing,levels
 nky.csv,levels@house_listing,levels
 homeseekers.csv,firm_name@house_listing,firm_name
@@ -72,7 +71,6 @@ yahoo.csv,category@house_listing,type
 nky.csv,garage@house_listing,garage
 homeseekers.csv,garage@residential_listing_-_basic_features@house_listing,garage
 texas.csv,carport_spaces@house_listing,garage
-texas.csv,Garage_spaces@house_listing,garage
 windermere.csv,garage@amenities@house_listing,garage
 yahoo.csv,garage@house_listing,garage
 homeseekers.csv,mls@residential_listing_-_basic_features@house_listing,mls

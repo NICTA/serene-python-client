@@ -17,7 +17,7 @@ import pandas as pd
 from enum import Enum
 from .dataset import DataSet, Column
 from .utils import convert_datetime
-from .eval import load_specs_from_dir, ModelEvaluation
+from .eval import load_specs_from_dir, CrossColumnEvaluation
 from functools import lru_cache
 
 
@@ -278,8 +278,8 @@ class Model(object):
                  k=10):
         """Evaluate this model using provided datasets and labels."""
         specs = load_specs_from_dir(data_dir, labels_file_name)
-        eval = ModelEvaluation(self, *specs, schema_matcher)
-        return eval.cross_columns(k)
+        eval = CrossColumnEvaluation(self, *specs, schema_matcher)
+        return eval.evaluate(k)
 
     @lru_cache(maxsize=32)
     def _full_predict(self, dataset):

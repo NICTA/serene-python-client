@@ -3,7 +3,9 @@
 import unittest2 as unittest
 from collections import namedtuple
 from serene.matcher import SchemaMatcher
-from serene.matcher.eval import ModelEvaluation, load_specs_from_dir
+from serene.matcher.eval import CrossDatasetEvaluation
+from serene.matcher.eval import CrossColumnEvaluation
+from serene.matcher.eval import load_specs_from_dir
 
 
 class TestEval(unittest.TestCase):
@@ -67,8 +69,13 @@ class TestEval(unittest.TestCase):
             host="localhost",
             port=8080)
 
-        evaluation = ModelEvaluation(model, *specs, dm)
-        results = evaluation.cross_columns()
+        results = {}
+
+        evaluation = CrossDatasetEvaluation(model, *specs, dm)
+        results['cross-dataset'] = evaluation.evaluate()
+
+        evaluation = CrossColumnEvaluation(model, *specs, dm)
+        results['cross-column'] = evaluation.evaluate(k=5)
 
         print(results)
 
