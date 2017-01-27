@@ -69,6 +69,33 @@ def get_sorted_labels(column_label_map):
     ]
 
 
+def get_sorted_label_candidates(predictions):
+    """
+    Extract top k labels and sort them using their corresponding column names.
+
+    .. function:: get_sorted_label_candidates(prediction)
+       :param prediction: The prediction data frame given by the Serene API.
+       :type prediction: DataFrame
+       :return: The n * k matrix of top k labels for each column.
+       :rtype: ndarray
+    """
+    scores_seq = predictions.filter(like='scores_').to_dict(orient='records')
+    columns = predictions['column_id'].values
+
+    labels_seq = (
+        list(
+            label.partition('scores_')[2]
+            for label, score in
+            sorted(scores.items(), key=lambda item: item[1], reverse=True)
+        ) for scores in scores_seq
+    )
+
+    return [
+        item[1] for item in
+        sorted(zip(columns, labels_seq), key=lambda item: item[0])
+    ]
+
+
 def scores(y_true, y_pred):
     """
     Calculate evaluation scores based on true labels and predicted labels.
@@ -179,6 +206,54 @@ def error_rate(y_true, y_pred):
     return sum(scores) / len(scores)
 
 
+def precision_at_k(y_true, y_pred, *, average='micro', k=3):
+    """
+    Calculate the precision-at-k metric.
+
+    .. function:: precision_at_k(y_true, y_pred, *, average='micro', k=3)
+       :param y_true: The true labels.
+       :type y_true: list(str)
+       :param y_pred: The n * k matrix of predicted labels.
+       :type y_pred: ndarray(str)
+       :param average: Either 'micro' or 'macro'.
+       :type average: str
+       :param k: The k value.
+       :type k: int
+       :return: The precision-at-k value.
+       :rtype: float
+    """
+    y_pred = [pred_labels[:k] for pred_labels in y_pred]
+
+    if average == 'micro':
+        rel_pred = 0
+        all_pred = 0
+        for true_label, pred_labels in zip(y_true, y_pred):
+            for pred_label in pred_labels:
+                all_pred += 1
+                if pred_label == true_label:
+                    rel_pred += 1
+                    break
+        return rel_pred / all_pred
+    else:
+        labels = set(y_true)
+        partitions = {label: [] for label in labels}
+        for true_label, pred_labels in zip(y_true, y_pred):
+            partitions[true_label].append((true_label, pred_labels))
+
+        precisions = []
+        for partition in partitions.values():
+            rel_pred = 0
+            all_pred = 0
+            for true_label, pred_labels in partition:
+                for pred_label in pred_labels:
+                    all_pred += 1
+                    if pred_label == true_label:
+                        rel_pred += 1
+                        break
+            precisions.append(rel_pred / all_pred)
+        return precisions / len(labels)
+
+
 class CrossColumnEvaluation:
     """
     The class implements K-Fold cross-validation based on all columns.
@@ -241,22 +316,28 @@ class CrossColumnEvaluation:
             training_dataset, test_dataset = datasets
 
             model = self._create_model(training_columns, training_dataset)
-
             model.train()
+            prediction = model.predict(test_dataset, scores=True)
 
             prediction_labels = get_sorted_labels(
                 self._extract_prediction_labels(
-                    model.predict(test_dataset), test_dataset, test_columns
+                    prediction, test_dataset, test_columns
                 )
             )
+
+            # top_k_labels = get_sorted_label_candidates(prediction)
 
             test_labels = get_sorted_labels(
                 self._extract_test_labels(test_columns)
             )
 
-            results.append(
-                scores(test_labels, prediction_labels)
-            )
+            result = scores(test_labels, prediction_labels)
+
+            # result['precision-at-k'] = precision_at_k(
+            #     test_labels, top_k_labels
+            # )
+
+            results.append(result)
 
             self._clean_up(model, datasets)
 
@@ -452,25 +533,26 @@ class CrossDatasetEvaluation():
             if spec is not test_dataset_spec
         ])
 
-        model.train()
-
         test_dataset = self._datasets[test_dataset_spec]
 
-        predicted_labels = get_sorted_labels(
-            self._extract_prediction_labels(
-                model.predict(test_dataset), test_dataset
-            )
-        )
-
-        test_labels = get_sorted_labels(
-            self._extract_test_labels(
-                test_dataset_spec, test_dataset
-            )
-        )
-
+        model.train()
+        prediction = model.predict(test_dataset, scores=True)
         self._schema_matcher.remove_model(model.id)
 
-        return scores(test_labels, predicted_labels)
+        predicted_labels = get_sorted_labels(
+            self._extract_prediction_labels(prediction, test_dataset)
+        )
+
+        # top_k_labels = get_sorted_label_candidates(prediction)
+
+        test_labels = get_sorted_labels(
+            self._extract_test_labels(test_dataset_spec, test_dataset)
+        )
+
+        result = scores(test_labels, predicted_labels)
+        # result['precision-at-k'] = precision_at_k(test_labels, top_k_labels)
+
+        return result
 
     def _create_model(self, training_dataset_specs):
         dataset_name_to_spec_map = {

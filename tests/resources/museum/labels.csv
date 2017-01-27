@@ -5,7 +5,7 @@ s01-cb.csv,Begin Date,artist_birth_date
 s01-cb.csv,End Date,artist_death_date
 s01-cb.csv,Title,artwork_title
 s01-cb.csv,Dated,artwork_creation_dates
-s01-cb.csv,Begin Date,artwork_begin_date
+s01-cb.csv,Artwork Begin Date,artwork_begin_date
 s01-cb.csv,Medium,artwork_technique
 s01-cb.csv,Dimensions,artwork_dimensions
 s02-dma.csv,Object Title,artwork_title
