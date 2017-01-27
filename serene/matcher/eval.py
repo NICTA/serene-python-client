@@ -254,6 +254,45 @@ def precision_at_k(y_true, y_pred, *, average='micro', k=3):
         return precisions / len(labels)
 
 
+def mrr(y_true, y_pred, *, average='micro'):
+    """
+    Calculate the mean reciprocal rank metric.
+
+    .. function:: mrr(y_true, y_pred, *, average='micro')
+       :param y_true: The true labels.
+       :type y_true: list(str)
+       :param y_pred: The n * k matrix of predicted labels.
+       :type y_pred: ndarray(str)
+       :param average: Either 'micro' or 'macro'.
+       :type average: str
+       :return: The MRR value.
+       :rtype: float
+    """
+    if average == 'micro':
+        sum_of_rank = 0
+        for true_label, pred_labels in zip(y_true, y_pred):
+            try:
+                sum_of_rank += 1 / (pred_labels.index(true_label) + 1)
+            except ValueError: pass
+        return sum_of_rank / len(y_true)
+    else:
+        labels = set(y_true)
+        partitions = {label: [] for label in labels}
+        for true_label, pred_labels in zip(y_true, y_pred):
+            partitions[true_label].append((true_label, pred_labels))
+
+        scores = []
+        for partition in partitions.values():
+            sum_of_rank = 0
+            for true_label, pred_labels in partition:
+                try:
+                    sum_of_rank += 1 / (pred_labels.index(true_label) + 1)
+                except ValueError: pass
+            scores.append(sum_of_rank / len(partition))
+
+        return average(scores)
+
+
 class CrossColumnEvaluation:
     """
     The class implements K-Fold cross-validation based on all columns.
@@ -325,17 +364,15 @@ class CrossColumnEvaluation:
                 )
             )
 
-            # top_k_labels = get_sorted_label_candidates(prediction)
-
             test_labels = get_sorted_labels(
                 self._extract_test_labels(test_columns)
             )
 
             result = scores(test_labels, prediction_labels)
 
-            # result['precision-at-k'] = precision_at_k(
-            #     test_labels, top_k_labels
-            # )
+            # ranked_labels = get_sorted_label_candidates(prediction)
+            # result['precision@k'] = precision_at_k(test_labels, ranked_labels)
+            # result['mrr'] = mrr(test_labels, ranked_labels)
 
             results.append(result)
 
@@ -543,14 +580,15 @@ class CrossDatasetEvaluation():
             self._extract_prediction_labels(prediction, test_dataset)
         )
 
-        # top_k_labels = get_sorted_label_candidates(prediction)
-
         test_labels = get_sorted_labels(
             self._extract_test_labels(test_dataset_spec, test_dataset)
         )
 
         result = scores(test_labels, predicted_labels)
-        # result['precision-at-k'] = precision_at_k(test_labels, top_k_labels)
+
+        # ranked_labels = get_sorted_label_candidates(prediction)
+        # result['precision@k'] = precision_at_k(test_labels, ranked_labels)
+        # result['mrr'] = mrr(test_labels, ranked_labels)
 
         return result
 
