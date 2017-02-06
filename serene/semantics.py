@@ -1,13 +1,14 @@
 """
  License...
 """
+import collections
 import logging
-import networkx as nx
+import os.path
 import random
 import string
 import tempfile
-import os.path
-import collections
+
+import networkx as nx
 
 from .utils import Searchable
 
@@ -224,15 +225,18 @@ class Ontology(BaseSemantic):
             self.load(file)
             self.filename = file
         else:
+            id_var = random.randint(1e7, 1e8-1)
             # default prefixes...
             self._prefixes = {
-                "xml": "xml:/some/xml/resource",
-                "uri": "uri:/some/uri/resource",
-                "owl": "owl:/some/owl/resource"
+                ':': '<http://www.semanticweb.org/data_integration_project/{}#>'.format(id_var),
+                'owl': '<http://www.w3.org/2002/07/owl#>',
+                'rdf': '<http://www.w3.org/1999/02/22-rdf-syntax-ns#>',
+                'xsd': '<http://www.w3.org/2001/XMLSchema #>',
+                'rdfs': '<http://www.w3.org/2000/01/rdf-schema#>'
             }
             self.filename = os.path.join(
                 tempfile.gettempdir(),
-                "{}.owl".format(random.randint(1e7, 1e8-1))
+                "{}.owl".format(id_var)
             )
 
     def load(self, filename):
@@ -520,4 +524,5 @@ class LinkList(collections.MutableSequence):
 
     def __repr__(self):
         return '\n'.join(str(link) for link in self.list)
+
 

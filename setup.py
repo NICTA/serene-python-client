@@ -33,7 +33,8 @@ install_requires = [
     'numpy',
     'networkx',
     'coverage>=3.6,<4.99',
-    'requests'
+    'requests',
+    'rdflib'
 ]
 
 long_desc = """The Serene Python Client is a client library for

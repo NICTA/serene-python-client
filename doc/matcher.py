@@ -8,6 +8,9 @@ except ImportError as e:
 from serene.matcher import SchemaMatcher
 import os.path
 
+#
+# First setup the example dataset path...
+#
 EXAMPLE_DATASET = os.path.join('tests', 'resources', 'medium.csv')
 
 # connect to the server...
@@ -25,8 +28,9 @@ print(dm.datasets)
 #  <DataSet(sdfg764t)>,
 #  <DataSet(98793875)>
 # ]
+
 #
-# summary of all datasets as a Pandas data frame
+# Show a summary of all datasets as a Pandas data frame
 #
 print(dm.datasets.summary)
 #   dataset_id        name   description     created    modified     num_rows  num_cols
@@ -64,7 +68,7 @@ dm.remove_dataset(new_dataset)
 print()
 print(dm.datasets)
 
-
+#
 # lists all the models...
 #
 print()
@@ -82,7 +86,6 @@ print(dm.models.summary)
 #  2  8ut20yet        phone  2016-04-07  2016-04-07  UNTRAINED     2016-04-07     2016-04-07
 #  3  d55ifgh0        phone  2016-04-07  2016-04-07       BUSY     2016-04-07     2016-04-07
 #  4  d55ffgh0        phone  2016-04-07  2016-04-07      ERROR     2016-04-07     2016-04-07
-
 
 #
 # build a new model
