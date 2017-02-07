@@ -39,6 +39,25 @@ class BaseVisualizer(object):
                            fontname='helvetica',
                            rank='source')
 
+        for c in self.struct.class_nodes:
+            if c.parent is not None:
+                graph.add_edge(c,
+                               c.parent,
+                               label='subclass',
+                               color='#59d0a0',
+                               style='dashed',
+                               fontname='helvetica')
+
+                # ensure that the parent is in the graph!
+                graph.add_node(c.parent,
+                               label=c.parent.name,
+                               color='white',
+                               style='filled',
+                               fillcolor='#59d0a0',
+                               shape='ellipse',
+                               fontname='helvetica',
+                               rank='source')
+
         for link in self.struct.links:
             if link.link_type == Link.OBJECT_LINK:
                 graph.add_edge(link.src,

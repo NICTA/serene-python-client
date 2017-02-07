@@ -4,9 +4,7 @@ License...
 import collections
 import logging
 
-#from serene.utils import Searchable
 from .utils import Searchable
-#from .semantics import DataNode
 
 
 # logging functions...

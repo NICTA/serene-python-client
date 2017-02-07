@@ -47,7 +47,7 @@ class BaseSemantic(object):
         :return: The ontology object
         """
         _logger.debug("Adding class node name={}, "
-                      "nodes={}, prefix={}, is_a={}"
+                      "nodes={}, prefix={}, parent={}"
                       .format(name, nodes, prefix, is_a))
 
         # if the parent does not exist, refuse to create the class
@@ -234,6 +234,9 @@ class Ontology(BaseSemantic):
             tempfile.gettempdir(),
             "{}.owl".format(id_var)
         )
+        self._prefixes = {}
+        self._base = "http://www.semanticweb.org/data_integration/{}".format(id_var)
+        self.source_file = None
 
         if file is not None:
             _logger.debug("Importing {} from file.".format(file))
@@ -241,10 +244,7 @@ class Ontology(BaseSemantic):
             if os.path.exists(file):
 
                 # attempt to extract an ontology from turtle
-                ontology = RDFConverter().turtle_to_ontology(file)
-
-                # copy into the current object...
-                self.__dict__ = copy.deepcopy(ontology.__dict__)
+                RDFConverter().turtle_to_ontology(file, self)
 
                 self.source_file = file
             else:
@@ -252,7 +252,6 @@ class Ontology(BaseSemantic):
                 raise FileNotFoundError(msg)
         else:
             # default prefixes...
-            self._base = "http://www.semanticweb.org/data_integration/{}".format(id_var)
             self._prefixes = {
                 '': '<{}#>'.format(self._base),
                 'owl': '<http://www.w3.org/2002/07/owl#>',
@@ -260,7 +259,6 @@ class Ontology(BaseSemantic):
                 'xsd': '<http://www.w3.org/2001/XMLSchema#>',
                 'rdfs': '<http://www.w3.org/2000/01/rdf-schema#>'
             }
-            self.source_file = None
 
     def prefix(self, prefix, uri):
         """
@@ -377,8 +375,16 @@ class RDFConverter(object):
                 all_links.append((self.label(x),
                                   self.label(link),
                                   self.label(y)))
-
         return all_links
+
+    @staticmethod
+    def _extract_subclasses(g):
+        """
+
+        :param g:
+        :return:
+        """
+        return {s: o for s, p, o in g.triples((None, rdflib.RDFS['subClassOf'], None))}
 
     def _extract_data_nodes(self, g):
         """
@@ -420,13 +426,61 @@ class RDFConverter(object):
                 property_table[x][self.label(dp)] = self.TYPE_LOOKUP[y]
         return property_table
 
-    def turtle_to_ontology(self, filename):
+    def _build_ontology(self,
+                        ontology,
+                        class_nodes,
+                        data_node_table,
+                        all_links,
+                        subclasses,
+                        namespaces):
+        """
+        Builds up the ontology from the node and link elements...
+
+        :param ontology: the initial ontology starting point
+        :param class_nodes: The list of class nodes from the file
+        :param data_node_table: The type table for the data_nodes in the file
+        :param all_links: The links for the file
+        :param subclasses: The links that have a parent class
+        :return:
+        """
+        # extract the parents and children, we need to ensure that
+        # the parents are created first...
+        children = list(subclasses.keys())
+        parents = [c for c in class_nodes if c not in children]
+
+        for cls in parents + children:
+            if cls in subclasses:
+                parent = self.label(subclasses[cls])
+            else:
+                parent = None
+
+            ontology.class_node(self.label(cls),
+                                data_node_table[self.label(cls)],
+                                prefix='',
+                                is_a=parent)
+
+        # now we add all the links...
+        for src, link, dest in all_links:
+            ontology.link(src, link, dest)
+
+        # and all the prefixes...
+        for name, uri in namespaces:
+            ontology.prefix(name, uri)
+
+        return ontology
+
+    def turtle_to_ontology(self, filename, ontology=None):
         """
         Converts an OWL file from the Turtle format into the Ontology type
 
         :param filename: OWL or TTL file in Turtle RDF format
+        :param ontology: The output ontology object on which to add new classes and nodes
         :return: Ontology object
         """
+        # start a new ontology if there is nothing there...
+        if ontology is None:
+            ontology = Ontology()
+
         # first load the file
         g = rdflib.Graph()
         g.load(filename, format='n3')
@@ -440,14 +494,16 @@ class RDFConverter(object):
         # links...
         all_links = self._extract_links(g)
 
-        ontology = Ontology()
-        for cls in class_nodes:
-            ontology = ontology.class_node(self.label(cls),
-                                           data_node_table[self.label(cls)],
-                                           prefix='')
+        # subclass lookup
+        subclasses = self._extract_subclasses(g)
 
-        for op in all_links:
-            ontology = ontology.link(*op)
+        # build the ontology object...
+        ontology = self._build_ontology(ontology,
+                                        class_nodes,
+                                        data_node_table,
+                                        all_links,
+                                        subclasses,
+                                        g.namespaces())
 
         return ontology
 
