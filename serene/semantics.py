@@ -1,16 +1,20 @@
 """
  License...
 """
-import collections
+import copy
+import itertools as it
 import logging
 import os.path
 import random
-import string
 import tempfile
+from collections import defaultdict
 
 import networkx as nx
+import pandas as pd
+import rdflib
 
-from .utils import Searchable
+from .elements import ClassNode, Link, LinkList
+from .visualizers import BaseVisualizer
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -196,6 +200,10 @@ class BaseSemantic(object):
         # return list(links.values())
         return self._links
 
+    def show(self):
+        BaseVisualizer(self).show()
+        return
+
 
 class Ontology(BaseSemantic):
     """
@@ -220,51 +228,39 @@ class Ontology(BaseSemantic):
         """
         super().__init__()
 
+        id_var = random.randint(1e7, 1e8 - 1)
+
+        self.filename = os.path.join(
+            tempfile.gettempdir(),
+            "{}.owl".format(id_var)
+        )
+
         if file is not None:
             _logger.debug("Importing {} from file.".format(file))
-            self.load(file)
-            self.filename = file
+
+            if os.path.exists(file):
+
+                # attempt to extract an ontology from turtle
+                ontology = RDFConverter().turtle_to_ontology(file)
+
+                # copy into the current object...
+                self.__dict__ = copy.deepcopy(ontology.__dict__)
+
+                self.source_file = file
+            else:
+                msg = "Failed to find file {}".format(file)
+                raise FileNotFoundError(msg)
         else:
-            id_var = random.randint(1e7, 1e8-1)
             # default prefixes...
+            self._base = "http://www.semanticweb.org/data_integration/{}".format(id_var)
             self._prefixes = {
-                ':': '<http://www.semanticweb.org/data_integration_project/{}#>'.format(id_var),
+                '': '<{}#>'.format(self._base),
                 'owl': '<http://www.w3.org/2002/07/owl#>',
                 'rdf': '<http://www.w3.org/1999/02/22-rdf-syntax-ns#>',
-                'xsd': '<http://www.w3.org/2001/XMLSchema #>',
+                'xsd': '<http://www.w3.org/2001/XMLSchema#>',
                 'rdfs': '<http://www.w3.org/2000/01/rdf-schema#>'
             }
-            self.filename = os.path.join(
-                tempfile.gettempdir(),
-                "{}.owl".format(id_var)
-            )
-
-    def load(self, filename):
-        """
-        Loads an Ontology from a file. The file must be in .owl RDF format.
-
-        WARNING: What do we do about the same prefix values!!! unclear.
-                Should they be merged? Should ClassNodes simply be referred to
-                by the prefix under the hood?
-
-        :param filename: The name of the .owl file.
-        :return:
-        """
-        def rand_str(n=5):
-            chars = string.ascii_uppercase + string.digits
-            return ''.join(random.SystemRandom().choice(chars) for _ in range(n))
-
-        _logger.info("Extracting ontology from file {}.".format(filename))
-
-        # REMOVE!!! These are just junk values...
-        self._prefixes = {
-            "xml": "xml:/some/xml/resource",
-            "uri": "uri:/some/uri/resource",
-            "owl": "owl:/some/owl/resource"
-        }
-        self._uri = "junk"
-
-        self.class_node(rand_str(), [rand_str(), rand_str()])
+            self.source_file = None
 
     def prefix(self, prefix, uri):
         """
@@ -296,233 +292,163 @@ class Ontology(BaseSemantic):
         return "Ontology({})".format(self.filename)
 
 
-class ClassNode(Searchable):
+class RDFConverter(object):
     """
-        ClassNode objects hold the 'types' of the ontology or semantic model.
-        A ClassNode can have multiple DataNodes. A DataNode corresponds to an
-        attribute or a column in a dataset.
-        A ClassNode can link to another ClassNode via a Link.
+        Converts RDF objects...
     """
-    # the search parameters...
-    getters = [
-        lambda node: node.name,
-        lambda node: node.nodes if len(node.nodes) else None,
-        lambda node: node.prefix if node.prefix else None,
-        lambda node: node.parent if node.parent else None
-    ]
-
-    def __init__(self, name, nodes=None, prefix=None, parent=None):
-        """
-        A ClassNode is initialized with a name, a list of string nodes
-        and optional prefix and/or a parent ClassNode
-
-        :param name: The string name of the ClassNode
-        :param nodes: A list of strings to initialze the DataNode objects
-        :param prefix: The URI prefix
-        :param parent: The parent object if applicable
-        """
-        self.name = name
-        self.prefix = prefix
-        self.parent = parent
-        self.nodes = [DataNode(self, n) for n in nodes.keys()] if nodes is not None else []
-
-    def ssd_output(self, ident):
-        """
-        The output function has not
-        :return:
-        """
-        return {
-            "id": ident,
-            "label": self.name,
-            "prefix": self.prefix if self.prefix is not None else "owl",
-            "type": "ClassNode"
+    def __init__(self):
+        self.TYPE_LOOKUP = {
+            rdflib.RDFS['Literal']: str,
+            rdflib.XSD['dateTime']: pd.datetime,
+            rdflib.XSD['unsignedInt']: int,
+            rdflib.XSD['integer']: int,
+            rdflib.XSD['string']: str,
+            rdflib.XSD['boolean']: bool,
+            rdflib.XSD['float']: float,
+            rdflib.XSD['double']: float,
+            rdflib.XSD['date']: pd.datetime
         }
-
-    def __repr__(self):
-        nodes = [n.name for n in self.nodes]
-
-        if self.parent is None:
-            parent = ""
-        else:
-            parent = ", parent={}".format(self.parent.name)
-
-        return "ClassNode({}, [{}]{})".format(self.name, ", ".join(nodes), parent)
-
-    def __eq__(self, other):
-        return (self.name == other.name) \
-               and (self.prefix == other.prefix)
-
-    def __hash__(self):
-        return id(self)
-
-
-class DataNode(Searchable):
-    """
-        A DataNode is an attribute of a ClassNode. This can correspond to a
-        column in a dataset.
-    """
-    # the search parameters...
-    getters = [
-        lambda node: node.name,
-        lambda node: node.parent.name if node.parent else None,
-        lambda node: node.parent.prefix if node.parent else None
-    ]
-
-    def __init__(self, *names):
-        """
-        A DataNode is initialized with name and a parent ClassNode object.
-        A DataNode can be initialized in the following ways:
-
-        DataNode(ClassNode("Person"), "name")
-        DataNode("Person", "name)
-        DataNode("name")
-
-        :param names: The name of the parent classnode and the name of the DataNode
-        """
-        if len(names) == 1:
-            # initialized with DataNode("name") - for lookups only...
-            self.name = names[0]
-            self.parent = None
-
-        elif len(names) == 2:
-            # here the first element is now the parent...
-            parent = names[0]
-
-            if type(parent) == ClassNode:
-                # initialized with DataNode(ClassNode("Person"), "name")
-                self.parent = parent
-            else:
-                # initialized with DataNode("Person", "name")
-                self.parent = ClassNode(parent)
-            self.name = names[1]
-
-        else:
-            msg = "Insufficient args for DataNode construction."
-            raise Exception(msg)
-
-        super().__init__()
-
-    def ssd_output(self, ident):
-        """
-        The output function has not
-        :return:
-        """
-        if self.parent is None:
-            label = self.name
-        else:
-            label = "{}.{}".format(self.parent.name, self.name)
-
-        return {
-            "id": ident,
-            "label": label,
-            "type": "DataNode"
-        }
-
-    def __repr__(self):
-        if self.parent:
-            return "DataNode({}, {})".format(self.parent.name, self.name)
-        else:
-            return "DataNode({})".format(self.name)
-
-
-class Link(Searchable):
-    """
-        A Link is a relationship between ClassNodes.
-    """
-    @staticmethod
-    def node_match(node):
-        if node.src is None:
-            return None
-        if node.dst is None:
-            return None
-        return node.src.name, node.dst.name
-
-    # the search parameters...
-    getters = [
-        lambda node: node.name,
-        node_match
-    ]
-
-    # special link names...
-    SUBCLASS = "subclass"
-    OBJECT_LINK = "ObjectProperty"
-    DATA_LINK = "DataProperty"
-
-    def __init__(self, name, src=None, dst=None):
-        """
-        The link can be initialized with a name, and also
-        holds the source and destination ClassNode references.
-
-        :param name: The link name
-        :param src: The source ClassNode
-        :param dst: The destination ClassNode
-        """
-        self.name = name
-        self.src = src
-        self.dst = dst
-        if type(self.dst) == ClassNode:
-            self.link_type = self.OBJECT_LINK
-        else:
-            self.link_type = self.DATA_LINK
-
-    def ssd_output(self, index_map):
-        """
-        Returns the SSD output for a link. Note that we need
-        the local reference to the index map, so that we can
-        put the correct source/target link IDs.
-
-        :return: Dictionary with the SSD link labels
-        """
-        return {
-            "source": index_map[self.src],
-            "target": index_map[self.dst],
-            "label": self.name,
-            "type": self.link_type
-        }
-
-    def __repr__(self):
-        if (self.src is None) or (self.dst is None):
-            return "Link({})".format(self.name)
-        elif self.link_type == self.OBJECT_LINK:
-            return "ClassNode({}) -> Link({}) -> ClassNode({})" \
-                .format(self.src.name, self.name, self.dst.name)
-        else:
-            return "ClassNode({}) -> Link({}) -> DataNode({})" \
-                .format(self.src.name, self.name, self.dst.name)
-
-
-class LinkList(collections.MutableSequence):
-    """
-    Container type for Link objects in the Semantic Source Description
-    """
-
-    def __init__(self, *args):
-        self.list = list()
-        self.extend(list(args))
 
     @staticmethod
-    def check(v):
-        if not isinstance(v, Link):
-            raise TypeError("Only Link types permitted")
+    def label(node):
+        """
+        Strips off the prefix in the URI to give the label...
 
-    def __len__(self):
-        return len(self.list)
+        :param node: The full URI string
+        :return: string
+        """
+        if '#' in node:
+            return node.split("#")[-1]
+        else:
+            # there must be no # in the prefix e.g. schema.org/
+            return node.split("/")[-1]
 
-    def __getitem__(self, i):
-        return self.list[i]
+    @staticmethod
+    def subjects(g, subject=None, predicate=None, object=None):
+        """
+        Extracts all the 'subject' values from an RDFLib triplet graph g. A filter
+        can be made on the subject, predicate or object arguments.
 
-    def __delitem__(self, i):
-        del self.list[i]
+        :param g: The RDFLib graph
+        :param subject: Filter for the subjects
+        :param predicate: Filter for the predicates
+        :param object: Filter for the objects
+        :return: List of RDFLib subject values
+        """
+        return [s for s, p, o in g.triples((subject, predicate, object))]
 
-    def __setitem__(self, i, v):
-        self.check(v)
-        self.list[i] = v
+    @staticmethod
+    def objects(g, subject=None, predicate=None, object=None):
+        """
+        Extracts all the 'object' values from an RDFLib triplet graph g. A filter
+        can be made on the subject, predicate or object arguments.
 
-    def insert(self, i, v):
-        self.check(v)
-        self.list.insert(i, v)
+        :param g: The RDFLib graph
+        :param subject: Filter for the subjects
+        :param predicate: Filter for the predicates
+        :param object: Filter for the objects
+        :return: List of RDFLib object values
+        """
+        return [o for s, p, o in g.triples((subject, predicate, object))]
 
-    def __repr__(self):
-        return '\n'.join(str(link) for link in self.list)
+    def _extract_links(self, g):
+        """
+        Extracts the links from the RDFLib ontology graph g. Returns a
+        list of 3-tuples with (ClassNode1, label, ClassNode2)
+
+        :param g: The RDFLib graph object
+        :return: List of 3-tuples with class-label-class
+        """
+        all_links = []
+
+        object_properties = self.subjects(g, object=rdflib.OWL['ObjectProperty'])
+        for link in object_properties:
+
+            sources = self.objects(g,
+                                   subject=link,
+                                   predicate=rdflib.RDFS['domain'])
+            destinations = self.objects(g,
+                                        subject=link,
+                                        predicate=rdflib.RDFS['range'])
+
+            links = it.product(sources, destinations)
+
+            for x, y in links:
+                all_links.append((self.label(x),
+                                  self.label(link),
+                                  self.label(y)))
+
+        return all_links
+
+    def _extract_data_nodes(self, g):
+        """
+        Extracts a dictionary of DataTypeProperties, as in the data nodes
+        for a class node. The format is:
+            {
+                ClassNode1: {
+                    DataNode1: type1,
+                    DataNode2: type2,
+                    ...
+                },
+                ClassNode2: {
+                    DataNode1: type1,
+                    DataNode3: type3
+                }
+                ...
+            }
+
+        :param g: The RDFLib graph object
+        :return: Nested dictionary of ClassNode -> DataNode -> Python type
+        """
+        property_table = defaultdict(dict)
+
+        # links...
+        data_properties = self.subjects(g, object=rdflib.OWL['DatatypeProperty'])
+
+        for dp in data_properties:
+
+            sources = self.objects(g,
+                                   subject=dp,
+                                   predicate=rdflib.RDFS['domain'])
+            destinations = self.objects(g,
+                                        subject=dp,
+                                        predicate=rdflib.RDFS['range'])
+
+            links = it.product(sources, destinations)
+
+            for x, y in links:
+                property_table[x][self.label(dp)] = self.TYPE_LOOKUP[y]
+        return property_table
+
+    def turtle_to_ontology(self, filename):
+        """
+        Converts an OWL file from the Turtle format into the Ontology type
+
+        :param filename: OWL or TTL file in Turtle RDF format
+        :return: Ontology object
+        """
+        # first load the file
+        g = rdflib.Graph()
+        g.load(filename, format='n3')
+
+        # class nodes
+        class_nodes = self.subjects(g, object=rdflib.OWL['Class'])
+
+        # a table of the class node properties (data nodes)
+        data_node_table = self._extract_data_nodes(g)
+
+        # links...
+        all_links = self._extract_links(g)
+
+        ontology = Ontology()
+        for cls in class_nodes:
+            ontology = ontology.class_node(self.label(cls),
+                                           data_node_table[self.label(cls)],
+                                           prefix='')
+
+        for op in all_links:
+            ontology = ontology.link(*op)
+
+        return ontology
 
 

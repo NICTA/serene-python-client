@@ -35,6 +35,7 @@ except ImportError as e:
     
 from serene import SemanticModeller, Ontology, DataNode, Link, Column, ClassNode, Transform
 
+
 # start with a SemanticModeller object...
 sm = serene.SemanticModeller(
     config={
@@ -42,12 +43,20 @@ sm = serene.SemanticModeller(
         "threshold": 0.7,
         "search-depth": 100
     },
-    ontologies=["/some/file/something.owl", "/some/other/file/something.owl"]
+    ontologies=[] #["/some/file/something.owl", "/some/other/file/something.owl"]
 )
 print(sm)
 
+#
+# First let's view an ontology...
+#
+test = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.owl')
 
-# build up a simple ontology
+test.show()
+
+input("Press enter to continue...")
+
+# or, we can build up a simple ontology
 on = (serene.Ontology()
       .prefix("asd", "asd:/9e8rgyusdgfiuhsdf.dfguhudfh")
       .uri("http://www.semanticweb.org/data_integration_project/report_example_ontology")
@@ -64,6 +73,9 @@ on = (serene.Ontology()
 print()
 print("Ontology built:")
 print(on)
+on.show()
+
+input("Press enter to continue...")
 
 # add the ontology to the SemanticModeller
 sm.add_ontology(on)

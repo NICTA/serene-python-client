@@ -8,8 +8,10 @@ import time
 import pandas as pd
 
 from .elements import TransformList, Column, Mapping, Transform, IdentTransform
-from .semantics import Ontology, DataNode, ClassNode, Link, BaseSemantic
-from .ssd_util import SSDVisualizer, SSDJsonBuilder
+from .semantics import Ontology, BaseSemantic
+from .elements import ClassNode, DataNode, Link
+from .ssd_util import SSDJsonBuilder
+from .visualizers import SSDVisualizer
 
 # logging functions...
 _logger = logging.getLogger()
@@ -489,8 +491,8 @@ class SemanticSourceDesc(object):
 
         :return: None
         """
-        visualizer = SSDVisualizer(self)
-        visualizer.show()
+        SSDVisualizer(self).show()
+        return
 
     def save(self, file):
         """

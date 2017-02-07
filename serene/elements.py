@@ -4,8 +4,9 @@ License...
 import collections
 import logging
 
+#from serene.utils import Searchable
 from .utils import Searchable
-from .semantics import DataNode
+#from .semantics import DataNode
 
 
 # logging functions...
@@ -171,3 +172,232 @@ class TransformList(collections.MutableSequence):
             transforms.append(s)
         return '\n'.join(transforms)
 
+
+class ClassNode(Searchable):
+    """
+        ClassNode objects hold the 'types' of the ontology or semantic model.
+        A ClassNode can have multiple DataNodes. A DataNode corresponds to an
+        attribute or a column in a dataset.
+        A ClassNode can link to another ClassNode via a Link.
+    """
+    # the search parameters...
+    getters = [
+        lambda node: node.name,
+        lambda node: node.nodes if len(node.nodes) else None,
+        lambda node: node.prefix if node.prefix else None,
+        lambda node: node.parent if node.parent else None
+    ]
+
+    def __init__(self, name, nodes=None, prefix=None, parent=None):
+        """
+        A ClassNode is initialized with a name, a list of string nodes
+        and optional prefix and/or a parent ClassNode
+
+        :param name: The string name of the ClassNode
+        :param nodes: A list of strings to initialze the DataNode objects
+        :param prefix: The URI prefix
+        :param parent: The parent object if applicable
+        """
+        self.name = name
+        self.prefix = prefix
+        self.parent = parent
+        self.nodes = [DataNode(self, n) for n in nodes.keys()] if nodes is not None else []
+
+    def ssd_output(self, ident):
+        """
+        The output function has not
+        :return:
+        """
+        return {
+            "id": ident,
+            "label": self.name,
+            "prefix": self.prefix if self.prefix is not None else "owl",
+            "type": "ClassNode"
+        }
+
+    def __repr__(self):
+        nodes = [n.name for n in self.nodes]
+
+        if self.parent is None:
+            parent = ""
+        else:
+            parent = ", parent={}".format(self.parent.name)
+
+        return "ClassNode({}, [{}]{})".format(self.name, ", ".join(nodes), parent)
+
+    def __eq__(self, other):
+        return (self.name == other.name) \
+               and (self.prefix == other.prefix)
+
+    def __hash__(self):
+        return id(self)
+
+
+class DataNode(Searchable):
+    """
+        A DataNode is an attribute of a ClassNode. This can correspond to a
+        column in a dataset.
+    """
+    # the search parameters...
+    getters = [
+        lambda node: node.name,
+        lambda node: node.parent.name if node.parent else None,
+        lambda node: node.parent.prefix if node.parent else None
+    ]
+
+    def __init__(self, *names):
+        """
+        A DataNode is initialized with name and a parent ClassNode object.
+        A DataNode can be initialized in the following ways:
+
+        DataNode(ClassNode("Person"), "name")
+        DataNode("Person", "name)
+        DataNode("name")
+
+        :param names: The name of the parent classnode and the name of the DataNode
+        """
+        if len(names) == 1:
+            # initialized with DataNode("name") - for lookups only...
+            self.name = names[0]
+            self.parent = None
+
+        elif len(names) == 2:
+            # here the first element is now the parent...
+            parent = names[0]
+
+            if type(parent) == ClassNode:
+                # initialized with DataNode(ClassNode("Person"), "name")
+                self.parent = parent
+            else:
+                # initialized with DataNode("Person", "name")
+                self.parent = ClassNode(parent)
+            self.name = names[1]
+
+        else:
+            msg = "Insufficient args for DataNode construction."
+            raise Exception(msg)
+
+        super().__init__()
+
+    def ssd_output(self, ident):
+        """
+        The output function has not
+        :return:
+        """
+        if self.parent is None:
+            label = self.name
+        else:
+            label = "{}.{}".format(self.parent.name, self.name)
+
+        return {
+            "id": ident,
+            "label": label,
+            "type": "DataNode"
+        }
+
+    def __repr__(self):
+        if self.parent:
+            return "DataNode({}, {})".format(self.parent.name, self.name)
+        else:
+            return "DataNode({})".format(self.name)
+
+
+class Link(Searchable):
+    """
+        A Link is a relationship between ClassNodes.
+    """
+    @staticmethod
+    def node_match(node):
+        if node.src is None:
+            return None
+        if node.dst is None:
+            return None
+        return node.src.name, node.dst.name
+
+    # the search parameters...
+    getters = [
+        lambda node: node.name,
+        node_match
+    ]
+
+    # special link names...
+    SUBCLASS = "subclass"
+    OBJECT_LINK = "ObjectProperty"
+    DATA_LINK = "DataProperty"
+
+    def __init__(self, name, src=None, dst=None):
+        """
+        The link can be initialized with a name, and also
+        holds the source and destination ClassNode references.
+
+        :param name: The link name
+        :param src: The source ClassNode
+        :param dst: The destination ClassNode
+        """
+        self.name = name
+        self.src = src
+        self.dst = dst
+        if type(self.dst) == ClassNode:
+            self.link_type = self.OBJECT_LINK
+        else:
+            self.link_type = self.DATA_LINK
+
+    def ssd_output(self, index_map):
+        """
+        Returns the SSD output for a link. Note that we need
+        the local reference to the index map, so that we can
+        put the correct source/target link IDs.
+
+        :return: Dictionary with the SSD link labels
+        """
+        return {
+            "source": index_map[self.src],
+            "target": index_map[self.dst],
+            "label": self.name,
+            "type": self.link_type
+        }
+
+    def __repr__(self):
+        if (self.src is None) or (self.dst is None):
+            return "Link({})".format(self.name)
+        elif self.link_type == self.OBJECT_LINK:
+            return "ClassNode({}) -> Link({}) -> ClassNode({})" \
+                .format(self.src.name, self.name, self.dst.name)
+        else:
+            return "ClassNode({}) -> Link({}) -> DataNode({})" \
+                .format(self.src.name, self.name, self.dst.name)
+
+
+class LinkList(collections.MutableSequence):
+    """
+    Container type for Link objects in the Semantic Source Description
+    """
+
+    def __init__(self, *args):
+        self.list = list()
+        self.extend(list(args))
+
+    @staticmethod
+    def check(v):
+        if not isinstance(v, Link):
+            raise TypeError("Only Link types permitted")
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, i):
+        return self.list[i]
+
+    def __delitem__(self, i):
+        del self.list[i]
+
+    def __setitem__(self, i, v):
+        self.check(v)
+        self.list[i] = v
+
+    def insert(self, i, v):
+        self.check(v)
+        self.list.insert(i, v)
+
+    def __repr__(self):
+        return '\n'.join(str(link) for link in self.list)
