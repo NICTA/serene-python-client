@@ -199,7 +199,11 @@ class ClassNode(Searchable):
         self.name = name
         self.prefix = prefix
         self.parent = parent
-        self.nodes = [DataNode(self, n) for n in nodes.keys()] if nodes is not None else []
+
+        if nodes is None:
+            self.nodes = []
+        else:
+            self.nodes = [DataNode(self, n, dtype=dtype) for n, dtype in nodes.items()]
 
     def ssd_output(self, ident):
         """
@@ -243,7 +247,7 @@ class DataNode(Searchable):
         lambda node: node.parent.prefix if node.parent else None
     ]
 
-    def __init__(self, *names):
+    def __init__(self, *names, dtype=str):
         """
         A DataNode is initialized with name and a parent ClassNode object.
         A DataNode can be initialized in the following ways:
@@ -254,6 +258,8 @@ class DataNode(Searchable):
 
         :param names: The name of the parent classnode and the name of the DataNode
         """
+        self.dtype = dtype
+
         if len(names) == 1:
             # initialized with DataNode("name") - for lookups only...
             self.name = names[0]

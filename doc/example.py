@@ -52,7 +52,7 @@ print(sm)
 #
 test = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.owl')
 
-test.show()
+print(test.to_turtle())
 
 input("Press enter to continue...")
 

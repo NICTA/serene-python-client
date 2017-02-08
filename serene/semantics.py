@@ -1,7 +1,6 @@
 """
  License...
 """
-import copy
 import itertools as it
 import logging
 import os.path
@@ -35,6 +34,7 @@ class BaseSemantic(object):
         self._class_table = {}
         self._links = LinkList()
         self._LINK = "relationship"
+        self._DATA_NODE_LINK = "property"
 
     def class_node(self, name, nodes=None, prefix=None, is_a=None):
         """
@@ -62,9 +62,10 @@ class BaseSemantic(object):
 
         # build up the node list...
         node_dict = {}
-        if type(nodes) == dict:
+
+        if issubclass(type(nodes), dict):
             node_dict = nodes
-        elif type(nodes) == list:
+        elif issubclass(type(nodes), list):
             node_dict = {k: str for k in nodes}
 
         # now we create a class node object...
@@ -87,7 +88,7 @@ class BaseSemantic(object):
 
         # now add the data property links
         for dataNode in node.nodes:
-            link = Link("property", node, dataNode)
+            link = Link(self._DATA_NODE_LINK, node, dataNode)
             self.add_link(link)
 
         self._graph.add_node(node)
@@ -200,6 +201,13 @@ class BaseSemantic(object):
         # return list(links.values())
         return self._links
 
+    @property
+    def class_links(self):
+        """Returns all the links in the graph"""
+        # links = nx.get_edge_attributes(self._graph, self._LINK)
+        # return list(links.values())
+        return [link for link in self._links if link.name != self._DATA_NODE_LINK]
+
     def show(self):
         BaseVisualizer(self).show()
         return
@@ -244,7 +252,7 @@ class Ontology(BaseSemantic):
             if os.path.exists(file):
 
                 # attempt to extract an ontology from turtle
-                RDFConverter().turtle_to_ontology(file, self)
+                RDFReader().to_ontology(file, self)
 
                 self.source_file = file
             else:
@@ -259,6 +267,9 @@ class Ontology(BaseSemantic):
                 'xsd': '<http://www.w3.org/2001/XMLSchema#>',
                 'rdfs': '<http://www.w3.org/2000/01/rdf-schema#>'
             }
+
+    def to_turtle(self):
+        return RDFWriter().to_turtle(self)
 
     def prefix(self, prefix, uri):
         """
@@ -282,6 +293,10 @@ class Ontology(BaseSemantic):
         self._uri = uri_string
         return self
 
+    @property
+    def prefixes(self):
+        return self._prefixes
+
     def __repr__(self):
         """
         String output for the ontology...
@@ -290,12 +305,12 @@ class Ontology(BaseSemantic):
         return "Ontology({})".format(self.filename)
 
 
-class RDFConverter(object):
+class RDFReader(object):
     """
         Converts RDF objects...
     """
     def __init__(self):
-        self.TYPE_LOOKUP = {
+        self.TYPE_MAP = {
             rdflib.RDFS['Literal']: str,
             rdflib.XSD['dateTime']: pd.datetime,
             rdflib.XSD['unsignedInt']: int,
@@ -360,6 +375,7 @@ class RDFConverter(object):
         all_links = []
 
         object_properties = self.subjects(g, object=rdflib.OWL['ObjectProperty'])
+
         for link in object_properties:
 
             sources = self.objects(g,
@@ -423,8 +439,34 @@ class RDFConverter(object):
             links = it.product(sources, destinations)
 
             for x, y in links:
-                property_table[x][self.label(dp)] = self.TYPE_LOOKUP[y]
+                property_table[x][self.label(dp)] = self.TYPE_MAP[y]
+
         return property_table
+
+    def _ordered_classes(self, all_nodes, lookup):
+        """
+        Returns the nodes in all_nodes in order of increasing depth, given
+        the class heirarchy in lookup (a node->parent dictionary)
+
+        :param all_nodes: The list of class nodes
+        :param lookup: A class->parent dictionary...
+        :return:
+        """
+        MAX_ITER = 100
+
+        def depth(node, count=0):
+            if count > MAX_ITER:
+                raise Exception("Cycle found in class node heirarchy")
+            elif node not in lookup:
+                return count
+            else:
+                return depth(lookup[node], count + 1)
+
+        depths = [(node, depth(node)) for node in all_nodes]
+
+        s_depths = sorted(depths, key=lambda x: x[1])
+
+        return [x[0] for x in s_depths]
 
     def _build_ontology(self,
                         ontology,
@@ -444,32 +486,31 @@ class RDFConverter(object):
         :return:
         """
         # extract the parents and children, we need to ensure that
-        # the parents are created first...
-        children = list(subclasses.keys())
-        parents = [c for c in class_nodes if c not in children]
+        # the parents are created first.
+        nodes = self._ordered_classes(class_nodes, subclasses)
 
-        for cls in parents + children:
+        for cls in nodes:
             if cls in subclasses:
                 parent = self.label(subclasses[cls])
             else:
                 parent = None
 
             ontology.class_node(self.label(cls),
-                                data_node_table[self.label(cls)],
+                                data_node_table[cls],
                                 prefix='',
                                 is_a=parent)
 
         # now we add all the links...
-        for src, link, dest in all_links:
-            ontology.link(src, link, dest)
+        for src, link, dst in all_links:
+            ontology.link(src, link, dst)
 
-        # and all the prefixes...
+        # ... and all the prefixes...
         for name, uri in namespaces:
             ontology.prefix(name, uri)
 
         return ontology
 
-    def turtle_to_ontology(self, filename, ontology=None):
+    def to_ontology(self, filename, ontology=None):
         """
         Converts an OWL file from the Turtle format into the Ontology type
 
@@ -485,26 +526,142 @@ class RDFConverter(object):
         g = rdflib.Graph()
         g.load(filename, format='n3')
 
-        # class nodes
-        class_nodes = self.subjects(g, object=rdflib.OWL['Class'])
-
-        # a table of the class node properties (data nodes)
-        data_node_table = self._extract_data_nodes(g)
-
-        # links...
-        all_links = self._extract_links(g)
-
-        # subclass lookup
-        subclasses = self._extract_subclasses(g)
-
         # build the ontology object...
         ontology = self._build_ontology(ontology,
-                                        class_nodes,
-                                        data_node_table,
-                                        all_links,
-                                        subclasses,
+                                        self.subjects(g, object=rdflib.OWL['Class']),
+                                        self._extract_data_nodes(g),
+                                        self._extract_links(g),
+                                        self._extract_subclasses(g),
                                         g.namespaces())
 
         return ontology
 
+
+class RDFWriter(object):
+    """
+
+    """
+    def __init__(self):
+        """
+
+        """
+        self.TYPE_MAP = {
+            str: rdflib.RDFS['Literal'],
+            int: rdflib.XSD['integer'],
+            bool: rdflib.XSD['boolean'],
+            float: rdflib.XSD['float'],
+            pd.datetime: rdflib.XSD['dateTime']
+        }
+
+    def _build_classes(self, g, ontology):
+        """
+
+        :param g:
+        :param ontology:
+        :return:
+        """
+
+        def rdf(value):
+            return self.rdf_node(value, ontology)
+
+        for cls in ontology.class_nodes:
+            g.add((
+                rdf(cls.name),
+                rdflib.RDF.type,
+                rdflib.OWL['Class']
+            ))
+
+            if cls.parent is not None:
+                g.add((
+                    rdf(cls.name),
+                    rdflib.RDFS.subClassOf,
+                    rdf(cls.parent.name)
+                ))
+
+    @staticmethod
+    def rdf_node(value, ontology, prefix=None):
+        """
+
+        :param value:
+        :param ontology:
+        :param prefix:
+        :return:
+        """
+        if prefix is None:
+            default = rdflib.Namespace(ontology.prefixes[''])
+        else:
+            default = rdflib.Namespace(ontology.prefixes[prefix])
+
+        return rdflib.term.URIRef(default[value])
+
+    def _build_links(self, g, ontology):
+        """
+
+        :param g:
+        :param ontology:
+        :return:
+        """
+        def rdf(value):
+            return self.rdf_node(value, ontology)
+
+        for link in ontology.class_links:
+            g.add((
+                rdf(link.name),
+                rdflib.RDF.type,
+                rdflib.OWL['ObjectProperty']
+            ))
+            g.add((
+                rdf(link.name),
+                rdflib.RDFS.domain,
+                rdf(link.src.name)
+            ))
+            g.add((
+                rdf(link.name),
+                rdflib.RDFS.range,
+                rdf(link.dst.name)
+            ))
+
+    def _build_data_nodes(self, g, ontology):
+        """
+
+        :param g:
+        :param ontology:
+        :return:
+        """
+        def rdf(value):
+            return self.rdf_node(value, ontology)
+
+        for node in ontology.data_nodes:
+            g.add((
+                rdf(node.name),
+                rdflib.RDF.type,
+                rdflib.OWL['DatatypeProperty']
+            ))
+            g.add((
+                rdf(node.name),
+                rdflib.RDFS.domain,
+                rdf(node.parent.name)
+            ))
+            g.add((
+                rdf(node.name),
+                rdflib.RDFS.range,
+                self.TYPE_MAP[node.dtype]
+            ))
+
+    def to_turtle(self, ontology):
+        """
+
+        :param ontology:
+        :return:
+        """
+        g = rdflib.Graph()
+
+        for prefix, uri in ontology.prefixes.items():
+            g.bind(prefix, uri)
+
+        self._build_classes(g, ontology)
+        self._build_links(g, ontology)
+        self._build_data_nodes(g, ontology)
+
+        return g.serialize(format='turtle').decode("utf-8")
 
