@@ -9,8 +9,8 @@ from functools import lru_cache
 
 import pandas as pd
 
-from .api import matcher
-from .dataset import DataSetList, DataSet, Column
+from ..api import session
+from .dataset import DataSet, Column
 from .model import ModelList, Model
 
 
@@ -65,17 +65,17 @@ class SchemaMatcher(object):
         Initialize class instance of SchemaMatcher.
         """
         logging.info('Initialising schema matcher class object.')
-        self.api = matcher.Session(host, port, auth, cert, trust_env)
+        self.api = session.Session(host, port, auth, cert, trust_env)
 
     @property
     @lru_cache(maxsize=32)
     def datasets(self):
         """Maintains a list of DataSet objects"""
         keys = self.api.dataset_keys()
-        ds = DataSetList()
+        ds = [] #DataSetList()
         for k in keys:
-            ds.append(DataSet(self.api.dataset(k), self))
-        return ds
+            ds.append(DataSet(self.api.dataset(k)))
+        return tuple(ds)
 
     @property
     @lru_cache(maxsize=32)

@@ -46,12 +46,12 @@ class DataSet(object):
     metadata. The columns are also extracted to their own
     datatype
     """
-    def __init__(self, json, parent):
+    def __init__(self, json):
         """
         Initialize a DataSet object with a json response
         :param json:
         """
-        self.parent = parent
+        #self.parent = parent
         self.id = json['id']
         self.columns = [Column(c) for c in json['columns']]
         self.filename = json['filename']
@@ -82,82 +82,84 @@ class DataSet(object):
         else:
             raise ValueError("Column name {} does not exist.".format(name) )
 
-    @property
     def summary(self):
         """Shows the information about the dataset"""
-        return "\n".join([
+        print("\n".join([
             "id: {}".format(self.id),
-            "columns: {}".format(self.columns),
+            "columns: {}".format([c.name for c in self.columns]),
             "filename: {}".format(self.filename),
             "path: {}".format(self.path),
             "typeMap: {}".format(self.type_map),
             "description: {}".format(self.description),
             "dateCreated: {}".format(self.date_created),
             "dateModified: {}".format(self.date_modified),
-            "sample: {}".format(self.sample),
-        ])
-
-
-class DataSetList(collections.MutableSequence):
-    """
-    Container type for DataSet objects in the Serene Python Client
-    """
-
-    def __init__(self, *args):
-        self.list = list()
-        self.extend(list(args))
-
-    @staticmethod
-    def check(v):
-        if not issubclass(type(v), DataSet):
-            raise TypeError("Only DataSet types permitted: {}".format(v))
-
-    def __len__(self):
-        return len(self.list)
-
-    def __getitem__(self, i):
-        return self.list[i]
-
-    def __delitem__(self, i):
-        msg = "Use SchemaMatcher.remove_dataset to correctly remove dataset"
-        logging.error(msg)
-        raise Exception(msg)
-
-    def __setitem__(self, i, v):
-        self.check(v)
-        self.list[i] = v
-
-    def insert(self, i, v):
-        self.check(v)
-        self.list.insert(i, v)
+            "sample: {}".format(self.sample)])
+        )
 
     def __repr__(self):
-        ds = []
-        for v in self.list:
-            s = "DataSet({})".format(v.id)
-            ds.append(s)
-        return "[{}]".format('\n'.join(ds))
+        disp = "DataSet({}, {})".format(self.id, self.filename)
+        return disp
 
-    @property
-    def summary(self):
-        df = pd.DataFrame(columns=[
-            'id',
-            'name',
-            'description',
-            'created',
-            'modified',
-            'rows',
-            'cols'
-        ])
-        for elem in self.list:
-            df.loc[len(df)] = [
-                elem.id,
-                os.path.basename(elem.filename),
-                elem.description,
-                elem.date_created,
-                elem.date_modified,
-                max(c.size for c in elem.columns),
-                len(elem.columns)
-            ]
-        return df
+
+# class DataSetList(collections.MutableSequence):
+#     """
+#     Container type for DataSet objects in the Serene Python Client
+#     """
+#
+#     def __init__(self, *args):
+#         self.list = list()
+#         self.extend(list(args))
+#
+#     @staticmethod
+#     def check(v):
+#         if not issubclass(type(v), DataSet):
+#             raise TypeError("Only DataSet types permitted: {}".format(v))
+#
+#     def __len__(self):
+#         return len(self.list)
+#
+#     def __getitem__(self, i):
+#         return self.list[i]
+#
+#     def __delitem__(self, i):
+#         msg = "Use Serene.remove_dataset to correctly remove dataset"
+#         logging.error(msg)
+#         raise Exception(msg)
+#
+#     def __setitem__(self, i, v):
+#         self.check(v)
+#         self.list[i] = v
+#
+#     def insert(self, i, v):
+#         self.check(v)
+#         self.list.insert(i, v)
+#
+#     def __repr__(self):
+#         ds = []
+#         for v in self.list:
+#             ds.append(str(v))
+#         return "[{}]".format('\n'.join(ds))
+#
+#     @property
+#     def summary(self):
+#         df = pd.DataFrame(columns=[
+#             'id',
+#             'name',
+#             'description',
+#             'created',
+#             'modified',
+#             'rows',
+#             'cols'
+#         ])
+#         for elem in self.list:
+#             df.loc[len(df)] = [
+#                 elem.id,
+#                 os.path.basename(elem.filename),
+#                 elem.description,
+#                 elem.date_created,
+#                 elem.date_modified,
+#                 max(c.size for c in elem.columns),
+#                 len(elem.columns)
+#             ]
+#         return df
 

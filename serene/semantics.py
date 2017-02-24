@@ -261,15 +261,28 @@ class Ontology(BaseSemantic):
         else:
             # default prefixes...
             self._prefixes = {
-                '': '<{}#>'.format(self._base),
-                'owl': '<http://www.w3.org/2002/07/owl#>',
-                'rdf': '<http://www.w3.org/1999/02/22-rdf-syntax-ns#>',
-                'xsd': '<http://www.w3.org/2001/XMLSchema#>',
-                'rdfs': '<http://www.w3.org/2000/01/rdf-schema#>'
+                '': '{}#'.format(self._base),
+                'owl': 'http://www.w3.org/2002/07/owl#',
+                'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
+                'xsd': 'http://www.w3.org/2001/XMLSchema#',
+                'rdfs': 'http://www.w3.org/2000/01/rdf-schema#'
             }
 
-    def to_turtle(self):
-        return RDFWriter().to_turtle(self)
+    def to_turtle(self, filename=None):
+        """
+        Writes the turtle file to filename, or back to the source
+        file if requested...
+
+        :param filename:
+        :return:
+        """
+        fname = filename if filename is not None else self.source_file
+        turtle_string = RDFWriter().to_turtle(self)
+        with open(fname) as f:
+            f.write(turtle_string)
+            _logger.info("File written to: {}".format(fname))
+
+        return fname
 
     def prefix(self, prefix, uri):
         """
@@ -657,7 +670,7 @@ class RDFWriter(object):
         g = rdflib.Graph()
 
         for prefix, uri in ontology.prefixes.items():
-            g.bind(prefix, uri)
+            g.bind(prefix, rdflib.term.URIRef(uri))
 
         self._build_classes(g, ontology)
         self._build_links(g, ontology)

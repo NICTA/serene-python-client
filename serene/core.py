@@ -7,9 +7,11 @@ import time
 
 import pandas as pd
 
-from .elements import TransformList, Column, Mapping, Transform, IdentTransform
-from .semantics import Ontology, BaseSemantic
+from .endpoints import DataSetEndpoint, OntologyEndpoint
+from .api.session import Session
 from .elements import ClassNode, DataNode, Link
+from .elements import TransformList, Column, Mapping, Transform, IdentTransform
+from .semantics import BaseSemantic
 from .ssd_util import SSDJsonBuilder
 from .visualizers import SSDVisualizer
 
@@ -18,10 +20,15 @@ _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
 
-class SemanticModeller(object):
+class Serene(object):
     """
-        The SemanticModeller holds a collection of ontologies and
-        uses them to generate Semantic Models across datasets.
+        The Serene object is the main object. This holds a connection
+        to the back-end and can create:
+
+            1. Datasets - DataSet objects, built from uploaded csv files
+            2. Ontologies - Ontology objects built from uploaded owl files with DataNodes and ClassNodes
+            3. SSDs - Semantic Source Descriptions
+            3. Octopii - An Octopus manages SSDs, Ontologies and can predict
 
         Ontologies can be passed to the SemanticModeller with
         add_ontology. This can be as an Ontology type or as an .owl
@@ -31,94 +38,119 @@ class SemanticModeller(object):
         use to_ssd().
 
     """
-    def __init__(self, config=None, ontologies=None):
+    def __init__(self,
+                 host='127.0.0.1',
+                 port=8080,
+                 auth=None,
+                 cert=None,
+                 trust_env=None): #, config=None, ontologies=None):
         """
         Builds the SemanticModeller from a list of known
         ontologies and the config parameters.
 
         :param config: Arguments to configure the Schema Modeller
         :param ontologies: List of ontologies to use for mapping
+
         """
-        # set the config args...
-        default_args = {
-            "kmeans": 5,
-            "threshold": 0.7,
-            "search-depth": 100
-        }
-        self.config = default_args
+        self._api = Session(host, port, auth, cert, trust_env)
 
-        # fill in the default args...
-        if type(config) == dict:
-            for k, v in config.items():
-                if k in default_args.keys():
-                    self.config[k] = v
-                else:
-                    _logger.warn("The key {} is not supported for config".format(k))
+        self._dataset = DataSetEndpoint(self._api)
 
-        # add the ontology list...
-        self._ontologies = []
-        if ontologies is not None:
-            for o in ontologies:
-                self.add_ontology(Ontology(o))
+        self._ontologies = OntologyEndpoint(self._api)
 
-        _logger.debug("Config set to:", self.config)
-        _logger.debug("Ontologies set to: {}".format(self._ontologies))
+        # # set the config args...
+        # default_args = {
+        #     "kmeans": 5,
+        #     "threshold": 0.7,
+        #     "search-depth": 100
+        # }
+        # self.config = default_args
+        #
+        # # fill in the default args...
+        # if type(config) == dict:
+        #     for k, v in config.items():
+        #         if k in default_args.keys():
+        #             self.config[k] = v
+        #         else:
+        #             _logger.warning("The key {} is not supported for config".format(k))
 
-    def add_ontology(self, ontology):
-        """
-        Adds an ontology to the list. This method can accept Ontology
-        type objects or .owl files.
+        # # add the ontology list...
+        # self._ontologies = []
+        # if ontologies is not None:
+        #     for o in ontologies:
+        #         self.add_ontology(Ontology(o))
 
-        :param ontology: The Ontology object to add, or a .owl filename
-        :return: Updated SemanticModeller object
-        """
-        if type(ontology) == Ontology:
-            self._ontologies.append(ontology)
-        elif type(ontology) == str:
-            # attempt to open from a file...
-            self.add_ontology(Ontology(ontology))
-        else:
-            raise Exception("Failed to add ontology: {}".format(ontology))
+        # _logger.debug("Config set to:", self.config)
+        # _logger.debug("Ontologies set to: {}".format(self._ontologies))
 
-        return self
+    # def add_ontology(self, ontology):
+    #     """
+    #     Adds an ontology to the list. This method can accept Ontology
+    #     type objects or .owl files.
+    #
+    #     :param ontology: The Ontology object to add, or a .owl filename
+    #     :return: Updated SemanticModeller object
+    #     """
+    #     if type(ontology) == Ontology:
+    #         self._ontologies.append(ontology)
+    #     elif type(ontology) == str:
+    #         # attempt to open from a file...
+    #         self.add_ontology(Ontology(ontology))
+    #     else:
+    #         raise Exception("Failed to add ontology: {}".format(ontology))
+    #
+    #     return self
 
-    def to_ssd(self, filename):
-        """
-        Loads in a datafile to transform to an ssd object
-
-        :param filename: A CSV file to convert to an SSD
-        :return: SemanticSourceDesc object
-        """
-        ssd = SemanticSourceDesc(filename, self)
-        return ssd
+    # def to_ssd(self, filename):
+    #     """
+    #     Loads in a datafile to transform to an ssd object
+    #
+    #     :param filename: A CSV file to convert to an SSD
+    #     :return: SemanticSourceDesc object
+    #     """
+    #     ssd = SSD(filename, self)
+    #     return ssd
 
     @staticmethod
-    def flatten(xs):
+    def _flatten(xs):
         """Simple flatten from 2D to 1D iterable"""
         return [x for y in xs for x in y]
 
-    @property
-    def class_nodes(self):
-        """All the class_nodes available in the ontologies"""
-        return self.flatten(o.class_nodes for o in self._ontologies)
-
-    @property
-    def data_nodes(self):
-        """All the data_nodes available in the ontologies"""
-        return self.flatten(o.data_nodes for o in self._ontologies)
-
-    @property
-    def links(self):
-        """All links currently present in the ontologies"""
-        return self.flatten(o.links for o in self._ontologies)
+    # @property
+    # def class_nodes(self):
+    #     """All the class_nodes available in the ontologies"""
+    #     return self.flatten(o.class_nodes for o in self._ontologies)
+    #
+    # @property
+    # def data_nodes(self):
+    #     """All the data_nodes available in the ontologies"""
+    #     return self.flatten(o.data_nodes for o in self._ontologies)
+    #
+    # @property
+    # def links(self):
+    #     """All links currently present in the ontologies"""
+    #     return self.flatten(o.links for o in self._ontologies)
+    #
+    # @property
+    # def ontologies(self):
+    #     """The read-only list of ontologies currently on the server"""
+    #     return self._ontologies
+    #def upload_ssd(self, ssd):
+    #    pass
 
     @property
     def ontologies(self):
-        """The read-only list of ontologies"""
         return self._ontologies
 
+    @property
+    def datasets(self):
+        return self._dataset
 
-class SemanticSourceDesc(object):
+    def __repr__(self):
+        return "Serene({}:{}, {})".format(self._api.host, self._api.port, hex(id(self)))
+
+
+class SSD(object):
     """
         Semantic source description is the translator between a data
         file (csv file) and the source description (.ssd file).

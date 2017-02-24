@@ -13,7 +13,7 @@ class TestSemanticModeller(unittest.TestCase):
     Tests the SemanticModeller class
     """
     def test_junk(self):
-        sm = serene.SemanticModeller(
+        sm = serene.Serene(
             config={
                 "kmeans": 5,
                 "threshold": 0.7,

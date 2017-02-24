@@ -1,6 +1,7 @@
-from .exceptions import InternalError
 import logging
 from datetime import datetime
+
+from serene.api.exceptions import InternalError
 
 
 def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):

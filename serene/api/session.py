@@ -1,5 +1,5 @@
 """
-Copyright (C) 2016 Data61 CSIRO
+Copyright (C) 2017 Data61 CSIRO
 Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Schema Matcher wrapper around the Serene API backend schema matcher endpoints
@@ -7,8 +7,8 @@ Schema Matcher wrapper around the Serene API backend schema matcher endpoints
 import logging
 import requests
 
-from ..exceptions import BadRequestError, NotFoundError, OtherError, InternalError
 from urllib.parse import urljoin
+from .exceptions import BadRequestError, NotFoundError, OtherError, InternalError
 
 
 class Session(object):
@@ -33,7 +33,7 @@ class Session(object):
         :param cert: The security certificate
         :param trust_env: The trusted environment token
         """
-        logging.info('Initialising session to connect to the schema matcher server.')
+        logging.info('Initialising session to connect to Serene.')
 
         self.session = requests.Session()
         self.session.trust_env = trust_env
@@ -45,6 +45,9 @@ class Session(object):
 
         # this will throw an error an fail the init if not available...
         self.version = self._test_connection(root)
+
+        self.host = host
+        self.port = port
 
         self._uri = urljoin(root, self.version + '/')
 
@@ -59,12 +62,12 @@ class Session(object):
         Returns: list of dataset keys.
         Raises: InternalDIError on failure.
         """
-        logging.info('Sending request to the schema matcher server to list datasets.')
+        logging.debug('Sending request to the schema matcher server to list datasets.')
         try:
             r = self.session.get(self._uri_ds)
         except Exception as e:
             logging.error(e)
-            raise InternalError("dataset_keys", e)
+            raise InternalError("dataset keys", e)
         self._handle_errors(r, "GET " + self._uri_ds)
         return r.json()
 
@@ -79,7 +82,7 @@ class Session(object):
         Returns: Dictionary.
         """
 
-        logging.info('Sending request to the schema matcher server to post a dataset.')
+        logging.debug('Sending request to the schema matcher server to post a dataset.')
         try:
             f = {"file": open(file_path, "rb")}
             data = {"description": str(description), "typeMap": type_map}
@@ -90,18 +93,18 @@ class Session(object):
         self._handle_errors(r, "POST " + self._uri_ds)
         return r.json()
 
-    def update_dataset(self, dataset_key, description, type_map):
+    def update_dataset(self, key, description, type_map):
         """
         Update an existing dataset in the repository at the schema matcher server.
         Args:
              description: string which describes the dataset to be posted
-             dataset_key: integer which is the dataset id
+             key: integer dataset id
              type_map: dictionary with type map for the dataset
 
         :return:
         """
-        logging.info('Sending request to the schema matcher server to update dataset %d' % dataset_key)
-        uri = self._dataset_endpoint(dataset_key)
+        logging.debug('Sending request to the schema matcher server to update dataset %d' % key)
+        uri = self._dataset_endpoint(key)
         try:
             data = {"description": description, "typeMap": type_map}
             r = self.session.post(uri, data=data)
@@ -111,16 +114,16 @@ class Session(object):
         self._handle_errors(r, "PATCH " + uri)
         return r.json()
 
-    def dataset(self, dataset_key):
+    def dataset(self, key):
         """
         Get information on a specific dataset from the repository at the schema matcher server.
         Args:
-             dataset_key: integer which is the key of the dataset.
+             key: integer which is the key of the dataset.
 
         Returns: dictionary.
         """
-        logging.info('Sending request to the schema matcher server to get dataset info.')
-        uri = self._dataset_endpoint(dataset_key)
+        logging.debug('Sending request to the schema matcher server to get dataset info.')
+        uri = self._dataset_endpoint(key)
         try:
             r = self.session.get(uri)
         except Exception as e:
@@ -129,16 +132,16 @@ class Session(object):
         self._handle_errors(r, "GET " + uri)
         return r.json()
 
-    def delete_dataset(self, dataset_key):
+    def delete_dataset(self, key):
         """
         Delete a specific dataset from the repository at the schema matcher server.
         Args:
-             dataset_key: int
+             key: int
 
         Returns:
         """
-        logging.info('Sending request to the schema matcher server to delete dataset.')
-        uri = self._dataset_endpoint(dataset_key)
+        logging.debug('Sending request to the schema matcher server to delete dataset.')
+        uri = self._dataset_endpoint(key)
         try:
             r = self.session.delete(uri)
         except Exception as e:
@@ -174,7 +177,7 @@ class Session(object):
 
         assert "unknown" in classes
 
-        logging.info('Sending request to the schema matcher server to post a model.')
+        logging.debug('Sending request to the schema matcher server to post a model.')
 
         try:
             data = self._process_model_input(feature_config,
@@ -215,7 +218,7 @@ class Session(object):
         Returns: model dictionary
         """
 
-        logging.info('Sending request to the schema matcher server to update model %d' % model_key)
+        logging.debug('Sending request to the schema matcher server to update model %d' % model_key)
         uri = self._model_endpoint(model_key)
         try:
             data = self._process_model_input(feature_config,
@@ -241,7 +244,7 @@ class Session(object):
 
         Returns: dictionary
         """
-        logging.info('Sending request to the schema matcher server to get model info.')
+        logging.debug('Sending request to the schema matcher server to get model info.')
         uri = self._model_endpoint(model_key)
         try:
             r = self.session.get(uri)
@@ -258,7 +261,7 @@ class Session(object):
 
         Returns: dictionary
         """
-        logging.info('Sending request to the schema matcher server to delete model.')
+        logging.debug('Sending request to the schema matcher server to delete model.')
         uri = self._model_endpoint(model_key)
         try:
             r = self.session.delete(uri)
@@ -276,7 +279,7 @@ class Session(object):
         Returns: True
 
         """
-        logging.info('Sending request to the schema matcher server to train the model.')
+        logging.debug('Sending request to the schema matcher server to train the model.')
         uri = urljoin(self._model_endpoint(model_key), "train")
         try:
             r = self.session.post(uri)
@@ -297,7 +300,7 @@ class Session(object):
         Returns: True
 
         """
-        logging.info('Sending request to the schema matcher server to preform prediction based on the model.')
+        logging.debug('Sending request to the schema matcher server to preform prediction based on the model.')
         uri = urljoin(self._model_endpoint(model_key), "predict/")
         try:
             if dataset_key is None:
@@ -316,7 +319,7 @@ class Session(object):
 
         Returns: list of model keys
         """
-        logging.info('Sending request to the schema matcher server to list models.')
+        logging.debug('Sending request to the schema matcher server to list models.')
         try:
             r = self.session.get(self._uri_model)
         except Exception as e:
@@ -366,8 +369,8 @@ class Session(object):
         """The URI endpoint for the dataset at `key`"""
         return urljoin(self._uri_ds, str(key))
 
-    def _process_model_input(self,
-                             feature_config=None,
+    @staticmethod
+    def _process_model_input(feature_config=None,
                              description=None,
                              classes=None,
                              model_type=None,
