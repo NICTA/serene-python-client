@@ -4,7 +4,7 @@ from datetime import datetime
 from serene.api.exceptions import InternalError
 
 
-def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):
+def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%S.%f"):
     """
     Convert string to datetime object.
 
@@ -16,7 +16,7 @@ def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%SZ"):
     Raises: InternalDIError if conversion fails.
 
     """
-    # here we put "%Y-%m-%dT%H:%M:%SZ" to be the default format
+    # here we put "%Y-%m-%dT%H:%M:%S.%f" to be the default format
     # T and Z are fixed literals
     # T is time separator
     # Z is literal for UTC time zone, Zulu time

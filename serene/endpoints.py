@@ -4,6 +4,7 @@ from functools import lru_cache
 from .matcher.dataset import DataSet
 from .semantics import Ontology
 
+
 def decache(func):
     """
     Decorator for clearing the cache. Here we explicitly mark the
@@ -131,7 +132,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
     :param object:
     :return:
     """
-    def __init__(self, api):
+    def __init__(self, session):
         """
 
         :param self:
@@ -139,7 +140,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = api
+        self._api = session.ontology
         self._base_type = Ontology
 
     @decache
@@ -154,7 +155,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         if not os.path.exists(filename):
             raise ValueError("No filename given.")
 
-        json = self._api.post_ontology(
+        json = self._api.post(
             file_path=filename,
             description=description if description is not None else '',
             format=format if format is not None else 'OWL'
@@ -168,7 +169,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :param ontology:
         :return:
         """
-        self._key_or_item(ontology, self._api.delete_ontology, 'delete')
+        self._key_or_item(ontology, self._api.delete, 'delete')
 
     def show(self):
         """
@@ -183,14 +184,14 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :param ontology:
         :return:
         """
-        self._key_or_item(ontology, self._api.ontology, 'get')
+        return self._key_or_item(ontology, self._api, 'get')
 
     @property
     @lru_cache(maxsize=32)
     def items(self):
         """Maintains a list of Ontology objects"""
-        keys = self._api.ontology_keys()
-        ds = []
+        keys = self._api.keys()
+        ontologies = []
         for k in keys:
-            ds.append(Ontology(self._api.ontology(k)))
-        return tuple(ds)
+            ontologies.append(Ontology(self._api.item(k)))
+        return tuple(ontologies)

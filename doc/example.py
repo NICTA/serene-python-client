@@ -123,6 +123,7 @@ ontologies = sn.ontologies.items
 ontologies[0].show()
 
 input("Press enter to continue")
+
 #
 # The most straightforward way is to upload an OWL file...
 #
@@ -130,9 +131,21 @@ ontology = sn.ontologies.upload('tests/resources/owl/dataintegration_report_onto
 
 ontology.show()
 
-#print(test.to_turtle())
+input("Press enter to continue...")
+
+#
+# Or if you want to check it first you can do...
+#
+local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.owl')
+
+local_ontology.show()
 
 input("Press enter to continue...")
+
+#
+# Now we can upload
+#
+ontology = sn.ontologies.upload(local_ontology)
 
 #
 # Or you can build one programmatically

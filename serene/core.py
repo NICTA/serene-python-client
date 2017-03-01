@@ -52,11 +52,11 @@ class Serene(object):
         :param ontologies: List of ontologies to use for mapping
 
         """
-        self._api = Session(host, port, auth, cert, trust_env)
+        self._session = Session(host, port, auth, cert, trust_env)
 
-        self._dataset = DataSetEndpoint(self._api)
+        self._dataset = DataSetEndpoint(self._session)
 
-        self._ontologies = OntologyEndpoint(self._api)
+        self._ontologies = OntologyEndpoint(self._session)
 
         # # set the config args...
         # default_args = {

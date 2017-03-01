@@ -54,6 +54,12 @@ class Session(object):
         self._uri_ds = urljoin(self._uri, 'dataset/')  # uri for the dataset endpoint
         self._uri_model = urljoin(self._uri, 'model/')  # uri for the model endpoint
 
+        self.ontology = OntologyAPI(self, self.session)
+
+    @property
+    def uri(self):
+        return self._uri
+
     def dataset_keys(self):
         """
         List ids of all datasets in the dataset repository at the Schema Matcher server.
@@ -68,7 +74,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("dataset keys", e)
-        self._handle_errors(r, "GET " + self._uri_ds)
+        self.handle_errors(r, "GET " + self._uri_ds)
         return r.json()
 
     def post_dataset(self, description, file_path, type_map):
@@ -90,7 +96,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("post_dataset", e)
-        self._handle_errors(r, "POST " + self._uri_ds)
+        self.handle_errors(r, "POST " + self._uri_ds)
         return r.json()
 
     def update_dataset(self, key, description, type_map):
@@ -111,7 +117,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("update_dataset", e)
-        self._handle_errors(r, "PATCH " + uri)
+        self.handle_errors(r, "PATCH " + uri)
         return r.json()
 
     def dataset(self, key):
@@ -129,7 +135,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("list_dataset", e)
-        self._handle_errors(r, "GET " + uri)
+        self.handle_errors(r, "GET " + uri)
         return r.json()
 
     def delete_dataset(self, key):
@@ -147,7 +153,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("delete_dataset", e)
-        self._handle_errors(r, "DELETE " + uri)
+        self.handle_errors(r, "DELETE " + uri)
         return r.json()
 
     def post_model(self,
@@ -191,7 +197,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("post_model", e)
-        self._handle_errors(r, "POST " + self._uri_model)
+        self.handle_errors(r, "POST " + self._uri_model)
         return r.json()
 
     def update_model(self,
@@ -233,7 +239,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("update_model", e)
-        self._handle_errors(r, "POST " + uri)
+        self.handle_errors(r, "POST " + uri)
         return r.json()
 
     def model(self, model_key):
@@ -251,7 +257,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("list_model", e)
-        self._handle_errors(r, "GET " + uri)
+        self.handle_errors(r, "GET " + uri)
         return r.json()
 
     def delete_model(self, model_key):
@@ -268,7 +274,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("delete_model", e)
-        self._handle_errors(r, "DELETE " + uri)
+        self.handle_errors(r, "DELETE " + uri)
         return r.json()
 
     def train_model(self, model_key):
@@ -286,7 +292,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("train_model", e)
-        self._handle_errors(r, "POST " + uri)
+        self.handle_errors(r, "POST " + uri)
         return True
 
     def predict_model(self, model_key, dataset_key=None):
@@ -310,7 +316,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("predict_model", e)
-        self._handle_errors(r, "POST " + uri)
+        self.handle_errors(r, "POST " + uri)
         return r.json()
 
     def model_keys(self):
@@ -325,7 +331,7 @@ class Session(object):
         except Exception as e:
             logging.error(e)
             raise InternalError("model_keys", e)
-        self._handle_errors(r, "GET " + self._uri_model)
+        self.handle_errors(r, "GET " + self._uri_model)
         return r.json()
 
     def _test_connection(self, root):
@@ -397,7 +403,7 @@ class Session(object):
         return data
 
     @staticmethod
-    def _handle_errors(response, expr):
+    def handle_errors(response, expr):
         """
         Raise errors based on response status_code
 
@@ -437,3 +443,131 @@ class Session(object):
     def __str__(self):
         return self.__repr__()
 
+
+class OntologyAPI(object):
+    """
+    Handles the Ontology endpoint requests
+    """
+    def __init__(self, session, requests):
+        """
+        Requires a valid session object
+
+        :param session:
+        """
+        self.session = session
+        self.requests = requests
+        self._uri = urljoin(self.session.uri, 'owl/')
+
+    def keys(self):
+        """
+        List ids of all ontologies in the repository at the Serene server.
+        If the connection fails, empty list is returned and connection error is logged.
+
+        Returns: list of ontology keys.
+        Raises: InternalDIError on failure.
+        """
+        logging.debug('Sending request to the schema matcher server to list ontologies.')
+        try:
+            r = self.requests.get(self._uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("ontology keys", e)
+        self.session.handle_errors(r, "GET " + self._uri)
+        return r.json()
+
+    def item(self, key):
+        """
+        Get information on a specific ontology from the repository on the Serene server.
+        Args:
+             key: integer which is the key of the Ontology.
+
+        Returns: dictionary.
+        """
+        logging.debug('Sending request to Serene server to get the ontology info.')
+        uri = urljoin(self._uri, str(key))
+        try:
+            r = self.requests.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("listing ontologies", e)
+        self.session.handle_errors(r, "GET " + uri)
+        return r.json()
+
+    # def post_dataset(self, description, file_path, type_map):
+    #     """
+    #     Post a new dataset to the schema mather server.
+    #     Args:
+    #          description: string which describes the dataset to be posted
+    #          file_path: string which indicates the location of the dataset to be posted
+    #          type_map: dictionary with type map for the dataset
+    #
+    #     Returns: Dictionary.
+    #     """
+    #
+    #     logging.debug('Sending request to the schema matcher server to post a dataset.')
+    #     try:
+    #         f = {"file": open(file_path, "rb")}
+    #         data = {"description": str(description), "typeMap": type_map}
+    #         r = self.session.post(self._uri_ds, data=data, files=f)
+    #     except Exception as e:
+    #         logging.error(e)
+    #         raise InternalError("post_dataset", e)
+    #     self._handle_errors(r, "POST " + self._uri_ds)
+    #     return r.json()
+    #
+    # def update_dataset(self, key, description, type_map):
+    #     """
+    #     Update an existing dataset in the repository at the schema matcher server.
+    #     Args:
+    #          description: string which describes the dataset to be posted
+    #          key: integer dataset id
+    #          type_map: dictionary with type map for the dataset
+    #
+    #     :return:
+    #     """
+    #     logging.debug('Sending request to the schema matcher server to update dataset %d' % key)
+    #     uri = self._dataset_endpoint(key)
+    #     try:
+    #         data = {"description": description, "typeMap": type_map}
+    #         r = self.session.post(uri, data=data)
+    #     except Exception as e:
+    #         logging.error(e)
+    #         raise InternalError("update_dataset", e)
+    #     self._handle_errors(r, "PATCH " + uri)
+    #     return r.json()
+    #
+    # def dataset(self, key):
+    #     """
+    #     Get information on a specific dataset from the repository at the schema matcher server.
+    #     Args:
+    #          key: integer which is the key of the dataset.
+    #
+    #     Returns: dictionary.
+    #     """
+    #     logging.debug('Sending request to the schema matcher server to get dataset info.')
+    #     uri = self._dataset_endpoint(key)
+    #     try:
+    #         r = self.session.get(uri)
+    #     except Exception as e:
+    #         logging.error(e)
+    #         raise InternalError("list_dataset", e)
+    #     self._handle_errors(r, "GET " + uri)
+    #     return r.json()
+    #
+    # def delete_dataset(self, key):
+    #     """
+    #     Delete a specific dataset from the repository at the schema matcher server.
+    #     Args:
+    #          key: int
+    #
+    #     Returns:
+    #     """
+    #     logging.debug('Sending request to the schema matcher server to delete dataset.')
+    #     uri = self._dataset_endpoint(key)
+    #     try:
+    #         r = self.session.delete(uri)
+    #     except Exception as e:
+    #         logging.error(e)
+    #         raise InternalError("delete_dataset", e)
+    #     self._handle_errors(r, "DELETE " + uri)
+    #     return r.json()
