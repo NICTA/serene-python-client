@@ -12,7 +12,7 @@ class TestModel(unittest.TestCase):
     Tests the Model class
     """
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")
 
 
 class TestModelList(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestModelList(unittest.TestCase):
     Tests the ModelList class
     """
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")
 
 
 class TestModelState(unittest.TestCase):
@@ -29,7 +29,7 @@ class TestModelState(unittest.TestCase):
     """
 
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")
 
 
 class TestStatus(unittest.TestCase):
@@ -38,4 +38,4 @@ class TestStatus(unittest.TestCase):
     """
 
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")

@@ -36,7 +36,7 @@ except ImportError as e:
 import datetime
 import pandas as pd
 
-from serene import Serene, Ontology, DataNode, Mapping, Link, Column, ClassNode, Transform
+from serene import Ontology, DataNode, Mapping, Link, Column, ClassNode, Transform
 
 # We have these datasets:
 #
@@ -65,8 +65,6 @@ print(sn)
 #
 # >>> Serene(127.0.0.1:9000)
 #
-exit()
-
 
 # =======================
 #
@@ -88,9 +86,10 @@ datasets = [business_info, employee_address, get_cities, get_employees, postal_c
 # lets have a look...
 #
 for d in datasets:
-    print("DataSet:", d.name)
-    print("         ", d.description)
-    print(d.sample)
+    print("DataSet:", d.id)
+    print("        ", d.name)
+    print("        ", d.description)
+    print("        ", d.columns)
     print()
 
 #
@@ -116,6 +115,14 @@ employee_address = sn.datasets.upload(df)
 #
 # =======================
 
+#
+# first let's see the ontologies that exist
+#
+ontologies = sn.ontologies.items
+
+ontologies[0].show()
+
+input("Press enter to continue")
 #
 # The most straightforward way is to upload an OWL file...
 #

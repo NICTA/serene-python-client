@@ -202,6 +202,8 @@ class ClassNode(Searchable):
 
         if nodes is None:
             self.nodes = []
+        elif issubclass(type(nodes), list):
+            self.nodes = [DataNode(self, n, dtype=str) for n in nodes]
         else:
             self.nodes = [DataNode(self, n, dtype=dtype) for n, dtype in nodes.items()]
 
@@ -229,7 +231,8 @@ class ClassNode(Searchable):
 
     def __eq__(self, other):
         return (self.name == other.name) \
-               and (self.prefix == other.prefix)
+               and (self.prefix == other.prefix) \
+                and (self.nodes == other.nodes)
 
     def __hash__(self):
         return id(self)
@@ -299,16 +302,24 @@ class DataNode(Searchable):
             "type": "DataNode"
         }
 
+    def __eq__(self, other):
+        """Only name and parent name required"""
+        return self.name == other.name and \
+            self.parent.name == other.parent.name
+
     def __repr__(self):
         if self.parent:
             return "DataNode({}, {})".format(self.parent.name, self.name)
         else:
             return "DataNode({})".format(self.name)
 
+    def __hash__(self):
+        return id(self)
+
 
 class Link(Searchable):
     """
-        A Link is a relationship between ClassNodes.
+        A Link is a relationship between ClassNode->ClassNode or ClassNode->DataNode.
     """
     @staticmethod
     def node_match(node):
@@ -321,7 +332,7 @@ class Link(Searchable):
     # the search parameters...
     getters = [
         lambda node: node.name,
-        node_match
+        lambda node: Link.node_match(node)
     ]
 
     # special link names...
@@ -370,6 +381,9 @@ class Link(Searchable):
         else:
             return "ClassNode({}) -> Link({}) -> DataNode({})" \
                 .format(self.src.name, self.name, self.dst.name)
+
+    def __hash__(self):
+        return id(self)
 
 
 class LinkList(collections.MutableSequence):

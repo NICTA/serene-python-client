@@ -12,7 +12,7 @@ class TestDataSet(unittest.TestCase):
     Tests the DataSet class
     """
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")
 
 
 class TestDataSetList(unittest.TestCase):
@@ -20,7 +20,7 @@ class TestDataSetList(unittest.TestCase):
     Tests the DataSetList class
     """
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")
 
 
 class TestColumn(unittest.TestCase):
@@ -29,4 +29,4 @@ class TestColumn(unittest.TestCase):
     """
 
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")

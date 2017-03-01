@@ -1,5 +1,5 @@
 """
-Copyright (C) 2016 Data61 CSIRO
+Copyright (C) 2017 Data61 CSIRO
 Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Tests the core module
@@ -12,43 +12,29 @@ class TestSemanticModeller(unittest.TestCase):
     """
     Tests the SemanticModeller class
     """
-    def test_junk(self):
-        sm = serene.Serene(
-            config={
-                "kmeans": 5,
-                "threshold": 0.7,
-                "search-depth": 100
-            },
-            ontologies=[
-                "/some/file/something.owl",
-                "/some/other/file/something.owl"
-            ]
-        )
-        self.assertEqual('a', 'a')
-
     def test_init(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_add_ontology(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_to_ssd(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_flatten(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_class_nodes(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_data_nodes(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_links(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_ontologies(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
 
 class TestSemanticSourceDesc(unittest.TestCase):
@@ -57,67 +43,67 @@ class TestSemanticSourceDesc(unittest.TestCase):
     """
 
     def test_init__(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_find(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_map(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_link(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_sample(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_remove(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_predict(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_show(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_save(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_version(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_ontologies(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_ssd(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_json(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_model(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_predictions(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_mappings(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_columns(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_transforms(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_data_nodes(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_class_nodes(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_links(self):
-        pass
+        raise NotImplementedError("Test not implemented")
 
     def test_repr(self):
-        pass
+        raise NotImplementedError("Test not implemented")

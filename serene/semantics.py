@@ -6,13 +6,14 @@ import logging
 import os.path
 import random
 import tempfile
+import string
 from collections import defaultdict
 
 import networkx as nx
 import pandas as pd
 import rdflib
 
-from .elements import ClassNode, Link, LinkList
+from .elements import ClassNode, DataNode, Link, LinkList
 from .visualizers import BaseVisualizer
 
 _logger = logging.getLogger()
@@ -66,7 +67,11 @@ class BaseSemantic(object):
         if issubclass(type(nodes), dict):
             node_dict = nodes
         elif issubclass(type(nodes), list):
+            assert(len(nodes) == len(set(nodes)))
             node_dict = {k: str for k in nodes}
+        else:
+            msg = "Unknown nodes argument: {}".format(nodes)
+            raise Exception(msg)
 
         # now we create a class node object...
         cn = ClassNode(name, node_dict, prefix, parent_class)
@@ -107,7 +112,7 @@ class BaseSemantic(object):
         """
         _logger.debug("Adding relationship between "
                       "classes {} and {} as '{}'"
-                      .format(source, link, dest))
+                      .format(source, dest, link))
 
         if source not in self._class_table:
             msg = "Item {} is not in the class nodes".format(source)
@@ -156,15 +161,45 @@ class BaseSemantic(object):
         :param link:
         :return:
         """
-        locate = [x for x in self.links if link == x]
-        if len(locate):
-            target = locate[0]
-            self._graph.remove_edge(target.src, target.dst)
-            self._links.remove(link)
+        _logger.debug("Attempting to remove link: {}".format(link))
+        target = Link.search(self.links, link)
+        if target:
+            _logger.debug("Found true link: {}".format(target))
+            try:
+                # we need to be careful, because if the nodes
+                # are destroyed, then the edge will not exist!
+                self._graph.remove_edge(target.src, target.dst)
+                _logger.debug("Edge removed successfully {}-{}".format(target.src, target.dst))
+            except Exception:
+                _logger.debug("Missing edge, nodes already removed. {}".format(link))
+                pass
+
+            self._links.remove(target)
+            _logger.debug("Removed link: {}".format(target))
         else:
             msg = "Item {} does not exist in the model.".format(link)
             _logger.error(msg)
         return
+
+    @staticmethod
+    def _is_node(value):
+        """
+        Determines whether the value is a ClassNode or a DataNode
+
+        :param value:
+        :return:
+        """
+        return issubclass(type(value), ClassNode) or issubclass(type(value), DataNode)
+
+    @staticmethod
+    def _is_link(value):
+        """
+        Determines whether the value is a Link
+
+        :param value:
+        :return:
+        """
+        return issubclass(type(value), Link)
 
     def remove_node(self, node):
         """
@@ -172,8 +207,53 @@ class BaseSemantic(object):
         :param node: ClassNode to remove
         :return:
         """
-        del self._class_table[node.name]
-        self._graph.remove_node(node)
+        _logger.debug("remove_node called with {}".format(node))
+        if not self._is_node(node):
+            msg = "{} is not a ClassNode or DataNode".format(node)
+            raise Exception(msg)
+
+        elif issubclass(type(node), ClassNode):
+            _logger.debug("Removing ClassNode: {}".format(node))
+            # first we find the actual reference...
+            true_node = self._class_table[node.name]
+
+            _logger.debug("Actual node found: {}".format(true_node))
+
+            # recursively remove the DataNodes...
+            for n in true_node.nodes:
+                self.remove_node(n)
+
+            # next we remove the links pointing to that node.
+            # we need to be careful when iterating as we are deleting
+            # the list as we go!!
+            for link in self.links[::-1]:
+                # print()
+                # print(">>>>>>>>>> {} <<<<<<<<<<<".format(link.name))
+                # print()
+                # print(">>> Searching link: {}".format(link))
+                # print(">>>   which has {}".format(link.dst))
+                # print(">>>   which has {}".format(link.src))
+                # print(">>>   comparing {}".format(true_node))
+                # print(">>>        with {}".format(link.dst))
+                # print(">>>         and {}".format(link.src))
+                if link.dst == true_node or link.src == true_node:
+                    _logger.debug("Link found, removing {}".format(link))
+                    self.remove_link(link)
+
+            # remove the ClassNode from the class table
+            del self._class_table[true_node.name]
+        else:
+            _logger.debug("Removing DataNode: {}".format(node))
+
+            # first we find the actual reference...
+            true_node = DataNode.search(self.data_nodes, node)
+
+            _logger.debug("Actual node found: {}".format(true_node))
+
+        self._graph.remove_node(true_node)
+
+        del true_node
+
         return
 
     @staticmethod
@@ -208,6 +288,23 @@ class BaseSemantic(object):
         # return list(links.values())
         return [link for link in self._links if link.name != self._DATA_NODE_LINK]
 
+    def summary(self):
+        """Prints a summary of the ontology"""
+        print("Class Nodes:")
+        for cls in self.class_nodes:
+            print("\t", cls)
+        print()
+
+        print("Data Nodes:")
+        for dn in self.data_nodes:
+            print("\t", dn)
+        print()
+
+        print("Links:")
+        for link in self.links:
+            print("\t", link)
+        print()
+
     def show(self):
         BaseVisualizer(self).show()
         return
@@ -236,15 +333,17 @@ class Ontology(BaseSemantic):
         """
         super().__init__()
 
-        id_var = random.randint(1e7, 1e8 - 1)
+        id_var = self._rand_id()
 
         self.filename = os.path.join(
             tempfile.gettempdir(),
             "{}.owl".format(id_var)
         )
         self._prefixes = {}
-        self._base = "http://www.semanticweb.org/data_integration/{}".format(id_var)
+        self._base = "http://www.semanticweb.org/serene/{}".format(id_var)
         self.source_file = None
+        self.id = id_var
+        self._stored = False
 
         if file is not None:
             _logger.debug("Importing {} from file.".format(file))
@@ -252,6 +351,7 @@ class Ontology(BaseSemantic):
             if os.path.exists(file):
 
                 # attempt to extract an ontology from turtle
+                # and load into self...
                 RDFReader().to_ontology(file, self)
 
                 self.source_file = file
@@ -267,6 +367,22 @@ class Ontology(BaseSemantic):
                 'xsd': 'http://www.w3.org/2001/XMLSchema#',
                 'rdfs': 'http://www.w3.org/2000/01/rdf-schema#'
             }
+
+    @staticmethod
+    def _rand_id():
+        """
+        Generates a random temporary id. Note that this is alpha-numeric.
+        Alpha character ids are used to indicate that this ontology is not
+        stored.
+        Integer numbers indicate that this ontology object is stored on the
+        server.
+
+        :return:
+        """
+        return ''.join(random.choice(string.ascii_lowercase) for _ in range(16))
+
+    def set_stored_flag(self, stored):
+        self._stored = stored
 
     def to_turtle(self, filename=None):
         """
@@ -315,7 +431,10 @@ class Ontology(BaseSemantic):
         String output for the ontology...
         :return:
         """
-        return "Ontology({})".format(self.filename)
+        if self.id is not None:
+            return "Ontology({}, {})".format(self.id, self.filename)
+        else:
+            return "Ontology({})".format(self.filename)
 
 
 class RDFReader(object):

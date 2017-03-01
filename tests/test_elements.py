@@ -9,32 +9,37 @@ class TestColumn(unittest.TestCase):
     """
     Tests the Column class
     """
-    pass
+    def test_nothing(self):
+        raise NotImplementedError("Test not implemented")
 
 
 class TestMapping(unittest.TestCase):
     """
     Tests the Mapping class
     """
-    pass
+    def test_nothing(self):
+        raise NotImplementedError("Test not implemented")
 
 
 class TestTransport(unittest.TestCase):
     """
     Tests the Transport class object
     """
-    pass
+    def test_nothing(self):
+        raise NotImplementedError("Test not implemented")
 
 
 class TestIdentTransport(unittest.TestCase):
     """
     Tests the IdentTransport object
     """
-    pass
+    def test_nothing(self):
+        raise NotImplementedError("Test not implemented")
 
 
 class TestTransformList(unittest.TestCase):
     """
     Tests the TransformList object
     """
-    pass
+    def test_nothing(self):
+        raise NotImplementedError("Test not implemented")

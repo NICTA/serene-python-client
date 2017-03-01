@@ -11,6 +11,6 @@ class TestException(unittest.TestCase):
     """
     Tests the Exceptions
     """
-    def test_junk(self):
-        self.assertEqual('a', 'b')
+    def test_nothing(self):
+        raise NotImplementedError("Test not implemented")
 

@@ -13,4 +13,4 @@ class TestDateConverter(unittest.TestCase):
     """
 
     def test_junk(self):
-        self.assertEqual('a', 'b')
+        raise NotImplementedError("Test not implemented")

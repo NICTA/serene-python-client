@@ -68,9 +68,9 @@
           rdfs:range :Organization .
 
 
-:operates rdf:type owl:ObjectProperty ;
-          rdfs:domain :Organization ;
-          rdfs:range :City .
+:operatesIn rdf:type owl:ObjectProperty ;
+            rdfs:domain :Organization ;
+            rdfs:range :City .
 
 #################################################################
 #    Data properties

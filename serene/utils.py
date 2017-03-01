@@ -11,18 +11,28 @@ class Searchable(object):
     getters = []
 
     @classmethod
-    def search(cls, container, item):
+    def search(cls, container, item, errors=False):
         """
         Finds a DataNode item in a container. The search method enables
         shorthand searches based on uniqueness. e.g. if there is only one
         DataNode with name='id' then it can be referenced with DataNode('id').
         Though if there are two DataNode('id', ClassNode('Person')) and
         DataNode('id', ClassNode('Business')), then the ClassNode would need
-        to be provided to remove the ambiguity.
+        to be provided to remove the ambiguity. Search will use the 'getter'
+        objects provided to compare keys.
 
-        :param container: An iterable of DataNodes
-        :param item: The DataNode to find, can be shorthand.
-        :return:
+        The search method is called from a class type on a container and
+        target.
+
+        ClassNode.search(class_node_list, class_node)
+
+        The target can be partially complete e.g. Class("Person")
+
+        ClassNode.search(class_node_list, Class("Person")
+
+        :param container: An iterable of objects
+        :param item: The target object to find, can be partially complete.
+        :return: the item or None or LookupError if ambiguous
         """
 
         def find(haystack, needle, getter):

@@ -6,5 +6,6 @@ Serene Python client: Data Integration Software
 """
 from serene.const import CODE_VERSION
 from .core import *
+from .semantics import Ontology
 
 __version__ = CODE_VERSION
