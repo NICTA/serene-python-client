@@ -28,19 +28,25 @@ def decache(func):
 
 class IdentifiableEndpoint(object):
     """
-
+    An endpoint object that can view and manipulate objects on the server.
+    Each object must have a key to identify.
     """
     def __init__(self):
         """
-
+        Only a base type needs to be specified on init, which has to
+        contain an `id` variable of type int
         """
-        # this is the type of the
+        # this is the type of the stored objects
         self._base_type = None
 
-    def _key_or_item(self, value, func, func_name=None):
+    def _apply(self, func, value, func_name=None):
         """
+        Helper function to call `func` with parameter `value` which
+        can be an object or an integer key
 
-        :param value:
+        :param func: The function to be called
+        :param value: An int key or the local object
+        :param func_name: A string to use for debugging (optional)
         :return:
         """
         if type(value) == int:
@@ -65,7 +71,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
     :param object:
     :return:
     """
-    def __init__(self, api):
+    def __init__(self, session):
         """
 
         :param self:
@@ -73,7 +79,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = api
+        self._api = session.dataset
         self._base_type = DataSet
 
     @decache
@@ -102,7 +108,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :param dataset:
         :return:
         """
-        self._key_or_item(dataset, self._api.delete_dataset, 'delete')
+        self._apply(self._api.delete_dataset, dataset, 'delete')
 
     def show(self):
         """
@@ -117,7 +123,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :param dataset:
         :return:
         """
-        self._key_or_item(dataset, self._api.dataset, 'get')
+        self._apply(self._api.dataset, dataset, 'get')
 
     @property
     @lru_cache(maxsize=32)
@@ -164,9 +170,11 @@ class OntologyEndpoint(IdentifiableEndpoint):
             if not os.path.exists(ontology):
                 raise ValueError("No filename given.")
             filename = ontology
+            output = Ontology(filename)
         elif issubclass(type(ontology), Ontology):
             # this will use the default path and return it if successful...
             filename = ontology.to_turtle()
+            output = ontology
         else:
             raise ValueError("Upload requires Ontology type or direct filename")
 
@@ -175,7 +183,37 @@ class OntologyEndpoint(IdentifiableEndpoint):
             description=description if description is not None else '',
             owl_format=owl_format if owl_format is not None else 'owl'
         )
-        return ontology.update(json)
+        return output.update(json)
+
+    @decache
+    def update(self, ontology, file=None, description=None, owl_format=None):
+        """
+        Uploads an ontology to the Serene server.
+
+        :param ontology:
+        :param file:
+        :param description:
+        :param owl_format:
+        :return:
+        """
+        if not issubclass(type(ontology), Ontology):
+            raise ValueError("Update requires Ontology type or direct filename")
+
+        if file is not None:
+            # this means we are re-doing the whole thing...
+            filename = file
+            output = Ontology(filename)
+        else:
+            # this will use the default path and return it if successful...
+            filename = ontology.to_turtle()
+            output = ontology
+
+        json = self._api.update(
+            file_path=filename,
+            description=description,
+            owl_format=owl_format
+        )
+        return output.update(json)
 
     @decache
     def remove(self, ontology):
@@ -184,7 +222,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :param ontology:
         :return:
         """
-        self._key_or_item(ontology, self._api.delete, 'delete')
+        self._apply(self._api.delete, ontology, 'delete')
 
     def show(self):
         """
@@ -193,13 +231,14 @@ class OntologyEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
+    @lru_cache(maxsize=32)
     def get(self, ontology):
         """
 
         :param ontology:
         :return:
         """
-        return self._key_or_item(ontology, self._api, 'get')
+        return self._apply(self._api.get, ontology, 'get')
 
     @property
     @lru_cache(maxsize=32)

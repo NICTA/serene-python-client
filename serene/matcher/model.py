@@ -107,8 +107,9 @@ class Model(object):
 
         self._pp = pprint.PrettyPrinter(indent=4)
 
-        self.parent = parent
-        self.api = parent.api
+        # self.parent = parent
+        self.parent = parent  # parent.api
+        self.endpoint = self.parent.api.model
         self.PREDICT_KEYS = [
             "column_id",
             "confidence",
@@ -151,7 +152,7 @@ class Model(object):
         label_table = self.label_data
         label_table[key] = value
 
-        json = self.api.update_model(self.id, labels=label_table)
+        json = self.endpoint.update(self.id, labels=label_table)
 
         self._update(json)
 
@@ -175,7 +176,7 @@ class Model(object):
             key, value = self._label_entry(k, v)
             label_table[key] = value
 
-        json = self.api.update_model(self.id, labels=label_table)
+        json = self.endpoint.update(self.id, labels=label_table)
 
         self._update(json)
 
@@ -192,11 +193,11 @@ class Model(object):
         Returns: boolean -- True if model is trained, False otherwise
 
         """
-        self.api.train_model(self.id)  # launch training
+        self.endpoint.train(self.id)  # launch training
 
         def state():
             """Query the server for the model state"""
-            json = self.api.model(self.id)
+            json = self.parent.api.model.item(self.id)
             self._update(json)
             return self.state
 
@@ -251,8 +252,7 @@ class Model(object):
             "dateCreated": self.date_created,
             "dateModified": self.date_modified
         }
-        str = self._pp.pformat(df)
-        return str
+        return self._pp.pformat(df)
 
     @property
     def labels(self):
@@ -283,7 +283,7 @@ class Model(object):
         else:
             key = int(dataset)
 
-        json = self.api.predict_model(self.id, key)
+        json = self.endpoint.predict(self.id, key)
 
         df = self._predictions(json)
 

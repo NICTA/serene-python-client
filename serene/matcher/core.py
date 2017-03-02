@@ -10,7 +10,7 @@ from functools import lru_cache
 import pandas as pd
 
 from ..api import session
-from .dataset import DataSet, Column
+from .dataset import DataSet, Column, DataSetList
 from .model import ModelList, Model
 
 
@@ -71,30 +71,30 @@ class SchemaMatcher(object):
     @lru_cache(maxsize=32)
     def datasets(self):
         """Maintains a list of DataSet objects"""
-        keys = self.api.dataset_keys()
-        ds = [] #DataSetList()
+        keys = self.api.dataset.keys()
+        ds = DataSetList()
         for k in keys:
-            ds.append(DataSet(self.api.dataset(k)))
-        return tuple(ds)
+            ds.append(DataSet(self.api.dataset.item(k)))
+        return ds
 
     @property
     @lru_cache(maxsize=32)
     def models(self):
         """Maintains a list of Model objects"""
-        keys = self.api.model_keys()
+        keys = self.api.model.keys()
         ms = ModelList()
         for k in keys:
-            ms.append(Model(self.api.model(k), self))
+            ms.append(Model(self.api.model.item(k), self))
         return ms
 
     @staticmethod
-    def confusion_matrix(prediction):
+    def confusion_matrix(prediction, test_data):
         """
         Calculate confusion matrix of the model.
         If all_data is not available for the model, it will return None.
 
-        Args:
-            prediction: The prediction dataframe, must have label and user_label
+        :param prediction: The prediction dataframe, must have label and user_label
+        :param test_data: {Column -> label}
 
         Returns: Pandas data frame.
 
@@ -103,14 +103,20 @@ class SchemaMatcher(object):
             logging.warning("Model all_data is empty. Confusion matrix cannot be calculated.")
             return []
 
-        # take those rows where user_label is available
-        available = prediction[["user_label", "label"]].dropna()
+        # test_data in column -> label
+        tests = pd.DataFrame({
+            'column_id': [k.id for k in test_data.keys()],
+            'user_label': [v for v in test_data.values()],
+        })
 
-        y_actu = pd.Series(available["user_label"], name='Actual')
-        y_pred = pd.Series(available["label"], name='Predicted')
+        df = pd.merge(prediction[['column_id', 'label']], tests, how="left", on="column_id")
+        df['user_label'].fillna(value='unknown', inplace=True)
+
+        y_actu = pd.Series(df["user_label"], name='Actual')
+        y_pred = pd.Series(df["label"], name='Predicted')
 
         if y_actu.empty or y_pred.empty:
-            logging.warning("Failed to create confusion matrix for {}".format(prediction))
+            logging.warning("Failed to create confusion matrix")
             return []
         
         return pd.crosstab(y_actu, y_pred)
@@ -124,7 +130,6 @@ class SchemaMatcher(object):
                      labels=None,
                      cost_matrix=None,
                      resampling_strategy="ResampleToMean"):
-
         """
         Post a new model to the schema matcher server.
         Refresh SchemaMatcher instance to include the new model.
@@ -158,7 +163,7 @@ class SchemaMatcher(object):
             """Convert the column requests into a string id"""
             return {column_parse(k): v for k, v in ld.items()}
 
-        json = self.api.post_model(feature_config,
+        json = self.api.model.post(feature_config,
                                    description,
                                    classes,
                                    model_type,
@@ -182,8 +187,8 @@ class SchemaMatcher(object):
         Returns: newly uploaded MatcherDataset
 
         """
-        json = self.api.post_dataset(description, file_path, type_map)
-        return DataSet(json, self)
+        json = self.api.dataset.post(description, file_path, type_map)
+        return DataSet(json)
 
     @decache
     def remove_dataset(self, key):
@@ -194,9 +199,9 @@ class SchemaMatcher(object):
         :return: None
         """
         if issubclass(type(key), DataSet):
-            self.api.delete_dataset(key.id)
+            self.api.dataset.delete(key.id)
         else:
-            self.api.delete_dataset(key)
+            self.api.dataset.delete(key)
 
     @decache
     def remove_model(self, key):
@@ -207,9 +212,9 @@ class SchemaMatcher(object):
         :return: None
         """
         if issubclass(type(key), Model):
-            self.api.delete_model(key.id)
+            self.api.model.delete(key.id)
         else:
-            self.api.delete_model(key)
+            self.api.model.delete(key)
 
     @decache
     def train_all(self):

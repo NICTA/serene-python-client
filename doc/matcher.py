@@ -126,13 +126,13 @@ features = {
             "num-neighbours": 3
         }, {
             "name": "min-editdistance-from-class-examples",
-            "max-comparisons-per-class": 20
+            "max-comparisons-per-class": 3
         }, {
             "name": "min-wordnet-jcn-distance-from-class-examples",
-            "max-comparisons-per-class": 20
+            "max-comparisons-per-class": 3
         }, {
             "name": "min-wordnet-lin-distance-from-class-examples",
-            "max-comparisons-per-class": 20
+            "max-comparisons-per-class": 3
         }
     ]
 }
@@ -184,39 +184,24 @@ for d in datasets:
     print(d.filename)
 
 #
-# User labelled data
-#
-label_data = {
-    datasets[0].column('Quality'): 'data-quality',
-    datasets[0].column('Year'): 'year',
-    datasets[0].column('Month'): 'month',
-    datasets[0].column('Day'): 'day',
-    datasets[0].column('Bureau of Meteorology station number'): 'station-number',
-    datasets[1].column('Quality'): 'data-quality',
-    datasets[1].column('Year'): 'year',
-    datasets[1].column('Month'): 'month',
-    datasets[1].column('Day'): 'day',
-    datasets[1].column('Bureau of Meteorology station number'): 'station-number',
-    datasets[2].column('Quality'): 'data-quality',
-    datasets[2].column('Year'): 'year',
-    datasets[2].column('Month'): 'month',
-    datasets[2].column('Day'): 'day',
-    datasets[2].column('Bureau of Meteorology station number'): 'station-number',
-    datasets[3].column('Quality'): 'data-quality',
-    datasets[3].column('Year'): 'year',
-    datasets[3].column('Month'): 'month',
-    datasets[3].column('Day'): 'day',
-    datasets[3].column('Bureau of Meteorology station number'): 'station-number'
-}
-
-#
 # Create a new model.
 #
 model = dm.create_model(
     feature_config=features,
     classes=classes,
     description=descr,
-    labels=label_data,
+    labels={
+        datasets[0].column('Quality'): 'data-quality',
+        datasets[0].column('Year'): 'year',
+        datasets[0].column('Month'): 'month',
+        datasets[0].column('Day'): 'day',
+        datasets[0].column('Bureau of Meteorology station number'): 'station-number',
+        datasets[1].column('Quality'): 'data-quality',
+        datasets[1].column('Year'): 'year',
+        datasets[1].column('Month'): 'month',
+        datasets[1].column('Day'): 'day',
+        datasets[1].column('Bureau of Meteorology station number'): 'station-number',
+    },
     resampling_strategy=resampling_strategy
 )
 print(model.summary)
@@ -233,6 +218,43 @@ print("We can also remove models")
 dm.remove_model(model.id)
 print(dm.models)
 
+
+#==============
+#
+# Let's evaluate a model...
+#
+#==============
+
+#
+# User labelled data
+#
+training_data = {
+    datasets[0].column('Quality'): 'data-quality',
+    datasets[0].column('Year'): 'year',
+    datasets[0].column('Month'): 'month',
+    datasets[0].column('Day'): 'day',
+    datasets[0].column('Bureau of Meteorology station number'): 'station-number',
+    datasets[1].column('Quality'): 'data-quality',
+    datasets[1].column('Year'): 'year',
+    datasets[1].column('Month'): 'month',
+    datasets[1].column('Day'): 'day',
+    datasets[1].column('Bureau of Meteorology station number'): 'station-number',
+}
+
+test_data = {
+    datasets[2].column('Quality'): 'data-quality',
+    datasets[2].column('Year'): 'year',
+    datasets[2].column('Month'): 'month',
+    datasets[2].column('Day'): 'day',
+    datasets[2].column('Bureau of Meteorology station number'): 'station-number',
+    datasets[3].column('Quality'): 'data-quality',
+    datasets[3].column('Year'): 'year',
+    datasets[3].column('Month'): 'month',
+    datasets[3].column('Day'): 'day',
+    datasets[3].column('Bureau of Meteorology station number'): 'station-number'
+}
+
+
 #
 # Create a new model for testing.
 #
@@ -241,7 +263,7 @@ new_model = dm.create_model(
     feature_config=features,
     classes=classes,
     description=descr,
-    labels=label_data,
+    labels=training_data,
     resampling_strategy=resampling_strategy
 )
 print(model.summary)
@@ -332,22 +354,22 @@ print("The final state for {} is {}".format(new_model.id, new_model.state))
 
 #
 # now we can predict for each dataset
-print()
-print("First we can add some datasets to test:")
-evals = [
-    dm.create_dataset(
-        description="evaluation 1",
-        file_path=EXAMPLE_DATASET,
-        type_map={}
-    ),
-    dm.create_dataset(
-        description="evaluation 2",
-        file_path=EXAMPLE_DATASET,
-        type_map={}
-    )
-]
+# print()
+# print("First we can add some datasets to test:")
+# evals = [
+#     dm.create_dataset(
+#         description="evaluation 1",
+#         file_path=EXAMPLE_DATASET,
+#         type_map={}
+#     ),
+#     dm.create_dataset(
+#         description="evaluation 2",
+#         file_path=EXAMPLE_DATASET,
+#         type_map={}
+#     )
+# ]
 
-ds = evals[0]
+ds = datasets[2]
 print()
 print("We now predict for each dataset")
 print(new_model.predict(ds))
@@ -446,9 +468,13 @@ print(new_model.predict(ds, scores=True, features=True))
 #
 # compute confusion matrix on a prediction
 #
+scores = new_model.predict(ds, scores=True, features=True)
+
 print()
 print("Confusion matrix of the predicted values...")
-print(dm.confusion_matrix(new_model.predict(ds)))
+print(dm.confusion_matrix(scores, test_data))
+
+exit()
 
 #
 # train all models

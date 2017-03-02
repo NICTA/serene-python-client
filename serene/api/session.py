@@ -49,6 +49,10 @@ class HTTPObject(object):
             log_msg("RequestError", response.status_code, expr, response)
             raise OtherError(response.status_code, expr, msg)
 
+    @staticmethod
+    def join_urls(*args):
+        """Crude url joiner"""
+        return '/'.join(args)
 
 class Session(HTTPObject):
     """
@@ -90,288 +94,12 @@ class Session(HTTPObject):
 
         self._uri = urljoin(root, self.version + '/')
 
-        self._uri_ds = urljoin(self._uri, 'dataset/')  # uri for the dataset endpoint
-        self._uri_model = urljoin(self._uri, 'model/')  # uri for the model endpoint
+        #self._uri_ds = urljoin(self._uri, 'dataset/')  # uri for the dataset endpoint
+        #self._uri_model = urljoin(self._uri, 'model/')  # uri for the model endpoint
 
-        self.ontology = OntologyAPI(self, self.session)
-
-    @property
-    def uri(self):
-        return self._uri
-
-    def dataset_keys(self):
-        """
-        List ids of all datasets in the dataset repository at the Schema Matcher server.
-        If the connection fails, empty list is returned and connection error is logged.
-
-        Returns: list of dataset keys.
-        Raises: InternalDIError on failure.
-        """
-        logging.debug('Sending request to the schema matcher server to list datasets.')
-        try:
-            r = self.session.get(self._uri_ds)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("dataset keys", e)
-        self._handle_errors(r, "GET " + self._uri_ds)
-        return r.json()
-
-    def post_dataset(self, description, file_path, type_map):
-        """
-        Post a new dataset to the schema mather server.
-        Args:
-             description: string which describes the dataset to be posted
-             file_path: string which indicates the location of the dataset to be posted
-             type_map: dictionary with type map for the dataset
-
-        Returns: Dictionary.
-        """
-
-        logging.debug('Sending request to the schema matcher server to post a dataset.')
-        try:
-            f = {"file": open(file_path, "rb")}
-            data = {"description": str(description), "typeMap": type_map}
-            r = self.session.post(self._uri_ds, data=data, files=f)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("post_dataset", e)
-        self._handle_errors(r, "POST " + self._uri_ds)
-        return r.json()
-
-    def update_dataset(self, key, description, type_map):
-        """
-        Update an existing dataset in the repository at the schema matcher server.
-        Args:
-             description: string which describes the dataset to be posted
-             key: integer dataset id
-             type_map: dictionary with type map for the dataset
-
-        :return:
-        """
-        logging.debug('Sending request to the schema matcher server to update dataset %d' % key)
-        uri = self._dataset_endpoint(key)
-        try:
-            data = {"description": description, "typeMap": type_map}
-            r = self.session.post(uri, data=data)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("update_dataset", e)
-        self._handle_errors(r, "PATCH " + uri)
-        return r.json()
-
-    def dataset(self, key):
-        """
-        Get information on a specific dataset from the repository at the schema matcher server.
-        Args:
-             key: integer which is the key of the dataset.
-
-        Returns: dictionary.
-        """
-        logging.debug('Sending request to the schema matcher server to get dataset info.')
-        uri = self._dataset_endpoint(key)
-        try:
-            r = self.session.get(uri)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("list_dataset", e)
-        self._handle_errors(r, "GET " + uri)
-        return r.json()
-
-    def delete_dataset(self, key):
-        """
-        Delete a specific dataset from the repository at the schema matcher server.
-        Args:
-             key: int
-
-        Returns:
-        """
-        logging.debug('Sending request to the schema matcher server to delete dataset.')
-        uri = self._dataset_endpoint(key)
-        try:
-            r = self.session.delete(uri)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("delete_dataset", e)
-        self.__handle_errors(r, "DELETE " + uri)
-        return r.json()
-
-    def post_model(self,
-                   feature_config,
-                   description="",
-                   classes=None,
-                   model_type="randomForest",
-                   labels=None,
-                   cost_matrix=None,
-                   resampling_strategy="ResampleToMean"):
-        """
-        Post a new model to the schema matcher server.
-        Args:
-             feature_config: dictionary
-             description: string which describes the model to be posted
-             classes: list of class names
-             model_type: string
-             labels: dictionary
-             cost_matrix:
-             resampling_strategy: string
-
-        Returns: model dictionary
-        """
-
-        if classes is None:
-            classes = ["unknown"]
-
-        assert "unknown" in classes
-
-        logging.debug('Sending request to the schema matcher server to post a model.')
-
-        try:
-            data = self._process_model_input(feature_config,
-                                             description,
-                                             classes,
-                                             model_type,
-                                             labels,
-                                             cost_matrix,
-                                             resampling_strategy)
-            r = self.session.post(self._uri_model, json=data)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("post_model", e)
-        self._handle_errors(r, "POST " + self._uri_model)
-        return r.json()
-
-    def update_model(self,
-                     model_key,
-                     feature_config=None,
-                     description=None,
-                     classes=None,
-                     model_type=None,
-                     labels=None,
-                     cost_matrix=None,
-                     resampling_strategy=None):
-        """
-        Update an existing model in the model repository at the schema matcher server.
-        Args:
-             model_key: integer which is the key of the model in the repository
-             feature_config: dictionary
-             description: string which describes the model to be posted
-             classes: list of class names
-             model_type: string
-             labels: dictionary
-             cost_matrix:
-             resampling_strategy: string
-
-        Returns: model dictionary
-        """
-
-        logging.debug('Sending request to the schema matcher server to update model %d' % model_key)
-        uri = self._model_endpoint(model_key)
-        try:
-            data = self._process_model_input(feature_config,
-                                             description,
-                                             classes,
-                                             model_type,
-                                             labels,
-                                             cost_matrix,
-                                             resampling_strategy)
-
-            r = self.session.post(uri, json=data)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("update_model", e)
-        self._handle_errors(r, "POST " + uri)
-        return r.json()
-
-    def model(self, model_key):
-        """
-        Get information on a specific model in the model repository at the schema matcher server.
-        Args:
-             model_key: integer which is the key of the model in the repository
-
-        Returns: dictionary
-        """
-        logging.debug('Sending request to the schema matcher server to get model info.')
-        uri = self._model_endpoint(model_key)
-        try:
-            r = self.session.get(uri)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("list_model", e)
-        self._handle_errors(r, "GET " + uri)
-        return r.json()
-
-    def delete_model(self, model_key):
-        """
-        Args:
-             model_key: integer which is the key of the model in the repository
-
-        Returns: dictionary
-        """
-        logging.debug('Sending request to the schema matcher server to delete model.')
-        uri = self._model_endpoint(model_key)
-        try:
-            r = self.session.delete(uri)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("delete_model", e)
-        self._handle_errors(r, "DELETE " + uri)
-        return r.json()
-
-    def train_model(self, model_key):
-        """
-        Args:
-             model_key: integer which is the key of the model in the repository
-
-        Returns: True
-
-        """
-        logging.debug('Sending request to the schema matcher server to train the model.')
-        uri = urljoin(self._model_endpoint(model_key), "train")
-        try:
-            r = self.session.post(uri)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("train_model", e)
-        self._handle_errors(r, "POST " + uri)
-        return True
-
-    def predict_model(self, model_key, dataset_key=None):
-        """
-        Post request to perform prediction based on the model.
-
-        Args:
-            model_key: integer which is the key of the model in the repository
-            dataset_key: integer key for the dataset to predict
-
-        Returns: True
-
-        """
-        logging.debug('Sending request to the schema matcher server to preform prediction based on the model.')
-        uri = urljoin(self._model_endpoint(model_key), "predict/")
-        try:
-            if dataset_key is None:
-                r = self.session.post(uri)
-            else:
-                r = self.session.post(urljoin(uri, str(dataset_key)))
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("predict_model", e)
-        self._handle_errors(r, "POST " + uri)
-        return r.json()
-
-    def model_keys(self):
-        """
-        List ids of all models in the Model repository at the Schema Matcher server.
-
-        Returns: list of model keys
-        """
-        logging.debug('Sending request to the schema matcher server to list models.')
-        try:
-            r = self.session.get(self._uri_model)
-        except Exception as e:
-            logging.error(e)
-            raise InternalError("model_keys", e)
-        self._handle_errors(r, "GET " + self._uri_model)
-        return r.json()
+        self.ontology = OntologyAPI(self._uri, self.session)
+        self.dataset = DataSetAPI(self._uri, self.session)
+        self.model = ModelAPI(self._uri, self.session)
 
     def _test_connection(self, root):
         """
@@ -410,9 +138,340 @@ class Session(HTTPObject):
         # requests error stack...
         raise ConnectionError(msg)
 
-    def _dataset_endpoint(self, key):
-        """The URI endpoint for the dataset at `key`"""
-        return urljoin(self._uri_ds, str(key))
+    @property
+    def uri(self):
+        return self._uri
+
+    def __repr__(self):
+        return "<Session at (" + str(self._uri) + ")>"
+
+    def __str__(self):
+        return self.__repr__()
+
+
+class DataSetAPI(HTTPObject):
+    """
+    Handles the DataSet endpoint requests
+    """
+    def __init__(self, uri, conn):
+        """
+        Requires a valid session object
+
+        :param uri: The base URI for the Serene server
+        :param conn: The live connection object
+        """
+        self.connection = conn
+        self._uri = urljoin(uri, 'dataset/')
+
+    def keys(self):
+        """
+        List ids of all datasets in the dataset repository at the Schema Matcher server.
+        If the connection fails, empty list is returned and connection error is logged.
+
+        Returns: list of dataset keys.
+        Raises: InternalDIError on failure.
+        """
+        logging.debug('Sending request to the schema matcher server to list datasets.')
+
+        uri = self._uri
+
+        try:
+            r = self.connection.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to fetch dataset keys", e)
+        self._handle_errors(r, "GET " + self._uri)
+        return r.json()
+
+    def post(self, description, file_path, type_map):
+        """
+        Post a new dataset to the Serene server.
+        Args:
+             description: string which describes the dataset to be posted
+             file_path: string which indicates the location of the dataset to be posted
+             type_map: dictionary with type map for the dataset
+
+        Returns: Dictionary.
+        """
+
+        logging.debug('Sending request to the schema matcher server to post a dataset.')
+
+        uri = self._uri
+
+        try:
+            f = {"file": open(file_path, "rb")}
+            data = {
+                "description": str(description),
+                "typeMap": type_map
+            }
+            r = self.connection.post(uri, data=data, files=f)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to post dataset", e)
+
+        self._handle_errors(r, "POST " + uri)
+
+        return r.json()
+
+    def update(self, key, description, type_map):
+        """
+        Update an existing dataset in the repository on the Serene server.
+        Args:
+             description: string which describes the dataset to be posted
+             key: integer dataset id
+             type_map: dictionary with type map for the dataset
+
+        :return:
+        """
+        logging.debug('Sending request to the schema matcher server to update dataset %d' % key)
+        uri = urljoin(self._uri, str(key))
+
+        try:
+            data = {"description": description, "typeMap": type_map}
+            r = self.connection.post(uri, data=data)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to update dataset", e)
+
+        self._handle_errors(r, "PATCH " + uri)
+
+        return r.json()
+
+    def item(self, key):
+        """
+        Get information on a specific dataset from the repository on the Serene server.
+        Args:
+             key: integer which is the key of the dataset.
+
+        Returns: dictionary.
+        """
+        logging.debug('Sending request to the Serene server to get dataset info.')
+        uri = urljoin(self._uri, str(key))
+        try:
+            r = self.connection.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to get dataset", e)
+        self._handle_errors(r, "GET " + uri)
+        return r.json()
+
+    def delete(self, key):
+        """
+        Delete a specific dataset from the repository on the Serene server.
+        Args:
+             key: int
+
+        Returns:
+        """
+        logging.debug('Sending request to the Serene server to delete dataset.')
+        uri = urljoin(self._uri, str(key))
+        try:
+            r = self.connection.delete(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to delete dataset", e)
+        self._handle_errors(r, "DELETE " + uri)
+        return r.json()
+
+
+class ModelAPI(HTTPObject):
+    """
+    Handles requests for the Model Endpoint
+    """
+    def __init__(self, uri, conn):
+        """
+        Requires a valid session object
+
+        :param uri: The base URI for the Serene server
+        :param conn: The live connection object
+        """
+        self.connection = conn
+        self._uri = urljoin(uri, 'model/')
+
+    def post(self,
+             feature_config,
+             description="",
+             classes=None,
+             model_type="randomForest",
+             labels=None,
+             cost_matrix=None,
+             resampling_strategy="ResampleToMean"):
+        """
+        Post a new model to the schema matcher server.
+
+        :param feature_config: dictionary
+        :param description: string which describes the model to be posted
+        :param classes: list of class names
+        :param model_type: string
+        :param labels: dictionary
+        :param cost_matrix:
+        :param resampling_strategy: string
+
+        :return model dictionary
+        """
+        if classes is None:
+            classes = ["unknown"]
+
+        assert "unknown" in classes
+
+        logging.debug('Sending request to the schema matcher server to post a model.')
+        uri = self._uri
+
+        try:
+            data = self._process_model_input(feature_config,
+                                             description,
+                                             classes,
+                                             model_type,
+                                             labels,
+                                             cost_matrix,
+                                             resampling_strategy)
+            r = self.connection.post(uri, json=data)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to create model", e)
+        self._handle_errors(r, "POST " + uri)
+        return r.json()
+
+    def update(self,
+               key,
+               feature_config=None,
+               description=None,
+               classes=None,
+               model_type=None,
+               labels=None,
+               cost_matrix=None,
+               resampling_strategy=None):
+        """
+        Update an existing model in the model repository at the schema matcher server.
+
+        :param key: integer which is the key of the model in the repository
+        :param feature_config: dictionary
+        :param description: string which describes the model to be posted
+        :param classes: list of class names
+        :param model_type: string
+        :param labels: dictionary
+        :param cost_matrix:
+        :param resampling_strategy: string
+
+        :return model dictionary
+        """
+
+        logging.debug('Sending request to the schema matcher server to update model %d' % key)
+        uri = urljoin(self._uri, str(key))
+        try:
+            data = self._process_model_input(feature_config,
+                                             description,
+                                             classes,
+                                             model_type,
+                                             labels,
+                                             cost_matrix,
+                                             resampling_strategy)
+
+            r = self.connection.post(uri, json=data)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("update_model", e)
+        self._handle_errors(r, "POST " + uri)
+        return r.json()
+
+    def item(self, key):
+        """
+        Get information on a specific model in the model repository at the schema matcher server.
+
+        :param key: integer which is the key of the model in the repository
+
+        :return: dictionary
+        """
+        logging.debug('Sending request to the schema matcher server to get model info.')
+        uri = urljoin(self._uri, str(key))
+        try:
+            r = self.connection.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to get model", e)
+        self._handle_errors(r, "GET " + uri)
+        return r.json()
+
+    def delete(self, key):
+        """
+        :param key: integer which is the key of the model in the repository
+
+        :returns: dictionary
+        """
+        logging.debug('Sending request to the Serene server to delete model.')
+        uri = urljoin(self._uri, str(key))
+
+        try:
+            r = self.connection.delete(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to delete model", e)
+
+        self._handle_errors(r, "DELETE " + uri)
+        return r.json()
+
+    def train(self, key):
+        """
+        :param key: integer which is the key of the model in the repository
+
+        :return: True, this function is asynchronous
+        """
+        logging.debug('Sending request to the Serene server to train the model.')
+        uri = urljoin(self._uri, self.join_urls(str(key), "train"))
+
+        try:
+            r = self.connection.post(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to train model", e)
+
+        self._handle_errors(r, "POST " + uri)
+        return True
+
+    def predict(self, key, dataset_key):
+        """
+        Post request to perform prediction based on the model, using the dataset `dataset_key`
+        as input.
+
+        Args:
+            key: integer which is the key of the model in the repository
+            dataset_key: integer key for the dataset to predict
+
+        Returns: True
+
+        """
+        logging.debug('Sending request to the Serene server to preform '
+                      'a prediction based on the model.')
+        uri = urljoin(self._uri, self.join_urls(str(key), "predict", str(dataset_key)))
+
+        try:
+            r = self.connection.post(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to predict Model", e)
+
+        self._handle_errors(r, "POST " + uri)
+
+        return r.json()
+
+    def keys(self):
+        """
+        List ids of all models in the Model repository at the Schema Matcher server.
+
+        Returns: list of model keys
+        """
+        logging.debug('Sending request to the schema matcher server to list models.')
+        uri = self._uri
+
+        try:
+            r = self.connection.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to get Model keys", e)
+
+        self._handle_errors(r, "GET " + uri)
+
+        return r.json()
 
     @staticmethod
     def _process_model_input(feature_config=None,
@@ -434,16 +493,6 @@ class Session(HTTPObject):
         }
         return {k: v for k, v in data.items() if v is not None}
 
-    def _model_endpoint(self, id):
-        """Returns the endpoint url for the model `id`"""
-        return urljoin(self._uri_model, str(id) + "/")
-
-    def __repr__(self):
-        return "<Session at (" + str(self._uri) + ")>"
-
-    def __str__(self):
-        return self.__repr__()
-
 
 @unique
 class OwlFormat(Enum):
@@ -457,15 +506,15 @@ class OntologyAPI(HTTPObject):
     """
     Handles the Ontology endpoint requests
     """
-    def __init__(self, session, conn):
+    def __init__(self, uri, conn):
         """
         Requires a valid session object
 
-        :param session:
+        :param uri: The base URI of the Serene server
+        :param conn: The live connection object
         """
-        self.session = session
         self.connection = conn
-        self._uri = urljoin(self.session.uri, 'owl/')
+        self._uri = urljoin(uri, 'owl/')
         self.OWL_FORMATS = {x.value for x in OwlFormat}
 
     def keys(self):
@@ -517,81 +566,82 @@ class OntologyAPI(HTTPObject):
         """
 
         logging.debug('Sending request to the schema matcher server to post a dataset.')
+        uri = self._uri
 
         if owl_format not in self.OWL_FORMATS:
             msg = "Ontology format value {} is not supported. " \
                   "Use one of: {}".format(owl_format, self.OWL_FORMATS)
             raise ValueError(msg)
         try:
-            f = {
-                "file": open(file_path, "rb")
-            }
+            f = {"file": open(file_path, "rb")}
             data = {
                 "description": str(description),
                 "format": owl_format
             }
-            r = self.connection.post(self._uri, data=data, files=f)
+            r = self.connection.post(uri, data=data, files=f)
         except Exception as e:
             logging.error(e)
             raise InternalError("Failed to create ontology", e)
 
-        self._handle_errors(r, "POST " + self._uri)
+        self._handle_errors(r, "POST " + uri)
 
         return r.json()
-    #
-    # def update_dataset(self, key, description, type_map):
-    #     """
-    #     Update an existing dataset in the repository at the schema matcher server.
-    #     Args:
-    #          description: string which describes the dataset to be posted
-    #          key: integer dataset id
-    #          type_map: dictionary with type map for the dataset
-    #
-    #     :return:
-    #     """
-    #     logging.debug('Sending request to the schema matcher server to update dataset %d' % key)
-    #     uri = self._dataset_endpoint(key)
-    #     try:
-    #         data = {"description": description, "typeMap": type_map}
-    #         r = self.session.post(uri, data=data)
-    #     except Exception as e:
-    #         logging.error(e)
-    #         raise InternalError("update_dataset", e)
-    #     self._handle_errors(r, "PATCH " + uri)
-    #     return r.json()
-    #
-    # def dataset(self, key):
-    #     """
-    #     Get information on a specific dataset from the repository at the schema matcher server.
-    #     Args:
-    #          key: integer which is the key of the dataset.
-    #
-    #     Returns: dictionary.
-    #     """
-    #     logging.debug('Sending request to the schema matcher server to get dataset info.')
-    #     uri = self._dataset_endpoint(key)
-    #     try:
-    #         r = self.session.get(uri)
-    #     except Exception as e:
-    #         logging.error(e)
-    #         raise InternalError("list_dataset", e)
-    #     self._handle_errors(r, "GET " + uri)
-    #     return r.json()
-    #
-    # def delete_dataset(self, key):
-    #     """
-    #     Delete a specific dataset from the repository at the schema matcher server.
-    #     Args:
-    #          key: int
-    #
-    #     Returns:
-    #     """
-    #     logging.debug('Sending request to the schema matcher server to delete dataset.')
-    #     uri = self._dataset_endpoint(key)
-    #     try:
-    #         r = self.session.delete(uri)
-    #     except Exception as e:
-    #         logging.error(e)
-    #         raise InternalError("delete_dataset", e)
-    #     self._handle_errors(r, "DELETE " + uri)
-    #     return r.json()
+
+    def update(self, key, description=None, file_path=None, owl_format=None):
+        """
+        Update an existing Ontology in the repository on the Serene server.
+        Args:
+             key: integer ontology id
+             description: string which describes the dataset to be posted
+             type_map: dictionary with type map for the dataset
+
+        :return:
+        """
+        logging.debug('Sending request to the schema matcher server to post a dataset.')
+        uri = urljoin(self._uri, str(key))
+
+        if owl_format is not None and owl_format not in self.OWL_FORMATS:
+            msg = "Ontology format value {} is not supported. " \
+                  "Use one of: {}".format(owl_format, self.OWL_FORMATS)
+            raise ValueError(msg)
+        try:
+            if file_path is None:
+                f = None
+            else:
+                f = {"file": open(file_path, "rb")}
+
+            data = {
+                "description": str(description) if description is not None else None,
+                "format": owl_format
+            }
+            data = {k: v for k, v in data.items() if v is not None}
+
+            r = self.connection.post(uri, data=data, files=f)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to update ontology", e)
+
+        self._handle_errors(r, "POST " + uri)
+
+        return r.json()
+
+    def delete(self, key):
+        """
+        Delete a specific ontology from the repository at the Serene server.
+        Args:
+             key: int
+
+        Returns:
+        """
+        logging.debug('Sending request to the schema matcher server to delete dataset.')
+        uri = urljoin(self._uri, str(key))
+
+        try:
+            r = self.connection.delete(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("delete_dataset", e)
+
+        self._handle_errors(r, "DELETE " + uri)
+
+        return r.json()

@@ -19,6 +19,9 @@ from .visualizers import BaseVisualizer
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
+LINK_NAME = "relationship"
+DATA_NODE_LINK_NAME = "property"
+
 
 class BaseSemantic(object):
     """
@@ -34,8 +37,6 @@ class BaseSemantic(object):
         self._graph = nx.DiGraph()
         self._class_table = {}
         self._links = LinkList()
-        self._LINK = "relationship"
-        self._DATA_NODE_LINK = "property"
 
     def class_node(self, name, nodes=None, prefix=None, is_a=None):
         """
@@ -62,9 +63,9 @@ class BaseSemantic(object):
                 parent_class = self._class_table[is_a]
 
         # build up the node list...
-        node_dict = {}
-
-        if issubclass(type(nodes), dict):
+        if nodes is None:
+            node_dict = {}
+        elif issubclass(type(nodes), dict):
             node_dict = nodes
         elif issubclass(type(nodes), list):
             assert(len(nodes) == len(set(nodes)))
@@ -92,11 +93,14 @@ class BaseSemantic(object):
         self._class_table[node.name] = node
 
         # now add the data property links
-        for dataNode in node.nodes:
-            link = Link(self._DATA_NODE_LINK, node, dataNode)
-            self.add_link(link)
+        if node.nodes is not None:
+            for dataNode in node.nodes:
+                link = Link(DATA_NODE_LINK_NAME, node, dataNode)
+                self.add_link(link)
 
         self._graph.add_node(node)
+
+        return self
 
     def link(self, source, link, dest):
         """
@@ -140,7 +144,7 @@ class BaseSemantic(object):
         self._graph.add_edge(
             link.src,
             link.dst,
-            {self._LINK: link})
+            {LINK_NAME: link})
         return self
 
     def find_class_node(self, name):
@@ -286,7 +290,7 @@ class BaseSemantic(object):
         """Returns all the links in the graph"""
         # links = nx.get_edge_attributes(self._graph, self._LINK)
         # return list(links.values())
-        return [link for link in self._links if link.name != self._DATA_NODE_LINK]
+        return [link for link in self._links if link.name != DATA_NODE_LINK_NAME]
 
     def summary(self):
         """Prints a summary of the ontology"""
@@ -469,6 +473,11 @@ class Ontology(BaseSemantic):
     @property
     def prefixes(self):
         return self._prefixes
+
+    @property
+    def stored(self):
+        """Flag to test whether this ontology is stored on the server."""
+        return self._stored
 
     def __repr__(self):
         """

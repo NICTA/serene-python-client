@@ -7,6 +7,7 @@ Tests the core module
 import unittest2 as unittest
 import serene
 from serene import ClassNode, DataNode, Link
+from serene.semantics import DATA_NODE_LINK_NAME
 
 
 class TestOntology(unittest.TestCase):
@@ -94,7 +95,7 @@ class TestOntology(unittest.TestCase):
         :return:
         """
         with self.assertRaises(Exception):
-            self.empty_ontology().class_node("Person", ["name", "addr"], is_a=ClassNode("junk"))
+            self.empty_ontology().class_node("Person", ["name", "addr"], is_a="junk")
 
     def test_class_node_bad_nodes(self):
         """
@@ -111,25 +112,29 @@ class TestOntology(unittest.TestCase):
         """
         family = (self.empty_ontology()
                   .class_node("Parent", ["name", "addr"])
-                  .class_node("Child", ["toys"], is_a=ClassNode("Parent")))
+                  .class_node("Child", ["toys"], is_a="Parent"))
 
         self.assertEqual(len(family.class_nodes), 2)
         self.assertEqual(len(family.data_nodes), 3)
-        self.assertEqual(len(family.links), 4)
+        self.assertEqual(len(family.links), 3)
 
         parent = ClassNode.search(family.class_nodes, ClassNode("Parent"))
         child = ClassNode.search(family.class_nodes, ClassNode("Child"))
         links = [link.name for link in family.links]
-        self.assertEqual(child.parent, parent)
 
-        self.assertEqual(set(links), {Link.DATA_LINK, Link.SUBCLASS})
+        self.assertEqual(child.parent, parent)
+        self.assertEqual(set(links), {DATA_NODE_LINK_NAME})
 
     def test_add_class_node(self):
         """
         Tests the class node add ClassNode method
         :return:
         """
-        raise NotImplementedError("Test not implemented")
+        node = ClassNode("Person")
+        single = self.empty_ontology().add_class_node(node)
+
+        self.assertEqual(len(single.class_nodes), 1)
+        self.assertEqual(ClassNode.search(single.class_nodes, ClassNode("Person")), node)
 
     def test_link(self):
         raise NotImplementedError("Test not implemented")
@@ -173,7 +178,7 @@ class TestOntology(unittest.TestCase):
     def test_create(self):
         raise NotImplementedError("Test not implemented")
 
-    def test_rand_id(self):
+    def test_update(self):
         raise NotImplementedError("Test not implemented")
 
     def test_set_stored_flag(self):

@@ -125,7 +125,7 @@ ontologies[0].show()
 input("Press enter to continue")
 
 #
-# The most straightforward way is to upload an OWL file...
+# The most straightforward way is to upload an OWL file directly...
 #
 ontology = sn.ontologies.upload('tests/resources/owl/dataintegration_report_ontology.owl')
 
@@ -218,7 +218,7 @@ business_info_ssd = (serene.SSD(business_info, ontology)
                      .map(Column("city"), DataNode("City", "name"))
                      .map(Column("state"), DataNode("State", "name"))
                      .link("Organization", "Person", relationship="ceo")
-                     .link("Organization", "City", relationship="operates")
+                     .link("Organization", "City", relationship="operatesIn")
                      .link("City", "State", relationship="state"))
 
 business_info_ssd.show()
@@ -274,18 +274,58 @@ input("press any key to continue...")
 
 octo = sn.Octopus(
     name='felix-test',
-    config={
-        'kmeans': 2,
-        'something': 1234,
-        'somethin1': 'hello'
-    },
+    description='Testing example for places and companies',
     ssds=[
         business_info_ssd,
         employee_address_ssd,
         get_cities_ssd,
         get_employees_ssd,
         postal_code_ssd
-    ]
+    ],
+    ontologies=[ontology],
+    resampling_strategy="NoResampling",  # optional
+    num_bags=100,  # optional
+    bag_size=10,  # optional
+    config={
+        "activeFeatures": [
+            "num-unique-vals",
+            "prop-unique-vals",
+            "prop-missing-vals",
+            "ratio-alpha-chars",
+            "prop-numerical-chars",
+            "prop-whitespace-chars",
+            "prop-entries-with-at-sign",
+            "prop-entries-with-hyphen",
+            "prop-range-format",
+            "is-discrete",
+            "entropy-for-discrete-values"
+        ],
+        "activeFeatureGroups": [
+            "inferred-data-type",
+            "stats-of-text-length",
+            "stats-of-numeric-type",
+            "prop-instances-per-class-in-knearestneighbours",
+            "mean-character-cosine-similarity-from-class-examples",
+            "min-editdistance-from-class-examples",
+            "min-wordnet-jcn-distance-from-class-examples",
+            "min-wordnet-lin-distance-from-class-examples"
+        ],
+        "featureExtractorParams": [
+            {
+                "name": "prop-instances-per-class-in-knearestneighbours",
+                "num-neighbours": 3
+            }, {
+                "name": "min-editdistance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }, {
+                "name": "min-wordnet-jcn-distance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }, {
+                "name": "min-wordnet-lin-distance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }
+        ]
+    }
 )
 
 # =======================

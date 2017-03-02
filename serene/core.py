@@ -54,7 +54,7 @@ class Serene(object):
         """
         self._session = Session(host, port, auth, cert, trust_env)
 
-        self._dataset = DataSetEndpoint(self._session)
+        self._datasets = DataSetEndpoint(self._session)
 
         self._ontologies = OntologyEndpoint(self._session)
 
@@ -144,10 +144,14 @@ class Serene(object):
 
     @property
     def datasets(self):
-        return self._dataset
+        return self._datasets
 
     def __repr__(self):
-        return "Serene({}:{}, {})".format(self._api.host, self._api.port, hex(id(self)))
+        return "Serene({}:{}, {})".format(
+            self._session.host,
+            self._session.port,
+            hex(id(self))
+        )
 
 
 class SSD(object):

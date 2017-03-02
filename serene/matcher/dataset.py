@@ -101,65 +101,65 @@ class DataSet(object):
         return disp
 
 
-# class DataSetList(collections.MutableSequence):
-#     """
-#     Container type for DataSet objects in the Serene Python Client
-#     """
-#
-#     def __init__(self, *args):
-#         self.list = list()
-#         self.extend(list(args))
-#
-#     @staticmethod
-#     def check(v):
-#         if not issubclass(type(v), DataSet):
-#             raise TypeError("Only DataSet types permitted: {}".format(v))
-#
-#     def __len__(self):
-#         return len(self.list)
-#
-#     def __getitem__(self, i):
-#         return self.list[i]
-#
-#     def __delitem__(self, i):
-#         msg = "Use Serene.remove_dataset to correctly remove dataset"
-#         logging.error(msg)
-#         raise Exception(msg)
-#
-#     def __setitem__(self, i, v):
-#         self.check(v)
-#         self.list[i] = v
-#
-#     def insert(self, i, v):
-#         self.check(v)
-#         self.list.insert(i, v)
-#
-#     def __repr__(self):
-#         ds = []
-#         for v in self.list:
-#             ds.append(str(v))
-#         return "[{}]".format('\n'.join(ds))
-#
-#     @property
-#     def summary(self):
-#         df = pd.DataFrame(columns=[
-#             'id',
-#             'name',
-#             'description',
-#             'created',
-#             'modified',
-#             'rows',
-#             'cols'
-#         ])
-#         for elem in self.list:
-#             df.loc[len(df)] = [
-#                 elem.id,
-#                 os.path.basename(elem.filename),
-#                 elem.description,
-#                 elem.date_created,
-#                 elem.date_modified,
-#                 max(c.size for c in elem.columns),
-#                 len(elem.columns)
-#             ]
-#         return df
+class DataSetList(collections.MutableSequence):
+    """
+    Container type for DataSet objects in the Serene Python Client
+    """
+
+    def __init__(self, *args):
+        self.list = list()
+        self.extend(list(args))
+
+    @staticmethod
+    def check(v):
+        if not issubclass(type(v), DataSet):
+            raise TypeError("Only DataSet types permitted: {}".format(v))
+
+    def __len__(self):
+        return len(self.list)
+
+    def __getitem__(self, i):
+        return self.list[i]
+
+    def __delitem__(self, i):
+        msg = "Use Serene.remove_dataset to correctly remove dataset"
+        logging.error(msg)
+        raise Exception(msg)
+
+    def __setitem__(self, i, v):
+        self.check(v)
+        self.list[i] = v
+
+    def insert(self, i, v):
+        self.check(v)
+        self.list.insert(i, v)
+
+    def __repr__(self):
+        ds = []
+        for v in self.list:
+            ds.append(str(v))
+        return "[{}]".format('\n'.join(ds))
+
+    @property
+    def summary(self):
+        df = pd.DataFrame(columns=[
+            'id',
+            'name',
+            'description',
+            'created',
+            'modified',
+            'rows',
+            'cols'
+        ])
+        for elem in self.list:
+            df.loc[len(df)] = [
+                elem.id,
+                os.path.basename(elem.filename),
+                elem.description,
+                elem.date_created,
+                elem.date_modified,
+                max(c.size for c in elem.columns),
+                len(elem.columns)
+            ]
+        return df
 
