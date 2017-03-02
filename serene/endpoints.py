@@ -17,10 +17,10 @@ def decache(func):
         """
         Wrapper function that busts the cache for each lru_cache file
         """
-        #if not issubclass(type(self), DataSetEndpoint):
-        #    raise ValueError("Can only clear cache of DataSetEndpoint")
+        if not issubclass(type(self), IdentifiableEndpoint):
+            raise ValueError("Can only clear cache of DataSetEndpoint")
 
-        self.items.fget.cache_clear()
+        type(self).items.fget.cache_clear()
 
         return func(self, *args, **kwargs)
     return wrapper
@@ -53,6 +53,10 @@ class IdentifiableEndpoint(object):
             else:
                 msg = "Illegal type found in {}: {}".format(func_name, type(value))
             raise TypeError(msg)
+
+    @property
+    def items(self):
+        return tuple()
 
 
 class DataSetEndpoint(IdentifiableEndpoint):
@@ -128,15 +132,17 @@ class DataSetEndpoint(IdentifiableEndpoint):
 
 class OntologyEndpoint(IdentifiableEndpoint):
     """
+    User facing object used to control the Ontology endpoint.
+    Here the user can view the ontology items, upload an
+    ontology, update it etc.
 
-    :param object:
+    :param IdentifiableEndpoint: An endpoint with a key value
     :return:
     """
     def __init__(self, session):
         """
 
-        :param self:
-        :param api:
+        :param session:
         :return:
         """
         super().__init__()
@@ -144,23 +150,32 @@ class OntologyEndpoint(IdentifiableEndpoint):
         self._base_type = Ontology
 
     @decache
-    def upload(self, filename, description=None, format=None):
+    def upload(self, ontology, description=None, owl_format=None):
         """
+        Uploads an ontology to the Serene server.
 
-        :param filename:
+        :param ontology:
         :param description:
-        :param format:
+        :param owl_format:
         :return:
         """
-        if not os.path.exists(filename):
-            raise ValueError("No filename given.")
+        if issubclass(type(ontology), str):
+            # must be a direct filename...
+            if not os.path.exists(ontology):
+                raise ValueError("No filename given.")
+            filename = ontology
+        elif issubclass(type(ontology), Ontology):
+            # this will use the default path and return it if successful...
+            filename = ontology.to_turtle()
+        else:
+            raise ValueError("Upload requires Ontology type or direct filename")
 
         json = self._api.post(
             file_path=filename,
             description=description if description is not None else '',
-            format=format if format is not None else 'OWL'
+            owl_format=owl_format if owl_format is not None else 'owl'
         )
-        return DataSet(json)
+        return ontology.update(json)
 
     @decache
     def remove(self, ontology):

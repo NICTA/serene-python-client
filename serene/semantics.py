@@ -333,18 +333,21 @@ class Ontology(BaseSemantic):
         """
         super().__init__()
 
-        id_var = self._rand_id()
-
-        self.filename = os.path.join(
-            tempfile.gettempdir(),
-            "{}.owl".format(id_var)
-        )
+        self._name = ""
         self._prefixes = {}
-        self._base = "http://www.semanticweb.org/serene/{}".format(id_var)
-        self.source_file = None
-        self.id = id_var
+        self.path = None
+        self.id = None
+        self._base = None
         self._stored = False
+        self.description = ""
+        self.date_created = None
+        self.date_modified = None
+        self.source_file = None  # the original file the user starts with (if any)
 
+        # update to a default ID...
+        self._update_id(self._rand_id())
+
+        # if a file is presented, we use this to update
         if file is not None:
             _logger.debug("Importing {} from file.".format(file))
 
@@ -355,6 +358,8 @@ class Ontology(BaseSemantic):
                 RDFReader().to_ontology(file, self)
 
                 self.source_file = file
+
+                self.filename(os.path.basename(file))
             else:
                 msg = "Failed to find file {}".format(file)
                 raise FileNotFoundError(msg)
@@ -367,6 +372,48 @@ class Ontology(BaseSemantic):
                 'xsd': 'http://www.w3.org/2001/XMLSchema#',
                 'rdfs': 'http://www.w3.org/2000/01/rdf-schema#'
             }
+
+            self.filename("{}.owl".format(self.id))
+
+        # default filename
+        self._filename = os.path.basename(self.path)
+
+    def _update_id(self, id):
+        """
+        Updates with the latest id string
+        :param id_var: The identifier string
+        :return:
+        """
+        self.id = id
+        self._base = "http://www.semanticweb.org/serene/{}".format(id)
+
+    def filename(self, value):
+        """
+        Sets the filename for the owl file. This will also update the temporary file cache.
+        :param value:
+        :return:
+        """
+        self._name = value
+        self.path = os.path.join(
+            tempfile.gettempdir(),
+            self._name
+        )
+        return self
+
+    def update(self, json):
+        """
+        Updates parameters from the server.
+
+        :param json:
+        :return:
+        """
+        self._stored = True
+        self.filename(json['name'])
+        self.description = json['description']
+        self.date_created = json['dateCreated']
+        self.date_modified = json['dateModified']
+        self._update_id(json['id'])
+        return self
 
     @staticmethod
     def _rand_id():
@@ -381,9 +428,6 @@ class Ontology(BaseSemantic):
         """
         return ''.join(random.choice(string.ascii_lowercase) for _ in range(16))
 
-    def set_stored_flag(self, stored):
-        self._stored = stored
-
     def to_turtle(self, filename=None):
         """
         Writes the turtle file to filename, or back to the source
@@ -392,9 +436,9 @@ class Ontology(BaseSemantic):
         :param filename:
         :return:
         """
-        fname = filename if filename is not None else self.source_file
+        fname = filename if filename is not None else self.path
         turtle_string = RDFWriter().to_turtle(self)
-        with open(fname) as f:
+        with open(fname, 'w') as f:
             f.write(turtle_string)
             _logger.info("File written to: {}".format(fname))
 
@@ -431,10 +475,10 @@ class Ontology(BaseSemantic):
         String output for the ontology...
         :return:
         """
-        if self.id is not None:
-            return "Ontology({}, {})".format(self.id, self.filename)
+        if not self._stored:
+            return "Ontology(local, {})".format(self._name)
         else:
-            return "Ontology({})".format(self.filename)
+            return "Ontology({}, {})".format(self.id, self._name)
 
 
 class RDFReader(object):
