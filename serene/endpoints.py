@@ -1,3 +1,10 @@
+"""
+Copyright (C) 2017 Data61 CSIRO
+Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+
+Endpoint objects for the user to view and manipulate. These wrap around
+server Session objects and call methods to talk to the server.
+"""
 import os
 from functools import lru_cache
 
@@ -91,10 +98,12 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :param type_map:
         :return:
         """
+        assert(issubclass(type(filename), str))
+
         if not os.path.exists(filename):
             raise ValueError("No filename given.")
 
-        json = self._api.post_dataset(
+        json = self._api.post(
             file_path=filename,
             description=description if description is not None else '',
             type_map=type_map if type_map is not None else {}
@@ -108,7 +117,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :param dataset:
         :return:
         """
-        self._apply(self._api.delete_dataset, dataset, 'delete')
+        self._apply(self._api.delete, dataset, 'delete')
 
     def show(self):
         """
@@ -123,16 +132,16 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :param dataset:
         :return:
         """
-        self._apply(self._api.dataset, dataset, 'get')
+        self._apply(self._api.item, dataset, 'get')
 
     @property
     @lru_cache(maxsize=32)
     def items(self):
         """Maintains a list of DataSet objects"""
-        keys = self._api.dataset_keys()
+        keys = self._api.keys()
         ds = []
         for k in keys:
-            ds.append(DataSet(self._api.dataset(k)))
+            ds.append(DataSet(self._api.item(k)))
         return tuple(ds)
 
 
@@ -238,7 +247,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :param ontology:
         :return:
         """
-        return self._apply(self._api.get, ontology, 'get')
+        return self._apply(self._api.item, ontology, 'get')
 
     @property
     @lru_cache(maxsize=32)

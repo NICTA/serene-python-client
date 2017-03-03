@@ -292,6 +292,22 @@ class BaseSemantic(object):
         # return list(links.values())
         return [link for link in self._links if link.name != DATA_NODE_LINK_NAME]
 
+    def get(self, value):
+        """
+        Returns a reference to a partial object e.g. ontology.get(ClassNode("Person"))
+        :param value:
+        :return:
+        """
+        if issubclass(type(value), ClassNode):
+            return ClassNode.search(self.class_nodes, value)
+        elif issubclass(type(value), DataNode):
+            return DataNode.search(self.data_nodes, value)
+        elif issubclass(type(value), Link):
+            return Link.search(self.links, value)
+        else:
+            msg = "{} not supported for get method. Use ClassNode, DataNode or Link"
+            raise ValueError(msg)
+
     def summary(self):
         """Prints a summary of the ontology"""
         print("Class Nodes:")
@@ -430,7 +446,7 @@ class Ontology(BaseSemantic):
 
         :return:
         """
-        return ''.join(random.choice(string.ascii_lowercase) for _ in range(16))
+        return ''.join(random.sample(string.ascii_lowercase, 16))
 
     def to_turtle(self, filename=None):
         """

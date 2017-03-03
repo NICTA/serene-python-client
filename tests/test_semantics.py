@@ -14,9 +14,6 @@ class TestOntology(unittest.TestCase):
     """
     Tests the Ontology class
     """
-    def __init__(self, method_name='runTest'):
-        super().__init__(method_name)
-
     @staticmethod
     def empty_ontology():
         return serene.Ontology()

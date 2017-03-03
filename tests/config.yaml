@@ -1,0 +1,24 @@
+#=====================
+#
+# Serene Python Client Test configuration
+#
+#=====================
+
+#
+# If true, this will launch a local test server. If false it
+# assumes that you have an existing test server running
+#
+launch-test-server: true
+
+#
+# If launch-test-server is true, then this variable points to
+# the executable which will launch the server. If launch-test-server
+# is false then this is ignored.
+#
+launch-test-server-exe: ../serene/bin/serene-start
+
+#
+# The location of the test server.
+#
+test-server-host: 127.0.0.1
+test-server-port: 9000

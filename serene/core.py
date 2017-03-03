@@ -43,7 +43,7 @@ class Serene(object):
                  port=8080,
                  auth=None,
                  cert=None,
-                 trust_env=None): #, config=None, ontologies=None):
+                 trust_env=None):
         """
         Builds the SemanticModeller from a list of known
         ontologies and the config parameters.
