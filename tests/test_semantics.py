@@ -6,7 +6,7 @@ Tests the core module
 """
 import unittest2 as unittest
 import serene
-from serene import ClassNode, DataNode, Link
+from serene.elements import ClassNode, DataNode, Link
 from serene.semantics import DATA_NODE_LINK_NAME
 
 

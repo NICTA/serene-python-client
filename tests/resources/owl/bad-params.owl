@@ -1,0 +1,115 @@
+@prefix : <http://www.semanticweb.org/serene/report_example_ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.semanticweb.org/data_integration_project/report_example_ontology> .
+
+<http://www.semanticweb.org/serene/report_example_ontology> rdf:type owl:Ontology .
+
+#################################################################
+#    Classes
+#################################################################
+
+:City rdf:type owl:Class2 ;
+      rdfs:subClassOf :Place .
+
+:Event rdf:type owl:Class2 .
+
+:Organization rdf:type owl:Class .
+
+:Person rdf:type owl:Class .
+
+:Place rdf:type owl:Class .
+
+:State rdf:type owl:Class ;
+       rdfs:subClassOf :Place .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+:bornIn rdf:type owl:ObjectProperty ;
+        rdfs:domain :Person ;
+        rdfs:range :Place .
+
+:ceo rdf:type owl:ObjectProperty ;
+     rdfs:domain :Organization ;
+     rdfs:range :Person2 .
+
+:isPartOf rdf:type owl:ObjectProperty ,
+                   owl:TransitiveProperty ;
+          rdfs:domain :Place ;
+          rdfs:range :Place .
+
+:livesIn rdf:type owl:ObjectProperty ;
+         rdfs:domain :Person ;
+         rdfs:range :Place .
+
+:location rdf:type owl:ObjectProperty ;
+          rdfs:domain :Event ,
+                      :Organization ;
+          rdfs:range :Place .
+
+:nearby rdf:type owl:ObjectProperty ;
+        rdfs:domain :Place ;
+        rdfs:range :Place .
+
+:organizer rdf:type owl:ObjectProperty ;
+           rdfs:domain :Event ;
+           rdfs:range :Person .
+
+:state rdf:type owl:ObjectProperty ;
+       rdfs:domain :City ;
+       rdfs:range :State .
+
+:worksFor rdf:type owl:ObjectProperty ;
+          rdfs:domain :Person ;
+          rdfs:range :Organization .
+
+
+:operatesIn rdf:type owl:ObjectProperty ;
+            rdfs:domain :Organization ;
+            rdfs:range :City .
+
+#################################################################
+#    Data properties
+#################################################################
+
+:birthDate rdf:type owl:DatatypeProperty ;
+           rdfs:domain :Person ;
+           rdfs:range xsd:dateTime .
+
+:email rdf:type owl:DatatypeProperty ;
+       rdfs:domain :Organization ;
+       rdfs:range rdfs:Literal .
+
+:endDate rdf:type owl:DatatypeProperty ;
+         rdfs:domain :Event ;
+         rdfs:range xsd:dateTime .
+
+:name rdf:type owl:DatatypeProperty ;
+      rdfs:domain :Person ;
+      rdfs:range rdfs:Literal .
+
+# added!!
+:name rdf:type owl:DatatypeProperty ;
+      rdfs:domain :Place ;
+      rdfs:range rdfs:Literal .
+
+# added!!!
+:name rdf:type owl:DatatypeProperty ;
+      rdfs:domain :Organization ;
+      rdfs:range rdfs:Literal .
+
+:phone rdf:type owl:DatatypeProperty ;
+       rdfs:domain :Organization ;
+       rdfs:range xsd:unsignedInt .
+
+:postalCode rdf:type owl:DatatypeProperty ;
+            rdfs:domain :Place ;
+            rdfs:range rdfs:Literal .
+
+:startDate rdf:type owl:DatatypeProperty ;
+           rdfs:domain :Event ;
+           rdfs:range xsd:dateTime .

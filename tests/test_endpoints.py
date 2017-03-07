@@ -140,6 +140,7 @@ class TestOntologyEndpoint(TestEndpoints):
         super().__init__(method_name)
         self._datasets = None
         self._test_file = 'tests/resources/owl/dataintegration_report_ontology.owl'
+        self._bad_params_file = 'tests/resources/owl/bad-params.owl'
 
     def setUp(self):
         self._ontologies = OntologyEndpoint(self._session)
@@ -167,14 +168,6 @@ class TestOntologyEndpoint(TestEndpoints):
 
         self.assertEqual(len(self._ontologies.items), 0)
 
-        # only a ontology string path should be allowed
-        with self.assertRaises(Exception):
-            self._ontologies.upload(1234)
-
-        # only an existing ontology string path should be allowed
-        with self.assertRaises(Exception):
-            self._ontologies.upload('resources/owl/doesnt-exist.owl')
-
         # now upload a nice ontology
         on = self._ontologies.upload(
             self._test_file,
@@ -187,46 +180,77 @@ class TestOntologyEndpoint(TestEndpoints):
         self.assertEqual(on.description, description_string)
         self.assertEqual(len(on.class_nodes), 6)
 
-    # def test_remove(self):
-    #     """
-    #     Tests the removal of a dataset
-    #     :return:
-    #     """
-    #     self.assertEqual(len(self._datasets.items), 0)
-    #
-    #     # upload some datasets
-    #     d1 = self._datasets.upload(self._test_file)
-    #     d2 = self._datasets.upload(self._test_file)
-    #     self.assertEqual(len(self._datasets.items), 2)
-    #
-    #     # now let's remove one
-    #     self._datasets.remove(d1)
-    #     self.assertEqual(len(self._datasets.items), 1)
-    #     self.assertEqual(self._datasets.items[0].id, d2.id)
-    #
-    #     # let's remove the other by id
-    #     self._datasets.remove(d2.id)
-    #     self.assertEqual(len(self._datasets.items), 0)
-    #
-    # def test_items(self):
-    #     """
-    #     Tests Item manipulation for the dataset list
-    #     :return:
-    #     """
-    #     self.assertEqual(len(self._datasets.items), 0)
-    #
-    #     # upload some datasets
-    #     d1 = self._datasets.upload(self._test_file)
-    #     d2 = self._datasets.upload(self._test_file)
-    #     self.assertEqual(len(self._datasets.items), 2)
-    #
-    #     # now let's remove one
-    #     self._datasets.remove(d1)
-    #     self.assertEqual(len(self._datasets.items), 1)
-    #
-    #     # make sure the right one remains
-    #     self.assertEqual(self._datasets.items[0], d2.id)
-    #
-    #     # now let's remove the last one
-    #     self._datasets.remove(d2)
-    #     self.assertEqual(len(self._datasets.items), 0)
+    def test_bad_param_upload(self):
+        """
+        Tests that bad parameter ontologies raise exceptions
+        :return:
+        """
+        description_string = "description-string"
+
+        # only a ontology string path should be allowed
+        with self.assertRaises(Exception):
+            self._ontologies.upload(1234)
+
+        # only an existing ontology string path should be allowed
+        with self.assertRaises(Exception):
+            self._ontologies.upload('resources/owl/doesnt-exist.owl')
+
+        with self.assertRaises(Exception):
+            # now upload a bad format ontology
+            self._ontologies.upload(
+                self._test_file,
+                description=description_string,
+                owl_format='junk'
+            )
+
+        with self.assertRaises(Exception):
+            # now upload a bad param owl file
+            self._ontologies.upload(
+                self._bad_params_file,
+                description=description_string,
+                owl_format='junk'
+            )
+
+    def test_remove(self):
+        """
+        Tests the removal of a ontology
+        :return:
+        """
+        self.assertEqual(len(self._ontologies.items), 0)
+
+        # upload some ontologies
+        o1 = self._ontologies.upload(self._test_file)
+        o2 = self._ontologies.upload(self._test_file)
+        self.assertEqual(len(self._ontologies.items), 2)
+
+        # now let's remove one
+        self._ontologies.remove(o1)
+        self.assertEqual(len(self._ontologies.items), 1)
+        self.assertEqual(self._ontologies.items[0].id, o2.id)
+
+        # let's remove the other by id
+        self._ontologies.remove(o2.id)
+        self.assertEqual(len(self._ontologies.items), 0)
+
+    def test_items(self):
+        """
+        Tests item manipulation for the ontology list
+        :return:
+        """
+        self.assertEqual(len(self._ontologies.items), 0)
+
+        # upload some ontology
+        o1 = self._ontologies.upload(self._test_file)
+        o2 = self._ontologies.upload(self._test_file)
+        self.assertEqual(len(self._ontologies.items), 2)
+
+        # now let's remove one
+        self._ontologies.remove(o1)
+        self.assertEqual(len(self._ontologies.items), 1)
+
+        # make sure the right one remains
+        self.assertEqual(self._ontologies.items[0].id, o2.id)
+
+        # now let's remove the last one
+        self._ontologies.remove(o2)
+        self.assertEqual(len(self._ontologies.items), 0)

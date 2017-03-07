@@ -25,6 +25,7 @@
 # ===========
 #    SETUP
 # ===========
+import serene.semantics
 
 try:
     import serene
@@ -212,7 +213,7 @@ print(ontology.data_nodes)
 # getEmployees: employer,employee
 # postalCodeLookup: zipcode,city,state
 
-business_info_ssd = (serene.SSD(business_info, ontology)
+business_info_ssd = (serene.semantics.SSD(business_info, ontology)
                      .map(Column("company"), DataNode("Organization", "name"))
                      .map(Column("ceo"), DataNode("Person", "name"))
                      .map(Column("city"), DataNode("City", "name"))
@@ -225,7 +226,7 @@ business_info_ssd.show()
 
 input("press any key to continue...")
 
-employee_address_ssd = (serene.SSD(employee_address, ontology)
+employee_address_ssd = (serene.semantics.SSD(employee_address, ontology)
                         .map(Column("name"), DataNode("Person", "name"))
                         .map(Column("address"), DataNode("Place", "name"))
                         .map(Column("postcode"), DataNode("Place", "postalCode"))
@@ -235,7 +236,7 @@ employee_address_ssd.show()
 
 input("press any key to continue...")
 
-get_cities_ssd = (serene.SSD(get_cities, ontology)
+get_cities_ssd = (serene.semantics.SSD(get_cities, ontology)
                   .map(Column("city"), DataNode("City", "name"))
                   .map(Column("state"), DataNode("State", "name"))
                   .link("City", "State", relationship="state"))
@@ -244,7 +245,7 @@ get_cities_ssd.show()
 
 input("press any key to continue...")
 
-get_employees_ssd = (serene.SSD(get_employees, ontology)
+get_employees_ssd = (serene.semantics.SSD(get_employees, ontology)
                      .map(Column("employer"), DataNode("Organization", "name"))
                      .map(Column("employee"), DataNode("Person", "name"))
                      .link("Person", "Organization", relationship="worksFor"))
@@ -255,7 +256,7 @@ get_employees_ssd.show()
 input("press any key to continue...")
 
 
-postal_code_ssd = (serene.SSD(postal_code, ontology)
+postal_code_ssd = (serene.semantics.SSD(postal_code, ontology)
                    .map(Column("zipcode"), DataNode("Place", "postalCode"))
                    .map(Column("city"), DataNode("City", "name"))
                    .map(Column("state"), DataNode("State", "name"))

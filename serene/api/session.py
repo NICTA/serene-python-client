@@ -100,12 +100,10 @@ class Session(HTTPObject):
 
         self._uri = urljoin(root, self.version + '/')
 
-        #self._uri_ds = urljoin(self._uri, 'dataset/')  # uri for the dataset endpoint
-        #self._uri_model = urljoin(self._uri, 'model/')  # uri for the model endpoint
-
         self.ontology = OntologyAPI(self._uri, self.session)
         self.dataset = DataSetAPI(self._uri, self.session)
         self.model = ModelAPI(self._uri, self.session)
+        self.ssd = SsdAPI(self._uri, self.session)
 
     def _test_connection(self, root):
         """
@@ -681,3 +679,131 @@ class OntologyAPI(HTTPObject):
         self._handle_errors(r, "DELETE " + uri)
 
         return r.json()
+
+
+class SsdAPI(HTTPObject):
+    """
+    Handles the SSD endpoint requests
+    """
+    def __init__(self, uri, conn):
+        """
+        Requires a valid session object
+
+        :param uri: The base URI for the Serene server
+        :param conn: The live connection object
+        """
+        self.connection = conn
+        self._uri = urljoin(uri, 'ssd/')
+
+    def keys(self):
+        """
+        List ids of all SSDs in the dataset repository at the Schema Matcher server.
+        If the connection fails, empty list is returned and connection error is logged.
+
+        Returns: list of SSD keys.
+        Raises: InternalDIError on failure.
+        """
+        logging.debug('Sending request to the schema matcher server to list SSDs.')
+
+        uri = self._uri
+
+        try:
+            r = self.connection.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to fetch SSD keys", e)
+        self._handle_errors(r, "GET " + self._uri)
+        return r.json()
+
+    def post(self, name, ontologies):
+        """
+        Post a new SSD to the Serene server.
+        Args:
+             name: string which describes the dataset to be posted
+             ontologies: list of the ontologies that the SSD refers to
+
+        Returns: Dictionary.
+        """
+
+        logging.debug('Sending request to the schema matcher server to post an SSD.')
+
+        uri = self._uri
+
+        try:
+            data = {
+                "name": str(name),
+                "ontologies": [z.id for z in ontologies]
+            }
+            r = self.connection.post(uri, data=data)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to post SSD", e)
+
+        self._handle_errors(r, "POST " + uri)
+
+        return r.json()
+
+    def update(self, key, name=None, ontologies=None):
+        """
+        Update an existing SSD in the repository on the Serene server.
+        Args:
+            key: The key ID of the SSD on the server
+             name: string which describes the SSD to be posted
+             ontologies: list of Ontology objects used to describe the SSD
+
+        :return:
+        """
+        logging.debug('Sending request to the schema matcher server to update SSD %d' % key)
+        uri = urljoin(self._uri, str(key))
+
+        try:
+            data = {
+                "name": name,
+                "ontologies": ontologies
+            }
+            data = {k:v for k, v in data.items() if v is not None}
+            r = self.connection.post(uri, data=data)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to update SSD", e)
+
+        self._handle_errors(r, "PATCH " + uri)
+
+        return r.json()
+
+    def item(self, key):
+        """
+        Get information on a specific SSD from the repository on the Serene server.
+        Args:
+             key: integer which is the key of the SSD.
+
+        Returns: dictionary.
+        """
+        logging.debug('Sending request to the Serene server to get SSD info.')
+        uri = urljoin(self._uri, str(key))
+        try:
+            r = self.connection.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to get SSD", e)
+        self._handle_errors(r, "GET " + uri)
+        return r.json()
+
+    def delete(self, key):
+        """
+        Delete a specific SSD from the repository on the Serene server.
+        Args:
+             key: int
+
+        Returns:
+        """
+        logging.debug('Sending request to the Serene server to delete SSD.')
+        uri = urljoin(self._uri, str(key))
+        try:
+            r = self.connection.delete(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to delete SSD", e)
+        self._handle_errors(r, "DELETE " + uri)
+        return r.json()
+

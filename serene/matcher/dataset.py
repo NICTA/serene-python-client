@@ -83,7 +83,6 @@ class DataSet(object):
             self.description == other.description,
             self.date_created == other.date_created,
             self.date_modified == other.date_modified #,
-            #self.sample.values == other.sample.values
         ])
 
     def column_names(self):

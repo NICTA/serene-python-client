@@ -9,8 +9,8 @@ import os
 from functools import lru_cache
 
 from .matcher.dataset import DataSet
-from .semantics import Ontology
-
+from .semantics.ontology import Ontology
+from .semantics.ssd import SSD
 
 def decache(func):
     """
@@ -126,15 +126,6 @@ class DataSetEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    # def get(self, dataset):
-    #     """
-    #
-    #     :param dataset:
-    #     :return:
-    #     """
-    #     json = self._apply(self._api.item, dataset, 'get')
-    #     return DataSet(json)
-
     @property
     @lru_cache(maxsize=32)
     def items(self):
@@ -241,15 +232,6 @@ class OntologyEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    # @lru_cache(maxsize=32)
-    # def get(self, ontology):
-    #     """
-    #
-    #     :param ontology:
-    #     :return:
-    #     """
-    #     return self._apply(self._api.item, ontology, 'get')
-
     @property
     @lru_cache(maxsize=32)
     def items(self):
@@ -261,3 +243,66 @@ class OntologyEndpoint(IdentifiableEndpoint):
             on.update(self._api.item(k))
             ontologies.append(on)
         return tuple(ontologies)
+
+
+class SSDEndpoint(IdentifiableEndpoint):
+    """
+
+    :param object:
+    :return:
+    """
+    def __init__(self, session):
+        """
+
+        :param self:
+        :param api:
+        :return:
+        """
+        super().__init__()
+        self._api = session.ssd
+        self._base_type = SSD
+
+    @decache
+    def upload(self, name, ontologies=None):
+        """
+
+        :param name:
+        :param ontologies:
+        :return:
+        """
+        assert(issubclass(type(name), str))
+
+        if not os.path.exists(name):
+            raise ValueError("No description given.")
+
+        json = self._api.post(
+            name=name,
+            ontologies=ontologies if ontologies is not None else [],
+        )
+        return SSD(json)
+
+    @decache
+    def remove(self, ssd):
+        """
+
+        :param ssd:
+        :return:
+        """
+        self._apply(self._api.delete, ssd, 'delete')
+
+    def show(self):
+        """
+        Prints the ssd
+        :return:
+        """
+        print(self.items)
+
+    @property
+    @lru_cache(maxsize=32)
+    def items(self):
+        """Maintains a list of SSD objects"""
+        keys = self._api.keys()
+        ds = []
+        for k in keys:
+            ds.append(SSD(self._api.item(k)))
+        return tuple(ds)
