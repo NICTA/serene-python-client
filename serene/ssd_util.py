@@ -30,7 +30,7 @@ class SSDJsonBuilder(object):
         d["name"] = self._ssd.file
         d["columns"] = self.columns
         d["attributes"] = self.attributes
-        d["ontology"] = [o.filename for o in self._ssd.ontologies]
+        d["ontology"] = [o.set_filename for o in self._ssd.ontologies]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
 

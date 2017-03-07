@@ -6,6 +6,11 @@ Schema Matcher wrapper around the Serene API backend schema matcher endpoints
 """
 import logging
 import requests
+import random
+import string
+import os.path
+import tempfile
+
 from enum import Enum, unique
 
 from urllib.parse import urljoin
@@ -53,6 +58,7 @@ class HTTPObject(object):
     def join_urls(*args):
         """Crude url joiner"""
         return '/'.join(args)
+
 
 class Session(HTTPObject):
     """
@@ -553,6 +559,36 @@ class OntologyAPI(HTTPObject):
         self._handle_errors(r, "GET " + uri)
 
         return r.json()
+
+    @staticmethod
+    def _gen_id():
+        return ''.join(random.sample(string.ascii_uppercase, 10))
+
+    def owl_file(self, key):
+        """
+        Get the actual owl file from the repository on the Serene server.
+        Args:
+             key: integer which is the key of the Ontology.
+
+        Returns: dictionary.
+        """
+        logging.debug('Sending request to Serene server to get the ontology info.')
+        uri = "{}{}/file".format(self._uri, str(key))
+        try:
+            path = os.path.join(tempfile.tempdir, "{}.owl".format(self._gen_id()))
+
+            r = requests.get(uri, stream=True)
+            if r.status_code == 200:
+                with open(path, 'wb') as f:
+                    for chunk in r.iter_content(1024):
+                        f.write(chunk)
+            else:
+                raise Exception("Failed to get ontology file. Status code: {}".format(r.url))
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to list ontology", e)
+
+        return path
 
     def post(self, description, file_path, owl_format):
         """

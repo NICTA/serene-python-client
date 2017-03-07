@@ -56,7 +56,7 @@ print(dm.datasets)
 
 print()
 print("We can look at the dataset properties")
-print("filename:", new_dataset.filename)
+print("filename:", new_dataset.set_filename)
 print("id:", new_dataset.id)
 print("sample: ", new_dataset.sample)
 print("summary:", new_dataset.summary)
@@ -181,7 +181,7 @@ datasets = [
 
 
 for d in datasets:
-    print(d.filename)
+    print(d.set_filename)
 
 #
 # Create a new model.

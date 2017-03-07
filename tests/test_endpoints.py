@@ -16,29 +16,24 @@ class TestEndpoints(unittest.TestCase):
     """
     Tests the Endpoints class
     """
-    __server__ = None
-
-    #@classmethod
-    #def setUpClass(cls):
-    #    cls.__server__ = SereneTestServer()
-    #    cls.__server__.setup()
-    #    print("DONE WITH SETUP")
+    _server = None
+    _session = None
 
     @classmethod
-    def tearDownClass(cls):
-        cls.__server__.tear_down()
-
-    def __init__(self, method_name='runTest'):
-        super().__init__(method_name)
-        TestEndpoints.__server__ = SereneTestServer()
-        TestEndpoints.__server__.setup()
-        self._session = Session(
-            TestEndpoints.__server__.host,
-            TestEndpoints.__server__.port,
+    def setUpClass(cls):
+        cls._server = SereneTestServer()
+        cls._server.setup()
+        cls._session = Session(
+            cls._server.host,
+            cls._server.port,
             None,
             None,
             False
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._server.tear_down()
 
 
 class TestDataSetEndpoint(TestEndpoints):
@@ -47,11 +42,12 @@ class TestDataSetEndpoint(TestEndpoints):
     """
     def __init__(self, method_name="runTest"):
         super().__init__(method_name)
+        self._datasets = None
+        self._test_file = 'tests/resources/data/businessInfo.csv'
 
+    def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
         self._clear_datasets()
-
-        self._test_file = 'tests/resources/data/businessInfo.csv'
         assert(os.path.isfile(self._test_file))
 
     def _clear_datasets(self):
@@ -81,7 +77,7 @@ class TestDataSetEndpoint(TestEndpoints):
         with self.assertRaises(Exception):
             self._datasets.upload('resources/data/doesnt-exist.csv')
 
-        # only a dataset string path should be allowed
+        # now upload a nice dataset
         d = self._datasets.upload(self._test_file)
 
         self.assertEqual(len(self._datasets.items), 1)
@@ -90,3 +86,147 @@ class TestDataSetEndpoint(TestEndpoints):
             [c.name for c in d.columns],
             ['company', 'ceo', 'city', 'state']
         )
+
+    def test_remove(self):
+        """
+        Tests the removal of a dataset
+        :return:
+        """
+        self.assertEqual(len(self._datasets.items), 0)
+
+        # upload some datasets
+        d1 = self._datasets.upload(self._test_file)
+        d2 = self._datasets.upload(self._test_file)
+        self.assertEqual(len(self._datasets.items), 2)
+
+        # now let's remove one
+        self._datasets.remove(d1)
+        self.assertEqual(len(self._datasets.items), 1)
+        self.assertEqual(self._datasets.items[0].id, d2.id)
+
+        # let's remove the other by id
+        self._datasets.remove(d2.id)
+        self.assertEqual(len(self._datasets.items), 0)
+
+    def test_items(self):
+        """
+        Tests item manipulation for the dataset list
+        :return:
+        """
+        self.assertEqual(len(self._datasets.items), 0)
+
+        # upload some datasets
+        d1 = self._datasets.upload(self._test_file)
+        d2 = self._datasets.upload(self._test_file)
+        self.assertEqual(len(self._datasets.items), 2)
+
+        # now let's remove one
+        self._datasets.remove(d1)
+        self.assertEqual(len(self._datasets.items), 1)
+
+        # make sure the right one remains
+        self.assertEqual(self._datasets.items[0], d2)
+
+        # now let's remove the last one
+        self._datasets.remove(d2)
+        self.assertEqual(len(self._datasets.items), 0)
+
+
+class TestOntologyEndpoint(TestEndpoints):
+    """
+    Tests the ontology endpoint
+    """
+    def __init__(self, method_name="runTest"):
+        super().__init__(method_name)
+        self._datasets = None
+        self._test_file = 'tests/resources/owl/dataintegration_report_ontology.owl'
+
+    def setUp(self):
+        self._ontologies = OntologyEndpoint(self._session)
+        self._clear_ontologies()
+        assert(os.path.isfile(self._test_file))
+
+    def _clear_ontologies(self):
+        """Removes all ontologies"""
+        for on in self._ontologies.items:
+            self._ontologies.remove(on)
+
+    def tearDown(self):
+        """
+        Be sure to remove all datasets once a test is finished...
+        :return:
+        """
+        self._clear_ontologies()
+
+    def test_upload(self):
+        """
+        Tests the uploading of a ontology
+        :return:
+        """
+        description_string = "description-string"
+
+        self.assertEqual(len(self._ontologies.items), 0)
+
+        # only a ontology string path should be allowed
+        with self.assertRaises(Exception):
+            self._ontologies.upload(1234)
+
+        # only an existing ontology string path should be allowed
+        with self.assertRaises(Exception):
+            self._ontologies.upload('resources/owl/doesnt-exist.owl')
+
+        # now upload a nice ontology
+        on = self._ontologies.upload(
+            self._test_file,
+            description=description_string,
+            owl_format='owl'
+        )
+
+        self.assertEqual(len(self._ontologies.items), 1)
+        self.assertEqual(on.name, os.path.basename(self._test_file))
+        self.assertEqual(on.description, description_string)
+        self.assertEqual(len(on.class_nodes), 6)
+
+    # def test_remove(self):
+    #     """
+    #     Tests the removal of a dataset
+    #     :return:
+    #     """
+    #     self.assertEqual(len(self._datasets.items), 0)
+    #
+    #     # upload some datasets
+    #     d1 = self._datasets.upload(self._test_file)
+    #     d2 = self._datasets.upload(self._test_file)
+    #     self.assertEqual(len(self._datasets.items), 2)
+    #
+    #     # now let's remove one
+    #     self._datasets.remove(d1)
+    #     self.assertEqual(len(self._datasets.items), 1)
+    #     self.assertEqual(self._datasets.items[0].id, d2.id)
+    #
+    #     # let's remove the other by id
+    #     self._datasets.remove(d2.id)
+    #     self.assertEqual(len(self._datasets.items), 0)
+    #
+    # def test_items(self):
+    #     """
+    #     Tests Item manipulation for the dataset list
+    #     :return:
+    #     """
+    #     self.assertEqual(len(self._datasets.items), 0)
+    #
+    #     # upload some datasets
+    #     d1 = self._datasets.upload(self._test_file)
+    #     d2 = self._datasets.upload(self._test_file)
+    #     self.assertEqual(len(self._datasets.items), 2)
+    #
+    #     # now let's remove one
+    #     self._datasets.remove(d1)
+    #     self.assertEqual(len(self._datasets.items), 1)
+    #
+    #     # make sure the right one remains
+    #     self.assertEqual(self._datasets.items[0], d2.id)
+    #
+    #     # now let's remove the last one
+    #     self._datasets.remove(d2)
+    #     self.assertEqual(len(self._datasets.items), 0)

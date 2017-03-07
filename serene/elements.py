@@ -20,7 +20,7 @@ class Column(Searchable):
     getters = [
         lambda col: col.name,
         lambda col: col.index,
-        lambda col: col.filename
+        lambda col: col.set_filename
     ]
 
     def __init__(self, name, df=None, filename=None, index=None):
@@ -104,7 +104,7 @@ class Transform(Searchable):
 
     @staticmethod
     def apply(col):
-        return 'SELECT {} from {}'.format(col.name, col.filename)
+        return 'SELECT {} from {}'.format(col.name, col.set_filename)
 
     def __repr__(self):
         return "{{\n" \
@@ -129,7 +129,7 @@ class IdentTransform(Transform):
 
     @staticmethod
     def apply(col):
-        return 'SELECT {} from {}'.format(col.name, col.filename)
+        return 'SELECT {} from {}'.format(col.name, col.set_filename)
 
 
 class TransformList(collections.MutableSequence):

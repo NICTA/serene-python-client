@@ -73,6 +73,22 @@ class DataSet(object):
     def __len__(self):
         return len(self.columns)
 
+    def __eq__(self, other):
+        return all([
+            self.id == other.id,
+            set(self.column_names()) == set(other.column_names()),
+            self.filename == other.filename,
+            self.path == other.path,
+            self.type_map == other.type_map,
+            self.description == other.description,
+            self.date_created == other.date_created,
+            self.date_modified == other.date_modified #,
+            #self.sample.values == other.sample.values
+        ])
+
+    def column_names(self):
+        return [z.name for z in self.columns]
+
     def column(self, name):
         candidates = [c for c in self.columns if c.name == name]
         if len(candidates) == 1:
@@ -154,7 +170,7 @@ class DataSetList(collections.MutableSequence):
         for elem in self.list:
             df.loc[len(df)] = [
                 elem.id,
-                os.path.basename(elem.filename),
+                os.path.basename(elem.set_filename),
                 elem.description,
                 elem.date_created,
                 elem.date_modified,

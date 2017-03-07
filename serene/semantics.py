@@ -379,7 +379,7 @@ class Ontology(BaseSemantic):
 
                 self.source_file = file
 
-                self.filename(os.path.basename(file))
+                self.set_filename(os.path.basename(file))
             else:
                 msg = "Failed to find file {}".format(file)
                 raise FileNotFoundError(msg)
@@ -393,7 +393,7 @@ class Ontology(BaseSemantic):
                 'rdfs': 'http://www.w3.org/2000/01/rdf-schema#'
             }
 
-            self.filename("{}.owl".format(self.id))
+            self.set_filename("{}.owl".format(self.id))
 
         # default filename
         self._filename = os.path.basename(self.path)
@@ -407,7 +407,7 @@ class Ontology(BaseSemantic):
         self.id = id
         self._base = "http://www.semanticweb.org/serene/{}".format(id)
 
-    def filename(self, value):
+    def set_filename(self, value):
         """
         Sets the filename for the owl file. This will also update the temporary file cache.
         :param value:
@@ -428,7 +428,7 @@ class Ontology(BaseSemantic):
         :return:
         """
         self._stored = True
-        self.filename(json['name'])
+        self.set_filename(json['name'])
         self.description = json['description']
         self.date_created = json['dateCreated']
         self.date_modified = json['dateModified']
@@ -494,6 +494,10 @@ class Ontology(BaseSemantic):
     def stored(self):
         """Flag to test whether this ontology is stored on the server."""
         return self._stored
+
+    @property
+    def name(self):
+        return self._name
 
     def __repr__(self):
         """

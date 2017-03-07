@@ -25,14 +25,17 @@ class SereneTestServer(object):
         self.port = None
 
     def setup(self):
-        stream = open(os.path.join('tests', 'config.yaml'), 'r')
-        config = yaml.load(stream)
+        with open(os.path.join('tests', 'config.yaml'), 'r') as stream:
+            config = yaml.load(stream)
+
+        # Test if we need to launch a server here...
         launch_server = config['launch-test-server']
 
         # If launch-test-server is true, then this variable points to
         # the executable which will launch the server. If launch-test-server
         # is false then this is ignored.
         filename = config['launch-test-server-exe']
+        tmp_dir = config['launch-test-server-storage']
 
         # The location of the test server.
         host = config['test-server-host']
@@ -41,7 +44,6 @@ class SereneTestServer(object):
 
         # if we need to, we start the server with a temporary storage directory
         if launch_server:
-            tmp_dir = "/tmp/test" #tempfile.mkdtemp()
             self.server = subprocess.Popen(
                 [filename,
                  "--port", str(port),

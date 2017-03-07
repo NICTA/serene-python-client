@@ -57,9 +57,9 @@ class IdentifiableEndpoint(object):
         :return:
         """
         if type(value) == int:
-            func(value)
+            return func(value)
         elif issubclass(type(value), self._base_type):
-            func(value.id)
+            return func(value.id)
         else:
             if func_name is None:
                 msg = "Illegal type found: {}".format(type(value))
@@ -126,13 +126,14 @@ class DataSetEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    def get(self, dataset):
-        """
-
-        :param dataset:
-        :return:
-        """
-        self._apply(self._api.item, dataset, 'get')
+    # def get(self, dataset):
+    #     """
+    #
+    #     :param dataset:
+    #     :return:
+    #     """
+    #     json = self._apply(self._api.item, dataset, 'get')
+    #     return DataSet(json)
 
     @property
     @lru_cache(maxsize=32)
@@ -240,14 +241,14 @@ class OntologyEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    @lru_cache(maxsize=32)
-    def get(self, ontology):
-        """
-
-        :param ontology:
-        :return:
-        """
-        return self._apply(self._api.item, ontology, 'get')
+    # @lru_cache(maxsize=32)
+    # def get(self, ontology):
+    #     """
+    #
+    #     :param ontology:
+    #     :return:
+    #     """
+    #     return self._apply(self._api.item, ontology, 'get')
 
     @property
     @lru_cache(maxsize=32)
@@ -256,5 +257,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         keys = self._api.keys()
         ontologies = []
         for k in keys:
-            ontologies.append(Ontology(self._api.item(k)))
+            on = Ontology(file=self._api.owl_file(k))
+            on.update(self._api.item(k))
+            ontologies.append(on)
         return tuple(ontologies)
