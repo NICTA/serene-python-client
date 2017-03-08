@@ -4,7 +4,7 @@ License...
 import collections
 import logging
 
-from .utils import Searchable
+from serene.utils import Searchable
 
 
 # logging functions...
@@ -24,11 +24,39 @@ class Column(Searchable):
     ]
 
     def __init__(self, name, df=None, filename=None, index=None):
+        """
+
+        :param name:
+        :param df:
+        :param filename:
+        :param index:
+        """
+        self.id = None
+        self.size = None
+        self.datasetID = None
+        self.sample = None
+        self.logicalType = None
         self.df = df
         self.filename = filename
         self.name = name
         self.index = index
         super().__init__()
+
+    def update(self, json):
+        """
+        Update a Column object using a json table...
+
+        :param json: JSON table from the server
+        """
+        self.index = json['index']
+        self.filename = json['path']
+        self.name = json['name']
+        self.id = json['id']
+        self.size = json['size']
+        self.datasetID = json['datasetID']
+        self.sample = json['sample']
+        self.logicalType = json['logicalType']
+        return self
 
     def __repr__(self):
         """
@@ -38,7 +66,11 @@ class Column(Searchable):
         return "Column({})".format(self.name)
 
     def __eq__(self, other):
-        return other.name == self.name
+        return (
+            (other.name == self.name) and
+            (other.id == self.id) and
+            (other.datasetID == self.datasetID)
+        )
 
     def __hash__(self):
         return id(self)
@@ -215,7 +247,7 @@ class ClassNode(Searchable):
         return {
             "id": ident,
             "label": self.name,
-            "prefix": self.prefix if self.prefix is not None else "owl",
+            "prefix": self.prefix if self.prefix is not None else "",
             "type": "ClassNode"
         }
 

@@ -4,39 +4,13 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Tests the core module
 """
-import unittest2 as unittest
 import os
 
-from .utils import SereneTestServer
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
-from serene.api.session import Session
+from tests.utils import TestWithServer
 
 
-class TestEndpoints(unittest.TestCase):
-    """
-    Tests the Endpoints class
-    """
-    _server = None
-    _session = None
-
-    @classmethod
-    def setUpClass(cls):
-        cls._server = SereneTestServer()
-        cls._server.setup()
-        cls._session = Session(
-            cls._server.host,
-            cls._server.port,
-            None,
-            None,
-            False
-        )
-
-    @classmethod
-    def tearDownClass(cls):
-        cls._server.tear_down()
-
-
-class TestDataSetEndpoint(TestEndpoints):
+class TestDataSetEndpoint(TestWithServer):
     """
     Tests the dataset endpoint
     """
@@ -132,7 +106,7 @@ class TestDataSetEndpoint(TestEndpoints):
         self.assertEqual(len(self._datasets.items), 0)
 
 
-class TestOntologyEndpoint(TestEndpoints):
+class TestOntologyEndpoint(TestWithServer):
     """
     Tests the ontology endpoint
     """

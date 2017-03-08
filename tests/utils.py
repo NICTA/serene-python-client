@@ -4,12 +4,15 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Helper functions and classes for the test libraries
 """
+import unittest2 as unittest
 import yaml
 import os
 import subprocess
 import requests
 import time
 import tempfile
+
+from serene import Session
 
 
 class SereneTestServer(object):
@@ -86,3 +89,27 @@ class SereneTestServer(object):
 
     def tear_down(self):
         self.server.kill()
+
+
+class TestWithServer(unittest.TestCase):
+    """
+    Tests the Endpoints class
+    """
+    _server = None
+    _session = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls._server = SereneTestServer()
+        cls._server.setup()
+        cls._session = Session(
+            cls._server.host,
+            cls._server.port,
+            None,
+            None,
+            False
+        )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._server.tear_down()

@@ -6,11 +6,17 @@ Endpoint objects for the user to view and manipulate. These wrap around
 server Session objects and call methods to talk to the server.
 """
 import os
+import json
+import pandas as pd
+import tempfile
+from .utils import gen_id
+
 from functools import lru_cache
 
 from .matcher.dataset import DataSet
 from .semantics.ontology import Ontology
-from .semantics.ssd import SSD
+from .semantics.ssd import SSDInternal
+
 
 def decache(func):
     """
@@ -98,6 +104,12 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :param type_map:
         :return:
         """
+        if issubclass(type(filename), pd.DataFrame):
+            path = os.path.join(tempfile.gettempdir(), gen_id() + ".csv")
+            df = filename
+            df.to_csv(path, index=False)
+            filename = path
+
         assert(issubclass(type(filename), str))
 
         if not os.path.exists(filename):
@@ -260,26 +272,26 @@ class SSDEndpoint(IdentifiableEndpoint):
         """
         super().__init__()
         self._api = session.ssd
-        self._base_type = SSD
+        self._base_type = SSDInternal
 
     @decache
-    def upload(self, name, ontologies=None):
+    def upload(self, ssd):
         """
 
-        :param name:
-        :param ontologies:
+        :param ssd
         :return:
         """
-        assert(issubclass(type(name), str))
+        assert(issubclass(type(ssd), SSD))
 
-        if not os.path.exists(name):
-            raise ValueError("No description given.")
+        if not os.path.exists(ssd.path):
+            raise ValueError("No SSD path exists for {}.".format(ssd))
 
-        json = self._api.post(
-            name=name,
-            ontologies=ontologies if ontologies is not None else [],
-        )
-        return SSD(json)
+        with open(ssd.path) as f:
+            data = json.load(f)
+
+        response = self._api.post(data)
+
+        return ssd.update(response)
 
     @decache
     def remove(self, ssd):

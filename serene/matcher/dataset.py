@@ -14,29 +14,29 @@ import logging
 import os.path
 
 from .utils import convert_datetime
+from serene.elements import Column
 
-
-class Column(object):
-    """
-    The Column object is owned by a DataSet. It reflects the Column
-    object from the backend, and contains a sample of the dataset,
-    the logicalType, size stats and an id. The id is used to refer
-    to columns around the project.
-    """
-    def __init__(self, json):
-        """
-        Initialize a Column object using a json table...
-
-        :param json: JSON table from the server
-        """
-        self.index = json['index']
-        self.path = json['path']
-        self.name = json['name']
-        self.id = json['id']
-        self.size = json['size']
-        self.datasetID = json['datasetID']
-        self.sample = json['sample']
-        self.logicalType = json['logicalType']
+# class Column(object):
+#     """
+#     The Column object is owned by a DataSet. It reflects the Column
+#     object from the server, and contains a sample of the dataset,
+#     the logicalType, size stats and an id. The id is used to refer
+#     to columns around the project.
+#     """
+#     def __init__(self, json):
+#         """
+#         Initialize a Column object using a json table...
+#
+#         :param json: JSON table from the server
+#         """
+#         self.index = json['index']
+#         self.path = json['path']
+#         self.name = json['name']
+#         self.id = json['id']
+#         self.size = json['size']
+#         self.datasetID = json['datasetID']
+#         self.sample = json['sample']
+#         self.logicalType = json['logicalType']
 
 
 class DataSet(object):
@@ -51,9 +51,8 @@ class DataSet(object):
         Initialize a DataSet object with a json response
         :param json:
         """
-        #self.parent = parent
         self.id = json['id']
-        self.columns = [Column(c) for c in json['columns']]
+        self.columns = [Column('--').update(c) for c in json['columns']]
         self.filename = json['filename']
         self.path = json['path']
         self.type_map = json['typeMap']

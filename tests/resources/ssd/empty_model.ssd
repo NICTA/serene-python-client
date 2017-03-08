@@ -1,0 +1,47 @@
+{
+    "id": 0,
+    "name": "businessInfo.csv",
+    "attributes": [
+        {
+            "id": 0,
+            "name": "company",
+            "label": "ident",
+            "columnIds": [
+                0
+            ],
+            "sql": "select company from 'businessInfo.csv'"
+        },
+        {
+            "id": 1,
+            "name": "ceo",
+            "label": "ident",
+            "columnIds": [
+                1
+            ],
+            "sql": "select ceo from 'businessInfo.csv'"
+        },
+        {
+            "id": 2,
+            "name": "city",
+            "label": "ident",
+            "columnIds": [
+                2
+            ],
+            "sql": "select city from 'businessInfo.csv'"
+        },
+        {
+            "id": 3,
+            "name": "state",
+            "label": "ident",
+            "columnIds": [
+                3
+            ],
+            "sql": "select state from 'businessInfo.csv'"
+        }
+    ],
+    "ontology": [
+        1
+    ],
+         "dateCreated":"2016-06-17T07:47:56Z",
+         "dateModified":"2016-06-17T07:47:56Z"
+}

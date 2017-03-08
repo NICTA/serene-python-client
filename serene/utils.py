@@ -1,7 +1,20 @@
 import logging
+import random
+import string
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
+
+
+def gen_id():
+    """
+    Generates a random temporary id. Note that this is alpha-numeric.
+    Alpha character ids are used to indicate that this ontology is not
+    stored.
+
+    :return:
+    """
+    return ''.join(random.sample(string.ascii_lowercase, 16))
 
 
 class Searchable(object):

@@ -1,0 +1,89 @@
+@prefix : <http://www.semanticweb.org/serene/dmbhwtcqkjeyuoif#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xml: <http://www.w3.org/XML/1998/namespace> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+:birthDate a owl:DatatypeProperty ;
+    rdfs:domain :Person ;
+    rdfs:range xsd:dateTime .
+
+:bornIn a owl:ObjectProperty ;
+    rdfs:domain :Person ;
+    rdfs:range :Place .
+
+:ceo a owl:ObjectProperty ;
+    rdfs:domain :Organization ;
+    rdfs:range :Person .
+
+:email a owl:DatatypeProperty ;
+    rdfs:domain :Organization ;
+    rdfs:range rdfs:Literal .
+
+:endDate a owl:DatatypeProperty ;
+    rdfs:domain :Event ;
+    rdfs:range xsd:dateTime .
+
+:isPartOf a owl:ObjectProperty ;
+    rdfs:domain :Place ;
+    rdfs:range :Place .
+
+:livesIn a owl:ObjectProperty ;
+    rdfs:domain :Person ;
+    rdfs:range :Place .
+
+:location a owl:ObjectProperty ;
+    rdfs:domain :Event,
+        :Organization ;
+    rdfs:range :Place .
+
+:name a owl:DatatypeProperty ;
+    rdfs:domain :City,
+        :Organization,
+        :Person ;
+    rdfs:range rdfs:Literal .
+
+:nearby a owl:ObjectProperty ;
+    rdfs:domain :Place ;
+    rdfs:range :Place .
+
+:organizer a owl:ObjectProperty ;
+    rdfs:domain :Event ;
+    rdfs:range :Person .
+
+:phone a owl:DatatypeProperty ;
+    rdfs:domain :Organization,
+        :Person ;
+    rdfs:range xsd:integer .
+
+:postalCode a owl:DatatypeProperty ;
+    rdfs:domain :Place ;
+    rdfs:range rdfs:Literal .
+
+:startDate a owl:DatatypeProperty ;
+    rdfs:domain :Event ;
+    rdfs:range xsd:dateTime .
+
+:state a owl:ObjectProperty ;
+    rdfs:domain :City ;
+    rdfs:range :State .
+
+:worksFor a owl:ObjectProperty ;
+    rdfs:domain :Person ;
+    rdfs:range :Organization .
+
+:State a owl:Class ;
+    rdfs:subClassOf :Place .
+
+:City a owl:Class ;
+    rdfs:subClassOf :Place .
+
+:Event a owl:Class .
+
+:Organization a owl:Class .
+
+:Person a owl:Class .
+
+:Place a owl:Class .
+

@@ -1,0 +1,118 @@
+{
+    "id": 2,
+    "name": "businessInfo.csv",
+    "attributes": [
+        {
+            "id": 4,
+            "name": "company",
+            "label": "ident",
+            "columnIds": [
+                4
+            ],
+            "sql": "select company from 'businessInfo.csv'"
+        },
+        {
+            "id": 5,
+            "name": "ceo",
+            "label": "ident",
+            "columnIds": [
+                5
+            ],
+            "sql": "select ceo from 'businessInfo.csv'"
+        },
+        {
+            "id": 6,
+            "name": "city",
+            "label": "ident",
+            "columnIds": [
+                6
+            ],
+            "sql": "select city from 'businessInfo.csv'"
+        },
+        {
+            "id": 7,
+            "name": "state",
+            "label": "ident",
+            "columnIds": [
+                7
+            ],
+            "sql": "select state from 'businessInfo.csv'"
+        }
+    ],
+    "ontology": [
+        1
+    ],
+         "semanticModel": {
+             "nodes": [
+                     {
+                         "id": 0,
+                         "label": "Organization",
+                         "type": "ClassNode"
+                     },
+                     {
+                         "id": 1,
+                         "label": "Organization.name",
+                         "type": "DataNode"
+                     },
+                     {
+                         "id": 2,
+                         "label": "Person",
+                         "type": "ClassNode"
+                     },
+                     {
+                         "id": 3,
+                         "label": "Person.name",
+                         "type": "DataNode"
+                     },
+                     {
+                         "id": 4,
+                         "label": "City",
+                         "type": "ClassNode"
+                     },
+                     {
+                         "id": 5,
+                         "label": "City.name",
+                         "type": "DataNode"
+                     }
+                 ],
+                 "links": [
+                     {
+                         "id"    : 0,
+                         "source": 0,
+                         "target": 1,
+                         "label": "name",
+                         "type": "DataPropertyLink"
+                     },
+                     {
+                         "id"    : 1,
+                         "source": 2,
+                         "target": 3,
+                         "label": "name",
+                         "type": "DataPropertyLink"
+                     },
+                     {
+                         "id"    : 2,
+                         "source": 4,
+                         "target": 5,
+                         "label": "name",
+                         "type": "DataPropertyLink"
+                     }
+                 ]
+         },
+         "mappings": [
+             {
+                 "attribute": 4,
+                 "node": 1
+             },
+             {
+                 "attribute": 5,
+                 "node": 3
+             },
+             {
+                 "attribute": 6,
+                 "node": 5
+             }
+         ],
+              "dateCreated":"2016-06-17T07:47:56Z",
+              "dateModified":"2016-06-17T07:47:56Z"
+}

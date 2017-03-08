@@ -65,7 +65,11 @@ class Ontology(BaseSemantic):
 
                 # attempt to extract an ontology from turtle
                 # and load into self...
-                RDFReader().to_ontology(file, self)
+                try:
+                    RDFReader().to_ontology(file, self)
+                except Exception:
+                    msg = "Failed to read ontology file {}".format(file)
+                    raise Exception(msg)
 
                 self.source_file = file
 

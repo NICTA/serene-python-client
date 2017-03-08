@@ -1,0 +1,96 @@
+{
+    "nodes": [
+        {
+            "id": 0,
+            "label": ":Organization",
+            "type": "ClassNode"
+        },
+        {
+            "id": 1,
+            "label": "Organization.name",
+            "type": "DataNode"
+        },
+        {
+            "id": 2,
+            "label": ":Person",
+            "type": "ClassNode"
+        },
+        {
+            "id": 3,
+            "label": "Person.name",
+            "type": "DataNode"
+        },
+        {
+            "id": 4,
+            "label": ":City",
+            "type": "ClassNode"
+        },
+        {
+            "id": 5,
+            "label": "City.name",
+            "type": "DataNode"
+        },
+        {
+            "id": 6,
+            "label": ":State",
+            "type": "ClassNode"
+        },
+        {
+            "id": 7,
+            "label": "State.name",
+            "type": "DataNode"
+        }
+
+    ],
+    "links": [
+        {
+            "id"    : 0,
+            "source": 0,
+            "target": 2,
+            "label": ":ceo",
+            "type": "ObjectProperty"
+        },
+        {
+            "id"    : 1,
+            "source": 0,
+            "target": 1,
+            "label": ":name",
+            "type": "DataProperty"
+        },
+        {
+            "id"    : 2,
+            "source": 2,
+            "target": 3,
+            "label": ":name",
+            "type": "DataProperty"
+        },
+        {
+            "id"    : 3,
+            "source": 0,
+            "target": 4,
+            "label": ":location",
+            "type": "ObjectProperty"
+        },
+        {
+            "id"    : 4,
+            "source": 4,
+            "target": 5,
+            "label": ":name",
+            "type": "DataProperty"
+        },
+        {
+            "id"    : 5,
+            "source": 4,
+            "target": 6,
+            "label": ":isPartOf",
+            "type": "ObjectProperty"
+        },
+        {
+            "id"    : 6,
+            "source": 6,
+            "target": 7,
+            "label": ":name",
+            "type": "DataProperty"
+        }
+    ]
+}

@@ -25,8 +25,6 @@
 # ===========
 #    SETUP
 # ===========
-import serene.semantics
-
 try:
     import serene
 except ImportError as e:
@@ -88,7 +86,6 @@ datasets = [business_info, employee_address, get_cities, get_employees, postal_c
 #
 for d in datasets:
     print("DataSet:", d.id)
-    print("        ", d.name)
     print("        ", d.description)
     print("        ", d.columns)
     print()
@@ -97,14 +94,14 @@ for d in datasets:
 # employee_address is not so great, we need to combine first and last name. We
 # can use pandas for this
 #
-employee_address.remove()
+sn.datasets.remove(employee_address)
 df = pd.read_csv('tests/resources/data/EmployeeAddresses.csv')
 # move to first name/last name
-df['name'] = df[['First Name', 'Last Name']].apply(
+df['name'] = df[['FirstName', 'LastName']].apply(
     lambda row: row[0] + ' ' + row[1], axis=1
 )
-del df['First Name']
-del df['Last Name']
+del df['FirstName']
+del df['LastName']
 #
 # now we can re-upload
 #
@@ -121,9 +118,10 @@ employee_address = sn.datasets.upload(df)
 #
 ontologies = sn.ontologies.items
 
-ontologies[0].show()
+if len(ontologies):
+    ontologies[0].show()
 
-input("Press enter to continue")
+    input("Press enter to continue")
 
 #
 # The most straightforward way is to upload an OWL file directly...
@@ -197,7 +195,7 @@ ontology2 = sn.ontologies.upload(ontology_local)
 
 # First lets have a look at the datasets...
 for d in datasets:
-    print("DataSet:", d.name)
+    print("DataSet:", d.id)
     print("         ", d.description)
     print(d.sample)
     print()
@@ -213,7 +211,7 @@ print(ontology.data_nodes)
 # getEmployees: employer,employee
 # postalCodeLookup: zipcode,city,state
 
-business_info_ssd = (serene.semantics.SSD(business_info, ontology)
+business_info_ssd = (sn.SSD(business_info, ontology)
                      .map(Column("company"), DataNode("Organization", "name"))
                      .map(Column("ceo"), DataNode("Person", "name"))
                      .map(Column("city"), DataNode("City", "name"))
@@ -226,7 +224,7 @@ business_info_ssd.show()
 
 input("press any key to continue...")
 
-employee_address_ssd = (serene.semantics.SSD(employee_address, ontology)
+employee_address_ssd = (sn.SSD(employee_address, ontology)
                         .map(Column("name"), DataNode("Person", "name"))
                         .map(Column("address"), DataNode("Place", "name"))
                         .map(Column("postcode"), DataNode("Place", "postalCode"))
@@ -236,7 +234,7 @@ employee_address_ssd.show()
 
 input("press any key to continue...")
 
-get_cities_ssd = (serene.semantics.SSD(get_cities, ontology)
+get_cities_ssd = (sn.SSD(get_cities, ontology)
                   .map(Column("city"), DataNode("City", "name"))
                   .map(Column("state"), DataNode("State", "name"))
                   .link("City", "State", relationship="state"))

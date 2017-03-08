@@ -8,54 +8,136 @@ import json
 import logging
 import random
 import time
+import os
+import tempfile
 from collections import OrderedDict
 
-import pandas as pd
-from serene.elements import Transform, Mapping, \
-    Column, ClassNode, DataNode, Link, \
-    TransformList, IdentTransform
-from ..visualizers import SSDVisualizer
+from serene.semantics import Ontology
+from serene.elements import Transform, Mapping, Column, ClassNode
+from serene.elements import DataNode, Link, TransformList, IdentTransform
+from serene.visualizers import SSDVisualizer
 from .base import BaseSemantic
+from ..utils import gen_id
+
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
 
-class SSD(object):
+class SSDInternal(object):
     """
-        Semantic source description is the translator between a data
-        file (csv file) and the source description (.ssd file).
+        Semantic source description is the translator between a DataSet
+        and a set of Ontologies
 
         The SemanticSourceDesc contains the data columns, a transform
         layer, a mapping between each column to a DataNode, and a
         semantic model built from the available ontologies.
     """
-    def __init__(self, filename, modeller):
+    def __init__(self,
+                 dataset,
+                 ontology,
+                 ontology_endpoint,
+                 dataset_endpoint):
         """
-        Builds up a SemanticSourceDesc object given a csv filename
-        and a parent modeller.
+        Builds up a SemanticSourceDesc object given a dataset and
+        and a parent ontology (or set of ontologies).
+        """
+        if not issubclass(ontology, Ontology):
+            msg = "Required Ontology, not {}".format(type(ontology))
+            raise Exception(msg)
 
-        The object contains a Pandas DataFrame of the csv, as
-        well as the mapping, transforms and semantic model.
-        """
-        self.df = pd.read_csv(filename)
-        self.file = filename
+        # dataset and ontology must be stored on the server!!!!
+        if not dataset.stored:
+            msg = "{} must be stored on the server, use Serene.datasets.upload"
+            raise Exception(msg)
+
+        if not ontology.stored:
+            msg = "{} must be stored on the server, use Serene.ontologies.upload"
+            raise Exception(msg)
+
+        self._name = gen_id()
+        self._dataset = dataset
+        self._ontology = ontology
         self._VERSION = "0.1"
-        self._id = random.randint(1e8, 1e9-1)
-        self._mapping = {}
-        self._modeller = modeller
-        self._transforms = TransformList()
+        self._id = None
+        self._mapping = {}  # Column to Mapping mapping
+        self._transforms = TransformList()  # to be removed
+        self._stored = False  # is stored on the server?
+        self._path = None  #self._get_filename()  # the path to the local file...
+        self._date_created = None
+        self._date_modified = None
+        self._ds_endpoint = dataset_endpoint
+        self._on_endpoint = ontology_endpoint
 
         # semantic model
-        self._model = BaseSemantic()
+        self._semantic_model = BaseSemantic()
 
         # initialize the mapping...
-        for i, name in enumerate(self.df.columns):
-            column = Column(name, self.df, self.file, i)
+        for i, column in enumerate(self._dataset.columns):
             self._mapping[column] = Mapping(
                 column,
                 node=None,
                 transform=IdentTransform())
+
+    def read(self, json):
+        """
+        Updates parameters from a json string.
+
+        :param json:
+        :return:
+        """
+        self._stored = True
+        self._name = json['name']
+        self._date_created = json['dateCreated']
+        self._date_modified = json['dateModified']
+        self._id = int(json['id'])
+
+        ontologies = json['ontology']
+        self._ontology = self._on_endpoint.get(ontologies[0])
+
+        # sm = BaseSemantic()
+        #
+        # self._semantic_model =
+        # self._mappings =
+        return self
+
+    def read_from_file(self, filename):
+        """Initialize SSD from a file"""
+        with open(filename) as f:
+            data = json.load(f)
+            return self.read(data)
+
+    def write(self):
+        """
+        Writes the SSD out to the path.
+        :return: None
+        """
+        data = self.json
+        with open(self._path, 'wb') as f:
+            f.write(data)
+
+    @property
+    def filename(self):
+        return self._file
+
+    def _get_filename(self):
+        return os.path.join(
+            tempfile.gettempdir(),
+            self._name
+        )
+
+    def set_filename(self, value):
+        """
+        Sets the filename for the owl file. This will also update the temporary file cache.
+        :param value:
+        :return:
+        """
+        self._file = value
+        self._path = os.path.join(
+            tempfile.gettempdir(),
+            self._name
+        )
+        return self
 
     def _find_column(self, column):
         """
@@ -89,7 +171,7 @@ class SSD(object):
         :param data_node: An abbreviated DataNode type
         :return: The actual DataNode in the system, or an error if not found or ambiguous
         """
-        data_nodes = self._modeller.data_nodes
+        data_nodes = self._ontology.data_nodes
         dn = DataNode.search(data_nodes, data_node)
         if dn is None:
             msg = "Failed to find DataNode: {}".format(dn)
@@ -163,19 +245,19 @@ class SSD(object):
 
         ssd.find(Transform(1))
 
-        :param item: Transform, Column, ClassNode or DataNode object
+        :param item: Transform, Column, ClassNode, Link or DataNode object
         :return:
         """
-        if type(item) == Transform:
-            return self._find_transform(item)
-        elif type(item) == DataNode:
-            return self._find_data_node(item)
-        elif type(item) == Column:
-            return self._find_column(item)
-        elif type(item) == ClassNode:
-            return self._find_class(item)
-        elif type(item) == Link:
-            return self._find_link(item)
+        if issubclass(type(item), Transform):
+            return Transform.search(self.transforms, item) #self._find_transform(item)
+        elif issubclass(type(item), DataNode):
+            return DataNode.search(self.data_nodes, item) #self._find_data_node(item)
+        elif issubclass(type(item), Column):
+            return Column.search(self.columns) #self._find_column(item)
+        elif issubclass(type(item), ClassNode):
+            return  #self._find_class(item)
+        elif issubclass(type(item), Link):
+            return  #self._find_link(item)
         else:
             raise TypeError("This type is not supported in find().")
 
@@ -223,7 +305,7 @@ class SSD(object):
         self._mapping[col] = Mapping(col, dn, t, predicted)
 
         # by making this mapping, the class node is now in the SemanticModel...
-        self._model.add_class_node(dn.parent)
+        self._semantic_model.add_class_node(dn.parent)
 
         return self
 
@@ -261,7 +343,7 @@ class SSD(object):
         d_class = self._find_class(dst)
 
         # now check that the link is in the ontology...
-        parent_links = self._modeller.links
+        parent_links = self._ontology.links
         target_link = Link(relationship, s_class, d_class)
         link = Link.search(parent_links, target_link)
 
@@ -274,7 +356,7 @@ class SSD(object):
             _logger.info(msg)
         else:
             # if it is ok, then add the new link to the SemanticModel...
-            self._model.add_link(link)
+            self._semantic_model.add_link(link)
 
         return self
 
@@ -339,11 +421,11 @@ class SSD(object):
             # note that we now need to check whether
             # we should remove the classNode from the
             # SemanticModel
-            old = set(self._model.class_nodes)
+            old = set(self._semantic_model.class_nodes)
             new = set(self.class_nodes)
             targets = new - old
             for t in targets:
-                self._model.remove_node(t)
+                self._semantic_model.remove_node(t)
 
         elif type(item) == Column:
             elem = self._find_column(item)
@@ -357,7 +439,7 @@ class SSD(object):
         elif type(item) == Link:
             elem = self._find_link(item)
 
-            self._model.remove_link(elem)
+            self._semantic_model.remove_link(elem)
         else:
             raise TypeError("This type is not supported in remove().")
 
@@ -421,19 +503,19 @@ class SSD(object):
     @property
     def ssd(self):
         """The SSD as a Python dictionary"""
-        builder = SSDJsonBuilder(self)
+        builder = SSDJsonWriter(self)
         return builder.to_dict()
 
     @property
     def json(self):
         """The SSD as a JSON string"""
-        builder = SSDJsonBuilder(self)
+        builder = SSDJsonWriter(self)
         return builder.to_json()
 
     @property
     def model(self):
         """The read-only semantic model"""
-        return self._model
+        return self._semantic_model
 
     @property
     def predictions(self):
@@ -474,11 +556,11 @@ class SSD(object):
             are not necessary.
         """
         # grab the object links from the model...
-        object_links = [link for link in self._model.links
+        object_links = [link for link in self._semantic_model.links
                         if link.link_type == Link.OBJECT_LINK]
 
         # grab the data links from the model...
-        data_links = [link for link in self._model.links
+        data_links = [link for link in self._semantic_model.links
                       if link.link_type == Link.DATA_LINK]
 
         # combine the relevant links...
@@ -498,7 +580,7 @@ class SSD(object):
         return "[\n\t{}\n]".format(full_str)
 
 
-class SSDJsonBuilder(object):
+class SSDJsonWriter(object):
     """
     Helper class to build up the json output for the SSD file.
     """

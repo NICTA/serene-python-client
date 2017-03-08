@@ -14,6 +14,10 @@ class TestOntology(unittest.TestCase):
     """
     Tests the Ontology class
     """
+    def __init__(self, methodName="runTest"):
+        super().__init__(methodName)
+        self._test_owl = 'tests/resources/owl/dataintegration_report_ontology.owl'
+
     @staticmethod
     def empty_ontology():
         return serene.Ontology()

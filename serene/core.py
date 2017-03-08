@@ -4,7 +4,9 @@ License...
 import logging
 
 from .api.session import Session
-from .endpoints import DataSetEndpoint, OntologyEndpoint
+from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
+from .semantics import SSDInternal
+from .elements import OctopusInternal
 
 # logging functions...
 _logger = logging.getLogger()
@@ -49,7 +51,22 @@ class Serene(object):
 
         self._ontologies = OntologyEndpoint(self._session)
 
-        self._ssds = SsdEndpoint(self._session)
+        self._ssds = SSDEndpoint(self._session)
+
+    def SSD(self, dataset, ontology):
+        """
+        Here we have the SSD class that the user can use to build SSDs.
+        Note that we hide this in a nested class to pass the reference
+        to the live server. Otherwise the user needs to pass in a session
+        reference for a simple SSD() class. With the server reference
+        we can use real dataset and ontology objects, rather than just
+        IDs when talking to/from the server.
+        """
+        return SSDInternal(dataset, ontology, self._datasets, self._ontologies)
+
+    class Octopus(OctopusInternal):
+        def __init__(self):
+            super().__init__(name, self._session)
 
         # # set the config args...
         # default_args = {
