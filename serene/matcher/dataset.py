@@ -62,6 +62,11 @@ class DataSet(object):
         self.sample = pd.DataFrame({
             c.name: c.sample for c in self.columns
         })
+        self._stored = True
+
+    @property
+    def stored(self):
+        return self._stored
 
     def __getitem__(self, i):
         return self.columns[i]

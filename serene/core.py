@@ -54,6 +54,7 @@ class Serene(object):
         self._ssds = SSDEndpoint(self._session)
 
     def SSD(self, dataset, ontology):
+
         """
         Here we have the SSD class that the user can use to build SSDs.
         Note that we hide this in a nested class to pass the reference
@@ -64,9 +65,8 @@ class Serene(object):
         """
         return SSDInternal(dataset, ontology, self._datasets, self._ontologies)
 
-    class Octopus(OctopusInternal):
-        def __init__(self):
-            super().__init__(name, self._session)
+    def Octopus(self):
+        return OctopusInternal(self._session)
 
         # # set the config args...
         # default_args = {

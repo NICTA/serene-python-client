@@ -18,7 +18,7 @@ from serene.elements import DataNode, Link, TransformList, IdentTransform
 from serene.visualizers import SSDVisualizer
 from .base import BaseSemantic
 from ..utils import gen_id
-
+from collections import defaultdict
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -34,10 +34,10 @@ class SSDInternal(object):
         semantic model built from the available ontologies.
     """
     def __init__(self,
-                 dataset,
-                 ontology,
-                 ontology_endpoint,
-                 dataset_endpoint):
+                 dataset=None,
+                 ontology=None,
+                 ontology_endpoint=None,
+                 dataset_endpoint=None):
         """
         Builds up a SemanticSourceDesc object given a dataset and
         and a parent ontology (or set of ontologies).
@@ -48,11 +48,11 @@ class SSDInternal(object):
 
         # dataset and ontology must be stored on the server!!!!
         if not dataset.stored:
-            msg = "{} must be stored on the server, use Serene.datasets.upload"
+            msg = "{} must be stored on the server, use <Serene>.datasets.upload"
             raise Exception(msg)
 
         if not ontology.stored:
-            msg = "{} must be stored on the server, use Serene.ontologies.upload"
+            msg = "{} must be stored on the server, use <Serene>.ontologies.upload"
             raise Exception(msg)
 
         self._name = gen_id()
@@ -63,7 +63,7 @@ class SSDInternal(object):
         self._mapping = {}  # Column to Mapping mapping
         self._transforms = TransformList()  # to be removed
         self._stored = False  # is stored on the server?
-        self._path = None  #self._get_filename()  # the path to the local file...
+        #self._path = None  #self._get_filename()  # the path to the local file...
         self._date_created = None
         self._date_modified = None
         self._ds_endpoint = dataset_endpoint
@@ -73,11 +73,20 @@ class SSDInternal(object):
         self._semantic_model = BaseSemantic()
 
         # initialize the mapping...
-        for i, column in enumerate(self._dataset.columns):
-            self._mapping[column] = Mapping(
-                column,
-                node=None,
-                transform=IdentTransform())
+        #for i, column in enumerate(self._dataset.columns):
+        #    self._mapping[column] = Mapping(
+        #        column,
+        #        node=None,
+        #        transform=IdentTransform())
+
+    @classmethod
+    def from_json(cls, json_string, dataset_endpoint, ontology_endpoint):
+        """Create the object from json directly"""
+        new = cls(None,
+                  None,
+                  dataset_endpoint,
+                  ontology_endpoint)
+        return new.read(json_string)
 
     def read(self, json):
         """
@@ -95,49 +104,111 @@ class SSDInternal(object):
         ontologies = json['ontology']
         self._ontology = self._on_endpoint.get(ontologies[0])
 
-        # sm = BaseSemantic()
-        #
-        # self._semantic_model =
-        # self._mappings =
+        # fill out the dataset...
+        jsm = json["semanticModel"]
+        ds_key = jsm["datasetID"]
+        self._dataset = self._ds_endpoint.get(ds_key)
+
+        # now build the more complicated elements
+        self._semantic_model = self._build_semantic(json)
+        self._build_mapping(json)
         return self
 
-    def read_from_file(self, filename):
-        """Initialize SSD from a file"""
-        with open(filename) as f:
-            data = json.load(f)
-            return self.read(data)
+    def _build_mapping(self, json):
+        """Builds the mapping from the json string"""
+        jsm = json["semanticModel"]
+        raw_nodes = jsm["nodes"]
+        raw_map = jsm["mappings"]
 
-    def write(self):
-        """
-        Writes the SSD out to the path.
-        :return: None
-        """
-        data = self.json
-        with open(self._path, 'wb') as f:
-            f.write(data)
+        def node_split(label):
+            items = label.split(".")
+            return items[0], items[-1]
 
-    @property
-    def filename(self):
-        return self._file
+        def get(label):
+            DataNode.search(
+                self._semantic_model.data_nodes,
+                DataNode(*node_split(label)))
 
-    def _get_filename(self):
-        return os.path.join(
-            tempfile.gettempdir(),
-            self._name
-        )
+        data_nodes = {n["id"]: get(n["label"])
+                      for n in raw_nodes
+                      if n["type"] == "DataNode"}
 
-    def set_filename(self, value):
-        """
-        Sets the filename for the owl file. This will also update the temporary file cache.
-        :param value:
-        :return:
-        """
-        self._file = value
-        self._path = os.path.join(
-            tempfile.gettempdir(),
-            self._name
-        )
-        return self
+        column_map = {col.id: col for col in self._dataset.columns}
+
+        for link in raw_map:
+            cid = column_map[link["attribute"]]
+            node = data_nodes[link["node"]]
+            self.map(cid, node)
+
+    def _build_semantic(self, json):
+        """Builds the semantic model from a json string"""
+        sm = BaseSemantic()
+        jsm = json["semanticModel"]
+        raw_nodes = jsm["nodes"]
+        links = jsm["links"]
+
+        def node_split(label):
+            items = label.split(".")
+            return items[0], items[-1]
+
+        class_table = {n["id"]: n["label"] for n in raw_nodes
+                       if n["type"] == "ClassNode"}
+
+        data_nodes = {n["id"]: node_split(n["label"])[1]
+                      for n in raw_nodes
+                      if n["type"] == "DataNode"}
+
+        class_links = [(n["source"], n["target"], n["label"])
+                       for n in links
+                       if n["type"] == "ObjectPropertyLink"]
+
+        data_links = [(n["source"], n["target"], n["label"])
+                      for n in links
+                      if n["type"] == "DataPropertyLink"]
+
+        # first fill the class links in a lookup table
+        lookup = defaultdict(list)
+        for link in data_links:
+            src, dst, name = link
+            lookup[src].append(dst)
+
+        # next we pull the class names out with the data nodes
+        for cls, dns in lookup.items():
+            class_node = class_table[cls]
+            data_nodes = [data_nodes[dn] for dn in dns]
+            sm.class_node(class_node, data_nodes)
+
+        # finally we add the class links
+        for link in class_links:
+            src, dst, name = link
+            sm.link(src, name, dst)
+
+        return sm
+
+    # def read_from_file(self, filename):
+    #     """Initialize SSD from a file"""
+    #     with open(filename) as f:
+    #         data = json.load(f)
+    #         return self.read(data)
+    #
+    # def write(self):
+    #     """
+    #     Writes the SSD out to the path.
+    #     :return: None
+    #     """
+    #     data = self.json
+    #     with open(self._path, 'wb') as f:
+    #         f.write(data)
+    #
+    # @property
+    # def filename(self):
+    #     return self._path
+    #
+    # def _get_filename(self):
+    #     return os.path.join(
+    #         tempfile.gettempdir(),
+    #         self._name
+    #     )
 
     def _find_column(self, column):
         """
@@ -498,7 +569,7 @@ class SSDInternal(object):
     @property
     def ontologies(self):
         """The read-only list of ontology objects"""
-        return self._modeller.ontologies
+        return self._ontologies
 
     @property
     def ssd(self):

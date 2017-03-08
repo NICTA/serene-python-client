@@ -138,6 +138,10 @@ class DataSetEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
+    def get(self, key):
+        """Get a single dataset at position key"""
+        return DataSet(self._api.item(key))
+
     @property
     @lru_cache(maxsize=32)
     def items(self):
@@ -272,6 +276,7 @@ class SSDEndpoint(IdentifiableEndpoint):
         """
         super().__init__()
         self._api = session.ssd
+        self._session = session
         self._base_type = SSDInternal
 
     @decache
@@ -281,7 +286,7 @@ class SSDEndpoint(IdentifiableEndpoint):
         :param ssd
         :return:
         """
-        assert(issubclass(type(ssd), SSD))
+        assert(issubclass(type(ssd), SSDInternal))
 
         if not os.path.exists(ssd.path):
             raise ValueError("No SSD path exists for {}.".format(ssd))
@@ -314,7 +319,11 @@ class SSDEndpoint(IdentifiableEndpoint):
     def items(self):
         """Maintains a list of SSD objects"""
         keys = self._api.keys()
-        ds = []
+        ssd = []
         for k in keys:
-            ds.append(SSD(self._api.item(k)))
-        return tuple(ds)
+            blob = self._api.item(k)
+            s = SSDInternal.from_json(blob,
+                                      self._session.datasets,
+                                      self._session.ontologies)
+            ssd.append(s)
+        return tuple(ssd)

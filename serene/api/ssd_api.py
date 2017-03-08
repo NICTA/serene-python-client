@@ -61,11 +61,12 @@ class SsdAPI(HTTPObject):
 
         return r.json()
 
-    def update(self, json):
+    def update(self, key, json):
         """
         Update an existing SSD in the repository on the Serene server.
         Args:
-            json: The key ID of the SSD on the server
+            key: The key ID of the SSD on the server
+            json: The partial json update body
 
         :return:
         """
