@@ -5,7 +5,7 @@ import logging
 
 from .api.session import Session
 from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
-from .semantics import SSDInternal
+from .semantics import SSD
 from .elements import OctopusInternal
 
 # logging functions...
@@ -63,7 +63,7 @@ class Serene(object):
         we can use real dataset and ontology objects, rather than just
         IDs when talking to/from the server.
         """
-        return SSDInternal(dataset, ontology, self._datasets, self._ontologies)
+        return SSD(dataset, ontology, self._datasets, self._ontologies)
 
     def Octopus(self):
         return OctopusInternal(self._session)

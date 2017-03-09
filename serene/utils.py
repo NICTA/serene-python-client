@@ -17,6 +17,11 @@ def gen_id():
     return ''.join(random.sample(string.ascii_lowercase, 16))
 
 
+def flatten(xs):
+    """Flatten a 2D list"""
+    return [x for y in xs for x in y]
+
+
 class Searchable(object):
     """
     A small object that allows hierarchical search across its properties...

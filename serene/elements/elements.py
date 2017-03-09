@@ -334,10 +334,18 @@ class DataNode(Searchable):
             "type": "DataNode"
         }
 
+    def __ne__(self, other):
+        """Define a non-equality test"""
+        return not self.__eq__(other)
+
     def __eq__(self, other):
-        """Only name and parent name required"""
-        return self.name == other.name and \
-            self.parent.name == other.parent.name
+        if type(other) is type(self):
+            if self.parent is not None and other.parent is not None:
+                return self.name == other.name and \
+                    self.parent.name == other.parent.name
+            else:
+                return self.name == other.name
+        return False
 
     def __repr__(self):
         if self.parent:
