@@ -47,8 +47,8 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
-# General information about the project.
-project = 'data-integration-py'
+# General information about2rEPqdAq the project.
+project = 'serene-python-client'
 copyright = '2016, Natalia Ruemmele, Alex Collins'
 author = 'Natalia Ruemmele, Alex Collins'
 
@@ -227,7 +227,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'data-integration-py.tex', 'data-integration-py Documentation',
+    (master_doc, 'serene-python-client.tex', 'serene-python-client Documentation',
      'Natalia Ruemmele, Alex Collins', 'manual'),
 ]
 
@@ -257,7 +257,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'data-integration-py', 'data-integration-py Documentation',
+    (master_doc, 'serene-python-client', 'serene-python-client Documentation',
      [author], 1)
 ]
 
@@ -271,8 +271,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'data-integration-py', 'data-integration-py Documentation',
-     author, 'data-integration-py', 'One line description of project.',
+    (master_doc, 'serene-python-client', 'serene-python-client Documentation',
+     author, 'serene-python-client', 'One line description of project.',
      'Miscellaneous'),
 ]
 
