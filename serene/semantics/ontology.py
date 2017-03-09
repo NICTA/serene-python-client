@@ -591,3 +591,12 @@ class RDFWriter(object):
         self._build_data_nodes(g, ontology)
 
         return g.serialize(format='turtle').decode("utf-8")
+
+# basic reasoner for subclass properties...
+#
+# for c in g.subjects(predicate=RDF.type, object = OWL.Class):
+#      print(c)
+#      superC = g.objects(predicate = RDFS.term('subClassOf'), subject = c)
+#      for sc in superC:
+#          props = g.subjects(predicate = RDFS.domain, object = sc)
+#          print(list(props))
