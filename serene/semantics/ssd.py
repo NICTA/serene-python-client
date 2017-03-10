@@ -42,7 +42,7 @@ class SSDInternal(object):
         Builds up a SemanticSourceDesc object given a dataset and
         and a parent ontology (or set of ontologies).
         """
-        if not issubclass(ontology, Ontology):
+        if not issubclass(type(ontology), Ontology):
             msg = "Required Ontology, not {}".format(type(ontology))
             raise Exception(msg)
 

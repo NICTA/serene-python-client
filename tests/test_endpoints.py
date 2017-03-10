@@ -17,7 +17,8 @@ class TestDataSetEndpoint(TestWithServer):
     def __init__(self, method_name="runTest"):
         super().__init__(method_name)
         self._datasets = None
-        self._test_file = 'tests/resources/data/businessInfo.csv'
+        path = os.path.join(os.path.dirname(__file__), "resources")
+        self._test_file = os.path.join(path, 'data', 'businessInfo.csv')
 
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
@@ -113,8 +114,9 @@ class TestOntologyEndpoint(TestWithServer):
     def __init__(self, method_name="runTest"):
         super().__init__(method_name)
         self._datasets = None
-        self._test_file = 'tests/resources/owl/dataintegration_report_ontology.owl'
-        self._bad_params_file = 'tests/resources/owl/bad-params.owl'
+        path = os.path.join(os.path.dirname(__file__), "resources")
+        self._test_file = os.path.join(path, 'owl', 'dataintegration_report_ontology.owl')
+        self._bad_params_file = os.path.join(path, 'owl', 'bad-params.owl')
 
     def setUp(self):
         self._ontologies = OntologyEndpoint(self._session)

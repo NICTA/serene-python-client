@@ -9,7 +9,7 @@ import serene
 from serene.matcher.dataset import DataSet
 import os
 from serene.elements import ClassNode, DataNode, Link
-from serene.semantics.ssd import SSDInternal
+from serene.semantics.ssd import SSDInternal as SSD
 from ..utils import TestWithServer
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 
@@ -22,9 +22,11 @@ class TestSSD(TestWithServer):
         super().__init__(method_name)
         self._datasets = None
         self._ontologies = None
-        self._test_file = 'tests/resources/data/businessInfo.csv'
-        self._test_owl = 'tests/resources/owl/dataintegration_report_ontology.owl'
-        self._test_ssd = 'tests/resources/ssd/businessInfo.ssd'
+
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
+        self._test_file = os.path.join(path, 'data','businessInfo.csv')
+        self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.owl')
+        self._test_ssd = os.path.join(path, 'ssd','businessInfo.ssd')
 
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
@@ -53,7 +55,7 @@ class TestSSD(TestWithServer):
         :return:
         """
         ds = self._datasets.upload(self._test_file)
-        on = self._datasets.upload(self._test_owl)
+        on = self._ontologies.upload(self._test_owl)
 
         single = SSD("test-ssd", ds, on)
 
