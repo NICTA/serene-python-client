@@ -151,8 +151,9 @@ class SSD(object):
         :param data_node: An abbreviated DataNode type
         :return: The actual DataNode in the system, or an error if not found or ambiguous
         """
-        data_nodes = self._ontology.data_nodes
-        dn = DataNode.search(data_nodes, data_node, errors=False, class_nodes=self._ontology.class_nodes)
+        data_nodes = self._ontology.idata_nodes
+        #dn = DataNode.search(data_nodes, data_node, errors=False, class_nodes=self._ontology.class_nodes)
+        dn = DataNode.search(data_nodes, data_node)
         if dn is None:
             msg = "Failed to find DataNode: {}".format(data_node)
             _logger.error(msg)
@@ -191,7 +192,7 @@ class SSD(object):
         :param cls: An abbreviated ClassNode type
         :return: The actual ClassNode in the system, or an error if not found or ambiguous
         """
-        classes = set(self.class_nodes)
+        classes = set(self._ontology.iclass_nodes)
 
         c = ClassNode.search(classes, cls)
         if c is None:
@@ -229,15 +230,15 @@ class SSD(object):
         :return:
         """
         if issubclass(type(item), Transform):
-            return Transform.search(self.transforms, item) #self._find_transform(item)
+            return self._find_transform(item)
         elif issubclass(type(item), DataNode):
-            return DataNode.search(self.data_nodes, item) #self._find_data_node(item)
+            return self._find_data_node(item)
         elif issubclass(type(item), Column):
-            return Column.search(self.columns) #self._find_column(item)
+            return self._find_column(item)
         elif issubclass(type(item), ClassNode):
-            return  #self._find_class(item)
+            return self._find_class(item)
         elif issubclass(type(item), Link):
-            return  #self._find_link(item)
+            return self._find_link(item)
         else:
             raise TypeError("This type is not supported in find().")
 
@@ -342,7 +343,7 @@ class SSD(object):
             _logger.info(msg)
         else:
             # if it is ok, then add the new link to the SemanticModel...
-            self._semantic_model.add_link(link)
+            self._semantic_model.add_link(target_link)
 
         return self
 
@@ -694,8 +695,8 @@ class SSDReader(object):
         # next we pull the class names out with the data nodes
         for cls, dns in lookup.items():
             class_node = class_table[cls]
-            data_nodes = [data_nodes[dn] for dn in dns]
-            sm.class_node(class_node, data_nodes)
+            _dns = [data_nodes[dn] for dn in dns]
+            sm.class_node(class_node, _dns)
 
         # finally we add the class links
         for link in class_links:
