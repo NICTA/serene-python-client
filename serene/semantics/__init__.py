@@ -6,4 +6,4 @@ Serene Python client: Data Integration Software
 """
 from .base import *
 from .ontology import Ontology
-from .ssd import SSDInternal
+from .ssd import SSD

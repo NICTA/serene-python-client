@@ -218,6 +218,18 @@ class ClassNode(Searchable):
         lambda node: node.parent if node.parent else None
     ]
 
+    @classmethod
+    def search(cls, container, item, errors=False):
+        result = super(ClassNode, cls).search(container, item, errors)
+        if result is not None:
+            return result
+        elif item.parent is None:
+            return result
+        else:
+            # now we need to check the parent classes of item!
+            result = super(ClassNode, cls).search(container, item.parent, errors)
+            return result
+
     def __init__(self, name, nodes=None, prefix=None, parent=None):
         """
         A ClassNode is initialized with a name, a list of string nodes
@@ -282,6 +294,31 @@ class DataNode(Searchable):
         lambda node: node.parent.prefix if node.parent else None
     ]
 
+    @classmethod
+    def search(cls, container, item, errors=False, class_nodes=None):
+        result = super(DataNode, cls).search(container, item, errors)
+        if result is not None:
+            #print(item.name, "has been found", result)
+            return result
+        elif item.parent is None:
+            #print(item.name, "has no parent!!!")
+            return result
+        else:
+            class_node = item.parent
+            #print(item.name, "has a parent::", class_node)
+            if class_nodes is not None:
+                cn = ClassNode.search(class_nodes, class_node)
+                if cn is None:
+                    #print("blast, couldn't find class node", class_node,"in the provided class_nodes")
+                    return result
+                else:
+                    #print("Searching for", DataNode(cn.parent.name, item.name))
+                    result = cls.search(container, DataNode(cn.parent.name, item.name), errors)
+                    return result
+            else:
+                #print("no class node provided!")
+                return result
+
     def __init__(self, *names, dtype=str):
         """
         A DataNode is initialized with name and a parent ClassNode object.
@@ -334,10 +371,18 @@ class DataNode(Searchable):
             "type": "DataNode"
         }
 
+    def __ne__(self, other):
+        """Define a non-equality test"""
+        return not self.__eq__(other)
+
     def __eq__(self, other):
-        """Only name and parent name required"""
-        return self.name == other.name and \
-            self.parent.name == other.parent.name
+        if type(other) is type(self):
+            if self.parent is not None and other.parent is not None:
+                return self.name == other.name and \
+                    self.parent.name == other.parent.name
+            else:
+                return self.name == other.name
+        return False
 
     def __repr__(self):
         if self.parent:

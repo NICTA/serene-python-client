@@ -87,7 +87,7 @@ class OntologyAPI(HTTPObject):
         logging.debug('Sending request to Serene server to get the ontology info.')
         uri = "{}{}/file".format(self._uri, str(key))
         try:
-            path = os.path.join(tempfile.tempdir, "{}.owl".format(self._gen_id()))
+            path = os.path.join(tempfile.gettempdir(), "{}.owl".format(self._gen_id()))
 
             r = requests.get(uri, stream=True)
             if r.status_code == 200:
