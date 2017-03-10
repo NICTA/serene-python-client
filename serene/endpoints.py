@@ -9,13 +9,15 @@ import os
 import json
 import pandas as pd
 import tempfile
+import collections
 from .utils import gen_id
 
 from functools import lru_cache
 
 from .matcher.dataset import DataSet
 from .semantics.ontology import Ontology
-from .semantics.ssd import SSDInternal
+from .semantics.ssd import SSD
+from .utils import flatten
 
 
 def decache(func):
@@ -78,6 +80,21 @@ class IdentifiableEndpoint(object):
         return tuple()
 
 
+class ReadOnlyDict(collections.Mapping):
+
+    def __init__(self, data):
+        self._data = data
+
+    def __getitem__(self, key):
+        return self._data[key]
+
+    def __len__(self):
+        return len(self._data)
+
+    def __iter__(self):
+        return iter(self._data)
+
+
 class DataSetEndpoint(IdentifiableEndpoint):
     """
 
@@ -138,6 +155,15 @@ class DataSetEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
+    @property
+    @lru_cache(maxsize=32)
+    def columns(self):
+        """Get a single dataset at position key"""
+        cols = flatten([c.columns for c in self.items])
+        return ReadOnlyDict({c.id: c for c in cols})
+
+    @property
+    @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single dataset at position key"""
         return DataSet(self._api.item(key))
@@ -277,7 +303,7 @@ class SSDEndpoint(IdentifiableEndpoint):
         super().__init__()
         self._api = session.ssd
         self._session = session
-        self._base_type = SSDInternal
+        self._base_type = SSD
 
     @decache
     def upload(self, ssd):
@@ -286,7 +312,7 @@ class SSDEndpoint(IdentifiableEndpoint):
         :param ssd
         :return:
         """
-        assert(issubclass(type(ssd), SSDInternal))
+        assert(issubclass(type(ssd), SSD))
 
         if not os.path.exists(ssd.path):
             raise ValueError("No SSD path exists for {}.".format(ssd))
@@ -322,8 +348,8 @@ class SSDEndpoint(IdentifiableEndpoint):
         ssd = []
         for k in keys:
             blob = self._api.item(k)
-            s = SSDInternal.from_json(blob,
-                                      self._session.datasets,
-                                      self._session.ontologies)
+            s = SSD.from_json(blob,
+                              self._session.datasets,
+                              self._session.ontologies)
             ssd.append(s)
         return tuple(ssd)

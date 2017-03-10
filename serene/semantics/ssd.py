@@ -16,6 +16,7 @@ from serene.semantics import Ontology
 from serene.elements import Transform, Mapping, Column, ClassNode
 from serene.elements import DataNode, Link, TransformList, IdentTransform
 from serene.visualizers import SSDVisualizer
+from serene.matcher.dataset import DataSet
 from .base import BaseSemantic
 from ..utils import gen_id
 from collections import defaultdict
@@ -24,7 +25,7 @@ _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
 
-class SSDInternal(object):
+class SSD(object):
     """
         Semantic source description is the translator between a DataSet
         and a set of Ontologies
@@ -46,6 +47,10 @@ class SSDInternal(object):
             msg = "Required Ontology, not {}".format(type(ontology))
             raise Exception(msg)
 
+        if not issubclass(type(dataset), DataSet):
+            msg = "Required Ontology, not {}".format(type(ontology))
+            raise Exception(msg)
+
         # dataset and ontology must be stored on the server!!!!
         if not dataset.stored:
             msg = "{} must be stored on the server, use <Serene>.datasets.upload"
@@ -60,10 +65,8 @@ class SSDInternal(object):
         self._ontology = ontology
         self._VERSION = "0.1"
         self._id = None
-        self._mapping = {}  # Column to Mapping mapping
         self._transforms = TransformList()  # to be removed
         self._stored = False  # is stored on the server?
-        #self._path = None  #self._get_filename()  # the path to the local file...
         self._date_created = None
         self._date_modified = None
         self._ds_endpoint = dataset_endpoint
@@ -72,12 +75,16 @@ class SSDInternal(object):
         # semantic model
         self._semantic_model = BaseSemantic()
 
-        # initialize the mapping...
-        #for i, column in enumerate(self._dataset.columns):
-        #    self._mapping[column] = Mapping(
-        #        column,
-        #        node=None,
-        #        transform=IdentTransform())
+        # the mapping object from Column -> Mapping
+        # this should always contain the complete Column set,
+        # so that the user can easily see what is and isn't
+        # yet mapped.
+        self._mapping = {}
+        for i, column in enumerate(self._dataset.columns):
+           self._mapping[column] = Mapping(
+               column,
+               node=None,
+               transform=IdentTransform())
 
     @classmethod
     def from_json(cls, json_string, dataset_endpoint, ontology_endpoint):
@@ -101,114 +108,17 @@ class SSDInternal(object):
         self._date_modified = json['dateModified']
         self._id = int(json['id'])
 
-        ontologies = json['ontology']
-        self._ontology = self._on_endpoint.get(ontologies[0])
+        reader = SSDReader(json, self._ds_endpoint, self._on_endpoint)
 
-        # fill out the dataset...
-        jsm = json["semanticModel"]
-        ds_key = jsm["datasetID"]
-        self._dataset = self._ds_endpoint.get(ds_key)
+        self._ontology = reader.ontology
+        self._dataset = reader.dataset
+        self._semantic_model = reader.semantic_model
 
-        # now build the more complicated elements
-        self._semantic_model = self._build_semantic(json)
-        self._build_mapping(json)
+        # build up the mapping through the interface...
+        for col, ds in reader.mapping:
+            self.map(col, ds)
+
         return self
-
-    def _build_mapping(self, json):
-        """Builds the mapping from the json string"""
-        jsm = json["semanticModel"]
-        raw_nodes = jsm["nodes"]
-        raw_map = jsm["mappings"]
-
-        def node_split(label):
-            items = label.split(".")
-            return items[0], items[-1]
-
-        def get(label):
-            DataNode.search(
-                self._semantic_model.data_nodes,
-                DataNode(*node_split(label)))
-
-        data_nodes = {n["id"]: get(n["label"])
-                      for n in raw_nodes
-                      if n["type"] == "DataNode"}
-
-        column_map = {col.id: col for col in self._dataset.columns}
-
-        for link in raw_map:
-            cid = column_map[link["attribute"]]
-            node = data_nodes[link["node"]]
-            self.map(cid, node)
-
-    def _build_semantic(self, json):
-        """Builds the semantic model from a json string"""
-        sm = BaseSemantic()
-        jsm = json["semanticModel"]
-        raw_nodes = jsm["nodes"]
-        links = jsm["links"]
-
-        def node_split(label):
-            items = label.split(".")
-            return items[0], items[-1]
-
-        class_table = {n["id"]: n["label"] for n in raw_nodes
-                       if n["type"] == "ClassNode"}
-
-        data_nodes = {n["id"]: node_split(n["label"])[1]
-                      for n in raw_nodes
-                      if n["type"] == "DataNode"}
-
-        class_links = [(n["source"], n["target"], n["label"])
-                       for n in links
-                       if n["type"] == "ObjectPropertyLink"]
-
-        data_links = [(n["source"], n["target"], n["label"])
-                      for n in links
-                      if n["type"] == "DataPropertyLink"]
-
-        # first fill the class links in a lookup table
-        lookup = defaultdict(list)
-        for link in data_links:
-            src, dst, name = link
-            lookup[src].append(dst)
-
-        # next we pull the class names out with the data nodes
-        for cls, dns in lookup.items():
-            class_node = class_table[cls]
-            data_nodes = [data_nodes[dn] for dn in dns]
-            sm.class_node(class_node, data_nodes)
-
-        # finally we add the class links
-        for link in class_links:
-            src, dst, name = link
-            sm.link(src, name, dst)
-
-        return sm
-
-    # def read_from_file(self, filename):
-    #     """Initialize SSD from a file"""
-    #     with open(filename) as f:
-    #         data = json.load(f)
-    #         return self.read(data)
-    #
-    # def write(self):
-    #     """
-    #     Writes the SSD out to the path.
-    #     :return: None
-    #     """
-    #     data = self.json
-    #     with open(self._path, 'wb') as f:
-    #         f.write(data)
-    #
-    # @property
-    # def filename(self):
-    #     return self._path
-    #
-    # def _get_filename(self):
-    #     return os.path.join(
-    #         tempfile.gettempdir(),
-    #         self._name
-    #     )
 
     def _find_column(self, column):
         """
@@ -222,8 +132,7 @@ class SSDInternal(object):
         :param column: An abbreviated Column type
         :return: The actual Column in the system, or an error if not found or ambiguous
         """
-        columns = self._mapping.keys()
-        col = Column.search(columns, column)
+        col = Column.search(self._dataset.columns, column)
         if col is None:
             msg = "Failed to find column: {}".format(column)
             _logger.error(msg)
@@ -243,9 +152,9 @@ class SSDInternal(object):
         :return: The actual DataNode in the system, or an error if not found or ambiguous
         """
         data_nodes = self._ontology.data_nodes
-        dn = DataNode.search(data_nodes, data_node)
+        dn = DataNode.search(data_nodes, data_node, errors=False, class_nodes=self._ontology.class_nodes)
         if dn is None:
-            msg = "Failed to find DataNode: {}".format(dn)
+            msg = "Failed to find DataNode: {}".format(data_node)
             _logger.error(msg)
             raise Exception(msg)
         return dn
@@ -410,6 +319,12 @@ class SSDInternal(object):
         :param relationship: The label for the link between the src and dst nodes
         :return: Updated SSD
         """
+        if issubclass(type(src), str):
+            src = ClassNode(src)
+
+        if issubclass(type(dst), str):
+            dst = ClassNode(dst)
+
         s_class = self._find_class(src)
         d_class = self._find_class(dst)
 
@@ -516,29 +431,29 @@ class SSDInternal(object):
 
         return self
 
-    def predict(self):
-        """
-        Attempt to predict the mappings and transforms for the
-        mapping.
-
-        :return: The updated SSD object
-        """
-        print("Calculating prediction...")
-        time.sleep(1)
-        print("Done.")
-        for mapping in self.mappings:
-            if mapping.node is None:
-                print("Predicting value for", mapping.column)
-
-                # TODO: make real!
-                node = random.choice(self._modeller.data_nodes)
-                print("Value {} predicted for {} with probability 0.882".format(node, mapping.column))
-
-                self._map(mapping.column, node, predicted=True)
-            else:
-                # these are the user labelled data points...
-                pass
-        return self
+    # def predict(self):
+    #     """
+    #     Attempt to predict the mappings and transforms for the
+    #     mapping.
+    #
+    #     :return: The updated SSD object
+    #     """
+    #     print("Calculating prediction...")
+    #     time.sleep(1)
+    #     print("Done.")
+    #     for mapping in self.mappings:
+    #         if mapping.node is None:
+    #             print("Predicting value for", mapping.column)
+    #
+    #             # TODO: make real!
+    #             node = random.choice(self._modeller.data_nodes)
+    #             print("Value {} predicted for {} with probability 0.882".format(node, mapping.column))
+    #
+    #             self._map(mapping.column, node, predicted=True)
+    #         else:
+    #             # these are the user labelled data points...
+    #             pass
+    #     return self
 
     def show(self):
         """
@@ -550,16 +465,16 @@ class SSDInternal(object):
         SSDVisualizer(self).show()
         return
 
-    def save(self, file):
-        """
-        Saves the file to an ssd file
-
-        :param file: The output file
-        :return:
-        """
-        with open(file, "w+") as f:
-            f.write(self.json)
-        return
+    # def save(self, file):
+    #     """
+    #     Saves the file to an ssd file
+    #
+    #     :param file: The output file
+    #     :return:
+    #     """
+    #     with open(file, "w+") as f:
+    #         f.write(self.json)
+    #     return
 
     @property
     def version(self):
@@ -569,7 +484,7 @@ class SSDInternal(object):
     @property
     def ontologies(self):
         """The read-only list of ontology objects"""
-        return self._ontologies
+        return self._ontology
 
     @property
     def ssd(self):
@@ -651,6 +566,145 @@ class SSDInternal(object):
         return "[\n\t{}\n]".format(full_str)
 
 
+class SSDReader(object):
+    """
+    The SSDReader is a helper object used to parse an SSD json
+    blob from the server.
+    """
+    def __init__(self, json, dataset_endpoint, ontology_endpoint):
+        """Builds up the relevant properties from the json blob `json`
+            note that we need references to the endpoints to ensure
+            that the information is up-to-date with the server.
+        """
+        self._ds_endpoint = dataset_endpoint
+        self._on_endpoint = ontology_endpoint
+        self._ontology = self._find_ontology(json)
+        self._dataset = self._find_dataset(json)
+        self._semantic_model = self._build_semantic(json)
+        self._mapping = self._build_mapping(json)
+
+    @property
+    def ontology(self):
+        return self._ontology
+
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @property
+    def semantic_model(self):
+        return self._semantic_model
+
+    @property
+    def mapping(self):
+        return self._mapping
+
+    def _find_ontology(self, json):
+        """Pulls the ontology reference from the SSD and queries the server"""
+        ontologies = json['ontology']
+        return self._on_endpoint.get(ontologies[0])
+
+    def _find_dataset(self, json):
+        """Attempts to grab the dataset out from the json string"""
+        # fill out the dataset...
+        jsm = json["semanticModel"]
+
+        columns = [c['attribute'] for c in jsm['mappings']]
+
+        if not len(columns):
+            msg = "No columns present in ssd file mappings."
+            raise Exception(msg)
+
+        col_map = self._ds_endpoint.columns
+
+        if columns[0] not in col_map:
+            msg = "Column {} does not appear on the server".format(columns[0])
+            raise Exception(msg)
+
+        ds_key = col_map[columns[0]].parent
+
+        return self._ds_endpoint.get(ds_key)
+
+    def _build_mapping(self, json):
+        """Builds the mapping from the json string"""
+        jsm = json["semanticModel"]
+        raw_nodes = jsm["nodes"]
+        raw_map = jsm["mappings"]
+
+        def node_split(label):
+            """Split the datanode label into ClassNode, DataNode"""
+            items = label.split(".")
+            return items[0], items[-1]
+
+        def get(label):
+            """Try to locate the datanode in the semantic model"""
+            dn = DataNode.search(
+                self._semantic_model.data_nodes,
+                DataNode(*node_split(label)))
+            if dn is None:
+                msg = "DataNode{} does not appear in semantic model.".format(node_split(label))
+                raise Exception(msg)
+
+        data_nodes = {n["id"]: get(n["label"])
+                      for n in raw_nodes
+                      if n["type"] == "DataNode"}
+
+        column_map = {col.id: col for col in self._dataset.columns}
+
+        values = []
+        for link in raw_map:
+            cid = column_map[link["attribute"]]
+            node = data_nodes[link["node"]]
+            values.append((cid, node))
+
+        return values
+
+    def _build_semantic(self, json):
+        """Builds the semantic model from a json string"""
+        sm = BaseSemantic()
+        jsm = json["semanticModel"]
+        raw_nodes = jsm["nodes"]
+        links = jsm["links"]
+
+        def node_split(label):
+            items = label.split(".")
+            return items[0], items[-1]
+
+        class_table = {n["id"]: n["label"] for n in raw_nodes
+                       if n["type"] == "ClassNode"}
+
+        data_nodes = {n["id"]: node_split(n["label"])[1]
+                      for n in raw_nodes
+                      if n["type"] == "DataNode"}
+
+        class_links = [(n["source"], n["target"], n["label"])
+                       for n in links
+                       if n["type"] == "ObjectPropertyLink"]
+
+        data_links = [(n["source"], n["target"], n["label"])
+                      for n in links
+                      if n["type"] == "DataPropertyLink"]
+
+        # first fill the class links in a lookup table
+        lookup = defaultdict(list)
+        for link in data_links:
+            src, dst, name = link
+            lookup[src].append(dst)
+
+        # next we pull the class names out with the data nodes
+        for cls, dns in lookup.items():
+            class_node = class_table[cls]
+            data_nodes = [data_nodes[dn] for dn in dns]
+            sm.class_node(class_node, data_nodes)
+
+        # finally we add the class links
+        for link in class_links:
+            src, dst, name = link
+            sm.link(src, name, dst)
+
+        return sm
+
+
 class SSDJsonWriter(object):
     """
     Helper class to build up the json output for the SSD file.
@@ -679,7 +733,7 @@ class SSDJsonWriter(object):
         d["name"] = self._ssd.file
         d["columns"] = self.columns
         d["attributes"] = self.attributes
-        d["ontology"] = [o.set_filename for o in self._ssd.ontologies]
+        d["ontology"] = [self._ssd.ontology.id]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
 

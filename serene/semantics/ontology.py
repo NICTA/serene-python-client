@@ -92,6 +92,34 @@ class Ontology(BaseSemantic):
         # default filename
         self._filename = os.path.basename(self.path)
 
+    def _unstore(self):
+        """
+        Use this once a change is made to the local Ontology that is not
+        reflected on the server
+        :return: None
+        """
+        self._stored = False
+
+    def add_class_node(self, node):
+        """Unstore if a class node is added"""
+        self._unstore()
+        return super().add_class_node(node)
+
+    def add_link(self, link):
+        """Unstore if a link is added"""
+        self._unstore()
+        return super().add_link(link)
+
+    def remove_node(self, node):
+        """Unstore if a class node is removed"""
+        self._unstore()
+        return super().add_class_node(node)
+
+    def remove_link(self, link):
+        """Unstore if a link is removed"""
+        self._unstore()
+        return super().add_link(link)
+
     def _update_id(self, id):
         """
         Updates with the latest id string
@@ -563,3 +591,12 @@ class RDFWriter(object):
         self._build_data_nodes(g, ontology)
 
         return g.serialize(format='turtle').decode("utf-8")
+
+# basic reasoner for subclass properties...
+#
+# for c in g.subjects(predicate=RDF.type, object = OWL.Class):
+#      print(c)
+#      superC = g.objects(predicate = RDFS.term('subClassOf'), subject = c)
+#      for sc in superC:
+#          props = g.subjects(predicate = RDFS.domain, object = sc)
+#          print(list(props))

@@ -10,7 +10,6 @@ import os
 import subprocess
 import requests
 import time
-import tempfile
 
 from serene import Session
 
