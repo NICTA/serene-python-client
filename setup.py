@@ -34,7 +34,9 @@ install_requires = [
     'networkx',
     'coverage>=3.6,<4.99',
     'requests',
-    'rdflib'
+    'rdflib',
+    'graphviz',
+    'pygraphviz'
 ]
 
 long_desc = """The Serene Python Client is a client library for

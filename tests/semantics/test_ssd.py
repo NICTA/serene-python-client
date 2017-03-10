@@ -9,7 +9,7 @@ import serene
 from serene.matcher.dataset import DataSet
 import os
 from serene.elements import ClassNode, DataNode, Link
-from serene.semantics.ssd import SSD
+from serene.semantics.ssd import SSDInternal
 from ..utils import TestWithServer
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 
