@@ -1,0 +1,175 @@
+{
+    "id": 2,
+    "name": "personalInfo.csv",
+    "attributes": [
+        {
+            "id": 0,
+            "name": "name",
+            "label": "ident",
+            "columnIds": [
+                0
+            ],
+            "sql": "select name from 'personalInfo.csv'"
+        },
+        {
+            "id": 1,
+            "name": "birthDate",
+            "label": "ident",
+            "columnIds": [
+                1
+            ],
+            "sql": "select birthDate from 'personalInfo.csv'"
+        },
+        {
+            "id": 2,
+            "name": "city",
+            "label": "ident",
+            "columnIds": [
+                2
+            ],
+            "sql": "select city from 'personalInfo.csv'"
+        },
+        {
+            "id": 3,
+            "name": "state",
+            "label": "ident",
+            "columnIds": [
+                3
+            ],
+            "sql": "select state from 'personalInfo.csv'"
+        },
+        {
+            "id": 4,
+            "name": "workplace",
+            "label": "ident",
+            "columnIds": [
+                4
+            ],
+            "sql": "select workplace from 'personalInfo.csv'"
+        }
+    ],
+    "ontology": [
+        1
+    ],
+    "semanticModel": {
+        "nodes": [
+            {
+                "id": 0,
+                "label": "Person",
+                "type": "ClassNode"
+            },
+            {
+                "id": 1,
+                "label": "Person.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 2,
+                "label": "Person.birthdate",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "City",
+                "type": "ClassNode"
+            },
+            {
+                "id": 4,
+                "label": "City.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 5,
+                "label": "State",
+                "type": "ClassNode"
+            },
+            {
+                "id": 6,
+                "label": "State.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 7,
+                "label": "Organization",
+                "type": "ClassNode"
+            },
+            {
+                "id": 8,
+                "label": "Organization.name",
+                "type": "DataNode"
+            }
+        ],
+        "links": [
+            {
+                "source": 0,
+                "target": 3,
+                "label": "bornIn",
+                "type": "ObjectProperty"
+            },
+            {
+                "source": 0,
+                "target": 1,
+                "label": "name",
+                "type": "DataProperty"
+            },
+            {
+                "source": 0,
+                "target": 2,
+                "label": "birthDate",
+                "type": "DataProperty"
+            },
+            {
+                "source": 3,
+                "target": 5,
+                "label": "state",
+                "type": "ObjectProperty"
+            },
+            {
+                "source": 3,
+                "target": 4,
+                "label": "name",
+                "type": "DataProperty"
+            },
+            {
+                "source": 0,
+                "target": 7,
+                "label": "worksFor",
+                "type": "ObjectProperty"
+            },
+            {
+                "source": 5,
+                "target": 6,
+                "label": "name",
+                "type": "DataProperty"
+            },
+            {
+                "source": 7,
+                "target": 8,
+                "label": "name",
+                "type": "DataProperty"
+            }
+        ]
+    },
+    "mappings": [
+        {
+            "attribute": 0,
+            "node": 1
+        },
+        {
+            "attribute": 1,
+            "node": 2
+        },
+        {
+            "attribute": 2,
+            "node": 4
+        },
+        {
+            "attribute": 3,
+            "node": 6
+        },
+        {
+            "attribute": 4,
+            "node": 8
+        }
+    ]
+}

@@ -1,0 +1,66 @@
+@prefix : <http://www.semanticweb.org/data_integration_project/report_example_ontology#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@base <http://www.semanticweb.org/data_integration_project/report_example_ontology> .
+
+<http://www.semanticweb.org/data_integration_project/report_example_ontology> rdf:type owl:Ontology .
+
+#################################################################
+#    Classes
+#################################################################
+
+:City rdf:type owl:Class ;
+      rdfs:subClassOf :Place .
+
+:Event rdf:type owl:Class .
+
+:Organization rdf:type owl:Class .
+
+:Person rdf:type owl:Class .
+
+:Place rdf:type owl:Class .
+
+:State rdf:type owl:Class ;
+       rdfs:subClassOf :Place .
+
+#################################################################
+#    Object Properties
+#################################################################
+
+:bornIn rdf:type owl:ObjectProperty .
+
+:ceo rdf:type owl:ObjectProperty .
+
+:isPartOf rdf:type owl:ObjectProperty .
+
+:livesIn rdf:type owl:ObjectProperty .
+
+:location rdf:type owl:ObjectProperty .
+
+:nearby rdf:type owl:ObjectProperty .
+
+:organizer rdf:type owl:ObjectProperty .
+
+:state rdf:type owl:ObjectProperty .
+
+:worksFor rdf:type owl:ObjectProperty .
+
+#################################################################
+#    Data properties
+#################################################################
+
+:birthDate rdf:type owl:DatatypeProperty .
+
+:email rdf:type owl:DatatypeProperty .
+
+:endDate rdf:type owl:DatatypeProperty .
+
+:name rdf:type owl:DatatypeProperty .
+
+:phone rdf:type owl:DatatypeProperty .
+
+:postalCode rdf:type owl:DatatypeProperty .
+
+:startDate rdf:type owl:DatatypeProperty .

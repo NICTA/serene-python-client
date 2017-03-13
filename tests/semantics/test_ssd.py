@@ -9,7 +9,7 @@ import serene
 from serene.matcher.dataset import DataSet
 import os
 from serene.elements import ClassNode, DataNode, Link
-from serene.semantics.ssd import SSDInternal as SSD
+from serene.semantics.ssd import SSD
 from ..utils import TestWithServer
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 
@@ -57,10 +57,9 @@ class TestSSD(TestWithServer):
         ds = self._datasets.upload(self._test_file)
         on = self._ontologies.upload(self._test_owl)
 
-        single = SSD("test-ssd", ds, on)
+        single = SSD(dataset=ds, ontology=on)
 
-        self.assertEqual(single)
-        self.assertEqual(len(single.data_nodes), 0)
+        self.assertEqual(len(single.data_nodes), 4)
         self.assertEqual(len(single.links), 0)
-        self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
-        self.assertEqual(single.class_nodes[0].name, "hello")
+        # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
+        # self.assertEqual(single.class_nodes[0].name, "hello")
