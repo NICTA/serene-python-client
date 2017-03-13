@@ -1,8 +1,12 @@
 """
-License...
+Copyright (C) 2017 Data61 CSIRO
+Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+
+Code for the raw elements object
 """
 import collections
 import logging
+import types
 
 from serene.utils import Searchable
 
@@ -218,17 +222,17 @@ class ClassNode(Searchable):
         lambda node: node.parent if node.parent else None
     ]
 
-    @classmethod
-    def search(cls, container, item, errors=False):
-        result = super(ClassNode, cls).search(container, item, errors)
-        if result is not None:
-            return result
-        elif item.parent is None:
-            return result
-        else:
-            # now we need to check the parent classes of item!
-            result = super(ClassNode, cls).search(container, item.parent, errors)
-            return result
+    #@classmethod
+    #def search(cls, container, item, errors=False):
+    #    result = super(ClassNode, cls).search(container, item, errors)
+    #    if result is not None:
+    #        return result
+    #    elif item.parent is None:
+    #        return result
+    #    else:
+    #        # now we need to check the parent classes of item!
+    #        result = super(ClassNode, cls).search(container, item.parent, errors)
+    #        return result
 
     def __init__(self, name, nodes=None, prefix=None, parent=None):
         """
@@ -246,7 +250,7 @@ class ClassNode(Searchable):
 
         if nodes is None:
             self.nodes = []
-        elif issubclass(type(nodes), list):
+        elif issubclass(type(nodes), list) or issubclass(type(nodes), types.GeneratorType):
             self.nodes = [DataNode(self, n, dtype=str) for n in nodes]
         else:
             self.nodes = [DataNode(self, n, dtype=dtype) for n, dtype in nodes.items()]
@@ -294,30 +298,30 @@ class DataNode(Searchable):
         lambda node: node.parent.prefix if node.parent else None
     ]
 
-    @classmethod
-    def search(cls, container, item, errors=False, class_nodes=None):
-        result = super(DataNode, cls).search(container, item, errors)
-        if result is not None:
-            #print(item.name, "has been found", result)
-            return result
-        elif item.parent is None:
-            #print(item.name, "has no parent!!!")
-            return result
-        else:
-            class_node = item.parent
-            #print(item.name, "has a parent::", class_node)
-            if class_nodes is not None:
-                cn = ClassNode.search(class_nodes, class_node)
-                if cn is None:
-                    #print("blast, couldn't find class node", class_node,"in the provided class_nodes")
-                    return result
-                else:
-                    #print("Searching for", DataNode(cn.parent.name, item.name))
-                    result = cls.search(container, DataNode(cn.parent.name, item.name), errors)
-                    return result
-            else:
-                #print("no class node provided!")
-                return result
+    # @classmethod
+    # def search(cls, container, item, errors=False, class_nodes=None):
+    #     result = super(DataNode, cls).search(container, item, errors)
+    #     if result is not None:
+    #         #print(item.name, "has been found", result)
+    #         return result
+    #     elif item.parent is None:
+    #         #print(item.name, "has no parent!!!")
+    #         return result
+    #     else:
+    #         class_node = item.parent
+    #         #print(item.name, "has a parent::", class_node)
+    #         if class_nodes is not None:
+    #             cn = ClassNode.search(class_nodes, class_node)
+    #             if cn is None:
+    #                 #print("blast, couldn't find class node", class_node,"in the provided class_nodes")
+    #                 return result
+    #             else:
+    #                 #print("Searching for", DataNode(cn.parent.name, item.name))
+    #                 result = cls.search(container, DataNode(cn.parent.name, item.name), errors)
+    #                 return result
+    #         else:
+    #             #print("no class node provided!")
+    #             return result
 
     def __init__(self, *names, dtype=str):
         """

@@ -15,6 +15,7 @@ import rdflib
 
 from collections import defaultdict
 from .base import BaseSemantic
+from ..elements import ClassNode, DataNode
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -119,6 +120,41 @@ class Ontology(BaseSemantic):
         """Unstore if a link is removed"""
         self._unstore()
         return super().add_link(link)
+
+    def _class_chain(self, dn):
+        """
+        Returns the chain of parent classes from DataNode -> all parents
+        including the original
+        """
+        if dn is None:
+            raise StopIteration
+        else:
+            yield dn
+            yield from self._class_chain(dn.parent)
+
+    def _item_chain(self, z):
+        for cls in self._class_chain(z):
+            for item in cls.nodes:
+                yield item.name
+
+    def _iclass_nodes(self):
+        """Returns all inferred class nodes"""
+        for node in self.class_nodes:
+            yield ClassNode(node.name, list(self._item_chain(node)), prefix=node.prefix)
+
+    def _idata_nodes(self):
+        """Returns all inferred data nodes"""
+        for node in self.iclass_nodes:
+            for dn in node.nodes:
+                yield dn
+
+    @property
+    def iclass_nodes(self):
+        return self._iclass_nodes()
+
+    @property
+    def idata_nodes(self):
+        return self._idata_nodes()
 
     def _update_id(self, id):
         """

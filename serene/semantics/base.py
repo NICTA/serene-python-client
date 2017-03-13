@@ -70,8 +70,6 @@ class BaseSemantic(object):
         # now we create a class node object...
         cn = ClassNode(name, node_dict, prefix, parent_class)
 
-        print(">>>>>>", "Created ClassNode!!!", cn, "with parent", cn.parent)
-
         self.add_class_node(cn)
 
         return self
