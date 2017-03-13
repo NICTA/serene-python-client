@@ -164,7 +164,7 @@ class OctopusAPI(HTTPObject):
         as input.
 
         Args:
-            key: integer which is the key of the octous in the repository
+            key: integer which is the key of the octopus in the repository
             dataset_key: integer key for the dataset to predict
 
         Returns: JSON object with predicted semantic models and associated scores in there

@@ -273,8 +273,6 @@ input("press any key to continue...")
 # ==========
 
 octo = sn.Octopus(
-    name='felix-test',
-    description='Testing example for places and companies',
     ssds=[
         business_info_ssd,
         employee_address_ssd,
@@ -282,11 +280,17 @@ octo = sn.Octopus(
         get_employees_ssd,
         postal_code_ssd
     ],
+    name='octopus-test',
+    description='Testing example for places and companies',
     ontologies=[ontology],
     resampling_strategy="NoResampling",  # optional
     num_bags=100,  # optional
     bag_size=10,  # optional
-    config={
+    model_type="randomForest",
+    modeling_props={
+
+    },
+    feature_config={
         "activeFeatures": [
             "num-unique-vals",
             "prop-unique-vals",
@@ -335,11 +339,17 @@ octo = sn.Octopus(
 # =======================
 
 personal_info = sn.datasets.upload('tests/resources/data/personalInfo.csv')
-predictedSSD = octo.predict(personal_info)
+predicted = octo.predict(personal_info, candidates=3)
 
-predictedSSD.show()
+for p in predicted:
+    print("Predicted candidate rank", p.score.rank)
+    print("Score:")
+    p.score.show()
+    p.ssd.show()
+    input("Press any key to continue...")
 
-input("Press any key to continue...")
+# the best is number 0!
+predicted_ssd = predicted[0].ssd
 
 # =======================
 #
@@ -347,10 +357,10 @@ input("Press any key to continue...")
 #
 # =======================
 
-predictedSSD.remove(Mapping(Column("name"), DataNode("Place", "name")))
-predictedSSD = predictedSSD.map(Column("name"), DataNode("Person", "name"))
+predicted_ssd.remove(Mapping(Column("name"), DataNode("Place", "name")))
+predicted_ssd = predicted_ssd.map(Column("name"), DataNode("Person", "name"))
 
-predictedSSD.show()
+predicted_ssd.show()
 
 input("Press any key to continue...")
 
@@ -360,7 +370,9 @@ input("Press any key to continue...")
 #
 # =======================
 
-octo.add(predictedSSD)
+new_ssd = sn.ssds.upload(predicted_ssd)
+
+octo.add(new_ssd)
 
 # =======================
 #
@@ -368,12 +380,12 @@ octo.add(predictedSSD)
 #
 # =======================
 
-print(octo.node_map)
+print(octo.mappings)
 print()
-print(octo.node_map[DataNode("Person", "name")])
+print(octo.mappings[DataNode("Person", "name")])
 print()
 
-person_columns = [col for col, node in octo.mappings if node == DataNode("Person", "name")]
+person_columns = [col for node, col in octo.mappings.items() if node == DataNode("Person", "name")]
 
 print(person_columns)
 print()

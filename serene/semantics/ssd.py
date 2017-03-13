@@ -102,11 +102,12 @@ class SSD(object):
         :param json:
         :return:
         """
-        self._stored = True
-        self._name = json['name']
-        self._date_created = json['dateCreated']
-        self._date_modified = json['dateModified']
-        self._id = int(json['id'])
+        if 'id' in json:
+            self._stored = True
+            self._name = json['name']
+            self._date_created = json['dateCreated']
+            self._date_modified = json['dateModified']
+            self._id = int(json['id'])
 
         reader = SSDReader(json, self._ds_endpoint, self._on_endpoint)
 
@@ -152,7 +153,6 @@ class SSD(object):
         :return: The actual DataNode in the system, or an error if not found or ambiguous
         """
         data_nodes = self._ontology.idata_nodes
-        #dn = DataNode.search(data_nodes, data_node, errors=False, class_nodes=self._ontology.class_nodes)
         dn = DataNode.search(data_nodes, data_node)
         if dn is None:
             msg = "Failed to find DataNode: {}".format(data_node)

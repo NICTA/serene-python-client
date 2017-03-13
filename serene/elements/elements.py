@@ -24,7 +24,7 @@ class Column(Searchable):
     getters = [
         lambda col: col.name,
         lambda col: col.index,
-        lambda col: col.set_filename
+        lambda col: col.filename
     ]
 
     def __init__(self, name, df=None, filename=None, index=None):

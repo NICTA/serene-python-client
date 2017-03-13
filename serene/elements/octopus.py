@@ -10,7 +10,7 @@ _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
 
-class OctopusInternal(object):
+class Octopus(object):
     """
         Octopus is the central integration map for a collection of DataSets.
     """

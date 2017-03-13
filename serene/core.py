@@ -6,7 +6,7 @@ import logging
 from .api.session import Session
 from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
 from .semantics import SSD
-from .elements import OctopusInternal
+from .elements import Octopus
 
 # logging functions...
 _logger = logging.getLogger()
@@ -66,7 +66,7 @@ class Serene(object):
         return SSD(dataset, ontology, self._datasets, self._ontologies)
 
     def Octopus(self):
-        return OctopusInternal(self._session)
+        return Octopus(self._session)
 
         # # set the config args...
         # default_args = {

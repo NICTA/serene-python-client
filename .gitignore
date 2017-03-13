@@ -8,6 +8,7 @@ serene-python-client.egg-info/
 __pycache__
 *.pyc
 .coverage
+.ipynb_checkpoints/
 
 out.ssd
 
