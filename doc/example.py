@@ -123,28 +123,28 @@ if len(ontologies):
 
     input("Press enter to continue")
 
+# #
+# # The most straightforward way is to upload an OWL file directly...
+# #
+# ontology = sn.ontologies.upload('tests/resources/owl/dataintegration_report_ontology.owl')
 #
-# The most straightforward way is to upload an OWL file directly...
+# ontology.show()
 #
-ontology = sn.ontologies.upload('tests/resources/owl/dataintegration_report_ontology.owl')
-
-ontology.show()
-
-input("Press enter to continue...")
-
+# input("Press enter to continue...")
 #
-# Or if you want to check it first you can do...
+# #
+# # Or if you want to check it first you can do...
+# #
+# local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.owl')
 #
-local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.owl')
-
-local_ontology.show()
-
-input("Press enter to continue...")
-
+# local_ontology.show()
 #
-# Now we can upload
+# input("Press enter to continue...")
 #
-ontology = sn.ontologies.upload(local_ontology)
+# #
+# # Now we can upload
+# #
+# ontology2 = sn.ontologies.upload(local_ontology)
 
 #
 # Or you can build one programmatically
@@ -152,8 +152,8 @@ ontology = sn.ontologies.upload(local_ontology)
 ontology_local = (
     serene.Ontology()
           .uri("http://www.semanticweb.org/serene/report_example_ontology")
-          .class_node("Place", ["postalCode"])
-          .class_node("City", ["name"], is_a="Place")
+          .class_node("Place", ["name","postalCode"])
+          .class_node("City", is_a="Place")
           .class_node("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
           .class_node("Organization", {"name": str, "phone": int, "email": str})
           .class_node("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
@@ -164,6 +164,7 @@ ontology_local = (
           .link("Person", "livesIn", "Place")
           .link("Event", "location", "Place")
           .link("Organization", "location", "Place")
+          .link("Organization", "operatesIn", "City")
           .link("Place", "nearby", "Place")
           .link("Event", "organizer", "Person")
           .link("City", "state", "State")
@@ -184,7 +185,7 @@ input("Press enter to continue...")
 #
 # If ok, we can upload this to the server as well...
 #
-ontology2 = sn.ontologies.upload(ontology_local)
+ontology = sn.ontologies.upload(ontology_local)
 
 
 # ===============
@@ -216,8 +217,8 @@ business_info_ssd = (sn.SSD(business_info, ontology)
                      .map(Column("ceo"), DataNode("Person", "name"))
                      .map(Column("city"), DataNode("City", "name"))
                      .map(Column("state"), DataNode("State", "name"))
-                     .link("Organization", "Person", relationship="ceo")
                      .link("Organization", "City", relationship="operatesIn")
+                     .link("Organization", "Person", relationship="ceo")
                      .link("City", "State", relationship="state"))
 
 business_info_ssd.show()
@@ -243,7 +244,7 @@ get_cities_ssd.show()
 
 input("press any key to continue...")
 
-get_employees_ssd = (serene.semantics.SSD(get_employees, ontology)
+get_employees_ssd = (sn.SSD(get_employees, ontology)
                      .map(Column("employer"), DataNode("Organization", "name"))
                      .map(Column("employee"), DataNode("Person", "name"))
                      .link("Person", "Organization", relationship="worksFor"))
@@ -254,7 +255,7 @@ get_employees_ssd.show()
 input("press any key to continue...")
 
 
-postal_code_ssd = (serene.semantics.SSD(postal_code, ontology)
+postal_code_ssd = (sn.SSD(postal_code, ontology)
                    .map(Column("zipcode"), DataNode("Place", "postalCode"))
                    .map(Column("city"), DataNode("City", "name"))
                    .map(Column("state"), DataNode("State", "name"))
