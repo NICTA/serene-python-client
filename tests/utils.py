@@ -27,7 +27,8 @@ class SereneTestServer(object):
         self.port = None
 
     def setup(self):
-        with open(os.path.join('tests', 'config.yaml'), 'r') as stream:
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests")
+        with open(os.path.join(path, 'config.yaml'), 'r') as stream:
             config = yaml.load(stream)
 
         # Test if we need to launch a server here...

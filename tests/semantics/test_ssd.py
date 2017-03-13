@@ -22,9 +22,11 @@ class TestSSD(TestWithServer):
         super().__init__(method_name)
         self._datasets = None
         self._ontologies = None
-        self._test_file = 'tests/resources/data/businessInfo.csv'
-        self._test_owl = 'tests/resources/owl/dataintegration_report_ontology.owl'
-        self._test_ssd = 'tests/resources/ssd/businessInfo.ssd'
+
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
+        self._test_file = os.path.join(path, 'data','businessInfo.csv')
+        self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.owl')
+        self._test_ssd = os.path.join(path, 'ssd','businessInfo.ssd')
 
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
@@ -52,4 +54,12 @@ class TestSSD(TestWithServer):
         Tests the SSD creation
         :return:
         """
-        pass
+        ds = self._datasets.upload(self._test_file)
+        on = self._ontologies.upload(self._test_owl)
+
+        single = SSD(dataset=ds, ontology=on)
+
+        self.assertEqual(len(single.data_nodes), 4)
+        self.assertEqual(len(single.links), 0)
+        # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
+        # self.assertEqual(single.class_nodes[0].name, "hello")

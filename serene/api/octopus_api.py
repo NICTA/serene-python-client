@@ -20,216 +20,165 @@ class OctopusAPI(HTTPObject):
         self._uri = urljoin(uri, 'octopus/')
 
     def post(self,
-             name=None,
-             description=None,
-             features=None,
-             resampling_strategy=None,
-             num_bags=None,
-             bag_size=None,
+             ssds,
+             name="",
+             description="",
+             feature_config=None,
+             model_type="randomForest",
+             resampling_strategy="NoResampling",
+             num_bags=10,
+             bag_size=10,
              ontologies=None,
-             ssds=None,
-             modeling_properties=None):
+             modeling_props=None):
         """
-        Post a new Octopus to the Serene server.
+        Post a new model to the schema matcher server.
 
-        :param name: The name of the Octopus
-        :param description: A descriptive text
-        :param features: The ML features to use for the schema matcher, options
-                         { "activeFeatures" : [
-                              "num-unique-vals",
-                              "prop-unique-vals",
-                              "prop-missing-vals",
-                              "ratio-alpha-chars",
-                              "prop-numerical-chars",
-                              "prop-whitespace-chars",
-                              "prop-entries-with-at-sign",
-                              "prop-entries-with-hyphen",
-                              "prop-range-format",
-                              "is-discrete",
-                              "entropy-for-discrete-values"
-                            ],
-                            "activeFeatureGroups" : [
-                              "inferred-data-type",
-                              "stats-of-text-length",
-                              "stats-of-numeric-type",
-                              "prop-instances-per-class-in-knearestneighbours",
-                              "mean-character-cosine-similarity-from-class-examples",
-                              "min-editdistance-from-class-examples",
-                              "min-wordnet-jcn-distance-from-class-examples",
-                              "min-wordnet-lin-distance-from-class-examples"
-                            ],
-                            "featureExtractorParams" : [
-                                 {
-                                  "name" : "prop-instances-per-class-in-knearestneighbours",
-                                  "num-neighbours" : 3
-                                 }, {
-                                  "name" : "min-editdistance-from-class-examples",
-                                  "max-comparisons-per-class" : 20
-                                 }, {
-                                  "name" : "min-wordnet-jcn-distance-from-class-examples",
-                                  "max-comparisons-per-class" : 20
-                                 }, {
-                                  "name" : "min-wordnet-lin-distance-from-class-examples",
-                                  "max-comparisons-per-class" : 20
-                                 }
-                            ]
-                         }
-        :param resampling_strategy: The sampling strategy to use to balance the classes:
-                                    "UpsampleToMax"
-                                    "ResampleToMean"
-                                    "Bagging"
-                                    "UpsampleToMean"
-                                    "BaggingToMax"
-                                    "BaggingToMean"
-                                    "NoResampling"
-        :param num_bags: The number of bags for the Bagging resampling strategies
-        :param bag_size: The size of the bags for the Bagging resampling strategies
-        :param ontologies: The list of Ontology keys used in this Octopus
-        :param ssds: The list of SSD keys used in this Octopus
-        :param modeling_properties:
-
-        :return model dictionary
+        :param ssds: List of ids for the semantic source descriptions which will form the training dataset
+        :param name: user-defined name for this octopus
+        :param description: string which describes the model to be posted
+        :param feature_config: dictionary
+        :param model_type: string
+        :param resampling_strategy: string
+        :param num_bags: number of bags to be created per column
+        :param bag_size: number of rows to be sampled from the column per each bag
+        :param ontologies: List of ids for owls
+        :param modeling_props: configuration parameters for semantic modeler
+        :return octopus dictionary
         """
-        if classes is None:
-            classes = ["unknown"]
-
-        assert "unknown" in classes
-
-        logging.debug('Sending request to the schema matcher server to post a model.')
+        logging.debug('Sending request to the serene server to post octopus.')
         uri = self._uri
 
         try:
-            data = self._process_model_input(feature_config,
-                                             description,
-                                             classes,
-                                             model_type,
-                                             labels,
-                                             cost_matrix,
-                                             resampling_strategy)
+            data = self._process_octopus_input(ssds, name, description, feature_config, model_type,
+                                               resampling_strategy, num_bags, bag_size, ontologies,
+                                               modeling_props)
             r = self.connection.post(uri, json=data)
         except Exception as e:
             logging.error(e)
-            raise InternalError("Failed to create model", e)
+            raise InternalError("Failed to create octopus ", e)
         self._handle_errors(r, "POST " + uri)
         return r.json()
 
     def update(self,
                key,
-               feature_config=None,
+               ssds=None,
+               name=None,
                description=None,
-               classes=None,
+               feature_config=None,
                model_type=None,
-               labels=None,
-               cost_matrix=None,
-               resampling_strategy=None):
+               resampling_strategy=None,
+               num_bags=None,
+               bag_size=None,
+               ontologies=None,
+               modeling_props=None):
         """
-        Update an existing model in the model repository at the schema matcher server.
+        Update an existing octopus in the repository at the serene server.
 
-        :param key: integer which is the key of the model in the repository
-        :param feature_config: dictionary
+        :param key: integer which is the key of the octopus in the repository
+        :param ssds: List of ids for the semantic source descriptions which will form the training dataset
+        :param name: user-defined name for this octopus
         :param description: string which describes the model to be posted
-        :param classes: list of class names
+        :param feature_config: dictionary
         :param model_type: string
-        :param labels: dictionary
-        :param cost_matrix:
         :param resampling_strategy: string
+        :param num_bags: number of bags to be created per column
+        :param bag_size: number of rows to be sampled from the column per each bag
+        :param ontologies: List of ids for owls
+        :param modeling_props: configuration parameters for semantic modeler
 
         :return model dictionary
         """
 
-        logging.debug('Sending request to the schema matcher server to update model %d' % key)
+        logging.debug('Sending request to the serene server to update octopus %d' % key)
         uri = urljoin(self._uri, str(key))
         try:
-            data = self._process_model_input(feature_config,
-                                             description,
-                                             classes,
-                                             model_type,
-                                             labels,
-                                             cost_matrix,
-                                             resampling_strategy)
+            data = self._process_octopus_input(ssds, name, description, feature_config, model_type,
+                                               resampling_strategy, num_bags, bag_size, ontologies,
+                                               modeling_props)
 
             r = self.connection.post(uri, json=data)
         except Exception as e:
             logging.error(e)
-            raise InternalError("update_model", e)
+            raise InternalError("Update octopus ", e)
         self._handle_errors(r, "POST " + uri)
         return r.json()
 
     def item(self, key):
         """
-        Get information on a specific model in the model repository at the schema matcher server.
+        Get information on a specific octopus in the repository at the serene server.
 
-        :param key: integer which is the key of the model in the repository
+        :param key: integer which is the key of the octopus in the repository
 
         :return: dictionary
         """
-        logging.debug('Sending request to the schema matcher server to get model info.')
+        logging.debug('Sending request to the serene server to get octopus %d info' % key)
         uri = urljoin(self._uri, str(key))
         try:
             r = self.connection.get(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalError("Failed to get model", e)
+            raise InternalError("Failed to get octopus ", e)
         self._handle_errors(r, "GET " + uri)
         return r.json()
 
     def delete(self, key):
         """
-        :param key: integer which is the key of the model in the repository
+        :param key: integer which is the key of the octopus in the repository
 
         :returns: dictionary
         """
-        logging.debug('Sending request to the Serene server to delete model.')
+        logging.debug('Sending request to the Serene server to delete octopus %d.' % key)
         uri = urljoin(self._uri, str(key))
 
         try:
             r = self.connection.delete(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalError("Failed to delete model", e)
+            raise InternalError("Failed to delete octopus ", e)
 
         self._handle_errors(r, "DELETE " + uri)
         return r.json()
 
     def train(self, key):
         """
-        :param key: integer which is the key of the model in the repository
+        :param key: integer which is the key of the octopus in the repository
 
         :return: True, this function is asynchronous
         """
-        logging.debug('Sending request to the Serene server to train the model.')
+        logging.debug('Sending request to the Serene server to train the octopus %d' % key)
+        # lobster (schema matcher model) training will be launched automatically on the server side
         uri = urljoin(self._uri, self.join_urls(str(key), "train"))
 
         try:
             r = self.connection.post(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalError("Failed to train model", e)
+            raise InternalError("Failed to train octopus ", e)
 
         self._handle_errors(r, "POST " + uri)
         return True
 
     def predict(self, key, dataset_key):
         """
-        Post request to perform prediction based on the model, using the dataset `dataset_key`
+        Post request to perform prediction based on the octopus, using the dataset `dataset_key`
         as input.
 
         Args:
-            key: integer which is the key of the model in the repository
+            key: integer which is the key of the octous in the repository
             dataset_key: integer key for the dataset to predict
 
-        Returns: True
+        Returns: JSON object with predicted semantic models and associated scores in there
 
         """
-        logging.debug('Sending request to the Serene server to preform '
-                      'a prediction based on the model.')
+        logging.debug('Sending request to the Serene server to perform '
+                      'a prediction based on the octopus {} for the dataset {}'.format(key, dataset_key))
         uri = urljoin(self._uri, self.join_urls(str(key), "predict", str(dataset_key)))
 
         try:
             r = self.connection.post(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalError("Failed to predict Model", e)
+            raise InternalError("Failed to predict octopus ", e)
 
         self._handle_errors(r, "POST " + uri)
 
@@ -241,35 +190,41 @@ class OctopusAPI(HTTPObject):
 
         Returns: list of model keys
         """
-        logging.debug('Sending request to the schema matcher server to list models.')
+        logging.debug('Sending request to the Serene server to list octopi.')
         uri = self._uri
 
         try:
             r = self.connection.get(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalError("Failed to get Model keys", e)
+            raise InternalError("Failed to get octopus keys", e)
 
         self._handle_errors(r, "GET " + uri)
 
         return r.json()
 
     @staticmethod
-    def _process_model_input(feature_config=None,
-                             description=None,
-                             classes=None,
-                             model_type=None,
-                             labels=None,
-                             cost_matrix=None,
-                             resampling_strategy=None):
-        """Prepares a json update string for the model update request"""
+    def _process_octopus_input(ssds,
+                               name="",
+                               description="",
+                               feature_config=None,
+                               model_type="randomForest",
+                               resampling_strategy="NoResampling",
+                               num_bags=10,
+                               bag_size=10,
+                               ontologies=None,
+                               modeling_props=None):
+        """Prepares a json string for octopus request object"""
         data = {
+            "ssds": ssds,
+            "name":name,
             "description": description,
-            "classes": classes,
             "modelType": model_type,
-            "labelData": {str(key): str(val) for key, val in labels.items()},
-            "costMatrix": cost_matrix,
             "resamplingStrategy": resampling_strategy,
-            "features": feature_config
+            "features": feature_config,
+            "numBags": num_bags,
+            "bagSize": bag_size,
+            "ontologies": ontologies,
+            "modelingProps": modeling_props
         }
         return {k: v for k, v in data.items() if v is not None}
