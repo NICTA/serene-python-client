@@ -1,4 +1,4 @@
-@prefix : <http://www.semanticweb.org/serene/xjymlfvurhkgwsta#> .
+@prefix : <http://www.semanticweb.org/serene/hxdwezfkqrylgjms#> .
 @prefix owl: <http://www.w3.org/2002/07/owl#> .
 @prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
@@ -39,14 +39,18 @@
     rdfs:range :Place .
 
 :name a owl:DatatypeProperty ;
-    rdfs:domain :City,
-        :Organization,
-        :Person ;
+    rdfs:domain :Organization,
+        :Person,
+        :Place ;
     rdfs:range rdfs:Literal .
 
 :nearby a owl:ObjectProperty ;
     rdfs:domain :Place ;
     rdfs:range :Place .
+
+:operatesIn a owl:ObjectProperty ;
+    rdfs:domain :Organization ;
+    rdfs:range :City .
 
 :organizer a owl:ObjectProperty ;
     rdfs:domain :Event ;
