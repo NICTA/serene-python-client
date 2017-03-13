@@ -4,7 +4,7 @@ License...
 import logging
 
 from .api.session import Session
-from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
+from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint, OctopusEndpoint
 from .semantics import SSD
 from .elements import Octopus
 
@@ -53,8 +53,10 @@ class Serene(object):
 
         self._ssds = SSDEndpoint(self._session)
 
-    def SSD(self, dataset, ontology):
+        self._octopii = OctopusEndpoint(self._session)
 
+    @staticmethod
+    def SSD(dataset, ontology):
         """
         Here we have the SSD class that the user can use to build SSDs.
         Note that we hide this in a nested class to pass the reference
@@ -63,90 +65,40 @@ class Serene(object):
         we can use real dataset and ontology objects, rather than just
         IDs when talking to/from the server.
         """
-        return SSD(dataset, ontology, self._datasets, self._ontologies)
-
-    def Octopus(self):
-        return Octopus(self._session)
-
-        # # set the config args...
-        # default_args = {
-        #     "kmeans": 5,
-        #     "threshold": 0.7,
-        #     "search-depth": 100
-        # }
-        # self.config = default_args
-        #
-        # # fill in the default args...
-        # if type(config) == dict:
-        #     for k, v in config.items():
-        #         if k in default_args.keys():
-        #             self.config[k] = v
-        #         else:
-        #             _logger.warning("The key {} is not supported for config".format(k))
-
-        # # add the ontology list...
-        # self._ontologies = []
-        # if ontologies is not None:
-        #     for o in ontologies:
-        #         self.add_ontology(Ontology(o))
-
-        # _logger.debug("Config set to:", self.config)
-        # _logger.debug("Ontologies set to: {}".format(self._ontologies))
-
-    # def add_ontology(self, ontology):
-    #     """
-    #     Adds an ontology to the list. This method can accept Ontology
-    #     type objects or .owl files.
-    #
-    #     :param ontology: The Ontology object to add, or a .owl filename
-    #     :return: Updated SemanticModeller object
-    #     """
-    #     if type(ontology) == Ontology:
-    #         self._ontologies.append(ontology)
-    #     elif type(ontology) == str:
-    #         # attempt to open from a file...
-    #         self.add_ontology(Ontology(ontology))
-    #     else:
-    #         raise Exception("Failed to add ontology: {}".format(ontology))
-    #
-    #     return self
-
-    # def to_ssd(self, filename):
-    #     """
-    #     Loads in a datafile to transform to an ssd object
-    #
-    #     :param filename: A CSV file to convert to an SSD
-    #     :return: SemanticSourceDesc object
-    #     """
-    #     ssd = SSD(filename, self)
-    #     return ssd
+        return SSD(dataset, ontology)
 
     @staticmethod
-    def _flatten(xs):
-        """Simple flatten from 2D to 1D iterable"""
-        return [x for y in xs for x in y]
-
-    # @property
-    # def class_nodes(self):
-    #     """All the class_nodes available in the ontologies"""
-    #     return self.flatten(o.class_nodes for o in self._ontologies)
-    #
-    # @property
-    # def data_nodes(self):
-    #     """All the data_nodes available in the ontologies"""
-    #     return self.flatten(o.data_nodes for o in self._ontologies)
-    #
-    # @property
-    # def links(self):
-    #     """All links currently present in the ontologies"""
-    #     return self.flatten(o.links for o in self._ontologies)
-    #
-    # @property
-    # def ontologies(self):
-    #     """The read-only list of ontologies currently on the server"""
-    #     return self._ontologies
-    #def upload_ssd(self, ssd):
-    #    pass
+    def Octopus(ssds,
+                name="",
+                description="",
+                feature_config=None,
+                model_type="randomForest",
+                resampling_strategy="NoResampling",
+                num_bags=10,
+                bag_size=10,
+                ontologies=None,
+                modeling_props=None):
+        """
+        Here we have the Octopus class that the user can use to build an
+        Octopus object.
+        Note that we hide this in a def to pass the reference
+        to the live server. Otherwise the user needs to pass in a session
+        reference for a simple Octopus() class. With the server reference
+        we can use real ssd and ontology objects, rather than just
+        IDs when talking to/from the server.
+        """
+        return Octopus(
+            ssds=ssds,
+            name=name,
+            description=description,
+            feature_config=feature_config,
+            model_type=model_type,
+            resampling_strategy=resampling_strategy,
+            num_bags=num_bags,
+            bag_size=bag_size,
+            ontologies=ontologies,
+            modeling_props=modeling_props
+        )
 
     @property
     def ontologies(self):
@@ -159,6 +111,10 @@ class Serene(object):
     @property
     def ssds(self):
         return self._ssds
+
+    @property
+    def octopii(self):
+        return self._octopii
 
     def __repr__(self):
         return "Serene({}:{}, {})".format(

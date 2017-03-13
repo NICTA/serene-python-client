@@ -17,6 +17,7 @@ from functools import lru_cache
 from .matcher.dataset import DataSet
 from .semantics.ontology import Ontology
 from .semantics.ssd import SSD
+from .elements.octopus import Octopus
 from .utils import flatten
 
 
@@ -33,7 +34,7 @@ def decache(func):
         Wrapper function that busts the cache for each lru_cache file
         """
         if not issubclass(type(self), IdentifiableEndpoint):
-            raise ValueError("Can only clear cache of DataSetEndpoint")
+            raise ValueError("Can only clear cache of IdentifiableEnpoint class")
 
         type(self).items.fget.cache_clear()
 
@@ -353,3 +354,89 @@ class SSDEndpoint(IdentifiableEndpoint):
                               self._session.ontologies)
             ssd.append(s)
         return tuple(ssd)
+
+
+class OctopusEndpoint(IdentifiableEndpoint):
+    """
+    The endpoint object for the Octopus Serene methods
+    :param object:
+    :return:
+    """
+    def __init__(self, session):
+        """
+        Initializes the Octopus endpoint, using a session object
+        to populate the SSD and Ontology objects
+
+        :param session: The current live session to communicate with the server
+        :return:
+        """
+        super().__init__()
+        self._api = session.ontology
+        self._session = session
+        self._base_type = Octopus
+
+    @decache
+    def upload(self, octopus):
+        """
+        Uploads an Octopus to the server
+        :param octopus: The local Octopus object
+        :return:
+        """
+        assert(issubclass(type(octopus), Octopus))
+
+        for ssd in octopus.ssds:
+            if not ssd.stored:
+                msg = "SSD is not stored on the server: {}. Use " \
+                      "<Serene>.ssd.upload(<SSD>) to update.".format(ssd)
+                raise ValueError(msg)
+
+        for ontology in octopus.ontology:
+            if not ontology.stored:
+                msg = "Ontology is not stored on the server: {}. Use " \
+                      "<Serene>.ontologies.upload(<Ontology>) to update.".format(ontology)
+                raise ValueError(msg)
+
+        response = self._api.post(
+            ssds=[s.id for s in octopus.ssds],
+            name=octopus.name if octopus.name is not None else "unknown",
+            description=octopus.description if octopus.description is not None else "",
+            feature_config=octopus.feature_config,
+            model_type=octopus.model_type if octopus.model_type is not None else "randomForest",
+            resampling_strategy=octopus.resampling_strategy,
+            num_bags=octopus.num_bags,
+            bag_size=octopus.bag_size,
+            ontologies=[o.id for o in octopus.ontologies],
+            modeling_props=octopus.modeling_props
+        )
+
+        return octopus.update(response)
+
+    @decache
+    def remove(self, octopus):
+        """
+        Removes the Octopus from the server...
+        :param octopus: The key or Octopus object to delete from the server...
+        :return:
+        """
+        self._apply(self._api.delete, octopus, 'delete')
+
+    def show(self):
+        """
+        Prints the Octopus elements on the server.
+        :return:
+        """
+        print(self.items)
+
+    @property
+    @lru_cache(maxsize=32)
+    def items(self):
+        """Maintains a list of Octopus objects"""
+        keys = self._api.keys()
+        octopii = []
+        for k in keys:
+            blob = self._api.item(k)
+            s = Octopus.from_json(blob,
+                                  self._session.ssds,
+                                  self._session.ontologies)
+            octopii.append(s)
+        return tuple(octopii)

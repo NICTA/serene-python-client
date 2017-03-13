@@ -36,9 +36,7 @@ class SSD(object):
     """
     def __init__(self,
                  dataset=None,
-                 ontology=None,
-                 ontology_endpoint=None,
-                 dataset_endpoint=None):
+                 ontology=None):
         """
         Builds up a SemanticSourceDesc object given a dataset and
         and a parent ontology (or set of ontologies).
@@ -69,8 +67,6 @@ class SSD(object):
         self._stored = False  # is stored on the server?
         self._date_created = None
         self._date_modified = None
-        self._ds_endpoint = dataset_endpoint
-        self._on_endpoint = ontology_endpoint
 
         # semantic model
         self._semantic_model = BaseSemantic()
@@ -81,21 +77,24 @@ class SSD(object):
         # yet mapped.
         self._mapping = {}
         for i, column in enumerate(self._dataset.columns):
-           self._mapping[column] = Mapping(
-               column,
-               node=None,
-               transform=IdentTransform())
+            self._mapping[column] = Mapping(
+                column,
+                node=None,
+                transform=IdentTransform())
 
     @classmethod
     def from_json(cls, json_string, dataset_endpoint, ontology_endpoint):
         """Create the object from json directly"""
         new = cls(None,
-                  None,
-                  dataset_endpoint,
-                  ontology_endpoint)
-        return new.read(json_string)
+                  None)
+        return new.read(json_string,
+                        dataset_endpoint,
+                        ontology_endpoint)
 
-    def read(self, json):
+    def read(self,
+             json,
+             dataset_endpoint,
+             ontology_endpoint):
         """
         Updates parameters from a json string.
 
@@ -109,7 +108,7 @@ class SSD(object):
             self._date_modified = json['dateModified']
             self._id = int(json['id'])
 
-        reader = SSDReader(json, self._ds_endpoint, self._on_endpoint)
+        reader = SSDReader(json, dataset_endpoint, ontology_endpoint)
 
         self._ontology = reader.ontology
         self._dataset = reader.dataset
