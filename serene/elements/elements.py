@@ -417,7 +417,7 @@ class Link(Searchable):
             "id": index,
             "source": index_map[self.src],
             "target": index_map[self.dst],
-            "label": self.src.name,
+            "label": self.name,
             "type": self.link_type
         }
 

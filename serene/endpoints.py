@@ -196,22 +196,6 @@ class ModelEndpoint(IdentifiableEndpoint):
         self._session = session
         self._base_type = Model
 
-    # @decache
-    # def upload(self, model):
-    #     """
-    #     Uploads a model to the server
-    #
-    #     :param model
-    #     :return:
-    #     """
-    #     assert(issubclass(type(model), Model))
-    #
-    #     data = json.load(f)
-    #
-    #     response = self._api.post(data)
-    #
-    #     return model.update(response)
-
     @decache
     def remove(self, model):
         """
@@ -395,6 +379,9 @@ class SSDEndpoint(IdentifiableEndpoint):
         assert(issubclass(type(ssd), SSD))
 
         response = self._api.post(ssd.json)
+
+        with open('test.json', 'w') as f:
+            f.write(ssd.json)
 
         return SSD.from_json(response, self._session)
 
