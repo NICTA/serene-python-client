@@ -9,7 +9,7 @@ _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
 
 
-def gen_id():
+def gen_id(k=4):
     """
     Generates a random temporary id. Note that this is alpha-numeric.
     Alpha character ids are used to indicate that this ontology is not
@@ -17,7 +17,7 @@ def gen_id():
 
     :return:
     """
-    return ''.join(random.sample(string.ascii_lowercase, 16))
+    return ''.join(random.sample(string.ascii_lowercase, k))
 
 
 def flatten(xs):

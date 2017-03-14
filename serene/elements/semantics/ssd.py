@@ -32,7 +32,8 @@ class SSD(object):
     """
     def __init__(self,
                  dataset=None,
-                 ontology=None):
+                 ontology=None,
+                 name=None):
         """
         Builds up a SemanticSourceDesc object given a dataset and
         and a parent ontology (or set of ontologies).
@@ -54,7 +55,7 @@ class SSD(object):
             msg = "{} must be stored on the server, use <Serene>.ontologies.upload"
             raise Exception(msg)
 
-        self._name = gen_id()
+        self._name = name if name is not None else gen_id()
         self._dataset = dataset
         self._ontology = ontology
         self._VERSION = "0.1"
@@ -322,7 +323,7 @@ class SSD(object):
         d_class = self._find_class(dst)
 
         # now check that the link is in the ontology...
-        parent_links = self._ontology.links
+        parent_links = self._ontology.ilinks
         target_link = Link(relationship, s_class, d_class)
         link = Link.search(parent_links, target_link)
 
@@ -331,7 +332,7 @@ class SSD(object):
             _logger.error(msg)
             raise Exception(msg)
         elif link in self.links:
-            msg = "Link {} is already in the links"
+            msg = "Link {} is already in the links".format(link)
             _logger.info(msg)
         else:
             # if it is ok, then add the new link to the SemanticModel...
@@ -431,8 +432,20 @@ class SSD(object):
 
         :return: None
         """
+        self.summary()
         SSDVisualizer(self).show()
         return
+
+    def summary(self):
+        """Prints out the summary string..."""
+        print()
+        print("{}:".format(self._name))
+        print(self._full_str())
+
+    @property
+    def name(self):
+        """Returns the current name of the SSD"""
+        return self._name
 
     @property
     def stored(self):
@@ -445,7 +458,7 @@ class SSD(object):
         return self._VERSION
 
     @property
-    def ontologies(self):
+    def ontology(self):
         """The read-only list of ontology objects"""
         return self._ontology
 
@@ -460,6 +473,11 @@ class SSD(object):
         """The SSD as a JSON string"""
         builder = SSDJsonWriter(self)
         return builder.to_json()
+
+    @property
+    def dataset(self):
+        """returns the dataset provided"""
+        return self._dataset
 
     @property
     def model(self):
@@ -481,10 +499,10 @@ class SSD(object):
         """The list of columns currently used"""
         return list(self._mapping.keys())
 
-    @property
-    def transforms(self):
-        """All available transforms"""
-        return list(self._transforms)
+    # @property
+    # def transforms(self):
+    #     """All available transforms"""
+    #     return list(self._transforms)
 
     @property
     def data_nodes(self):
@@ -515,7 +533,7 @@ class SSD(object):
         # combine the relevant links...
         return object_links + [link for link in data_links if link.dst in self.data_nodes]
 
-    def __repr__(self):
+    def _full_str(self):
         """
         Displays the maps of columns to the data nodes of the Ontology
         :return:
@@ -527,6 +545,9 @@ class SSD(object):
         full_str = '\n\t'.join(items)
 
         return "[\n\t{}\n]".format(full_str)
+
+    def __repr__(self):
+        return "SSD({}, {})".format(self._name, self._dataset.filename)
 
 
 class SSDReader(object):
@@ -623,7 +644,8 @@ class SSDReader(object):
 
         return values
 
-    def _build_semantic(self, json):
+    @staticmethod
+    def _build_semantic(json):
         """Builds the semantic model from a json string"""
         sm = BaseSemantic()
         jsm = json["semanticModel"]
@@ -688,76 +710,58 @@ class SSDJsonWriter(object):
         self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
 
     def to_dict(self):
-        """
-
-        :return:
-        """
+        """Builds the dictionary representation of the SSD"""
         d = OrderedDict()
-        d["version"] = self._ssd.version
-        d["name"] = self._ssd.file
-        d["columns"] = self.columns
-        d["attributes"] = self.attributes
-        d["ontology"] = [self._ssd.ontology.id]
+        #d["version"] = self._ssd.version
+        d["name"] = self._ssd.name
+        #d["columns"] = self.columns
+        #d["attributes"] = self.attributes
+        d["ontologies"] = [self._ssd.ontology.id]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
 
         return d
 
     def to_json(self):
-        """
+        """Builds the complete json object string"""
+        return json.dumps(self.to_dict())
 
-        :return:
-        """
-        return json.dumps(self.to_dict(), indent=4)
+    # @property
+    # def columns(self):
+    #     """Builds out the .ssd column attributes"""
+    #     return [
+    #         {
+    #             "id": c.index,
+    #             "name": c.name
+    #         } for c in self._ssd.columns]
 
-    @property
-    def columns(self):
-        """
-
-        :return:
-        """
-        return [
-            {
-                "id": c.index,
-                "name": c.name
-            } for c in self._ssd.columns]
-
-    @property
-    def attributes(self):
-        """
-
-        :return:
-        """
-        return [
-            {
-                "id": self._attr_map[m],
-                "name": m.column.name,
-                "label": m.transform.name,
-                "columnIds": [m.column.index],
-                "sql": m.transform.apply(m.column)
-            } for m in self._ssd.mappings]
+    # @property
+    # def attributes(self):
+    #     """Builds out the .ssd attributes object"""
+    #     return [
+    #         {
+    #             "id": self._attr_map[m],
+    #             "name": m.column.name,
+    #             "label": m.transform.name,
+    #             "columnIds": [m.column.index],
+    #             "sql": m.transform.apply(m.column)
+    #         } for m in self._ssd.mappings]
 
     @property
     def semantic_model(self):
-        """
-
-        :return:
-        """
+        """Builds out the .ssd semantic model section..."""
         return {
             "nodes": [node.ssd_output(index)
                       for index, node in enumerate(self._all_nodes)],
-            "links": [link.ssd_output(self._node_map)
-                      for link in self._ssd.links]
+            "links": [link.ssd_output(index, self._node_map)
+                      for index, link in enumerate(self._ssd.links)]
         }
 
     @property
     def mappings(self):
-        """
-
-        :return:
-        """
+        """BUilds out the .ssd mapping section.."""
         return [
             {
-                "attribute": self._attr_map[m],
+                "attribute": m.column.id, #self._attr_map[m],
                 "node": self._node_map[m.node]
             } for m in self._ssd.mappings if m.node is not None]

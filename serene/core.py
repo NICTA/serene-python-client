@@ -58,7 +58,7 @@ class Serene(object):
         self._models = ModelEndpoint(self._session)
 
     @staticmethod
-    def SSD(dataset, ontology):
+    def SSD(dataset, ontology, name):
         """
         Here we have the SSD class that the user can use to build SSDs.
         Note that we hide this in a nested class to pass the reference
@@ -67,7 +67,7 @@ class Serene(object):
         we can use real dataset and ontology objects, rather than just
         IDs when talking to/from the server.
         """
-        return SSD(dataset, ontology)
+        return SSD(dataset, ontology, name)
 
     @staticmethod
     def Octopus(ssds,

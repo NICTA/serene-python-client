@@ -21,9 +21,9 @@ class TestSSD(TestWithServer):
         self._ontologies = None
 
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
-        self._test_file = os.path.join(path, 'data','businessInfo.csv')
+        self._test_file = os.path.join(path, 'data', 'businessInfo.csv')
         self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.owl')
-        self._test_ssd = os.path.join(path, 'ssd','businessInfo.ssd')
+        self._test_ssd = os.path.join(path, 'ssd', 'businessInfo.ssd')
 
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)

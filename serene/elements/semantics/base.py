@@ -131,13 +131,14 @@ class BaseSemantic(object):
 
         :return:
         """
-        self._links.append(link)
+        if link not in self._links:
+            self._links.append(link)
 
-        # we also add the link to the graph...
-        self._graph.add_edge(
-            link.src,
-            link.dst,
-            {LINK_NAME: link})
+            # we also add the link to the graph...
+            self._graph.add_edge(
+                link.src,
+                link.dst,
+                {LINK_NAME: link})
         return self
 
     def find_class_node(self, name):

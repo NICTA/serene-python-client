@@ -165,7 +165,7 @@ class IdentTransform(Transform):
 
     @staticmethod
     def apply(col):
-        return 'SELECT {} from {}'.format(col.name, col.set_filename)
+        return 'SELECT {} from {}'.format(col.name, col.filename)
 
 
 class TransformList(collections.MutableSequence):
@@ -222,18 +222,6 @@ class ClassNode(Searchable):
         lambda node: node.parent if node.parent else None
     ]
 
-    #@classmethod
-    #def search(cls, container, item, errors=False):
-    #    result = super(ClassNode, cls).search(container, item, errors)
-    #    if result is not None:
-    #        return result
-    #    elif item.parent is None:
-    #        return result
-    #    else:
-    #        # now we need to check the parent classes of item!
-    #        result = super(ClassNode, cls).search(container, item.parent, errors)
-    #        return result
-
     def __init__(self, name, nodes=None, prefix=None, parent=None):
         """
         A ClassNode is initialized with a name, a list of string nodes
@@ -280,10 +268,10 @@ class ClassNode(Searchable):
     def __eq__(self, other):
         return (self.name == other.name) \
                and (self.prefix == other.prefix) \
-                and (self.nodes == other.nodes)
+               and (self.nodes == other.nodes)
 
     def __hash__(self):
-        return id(self)
+        return hash((self.name, self.prefix, frozenset(self.nodes)))
 
 
 class DataNode(Searchable):
@@ -297,31 +285,6 @@ class DataNode(Searchable):
         lambda node: node.parent.name if node.parent else None,
         lambda node: node.parent.prefix if node.parent else None
     ]
-
-    # @classmethod
-    # def search(cls, container, item, errors=False, class_nodes=None):
-    #     result = super(DataNode, cls).search(container, item, errors)
-    #     if result is not None:
-    #         #print(item.name, "has been found", result)
-    #         return result
-    #     elif item.parent is None:
-    #         #print(item.name, "has no parent!!!")
-    #         return result
-    #     else:
-    #         class_node = item.parent
-    #         #print(item.name, "has a parent::", class_node)
-    #         if class_nodes is not None:
-    #             cn = ClassNode.search(class_nodes, class_node)
-    #             if cn is None:
-    #                 #print("blast, couldn't find class node", class_node,"in the provided class_nodes")
-    #                 return result
-    #             else:
-    #                 #print("Searching for", DataNode(cn.parent.name, item.name))
-    #                 result = cls.search(container, DataNode(cn.parent.name, item.name), errors)
-    #                 return result
-    #         else:
-    #             #print("no class node provided!")
-    #             return result
 
     def __init__(self, *names, dtype=str):
         """
@@ -395,7 +358,10 @@ class DataNode(Searchable):
             return "DataNode({})".format(self.name)
 
     def __hash__(self):
-        return id(self)
+        if self.parent:
+            return hash((self.parent.name, self.name))
+        else:
+            return hash(self.name)
 
 
 class Link(Searchable):
@@ -438,7 +404,7 @@ class Link(Searchable):
         else:
             self.link_type = self.DATA_LINK
 
-    def ssd_output(self, index_map):
+    def ssd_output(self, index, index_map):
         """
         Returns the SSD output for a link. Note that we need
         the local reference to the index map, so that we can
@@ -447,9 +413,10 @@ class Link(Searchable):
         :return: Dictionary with the SSD link labels
         """
         return {
+            "id": index,
             "source": index_map[self.src],
             "target": index_map[self.dst],
-            "label": self.name,
+            "label": self.src.name,
             "type": self.link_type
         }
 
@@ -463,8 +430,16 @@ class Link(Searchable):
             return "ClassNode({}) -> Link({}) -> DataNode({})" \
                 .format(self.src.name, self.name, self.dst.name)
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        return (self.name == other.name) and \
+               (self.src == other.src) and \
+               (self.dst == other.dst)
+
     def __hash__(self):
-        return id(self)
+        return hash((self.src, self.dst, self.name))
 
 
 class LinkList(collections.MutableSequence):

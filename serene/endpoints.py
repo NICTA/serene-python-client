@@ -6,7 +6,7 @@ Endpoint objects for the user to view and manipulate. These wrap around
 server Session objects and call methods to talk to the server.
 """
 import collections
-import json
+import pprint
 import os
 import tempfile
 from functools import lru_cache
@@ -395,13 +395,12 @@ class SSDEndpoint(IdentifiableEndpoint):
         """
         assert(issubclass(type(ssd), SSD))
 
-        if not os.path.exists(ssd.path):
-            raise ValueError("No SSD path exists for {}.".format(ssd))
+        pprint.pprint(ssd.json, indent=4)
 
-        with open(ssd.path) as f:
-            data = json.load(f)
+        with open("test.json", "w") as f:
+            f.write(ssd.json)
 
-        response = self._api.post(data)
+        response = self._api.post(ssd.json)
 
         return ssd.update(response)
 

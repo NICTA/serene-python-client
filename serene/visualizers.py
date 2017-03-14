@@ -151,33 +151,33 @@ class SSDVisualizer(BaseVisualizer):
                            style='filled',
                            fontname='helvetica')
 
-    def _draw_transforms(self, graph):
-        """
-        Draws the Transform objects onto the pygraphviz graph
-        :param graph:
-        :return:
-        """
-        for t in self.struct.transforms:
-            if type(t) == IdentTransform:
-                transform_text = "Identity".format(t.id)
-            else:
-                transform_text = "Transform({})".format(t.id)
-
-            graph.add_node(t,
-                           label=transform_text,
-                           color='white',
-                           style='filled',
-                           shape='box',
-                           fontname='helvetica')
-
-        graph.add_subgraph(self.struct.transforms,
-                           rank='min',
-                           name='cluster2',
-                           style='filled',
-                           color='#9090f0',
-                           fontcolor='#6060c0',
-                           label='transforms',
-                           fontname='helvetica')
+    # def _draw_transforms(self, graph):
+    #     """
+    #     Draws the Transform objects onto the pygraphviz graph
+    #     :param graph:
+    #     :return:
+    #     """
+    #     for t in self.struct.transforms:
+    #         if type(t) == IdentTransform:
+    #             transform_text = "Identity".format(t.id)
+    #         else:
+    #             transform_text = "Transform({})".format(t.id)
+    #
+    #         graph.add_node(t,
+    #                        label=transform_text,
+    #                        color='white',
+    #                        style='filled',
+    #                        shape='box',
+    #                        fontname='helvetica')
+    #
+    #     graph.add_subgraph(self.struct.transforms,
+    #                        rank='min',
+    #                        name='cluster2',
+    #                        style='filled',
+    #                        color='#9090f0',
+    #                        fontcolor='#6060c0',
+    #                        label='transforms',
+    #                        fontname='helvetica')
 
     def _draw_data_nodes(self, graph):
         """
@@ -195,20 +195,21 @@ class SSDVisualizer(BaseVisualizer):
                  if n is not None]
 
         for d in nodes:
-            graph.add_node(d,
-                           label=d.name,
-                           color='white',
-                           style='filled',
-                           fontcolor='black',
-                           shape='ellipse',
-                           fontname='helvetica',
-                           rank='same')
+            if d is not None:
+                graph.add_node(d,
+                               label=d.name,
+                               color='white',
+                               style='filled',
+                               fontcolor='black',
+                               shape='ellipse',
+                               fontname='helvetica',
+                               rank='same')
 
-            if d.parent is not None:
-                graph.add_edge(d.parent,
-                               d,
-                               color='gray',
-                               fontname='helvetica-italic')
+                if d.parent is not None:
+                    graph.add_edge(d.parent,
+                                   d,
+                                   color='gray',
+                                   fontname='helvetica-italic')
 
         graph.add_subgraph(nodes,
                            rank='same',
@@ -228,16 +229,16 @@ class SSDVisualizer(BaseVisualizer):
         """
         for m in self.struct.mappings:
             if m.node is not None:
-                graph.add_edge(m.transform,
+                graph.add_edge(m.node,
                                m.column,
                                color='brown',
                                fontname='helvetica-italic',
                                style='dashed')
-                graph.add_edge(m.node,
-                               m.transform,
-                               color='brown',
-                               fontname='helvetica-italic',
-                               style='dashed')
+                # graph.add_edge(m.node,
+                #                m.transform,
+                #                color='brown',
+                #                fontname='helvetica-italic',
+                #                style='dashed')
 
     def _draw_elements(self, g):
         """
@@ -250,6 +251,6 @@ class SSDVisualizer(BaseVisualizer):
         self._draw_class_nodes(g)
         self._draw_data_nodes(g)
         self._draw_columns(g)
-        self._draw_transforms(g)
+        #self._draw_transforms(g)
         self._draw_mappings(g)
         return

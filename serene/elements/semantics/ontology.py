@@ -7,15 +7,15 @@ Defines the Ontology object
 import itertools as it
 import logging
 import os.path
-import random
 import tempfile
-import string
 import pandas as pd
+import itertools as it
 import rdflib
 
 from collections import defaultdict
 from .base import BaseSemantic
-from serene.elements import ClassNode, DataNode
+from serene.elements import ClassNode, DataNode, Link
+from serene.utils import gen_id
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -56,7 +56,7 @@ class Ontology(BaseSemantic):
         self.source_file = None  # the original file the user starts with (if any)
 
         # update to a default ID...
-        self._update_id(self._rand_id())
+        self._update_id(gen_id())
 
         # if a file is presented, we use this to update
         if file is not None:
@@ -121,19 +121,20 @@ class Ontology(BaseSemantic):
         self._unstore()
         return super().add_link(link)
 
-    def _class_chain(self, dn):
+    def _parent_chain(self, node):
         """
-        Returns the chain of parent classes from DataNode -> all parents
+        Returns the chain of parent classes from ClassNode -> all parents
         including the original
         """
-        if dn is None:
+        if node is None:
             raise StopIteration
         else:
-            yield dn
-            yield from self._class_chain(dn.parent)
+            yield node
+            yield from self._parent_chain(node.parent)
 
     def _item_chain(self, z):
-        for cls in self._class_chain(z):
+        """Returns all data nodes in the class chain of z"""
+        for cls in self._parent_chain(z):
             for item in cls.nodes:
                 yield item.name
 
@@ -150,11 +151,24 @@ class Ontology(BaseSemantic):
 
     @property
     def iclass_nodes(self):
-        return self._iclass_nodes()
+        return list(self._iclass_nodes())
 
     @property
     def idata_nodes(self):
-        return self._idata_nodes()
+        return list(self._idata_nodes())
+
+    def _ilinks(self):
+        for link in self.links:
+            ilinks = it.product(
+                self._parent_chain(link.src),
+                self._parent_chain(link.dst)
+            )
+            for src, dst in ilinks:
+                yield Link(link.name, src, dst)
+
+    @property
+    def ilinks(self):
+        return list(self._ilinks())
 
     def _update_id(self, id):
         """
@@ -192,19 +206,6 @@ class Ontology(BaseSemantic):
         self.date_modified = json['dateModified']
         self._update_id(json['id'])
         return self
-
-    @staticmethod
-    def _rand_id():
-        """
-        Generates a random temporary id. Note that this is alpha-numeric.
-        Alpha character ids are used to indicate that this ontology is not
-        stored.
-        Integer numbers indicate that this ontology object is stored on the
-        server.
-
-        :return:
-        """
-        return ''.join(random.sample(string.ascii_lowercase, 16))
 
     def to_turtle(self, filename=None):
         """
