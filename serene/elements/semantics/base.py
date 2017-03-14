@@ -10,7 +10,7 @@ from serene.elements import ClassNode, DataNode, Link, LinkList
 from serene.visualizers import BaseVisualizer
 
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 LINK_NAME = "relationship"
 DATA_NODE_LINK_NAME = "property"
@@ -88,7 +88,7 @@ class BaseSemantic(object):
         # now add the data property links
         if node.nodes is not None:
             for dataNode in node.nodes:
-                link = Link(DATA_NODE_LINK_NAME, node, dataNode)
+                link = Link(dataNode.name, node, dataNode)
                 self.add_link(link)
 
         self._graph.add_node(node)

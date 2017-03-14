@@ -13,7 +13,7 @@ from serene.utils import Searchable
 
 # logging functions...
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class Column(Searchable):
@@ -38,6 +38,7 @@ class Column(Searchable):
         self.id = None
         self.size = None
         self.datasetID = None
+        self.dataset = None
         self.sample = None
         self.logicalType = None
         self.df = df

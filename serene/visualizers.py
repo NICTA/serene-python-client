@@ -5,7 +5,6 @@ import webbrowser
 import pygraphviz as pgv
 
 from .elements import IdentTransform, Link
-#from .semantics import Link
 
 
 class BaseVisualizer(object):

@@ -18,7 +18,7 @@ from serene.elements import ClassNode, DataNode, Link
 from serene.utils import gen_id
 
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class Ontology(BaseSemantic):
@@ -151,17 +151,32 @@ class Ontology(BaseSemantic):
 
     @property
     def iclass_nodes(self):
-        return list(self._iclass_nodes())
+        return list(set(self._iclass_nodes()))
 
     @property
     def idata_nodes(self):
-        return list(self._idata_nodes())
+        return list(set(self._idata_nodes()))
+
+    def _child_map(self):
+        """Builds up a map of the child chains"""
+        m = defaultdict(set)
+        for c in self.class_nodes:
+            for parent in self._parent_chain(c):
+                m[parent].add(c)
+        return m
+
+    def _child_chain(self, z):
+        """Returns the item z with all descendants"""
+        m = self._child_map()
+        for y in m[z]:
+            yield y
 
     def _ilinks(self):
+        """Returns the interpreted links..."""
         for link in self.links:
             ilinks = it.product(
-                self._parent_chain(link.src),
-                self._parent_chain(link.dst)
+                self._child_chain(link.src),
+                self._child_chain(link.dst)
             )
             for src, dst in ilinks:
                 yield Link(link.name, src, dst)

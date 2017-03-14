@@ -9,7 +9,7 @@ from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint, OctopusEn
 
 # logging functions...
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class Serene(object):
@@ -51,7 +51,7 @@ class Serene(object):
 
         self._ontologies = OntologyEndpoint(self._session)
 
-        self._ssds = SSDEndpoint(self._session)
+        self._ssds = SSDEndpoint(self)
 
         self._octopii = OctopusEndpoint(self._session)
 
@@ -121,6 +121,10 @@ class Serene(object):
     @property
     def models(self):
         return self._models
+
+    @property
+    def session(self):
+        return self._session
 
     def __repr__(self):
         return "Serene({}:{}, {})".format(

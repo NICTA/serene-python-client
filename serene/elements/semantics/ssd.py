@@ -18,7 +18,7 @@ from serene.utils import gen_id, convert_datetime
 from serene.visualizers import SSDVisualizer
 
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class SSD(object):
@@ -43,7 +43,7 @@ class SSD(object):
             raise Exception(msg)
 
         if not issubclass(type(dataset), DataSet):
-            msg = "Required Ontology, not {}".format(type(ontology))
+            msg = "Required DataSet, not {}".format(type(dataset))
             raise Exception(msg)
 
         # dataset and ontology must be stored on the server!!!!
@@ -80,19 +80,23 @@ class SSD(object):
                 transform=IdentTransform())
 
     @classmethod
-    def from_json(cls, json, session):
+    def from_json(cls, blob, session):
         """Create the object from json directly"""
-        new = cls(None,
-                  None)
 
-        if 'id' in json:
+        reader = SSDReader(blob,
+                           session.datasets,
+                           session.ontologies)
+
+        new = cls(reader.dataset,
+                  reader.ontology,
+                  blob["name"])
+
+        if 'id' in blob:
             new._stored = True
-            new._name = json['name']
-            new._date_created = convert_datetime(json['dateCreated'])
-            new._date_modified = convert_datetime(json['dateModified'])
-            new._id = int(json['id'])
-
-        reader = SSDReader(json, session.datasets, session.ontologies)
+            new._name = blob['name']
+            new._date_created = convert_datetime(blob['dateCreated'])
+            new._date_modified = convert_datetime(blob['dateModified'])
+            new._id = int(blob['id'])
 
         new._ontology = reader.ontology
         new._dataset = reader.dataset
@@ -499,11 +503,6 @@ class SSD(object):
         """The list of columns currently used"""
         return list(self._mapping.keys())
 
-    # @property
-    # def transforms(self):
-    #     """All available transforms"""
-    #     return list(self._transforms)
-
     @property
     def data_nodes(self):
         """All available data nodes"""
@@ -592,9 +591,9 @@ class SSDReader(object):
     def _find_dataset(self, json):
         """Attempts to grab the dataset out from the json string"""
         # fill out the dataset...
-        jsm = json["semanticModel"]
+        # jsm = json["semanticModel"]
 
-        columns = [c['attribute'] for c in jsm['mappings']]
+        columns = [c['attribute'] for c in json['mappings']]
 
         if not len(columns):
             msg = "No columns present in ssd file mappings."
@@ -606,7 +605,7 @@ class SSDReader(object):
             msg = "Column {} does not appear on the server".format(columns[0])
             raise Exception(msg)
 
-        ds_key = col_map[columns[0]].parent
+        ds_key = col_map[columns[0]].datasetID
 
         return self._ds_endpoint.get(ds_key)
 
@@ -614,7 +613,7 @@ class SSDReader(object):
         """Builds the mapping from the json string"""
         jsm = json["semanticModel"]
         raw_nodes = jsm["nodes"]
-        raw_map = jsm["mappings"]
+        raw_map = json["mappings"]
 
         def node_split(label):
             """Split the datanode label into ClassNode, DataNode"""
@@ -629,6 +628,8 @@ class SSDReader(object):
             if dn is None:
                 msg = "DataNode{} does not appear in semantic model.".format(node_split(label))
                 raise Exception(msg)
+            else:
+                return dn
 
         data_nodes = {n["id"]: get(n["label"])
                       for n in raw_nodes
@@ -641,6 +642,9 @@ class SSDReader(object):
             cid = column_map[link["attribute"]]
             node = data_nodes[link["node"]]
             values.append((cid, node))
+
+        print("BUILD MAPPING")
+        print(values)
 
         return values
 
@@ -659,17 +663,26 @@ class SSDReader(object):
         class_table = {n["id"]: n["label"] for n in raw_nodes
                        if n["type"] == "ClassNode"}
 
+        print(">>>>>>", class_table)
+
         data_nodes = {n["id"]: node_split(n["label"])[1]
                       for n in raw_nodes
                       if n["type"] == "DataNode"}
 
+        print("<<<<<<", data_nodes)
+
         class_links = [(n["source"], n["target"], n["label"])
                        for n in links
-                       if n["type"] == "ObjectPropertyLink"]
+                       if n["type"] == "ObjectProperty"]
+
+        print("======", class_links)
 
         data_links = [(n["source"], n["target"], n["label"])
                       for n in links
-                      if n["type"] == "DataPropertyLink"]
+                      if n["type"] == "DataProperty"]
+
+        print("++++++", data_links)
+
 
         # first fill the class links in a lookup table
         lookup = defaultdict(list)
@@ -686,7 +699,9 @@ class SSDReader(object):
         # finally we add the class links
         for link in class_links:
             src, dst, name = link
-            sm.link(src, name, dst)
+            sm.link(class_table[src], name, class_table[dst])
+
+        sm.summary()
 
         return sm
 
