@@ -225,10 +225,13 @@ business_info_ssd.show()
 
 input("press any key to continue...")
 
+#
+# We also have just a string shorthand...
+#
 employee_address_ssd = (sn.SSD(employee_address, ontology)
-                        .map(Column("name"), DataNode("Person", "name"))
-                        .map(Column("address"), DataNode("Place", "name"))
-                        .map(Column("postcode"), DataNode("Place", "postalCode"))
+                        .map("name", "Person.name")
+                        .map("address", "Place.name")
+                        .map("postcode", "Place.postalCode")
                         .link("Person", "Place", relationship="livesIn"))
 
 employee_address_ssd.show()
@@ -272,7 +275,7 @@ input("press any key to continue...")
 #
 # ==========
 
-octo = sn.Octopus(
+octo_local = sn.Octopus(
     ssds=[
         business_info_ssd,
         employee_address_ssd,
@@ -332,9 +335,26 @@ octo = sn.Octopus(
     }
 )
 
+# add this to the endpoint...
+octo = sn.octopii.upload(octo_local)
+
 # =======================
 #
-#  Step 6. Run predictions
+# Step 6. Train
+#
+# =======================
+
+print()
+print("Next we can train the Octopus")
+print("The initial state for {} is {}".format(octo.id, octo.state))
+print("Training...")
+octo.train()
+print("Done.")
+print("The final state for {} is {}".format(octo.id, octo.state))
+
+# =======================
+#
+#  Step 7. Run predictions
 #
 # =======================
 
@@ -366,13 +386,13 @@ input("Press any key to continue...")
 
 # =======================
 #
-#  Step 8. Confirm the result and add to the training data...
+#  Step 8. Confirm the result and add to the training data on the server...
 #
 # =======================
 
 new_ssd = sn.ssds.upload(predicted_ssd)
 
-octo.add(new_ssd)
+octo = sn.octopii.update(octo.add(new_ssd))
 
 # =======================
 #

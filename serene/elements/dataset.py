@@ -13,7 +13,7 @@ import pandas as pd
 import logging
 import os.path
 
-from .utils import convert_datetime
+from serene.utils import convert_datetime
 from serene.elements import Column
 
 

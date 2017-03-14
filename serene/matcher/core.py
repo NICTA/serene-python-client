@@ -9,9 +9,9 @@ from functools import lru_cache
 
 import pandas as pd
 
-from ..api import session
-from .dataset import DataSet, Column, DataSetList
+from ..elements import DataSet, DataSetList
 from .model import ModelList, Model
+from ..api import session
 
 
 def decache(func):
@@ -84,7 +84,7 @@ class SchemaMatcher(object):
         keys = self.api.model.keys()
         ms = ModelList()
         for k in keys:
-            ms.append(Model(self.api.model.item(k), self))
+            ms.append(Model(self.api.model.item(k), self.api))
         return ms
 
     @staticmethod
@@ -171,7 +171,7 @@ class SchemaMatcher(object):
                                    cost_matrix,
                                    resampling_strategy)  # send API request
         # create model wrapper...
-        return Model(json, self)
+        return Model(json, self.api)
 
     @decache
     def create_dataset(self, file_path, description, type_map):

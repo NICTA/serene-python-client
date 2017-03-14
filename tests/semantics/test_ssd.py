@@ -4,14 +4,11 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Tests the ssd module
 """
-import unittest2 as unittest
-import serene
-from serene.matcher.dataset import DataSet
 import os
-from serene.elements import ClassNode, DataNode, Link
-from serene.semantics.ssd import SSD
-from ..utils import TestWithServer
+
+from serene.elements import SSD
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
+from ..utils import TestWithServer
 
 
 class TestSSD(TestWithServer):

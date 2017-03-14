@@ -6,8 +6,8 @@ Defines the Ontology object
 """
 import logging
 import networkx as nx
-from ..elements import ClassNode, DataNode, Link, LinkList
-from ..visualizers import BaseVisualizer
+from serene.elements import ClassNode, DataNode, Link, LinkList
+from serene.visualizers import BaseVisualizer
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)

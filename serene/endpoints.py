@@ -5,20 +5,21 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Endpoint objects for the user to view and manipulate. These wrap around
 server Session objects and call methods to talk to the server.
 """
-import os
-import json
-import pandas as pd
-import tempfile
 import collections
-from .utils import gen_id
-
+import json
+import os
+import tempfile
 from functools import lru_cache
 
-from .matcher.dataset import DataSet
-from .semantics.ontology import Ontology
-from .semantics.ssd import SSD
+import pandas as pd
+
+from serene.elements.dataset import DataSet
+from serene.elements import Ontology
+from serene.elements import SSD
 from .elements.octopus import Octopus
+from .matcher.model import Model
 from .utils import flatten
+from .utils import gen_id
 
 
 def decache(func):
@@ -180,6 +181,75 @@ class DataSetEndpoint(IdentifiableEndpoint):
         return tuple(ds)
 
 
+class ModelEndpoint(IdentifiableEndpoint):
+    """
+    The endpoint for querying the models (lobsters)
+    :param object:
+    :return:
+    """
+    def __init__(self, session):
+        """
+
+        :param self:
+        :param api:
+        :return:
+        """
+        super().__init__()
+        self._api = session.model
+        self._session = session
+        self._base_type = Model
+
+    # @decache
+    # def upload(self, model):
+    #     """
+    #     Uploads a model to the server
+    #
+    #     :param model
+    #     :return:
+    #     """
+    #     assert(issubclass(type(model), Model))
+    #
+    #     data = json.load(f)
+    #
+    #     response = self._api.post(data)
+    #
+    #     return model.update(response)
+
+    @decache
+    def remove(self, model):
+        """
+        Remove a model from the server
+        :param model: The model or model ID
+        :return:
+        """
+        self._apply(self._api.delete, model, 'delete')
+
+    def show(self):
+        """
+        Prints the model
+        :return:
+        """
+        print(self.items)
+
+    @property
+    @lru_cache(maxsize=32)
+    def get(self, key):
+        """Get a single model at position key"""
+        return Model(self._api.item(key), self._session)
+
+    @property
+    @lru_cache(maxsize=32)
+    def items(self):
+        """Maintains a list of Model objects"""
+        keys = self._api.keys()
+        models = []
+        for k in keys:
+            blob = self._api.item(k)
+            model = Model(blob, self._session)
+            models.append(model)
+        return tuple(models)
+
+
 class OntologyEndpoint(IdentifiableEndpoint):
     """
     User facing object used to control the Ontology endpoint.
@@ -277,6 +347,12 @@ class OntologyEndpoint(IdentifiableEndpoint):
 
     @property
     @lru_cache(maxsize=32)
+    def get(self, key):
+        """Get a single ontology at position key"""
+        return Ontology(file=self._api.owl_file(key))
+
+    @property
+    @lru_cache(maxsize=32)
     def items(self):
         """Maintains a list of Ontology objects"""
         keys = self._api.keys()
@@ -305,6 +381,10 @@ class SSDEndpoint(IdentifiableEndpoint):
         self._api = session.ssd
         self._session = session
         self._base_type = SSD
+
+    def compare(self, x, y, ignore_types=True, ignore_columns=False):
+        """Compares two SSDs to return something"""
+        pass
 
     @decache
     def upload(self, ssd):
@@ -343,15 +423,19 @@ class SSDEndpoint(IdentifiableEndpoint):
 
     @property
     @lru_cache(maxsize=32)
+    def get(self, key):
+        """Get a single SSD at position key"""
+        return SSD.from_json(self._api.item(key), self._session)
+
+    @property
+    @lru_cache(maxsize=32)
     def items(self):
         """Maintains a list of SSD objects"""
         keys = self._api.keys()
         ssd = []
         for k in keys:
             blob = self._api.item(k)
-            s = SSD.from_json(blob,
-                              self._session.datasets,
-                              self._session.ontologies)
+            s = SSD.from_json(blob, self._session)
             ssd.append(s)
         return tuple(ssd)
 
@@ -429,14 +513,18 @@ class OctopusEndpoint(IdentifiableEndpoint):
 
     @property
     @lru_cache(maxsize=32)
+    def get(self, key):
+        """Get a single Ontology at position key"""
+        return Octopus.from_json(self._api.item(key), self._session)
+
+    @property
+    @lru_cache(maxsize=32)
     def items(self):
         """Maintains a list of Octopus objects"""
         keys = self._api.keys()
         octopii = []
         for k in keys:
             blob = self._api.item(k)
-            s = Octopus.from_json(blob,
-                                  self._session.ssds,
-                                  self._session.ontologies)
-            octopii.append(s)
+            o = Octopus.from_json(blob, self._session)
+            octopii.append(o)
         return tuple(octopii)

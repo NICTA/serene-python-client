@@ -4,9 +4,8 @@ License...
 import logging
 
 from .api.session import Session
-from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint, OctopusEndpoint
-from .semantics import SSD
-from .elements import Octopus
+from .elements import Octopus, SSD
+from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint, OctopusEndpoint, ModelEndpoint
 
 # logging functions...
 _logger = logging.getLogger()
@@ -21,7 +20,8 @@ class Serene(object):
             1. Datasets - DataSet objects, built from uploaded csv files
             2. Ontologies - Ontology objects built from uploaded owl files with DataNodes and ClassNodes
             3. SSDs - Semantic Source Descriptions
-            3. Octopii - An Octopus manages SSDs, Ontologies and can predict
+            4. Octopii - An Octopus manages SSDs, Ontologies and can predict
+            5. Models - The predictive model used by the Octopii.
 
         Ontologies can be passed to the SemanticModeller with
         add_ontology. This can be as an Ontology type or as an .owl
@@ -54,6 +54,8 @@ class Serene(object):
         self._ssds = SSDEndpoint(self._session)
 
         self._octopii = OctopusEndpoint(self._session)
+
+        self._models = ModelEndpoint(self._session)
 
     @staticmethod
     def SSD(dataset, ontology):
@@ -115,6 +117,10 @@ class Serene(object):
     @property
     def octopii(self):
         return self._octopii
+
+    @property
+    def models(self):
+        return self._models
 
     def __repr__(self):
         return "Serene({}:{}, {})".format(

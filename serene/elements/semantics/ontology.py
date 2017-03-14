@@ -15,7 +15,7 @@ import rdflib
 
 from collections import defaultdict
 from .base import BaseSemantic
-from ..elements import ClassNode, DataNode
+from serene.elements import ClassNode, DataNode
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)

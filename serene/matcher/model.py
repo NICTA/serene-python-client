@@ -8,16 +8,17 @@ The Model holds the model object from the server and associated state and
 collection objects.
 
 """
-import pprint
-import time
 import collections
 import logging
+import pprint
+import time
+from enum import Enum
+from functools import lru_cache
+
 import pandas as pd
 
-from enum import Enum
-from .dataset import DataSet, Column
-from .utils import convert_datetime
-from functools import lru_cache
+from serene.elements.dataset import DataSet, Column
+from serene.utils import convert_datetime
 
 
 class Status(Enum):
@@ -103,13 +104,16 @@ def decache(func):
 
 class Model(object):
     """Holds information about the Model object on the Serene server"""
-    def __init__(self, json, parent):
+    def __init__(self, json, session):
 
         self._pp = pprint.PrettyPrinter(indent=4)
 
         # self.parent = parent
-        self.parent = parent  # parent.api
-        self.endpoint = self.parent.api.model
+        #self.parent = parent  # parent.api
+        #self.endpoint = self.parent.api.model
+        #self._ds_endpoint = dataset_endpoint
+        self._session = session
+
         self.PREDICT_KEYS = [
             "column_id",
             "confidence",
@@ -134,6 +138,8 @@ class Model(object):
         self.state = ModelState(json['state'])
         self.date_created = convert_datetime(json['dateCreated'])
         self.date_modified = convert_datetime(json['dateModified'])
+        self.num_bags = convert_datetime(json['numBags'])
+        self.bag_size = convert_datetime(json['bagSize'])
 
     @decache
     def add_label(self, col, label):
@@ -152,7 +158,7 @@ class Model(object):
         label_table = self.label_data
         label_table[key] = value
 
-        json = self.endpoint.update(self.id, labels=label_table)
+        json = self._session.model.update(self.id, labels=label_table)
 
         self._update(json)
 
@@ -176,7 +182,7 @@ class Model(object):
             key, value = self._label_entry(k, v)
             label_table[key] = value
 
-        json = self.endpoint.update(self.id, labels=label_table)
+        json = self._session.model.update(self.id, labels=label_table)
 
         self._update(json)
 
@@ -193,11 +199,11 @@ class Model(object):
         Returns: boolean -- True if model is trained, False otherwise
 
         """
-        self.endpoint.train(self.id)  # launch training
+        self._session.model.train(self.id)  # launch training
 
         def state():
             """Query the server for the model state"""
-            json = self.parent.api.model.item(self.id)
+            json = self._session.model.item(self.id)
             self._update(json)
             return self.state
 
@@ -250,7 +256,9 @@ class Model(object):
             "modelPath": self.model_path,
             "state": self.state,
             "dateCreated": self.date_created,
-            "dateModified": self.date_modified
+            "dateModified": self.date_modified,
+            "numBags": self.num_bags,
+            "bagSize": self.bag_size
         }
         return self._pp.pformat(df)
 
@@ -283,7 +291,7 @@ class Model(object):
         else:
             key = int(dataset)
 
-        json = self.endpoint.predict(self.id, key)
+        json = self._session.model.predict(self.id, key)
 
         df = self._predictions(json)
 
@@ -292,11 +300,11 @@ class Model(object):
     @decache
     def _update(self, json):
         """Re-initializes the model based on an updated json string"""
-        self.__init__(json, self.parent)
+        self.__init__(json, self._session)
 
     def _columns(self):
         # first we grab all the columns out from the datasets
-        return [ds.columns for ds in self.parent.datasets]
+        return [ds.columns for ds in self._session.datasets.items]
 
     @property
     def _column_lookup(self):

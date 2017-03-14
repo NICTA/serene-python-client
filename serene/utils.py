@@ -1,6 +1,9 @@
 import logging
 import random
 import string
+from datetime import datetime
+
+from serene.api.exceptions import InternalError
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -101,3 +104,27 @@ class Searchable(object):
         msg = "Failed to find item. {} is ambiguous: {}".format(item, candidates)
         _logger.error(msg)
         raise LookupError(msg)
+
+
+def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%S.%f"):
+    """
+    Convert string to datetime object.
+
+    Args:
+        datetime_string: string which contains datetime object;
+        fmt: format which specifies the pattern of datetime format in the string.
+
+    Returns: datetime on successful conversion.
+    Raises: InternalDIError if conversion fails.
+
+    """
+    # here we put "%Y-%m-%dT%H:%M:%S.%f" to be the default format
+    # T and Z are fixed literals
+    # T is time separator
+    # Z is literal for UTC time zone, Zulu time
+    try:
+        converted = datetime.strptime(datetime_string, fmt)
+    except Exception as e:
+        logging.error("Failed converting string to datetime: " + repr(datetime_string))
+        raise InternalError("Failed converting string to datetime: " + repr(datetime_string), e)
+    return converted

@@ -6,20 +6,16 @@ Code for the SSD dataset description object
 """
 import json
 import logging
-import random
-import time
-import os
-import tempfile
 from collections import OrderedDict
-
-from serene.semantics import Ontology
-from serene.elements import Transform, Mapping, Column, ClassNode
-from serene.elements import DataNode, Link, TransformList, IdentTransform
-from serene.visualizers import SSDVisualizer
-from serene.matcher.dataset import DataSet
-from .base import BaseSemantic
-from ..utils import gen_id
 from collections import defaultdict
+
+from .base import BaseSemantic
+from ..elements import DataNode, Link, TransformList, IdentTransform
+from ..elements import Transform, Mapping, Column, ClassNode
+from ..dataset import DataSet
+from ..semantics.ontology import Ontology
+from serene.utils import gen_id, convert_datetime
+from serene.visualizers import SSDVisualizer
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.DEBUG)
@@ -83,42 +79,29 @@ class SSD(object):
                 transform=IdentTransform())
 
     @classmethod
-    def from_json(cls, json_string, dataset_endpoint, ontology_endpoint):
+    def from_json(cls, json, session):
         """Create the object from json directly"""
         new = cls(None,
                   None)
-        return new.read(json_string,
-                        dataset_endpoint,
-                        ontology_endpoint)
 
-    def read(self,
-             json,
-             dataset_endpoint,
-             ontology_endpoint):
-        """
-        Updates parameters from a json string.
-
-        :param json:
-        :return:
-        """
         if 'id' in json:
-            self._stored = True
-            self._name = json['name']
-            self._date_created = json['dateCreated']
-            self._date_modified = json['dateModified']
-            self._id = int(json['id'])
+            new._stored = True
+            new._name = json['name']
+            new._date_created = convert_datetime(json['dateCreated'])
+            new._date_modified = convert_datetime(json['dateModified'])
+            new._id = int(json['id'])
 
-        reader = SSDReader(json, dataset_endpoint, ontology_endpoint)
+        reader = SSDReader(json, session.datasets, session.ontologies)
 
-        self._ontology = reader.ontology
-        self._dataset = reader.dataset
-        self._semantic_model = reader.semantic_model
+        new._ontology = reader.ontology
+        new._dataset = reader.dataset
+        new._semantic_model = reader.semantic_model
 
         # build up the mapping through the interface...
         for col, ds in reader.mapping:
-            self.map(col, ds)
+            new.map(col, ds)
 
-        return self
+        return new
 
     def _find_column(self, column):
         """
@@ -252,6 +235,16 @@ class SSD(object):
         :param transform: The optional transform to be performed on the Column
         :return:
         """
+        if issubclass(type(column), str):
+            column = Column(column)
+
+        if issubclass(type(data_node), str):
+            if '.' in data_node:
+                data_node = DataNode(*data_node.split('.'))
+            else:
+                # TODO: ClassNode should be supported for foreign keys
+                data_node = ClassNode(data_node)
+
         return self._map(column, data_node, transform, predicted=False)
 
     def _map(self, column, data_node, transform=None, predicted=False):
@@ -431,30 +424,6 @@ class SSD(object):
 
         return self
 
-    # def predict(self):
-    #     """
-    #     Attempt to predict the mappings and transforms for the
-    #     mapping.
-    #
-    #     :return: The updated SSD object
-    #     """
-    #     print("Calculating prediction...")
-    #     time.sleep(1)
-    #     print("Done.")
-    #     for mapping in self.mappings:
-    #         if mapping.node is None:
-    #             print("Predicting value for", mapping.column)
-    #
-    #             # TODO: make real!
-    #             node = random.choice(self._modeller.data_nodes)
-    #             print("Value {} predicted for {} with probability 0.882".format(node, mapping.column))
-    #
-    #             self._map(mapping.column, node, predicted=True)
-    #         else:
-    #             # these are the user labelled data points...
-    #             pass
-    #     return self
-
     def show(self):
         """
         Shows the Semantic Modeller in a png. This uses the SSDVisualizer helper
@@ -465,16 +434,10 @@ class SSD(object):
         SSDVisualizer(self).show()
         return
 
-    # def save(self, file):
-    #     """
-    #     Saves the file to an ssd file
-    #
-    #     :param file: The output file
-    #     :return:
-    #     """
-    #     with open(file, "w+") as f:
-    #         f.write(self.json)
-    #     return
+    @property
+    def stored(self):
+        """The stored flag if the ssd is on the server"""
+        return self._stored
 
     @property
     def version(self):
@@ -602,6 +565,7 @@ class SSDReader(object):
     def _find_ontology(self, json):
         """Pulls the ontology reference from the SSD and queries the server"""
         ontologies = json['ontology']
+        # TODO: Only one ontology used!! Should be a sequence!
         return self._on_endpoint.get(ontologies[0])
 
     def _find_dataset(self, json):

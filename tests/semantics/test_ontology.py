@@ -5,9 +5,10 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Tests the core module
 """
 import unittest2 as unittest
+
 import serene
-from serene.elements import ClassNode, DataNode, Link
-from serene.semantics import DATA_NODE_LINK_NAME
+from serene.elements import ClassNode, DataNode
+from serene.elements import DATA_NODE_LINK_NAME
 
 
 class TestOntology(unittest.TestCase):
