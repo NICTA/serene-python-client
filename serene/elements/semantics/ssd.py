@@ -554,17 +554,17 @@ class SSDReader(object):
     The SSDReader is a helper object used to parse an SSD json
     blob from the server.
     """
-    def __init__(self, json, dataset_endpoint, ontology_endpoint):
+    def __init__(self, blob, dataset_endpoint, ontology_endpoint):
         """Builds up the relevant properties from the json blob `json`
             note that we need references to the endpoints to ensure
             that the information is up-to-date with the server.
         """
         self._ds_endpoint = dataset_endpoint
         self._on_endpoint = ontology_endpoint
-        self._ontology = self._find_ontology(json)
-        self._dataset = self._find_dataset(json)
-        self._semantic_model = self._build_semantic(json)
-        self._mapping = self._build_mapping(json)
+        self._ontology = self._find_ontology(blob)
+        self._dataset = self._find_dataset(blob)
+        self._semantic_model = self._build_semantic(blob, self._ontology)
+        self._mapping = self._build_mapping(blob)
 
     @property
     def ontology(self):
@@ -622,9 +622,8 @@ class SSDReader(object):
 
         def get(label):
             """Try to locate the datanode in the semantic model"""
-            dn = DataNode.search(
-                self._semantic_model.data_nodes,
-                DataNode(*node_split(label)))
+            dn = DataNode.search(self._semantic_model.idata_nodes,
+                                 DataNode(*node_split(label)))
             if dn is None:
                 msg = "DataNode{} does not appear in semantic model.".format(node_split(label))
                 raise Exception(msg)
@@ -649,10 +648,10 @@ class SSDReader(object):
         return values
 
     @staticmethod
-    def _build_semantic(json):
+    def _build_semantic(blob, ontology):
         """Builds the semantic model from a json string"""
         sm = BaseSemantic()
-        jsm = json["semanticModel"]
+        jsm = blob["semanticModel"]
         raw_nodes = jsm["nodes"]
         links = jsm["links"]
 
@@ -660,28 +659,28 @@ class SSDReader(object):
             items = label.split(".")
             return items[0], items[-1]
 
-        class_table = {n["id"]: n["label"] for n in raw_nodes
+        class_table = {n["id"]: (n["label"], n["prefix"]) for n in raw_nodes
                        if n["type"] == "ClassNode"}
 
-        print(">>>>>>", class_table)
+        # print(">>>> class_table >>>>>", class_table)
 
         data_nodes = {n["id"]: node_split(n["label"])[1]
                       for n in raw_nodes
                       if n["type"] == "DataNode"}
 
-        print("<<<<<<", data_nodes)
+        # print("<<<<< data_nodes <<<<<", data_nodes)
 
         class_links = [(n["source"], n["target"], n["label"])
                        for n in links
                        if n["type"] == "ObjectProperty"]
 
-        print("======", class_links)
+        # print("===== class_links ====", class_links)
 
         data_links = [(n["source"], n["target"], n["label"])
                       for n in links
                       if n["type"] == "DataProperty"]
 
-        print("++++++", data_links)
+        # print("+++++ data_links +++++", data_links)
 
 
         # first fill the class links in a lookup table
@@ -692,14 +691,14 @@ class SSDReader(object):
 
         # next we pull the class names out with the data nodes
         for cls, dns in lookup.items():
-            class_node = class_table[cls]
-            _dns = [data_nodes[dn] for dn in dns]
-            sm.class_node(class_node, _dns)
+            class_node, prefix = class_table[cls]
+            cn = ClassNode.search(ontology.iclass_nodes, ClassNode(class_node, prefix=prefix))
+            sm.add_class_node(cn)
 
         # finally we add the class links
         for link in class_links:
             src, dst, name = link
-            sm.link(class_table[src], name, class_table[dst])
+            sm.link(class_table[src][0], name, class_table[dst][0])
 
         sm.summary()
 
@@ -727,40 +726,15 @@ class SSDJsonWriter(object):
     def to_dict(self):
         """Builds the dictionary representation of the SSD"""
         d = OrderedDict()
-        #d["version"] = self._ssd.version
         d["name"] = self._ssd.name
-        #d["columns"] = self.columns
-        #d["attributes"] = self.attributes
         d["ontologies"] = [self._ssd.ontology.id]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
-
         return d
 
     def to_json(self):
         """Builds the complete json object string"""
         return json.dumps(self.to_dict())
-
-    # @property
-    # def columns(self):
-    #     """Builds out the .ssd column attributes"""
-    #     return [
-    #         {
-    #             "id": c.index,
-    #             "name": c.name
-    #         } for c in self._ssd.columns]
-
-    # @property
-    # def attributes(self):
-    #     """Builds out the .ssd attributes object"""
-    #     return [
-    #         {
-    #             "id": self._attr_map[m],
-    #             "name": m.column.name,
-    #             "label": m.transform.name,
-    #             "columnIds": [m.column.index],
-    #             "sql": m.transform.apply(m.column)
-    #         } for m in self._ssd.mappings]
 
     @property
     def semantic_model(self):

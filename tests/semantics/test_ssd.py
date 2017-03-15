@@ -60,3 +60,12 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(single.links), 0)
         # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
         # self.assertEqual(single.class_nodes[0].name, "hello")
+
+    def test_iclass_nodes(self):
+        raise NotImplementedError("Test not implemented")
+
+    def test_idata_nodes(self):
+        raise NotImplementedError("Test not implemented")
+
+    def test_ilinks(self):
+        raise NotImplementedError("Test not implemented")

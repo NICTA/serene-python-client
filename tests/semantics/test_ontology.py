@@ -125,7 +125,7 @@ class TestOntology(unittest.TestCase):
         links = [link.name for link in family.links]
 
         self.assertEqual(child.parent, parent)
-        self.assertEqual(set(links), {DATA_NODE_LINK_NAME})
+        self.assertEqual(set(links), {"name", "addr", "toys"})
 
     def test_add_class_node(self):
         """
@@ -201,3 +201,11 @@ class TestOntology(unittest.TestCase):
     def test_repr(self):
         raise NotImplementedError("Test not implemented")
 
+    def test_iclass_nodes(self):
+        raise NotImplementedError("Test not implemented")
+
+    def test_idata_nodes(self):
+        raise NotImplementedError("Test not implemented")
+
+    def test_ilinks(self):
+        raise NotImplementedError("Test not implemented")

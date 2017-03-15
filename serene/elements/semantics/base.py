@@ -6,8 +6,10 @@ Defines the Ontology object
 """
 import logging
 import networkx as nx
+import itertools as it
 from serene.elements import ClassNode, DataNode, Link, LinkList
 from serene.visualizers import BaseVisualizer
+from collections import defaultdict
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
@@ -178,6 +180,70 @@ class BaseSemantic(object):
             msg = "Item {} does not exist in the model.".format(link)
             _logger.error(msg)
         return
+
+    def _parent_chain(self, node):
+        """
+        Returns the chain of parent classes from ClassNode -> all parents
+        including the original
+        """
+        if node is None:
+            raise StopIteration
+        else:
+            yield node
+            yield from self._parent_chain(node.parent)
+
+    def _item_chain(self, z):
+        """Returns all data nodes in the class chain of z"""
+        for cls in self._parent_chain(z):
+            for item in cls.nodes:
+                yield item.name
+
+    def _iclass_nodes(self):
+        """Returns all inferred class nodes"""
+        for node in self.class_nodes:
+            yield ClassNode(node.name, list(self._item_chain(node)), prefix=node.prefix)
+
+    def _idata_nodes(self):
+        """Returns all inferred data nodes"""
+        for node in self.iclass_nodes:
+            for dn in node.nodes:
+                yield dn
+
+    @property
+    def iclass_nodes(self):
+        return list(set(self._iclass_nodes()))
+
+    @property
+    def idata_nodes(self):
+        return list(set(self._idata_nodes()))
+
+    def _child_map(self):
+        """Builds up a map of the child chains"""
+        m = defaultdict(set)
+        for c in self.class_nodes:
+            for parent in self._parent_chain(c):
+                m[parent].add(c)
+        return m
+
+    def _child_chain(self, z):
+        """Returns the item z with all descendants"""
+        m = self._child_map()
+        for y in m[z]:
+            yield y
+
+    def _ilinks(self):
+        """Returns the interpreted links..."""
+        for link in self.links:
+            ilinks = it.product(
+                self._child_chain(link.src),
+                self._child_chain(link.dst)
+            )
+            for src, dst in ilinks:
+                yield Link(link.name, src, dst)
+
+    @property
+    def ilinks(self):
+        return list(self._ilinks())
 
     @staticmethod
     def _is_node(value):

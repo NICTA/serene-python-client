@@ -117,6 +117,7 @@ class TestOntologyEndpoint(TestWithServer):
         path = os.path.join(os.path.dirname(__file__), "resources")
         self._test_file = os.path.join(path, 'owl', 'dataintegration_report_ontology.owl')
         self._bad_params_file = os.path.join(path, 'owl', 'bad-params.owl')
+        self._ontologies = None
 
     def setUp(self):
         self._ontologies = OntologyEndpoint(self._session)
@@ -230,3 +231,15 @@ class TestOntologyEndpoint(TestWithServer):
         # now let's remove the last one
         self._ontologies.remove(o2)
         self.assertEqual(len(self._ontologies.items), 0)
+
+
+class TestSsdEndpoint(TestWithServer):
+    pass
+
+
+class TestOctopusEndpoint(TestWithServer):
+    pass
+
+
+class TestModelEndpoint(TestWithServer):
+    pass

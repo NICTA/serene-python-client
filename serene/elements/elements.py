@@ -218,8 +218,8 @@ class ClassNode(Searchable):
     # the search parameters...
     getters = [
         lambda node: node.name,
-        lambda node: node.nodes if len(node.nodes) else None,
         lambda node: node.prefix if node.prefix else None,
+        lambda node: node.nodes if len(node.nodes) else None,
         lambda node: node.parent if node.parent else None
     ]
 
