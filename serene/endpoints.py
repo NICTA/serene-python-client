@@ -325,7 +325,6 @@ class OntologyEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single ontology at position key"""
         for o in self.items:
@@ -378,12 +377,16 @@ class SSDEndpoint(IdentifiableEndpoint):
         """
         assert(issubclass(type(ssd), SSD))
 
-        response = self._api.post(ssd.json)
-
+        # test file
         with open('test.json', 'w') as f:
+            print("SENDING::::")
+            print(ssd.json)
+            print("::::")
             f.write(ssd.json)
 
-        return SSD.from_json(response, self._session)
+        response = self._api.post(ssd.json)
+
+        return ssd.update(response, self._session)
 
     @decache
     def remove(self, ssd):
@@ -404,7 +407,7 @@ class SSDEndpoint(IdentifiableEndpoint):
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single SSD at position key"""
-        return SSD.from_json(self._api.item(key), self._session)
+        return SSD.update(self._api.item(key), self._session)
 
     @property
     @lru_cache(maxsize=32)
@@ -414,7 +417,7 @@ class SSDEndpoint(IdentifiableEndpoint):
         ssd = []
         for k in keys:
             blob = self._api.item(k)
-            s = SSD.from_json(blob, self._session)
+            s = SSD.update(blob, self._session)
             ssd.append(s)
         return tuple(ssd)
 
@@ -434,7 +437,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = session.ontology
+        self._api = session.octopus
         self._session = session
         self._base_type = Octopus
 
@@ -453,7 +456,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
                       "<Serene>.ssd.upload(<SSD>) to update.".format(ssd)
                 raise ValueError(msg)
 
-        for ontology in octopus.ontology:
+        for ontology in octopus.ontologies:
             if not ontology.stored:
                 msg = "Ontology is not stored on the server: {}. Use " \
                       "<Serene>.ontologies.upload(<Ontology>) to update.".format(ontology)
@@ -472,7 +475,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
             modeling_props=octopus.modeling_props
         )
 
-        return Octopus.from_json(response, self._session)
+        return octopus.update(response, self._session)
 
     @decache
     def remove(self, octopus):
@@ -492,8 +495,12 @@ class OctopusEndpoint(IdentifiableEndpoint):
 
     @lru_cache(maxsize=32)
     def get(self, key):
-        """Get a single Ontology at position key"""
-        return Octopus.from_json(self._api.item(key), self._session)
+        """Get a single Octopus at position key"""
+        for o in self.items:
+            if o.id == key:
+                return o
+        msg = "Octopus {} does not exist on server".format(key)
+        raise Exception(msg)
 
     @property
     @lru_cache(maxsize=32)
@@ -503,6 +510,6 @@ class OctopusEndpoint(IdentifiableEndpoint):
         octopii = []
         for k in keys:
             blob = self._api.item(k)
-            o = Octopus.from_json(blob, self._session)
+            o = Octopus().update(blob, self._session)
             octopii.append(o)
         return tuple(octopii)

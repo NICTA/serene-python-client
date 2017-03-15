@@ -15,7 +15,6 @@ _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
 
 LINK_NAME = "relationship"
-DATA_NODE_LINK_NAME = "property"
 
 
 class BaseSemantic(object):
@@ -29,7 +28,7 @@ class BaseSemantic(object):
         :param file:
         """
         self._uri = ""
-        self._graph = nx.DiGraph()
+        self._graph = nx.MultiDiGraph()
         self._class_table = {}
         self._links = LinkList()
 
@@ -140,7 +139,7 @@ class BaseSemantic(object):
             self._graph.add_edge(
                 link.src,
                 link.dst,
-                {LINK_NAME: link})
+                link)
         return self
 
     def find_class_node(self, name):
@@ -350,7 +349,10 @@ class BaseSemantic(object):
         """Returns all the links in the graph"""
         # links = nx.get_edge_attributes(self._graph, self._LINK)
         # return list(links.values())
-        return [link for link in self._links if link.name != DATA_NODE_LINK_NAME]
+        def is_class(link):
+            return issubclass(type(link), ClassNode)
+
+        return [link for link in self._links if is_class(link.src) and is_class(link.dst)]
 
     def get(self, value):
         """

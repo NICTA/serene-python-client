@@ -152,7 +152,7 @@ if len(ontologies):
 ontology_local = (
     serene.Ontology()
           .uri("http://www.semanticweb.org/serene/report_example_ontology")
-          .class_node("Place", ["name","postalCode"])
+          .class_node("Place", ["name", "postalCode"])
           .class_node("City", is_a="Place")
           .class_node("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
           .class_node("Organization", {"name": str, "phone": int, "email": str})
@@ -283,7 +283,10 @@ postal_code_ssd.show()
 # upload all these to the server. Here we ignore the return value (the SSD object will be updated)
 #
 for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employees_ssd, postal_code_ssd]:
-    sn.ssds.upload(ssd)
+    asdf = sn.ssds.upload(ssd)
+    ssd.summary()
+    print("SSD ==", ssd.name, ssd.stored)
+    print("SSD ==", asdf.name, asdf.stored)
 
 # ==========
 #
@@ -293,11 +296,11 @@ for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employe
 
 octo_local = sn.Octopus(
     ssds=[
-        business_info_ssd,
+        #business_info_ssd,
         employee_address_ssd,
-        get_cities_ssd,
-        get_employees_ssd,
-        postal_code_ssd
+        #get_cities_ssd,
+        #get_employees_ssd,
+        #postal_code_ssd
     ],
     name='octopus-test',
     description='Testing example for places and companies',

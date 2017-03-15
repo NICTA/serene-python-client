@@ -10,4 +10,3 @@ from .octopus import Octopus
 from .semantics.ontology import Ontology
 from .semantics.ssd import SSD
 from .dataset import DataSet, DataSetList
-from .semantics.base import LINK_NAME, DATA_NODE_LINK_NAME

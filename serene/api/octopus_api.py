@@ -20,7 +20,7 @@ class OctopusAPI(HTTPObject):
         self._uri = urljoin(uri, 'octopus/')
 
     def post(self,
-             ssds,
+             ssds=None,
              name="",
              description="",
              feature_config=None,

@@ -79,34 +79,29 @@ class SSD(object):
                 node=None,
                 transform=IdentTransform())
 
-    @classmethod
-    def from_json(cls, blob, session):
+    def update(self, blob, session):
         """Create the object from json directly"""
 
         reader = SSDReader(blob,
                            session.datasets,
                            session.ontologies)
 
-        new = cls(reader.dataset,
-                  reader.ontology,
-                  blob["name"])
-
         if 'id' in blob:
-            new._stored = True
-            new._name = blob['name']
-            new._date_created = convert_datetime(blob['dateCreated'])
-            new._date_modified = convert_datetime(blob['dateModified'])
-            new._id = int(blob['id'])
+            self._stored = True
+            self._name = blob['name']
+            self._date_created = convert_datetime(blob['dateCreated'])
+            self._date_modified = convert_datetime(blob['dateModified'])
+            self._id = int(blob['id'])
 
-        new._ontology = reader.ontology
-        new._dataset = reader.dataset
-        new._semantic_model = reader.semantic_model
+        self._ontology = reader.ontology
+        self._dataset = reader.dataset
+        self._semantic_model = reader.semantic_model
 
         # build up the mapping through the interface...
         for col, ds in reader.mapping:
-            new.map(col, ds)
+            self.map(col, ds)
 
-        return new
+        return self
 
     def _find_column(self, column):
         """
@@ -452,6 +447,11 @@ class SSD(object):
         return self._name
 
     @property
+    def id(self):
+        """Returns the current ID of the SSD"""
+        return self._id
+
+    @property
     def stored(self):
         """The stored flag if the ssd is on the server"""
         return self._stored
@@ -662,25 +662,25 @@ class SSDReader(object):
         class_table = {n["id"]: (n["label"], n["prefix"]) for n in raw_nodes
                        if n["type"] == "ClassNode"}
 
-        # print(">>>> class_table >>>>>", class_table)
+        #print(">>>> class_table >>>>>", class_table)
 
         data_nodes = {n["id"]: node_split(n["label"])[1]
                       for n in raw_nodes
                       if n["type"] == "DataNode"}
 
-        # print("<<<<< data_nodes <<<<<", data_nodes)
+        #print("<<<<< data_nodes <<<<<", data_nodes)
 
         class_links = [(n["source"], n["target"], n["label"])
                        for n in links
-                       if n["type"] == "ObjectProperty"]
+                       if n["type"] == Link.OBJECT_LINK]
 
-        # print("===== class_links ====", class_links)
+        #print("===== class_links ====", class_links)
 
         data_links = [(n["source"], n["target"], n["label"])
                       for n in links
-                      if n["type"] == "DataProperty"]
+                      if n["type"] == Link.DATA_LINK]
 
-        # print("+++++ data_links +++++", data_links)
+        #print("+++++ data_links +++++", data_links)
 
 
         # first fill the class links in a lookup table

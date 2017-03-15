@@ -22,7 +22,7 @@ class Octopus(object):
         Octopus is the central integration map for a collection of DataSets.
     """
     def __init__(self,
-                 ssds,
+                 ssds=None,
                  name="",
                  description="",
                  feature_config=None,
@@ -69,19 +69,21 @@ class Octopus(object):
 
         self._session = None
 
-    @classmethod
-    def from_json(cls, json, session):
-        """Create the Octopus from the data directly"""
-        new = cls(None)
+    # @classmethod
+    # def from_json(cls, json, session):
+    #     """Create the Octopus from the data directly"""
+    #     new = cls(None)
+    #
+    #     new._session = session
+    #
+    #     new._update(json)
+    #
+    #     return new
 
-        new._session = session
-
-        new._update(json)
-
-        return new
-
-    def _update(self, json):
+    def update(self, json, session):
         """Update the object using json..."""
+        self._session = session
+
         # add the storage parameters...
         self._stored = True
         self._name = json['name']

@@ -14,6 +14,7 @@ from .data_api import DataSetAPI
 from .model_api import ModelAPI
 from .ontology_api import OntologyAPI
 from .ssd_api import SsdAPI
+from .octopus_api import OctopusAPI
 
 
 class Session(HTTPObject):
@@ -60,6 +61,7 @@ class Session(HTTPObject):
         self.dataset = DataSetAPI(self._uri, self.session)
         self.model = ModelAPI(self._uri, self.session)
         self.ssd = SsdAPI(self._uri, self.session)
+        self.octopus = OctopusAPI(self._uri, self.session)
 
     def _test_connection(self, root):
         """

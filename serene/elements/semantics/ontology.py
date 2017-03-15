@@ -48,7 +48,7 @@ class Ontology(BaseSemantic):
         self._prefixes = {}
         self.path = None
         self.id = None
-        self._base = None
+        self._uri = "http://www.semanticweb.org/serene/{}".format(gen_id(k=8))
         self._stored = False
         self.description = ""
         self.date_created = None
@@ -81,7 +81,7 @@ class Ontology(BaseSemantic):
         else:
             # default prefixes...
             self._prefixes = {
-                '': '{}#'.format(self._base),
+                '': '{}#'.format(self._uri + '#'),
                 'owl': 'http://www.w3.org/2002/07/owl#',
                 'rdf': 'http://www.w3.org/1999/02/22-rdf-syntax-ns#',
                 'xsd': 'http://www.w3.org/2001/XMLSchema#',
@@ -128,7 +128,6 @@ class Ontology(BaseSemantic):
         :return:
         """
         self.id = id
-        self._base = "http://www.semanticweb.org/serene/{}".format(id)
 
     def set_filename(self, value):
         """
@@ -194,7 +193,13 @@ class Ontology(BaseSemantic):
         """
         _logger.debug("Adding URI string uri={}".format(uri_string))
         self._uri = uri_string
+        # update the prefix...
+        self._prefixes[''] = '{}#'.format(self._uri)
         return self
+
+    @property
+    def uri_string(self):
+        return self._uri
 
     @property
     def prefixes(self):
@@ -226,15 +231,15 @@ class RDFReader(object):
     """
     def __init__(self):
         self.TYPE_MAP = {
-            rdflib.RDFS['Literal']: str,
-            rdflib.XSD['dateTime']: pd.datetime,
-            rdflib.XSD['unsignedInt']: int,
-            rdflib.XSD['integer']: int,
-            rdflib.XSD['string']: str,
-            rdflib.XSD['boolean']: bool,
-            rdflib.XSD['float']: float,
-            rdflib.XSD['double']: float,
-            rdflib.XSD['date']: pd.datetime
+            rdflib.RDFS.Literal: str,
+            rdflib.XSD.dateTime: pd.datetime,
+            rdflib.XSD.unsignedInt: int,
+            rdflib.XSD.integer: int,
+            rdflib.XSD.string: str,
+            rdflib.XSD.boolean: bool,
+            rdflib.XSD.float: float,
+            rdflib.XSD.double: float,
+            rdflib.XSD.date: pd.datetime
         }
 
     @staticmethod
@@ -243,13 +248,29 @@ class RDFReader(object):
         Strips off the prefix in the URI to give the label...
 
         :param node: The full URI string
-        :return: string
+        :return: (prefix, label) as (string, string)
         """
         if '#' in node:
-            return node.split("#")[-1]
+            name = node.split("#")[-1]
         else:
             # there must be no # in the prefix e.g. schema.org/
-            return node.split("/")[-1]
+            name = node.split("/")[-1]
+        return name
+
+    @staticmethod
+    def prefix(node):
+        """
+        Strips off the name in the URI to give the prefixlabel...
+
+        :param node: The full URI string
+        :return: (prefix, label) as (string, string)
+        """
+        if '#' in node:
+            name = node.split("#")[-1]
+        else:
+            # there must be no # in the prefix e.g. schema.org/
+            name = node.split("/")[-1]
+        return node[:-len(name)]
 
     @staticmethod
     def subjects(g, subject=None, predicate=None, object=None):
@@ -289,16 +310,16 @@ class RDFReader(object):
         """
         all_links = []
 
-        object_properties = self.subjects(g, object=rdflib.OWL['ObjectProperty'])
+        object_properties = self.subjects(g, object=rdflib.OWL.ObjectProperty)
 
         for link in object_properties:
 
             sources = self.objects(g,
                                    subject=link,
-                                   predicate=rdflib.RDFS['domain'])
+                                   predicate=rdflib.RDFS.domain)
             destinations = self.objects(g,
                                         subject=link,
-                                        predicate=rdflib.RDFS['range'])
+                                        predicate=rdflib.RDFS.range)
 
             links = it.product(sources, destinations)
 
@@ -315,7 +336,7 @@ class RDFReader(object):
         :param g:
         :return:
         """
-        return {s: o for s, p, o in g.triples((None, rdflib.RDFS['subClassOf'], None))}
+        return {s: o for s, p, o in g.triples((None, rdflib.RDFS.subClassOf, None))}
 
     def _extract_data_nodes(self, g):
         """
@@ -340,16 +361,16 @@ class RDFReader(object):
         property_table = defaultdict(dict)
 
         # links...
-        data_properties = self.subjects(g, object=rdflib.OWL['DatatypeProperty'])
+        data_properties = self.subjects(g, object=rdflib.OWL.DatatypeProperty)
 
         for dp in data_properties:
 
             sources = self.objects(g,
                                    subject=dp,
-                                   predicate=rdflib.RDFS['domain'])
+                                   predicate=rdflib.RDFS.domain)
             destinations = self.objects(g,
                                         subject=dp,
-                                        predicate=rdflib.RDFS['range'])
+                                        predicate=rdflib.RDFS.range)
 
             links = it.product(sources, destinations)
 
@@ -412,7 +433,7 @@ class RDFReader(object):
 
             ontology.class_node(self.label(cls),
                                 data_node_table[cls],
-                                prefix='',
+                                prefix=self.prefix(cls),
                                 is_a=parent)
 
         # now we add all the links...
@@ -443,7 +464,7 @@ class RDFReader(object):
 
         # build the ontology object...
         ontology = self._build_ontology(ontology,
-                                        self.subjects(g, object=rdflib.OWL['Class']),
+                                        self.subjects(g, object=rdflib.OWL.Class),
                                         self._extract_data_nodes(g),
                                         self._extract_links(g),
                                         self._extract_subclasses(g),
@@ -461,11 +482,11 @@ class RDFWriter(object):
 
         """
         self.TYPE_MAP = {
-            str: rdflib.RDFS['Literal'],
-            int: rdflib.XSD['integer'],
-            bool: rdflib.XSD['boolean'],
-            float: rdflib.XSD['float'],
-            pd.datetime: rdflib.XSD['dateTime']
+            str: rdflib.RDFS.Literal,
+            int: rdflib.XSD.integer,
+            bool: rdflib.XSD.boolean,
+            float: rdflib.XSD.float,
+            pd.datetime: rdflib.XSD.dateTime
         }
 
     def _build_classes(self, g, ontology):
@@ -483,7 +504,7 @@ class RDFWriter(object):
             g.add((
                 rdf(cls.name),
                 rdflib.RDF.type,
-                rdflib.OWL['Class']
+                rdflib.OWL.Class
             ))
 
             if cls.parent is not None:
@@ -523,7 +544,7 @@ class RDFWriter(object):
             g.add((
                 rdf(link.name),
                 rdflib.RDF.type,
-                rdflib.OWL['ObjectProperty']
+                rdflib.OWL.ObjectProperty
             ))
             g.add((
                 rdf(link.name),
@@ -550,7 +571,7 @@ class RDFWriter(object):
             g.add((
                 rdf(node.name),
                 rdflib.RDF.type,
-                rdflib.OWL['DatatypeProperty']
+                rdflib.OWL.DatatypeProperty
             ))
             g.add((
                 rdf(node.name),
@@ -565,26 +586,25 @@ class RDFWriter(object):
 
     def to_turtle(self, ontology):
         """
-
-        :param ontology:
-        :return:
+        Convert the Ontology object to a Turtle RDF string
+        :param ontology: The Ontology object
+        :return: String of Turtle rdf
         """
         g = rdflib.Graph()
 
+        # add the prefix table
         for prefix, uri in ontology.prefixes.items():
             g.bind(prefix, rdflib.term.URIRef(uri))
 
+        # add the uri...
+        g.add((
+            rdflib.term.URIRef(ontology.uri_string),
+            rdflib.RDF.type,
+            rdflib.OWL.Ontology))
+
+        # add all the elements...
         self._build_classes(g, ontology)
         self._build_links(g, ontology)
         self._build_data_nodes(g, ontology)
 
         return g.serialize(format='turtle').decode("utf-8")
-
-# basic reasoner for subclass properties...
-#
-# for c in g.subjects(predicate=RDF.type, object = OWL.Class):
-#      print(c)
-#      superC = g.objects(predicate = RDFS.term('subClassOf'), subject = c)
-#      for sc in superC:
-#          props = g.subjects(predicate = RDFS.domain, object = sc)
-#          print(list(props))

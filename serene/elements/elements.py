@@ -78,7 +78,7 @@ class Column(Searchable):
         )
 
     def __hash__(self):
-        return id(self)
+        return hash((self.name, self.id, self.datasetID))
 
 
 class Mapping(object):
@@ -385,8 +385,8 @@ class Link(Searchable):
 
     # special link names...
     SUBCLASS = "subclass"
-    OBJECT_LINK = "ObjectProperty"
-    DATA_LINK = "DataProperty"
+    OBJECT_LINK = "ObjectPropertyLink"
+    DATA_LINK = "DataPropertyLink"
 
     def __init__(self, name, src=None, dst=None):
         """
