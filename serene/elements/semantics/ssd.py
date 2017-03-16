@@ -38,22 +38,24 @@ class SSD(object):
         Builds up a SemanticSourceDesc object given a dataset and
         and a parent ontology (or set of ontologies).
         """
-        if not issubclass(type(ontology), Ontology):
-            msg = "Required Ontology, not {}".format(type(ontology))
-            raise Exception(msg)
+        if dataset is not None:
+            if not issubclass(type(dataset), DataSet):
+                msg = "Required DataSet, not {}".format(type(dataset))
+                raise Exception(msg)
 
-        if not issubclass(type(dataset), DataSet):
-            msg = "Required DataSet, not {}".format(type(dataset))
-            raise Exception(msg)
+            # dataset and ontology must be stored on the server!!!!
+            if not dataset.stored:
+                msg = "{} must be stored on the server, use <Serene>.datasets.upload"
+                raise Exception(msg)
 
-        # dataset and ontology must be stored on the server!!!!
-        if not dataset.stored:
-            msg = "{} must be stored on the server, use <Serene>.datasets.upload"
-            raise Exception(msg)
+        if ontology is not None:
+            if not issubclass(type(ontology), Ontology):
+                msg = "Required Ontology, not {}".format(type(ontology))
+                raise Exception(msg)
 
-        if not ontology.stored:
-            msg = "{} must be stored on the server, use <Serene>.ontologies.upload"
-            raise Exception(msg)
+            if not ontology.stored:
+                msg = "{} must be stored on the server, use <Serene>.ontologies.upload"
+                raise Exception(msg)
 
         self._name = name if name is not None else gen_id()
         self._dataset = dataset
@@ -72,12 +74,13 @@ class SSD(object):
         # this should always contain the complete Column set,
         # so that the user can easily see what is and isn't
         # yet mapped.
-        self._mapping = {}
-        for i, column in enumerate(self._dataset.columns):
-            self._mapping[column] = Mapping(
-                column,
-                node=None,
-                transform=IdentTransform())
+        if self._dataset is not None:
+            self._mapping = {}
+            for i, column in enumerate(self._dataset.columns):
+                self._mapping[column] = Mapping(
+                    column,
+                    node=None,
+                    transform=IdentTransform())
 
     def update(self, blob, dataset_endpoint, ontology_endpoint):
         """Create the object from json directly"""
@@ -140,6 +143,8 @@ class SSD(object):
             msg = "Failed to find DataNode: {}".format(data_node)
             _logger.error(msg)
             raise Exception(msg)
+        else:
+            print("+++++++++++ found data node", dn, "from", data_node)
         return dn
 
     def _find_transform(self, transform):
@@ -242,7 +247,7 @@ class SSD(object):
             if '.' in node:
                 node = DataNode(*node.split('.'))
             else:
-                # TODO: ClassNode should be supported for foreign keys
+                # TODO: ClassNode should be supported for foreign keys!
                 node = ClassNode(node)
 
         return self._map(column, node, transform, predicted=False)
@@ -265,26 +270,35 @@ class SSD(object):
         col = self._find_column(column)
         dn = self._find_data_node(node)
 
-        m = self._mapping[col]
-        if m.transform in self._transforms:
-            # remove the old one...
-            m = self._mapping[col]
-            self._transforms.remove(m.transform)
-
-        # add the transform...
-        t = self._add_transform(transform)
+        # print(",,,,,,", dn, dn.parent)
 
         # add the mapping element to the table...
-        self._mapping[col] = Mapping(col, dn, t, predicted)
+        self._mapping[col] = Mapping(col, dn, None, predicted)
 
         # grab the parent from the ontology
-        parent = ClassNode.search(self._ontology.class_nodes, dn.parent)
+        parent = ClassNode.search(self._ontology.iclass_nodes, dn.parent)
         if parent is None:
             msg = "{} does not exist in the ontology.".format(parent)
             raise Exception(msg)
 
+        # print("_-_-_-_-_- found", parent, "from", dn.parent)
+        # print()
+
         # by making this mapping, the class node is now in the SemanticModel...
-        self._semantic_model.add_class_node(parent)
+        self._semantic_model.add_class_node(parent, add_data_nodes=False)
+
+        target = Link(dn.name, parent, dn)
+        link = Link.search(self._ontology.ilinks, target)
+        if link is None:
+            msg = "{} does not exist in the ontology.".format(target)
+            raise Exception(msg)
+        # else:
+        #     print("-------- found link", link, "from", target)
+        #     print("-------- with link", target.src, "to", target.dst)
+        #     print("-------- with link", link.src, "to", link.dst)
+        #     print()
+
+        self._semantic_model.add_link(target)
 
         return self
 
@@ -342,7 +356,7 @@ class SSD(object):
         else:
             target_link.prefix = link.prefix
 
-            # print(">>>>>>> FOUND LINK!!!!!")
+            # print(">>>>>>> ADDING LINK!!!!!")
             # # print("Class nodes before", self.class_nodes)
             # print(link)
             # print(link.src)
@@ -354,20 +368,11 @@ class SSD(object):
             # print(target_link.src)
             # print(target_link.dst)
             # print("><><><><><><", target_link.prefix)
-            #
-            # print("Class nodes after", self.class_nodes)
-            # print()
-            # self._ontology.summary()
-            # print("><><><><><><>")
-            # for link in self._ontology.links:
-            #     print(">", link, link.prefix)
-            #     print()
-            # print(":::::::::")
-            # print()
-
 
             # if it is ok, then add the new link to the SemanticModel...
             self._semantic_model.add_link(target_link)
+
+            #print(self.links)
 
         return self
 
@@ -543,8 +548,14 @@ class SSD(object):
     @property
     def class_nodes(self):
         """All available class nodes"""
-        return list(set(n.parent for n in self.data_nodes if n is not None))
-        # return self._semantic_model.class_nodes
+        #return list(set(n.parent for n in self.data_nodes if n is not None))
+        return self._semantic_model.class_nodes
+
+    @property
+    def data_links(self):
+        """ClassNode - DataNode links in the semantic model"""
+        # # grab the object links from the model...
+        return self._semantic_model.data_links
 
     @property
     def class_links(self):
@@ -562,8 +573,8 @@ class SSD(object):
             are not necessary.
         """
         # # grab the object links from the model...
-        object_links = [link for link in self._semantic_model.links
-                         if link.link_type == Link.OBJECT_LINK]
+        # object_links = [link for link in self._semantic_model.links
+        #                if link.link_type == Link.OBJECT_LINK]
         #
         # # grab the data links from the model...
         # data_links = [link for link in self._semantic_model.links
@@ -572,7 +583,7 @@ class SSD(object):
         # # combine the relevant links...
         # return object_links + [link for link in data_links if link.dst in self.data_nodes]
         #return self.model.links
-        return object_links
+        return self.data_links + self.class_links
 
     def _full_str(self):
         """
@@ -733,8 +744,23 @@ class SSDReader(object):
         # next we pull the class names out with the data nodes
         for cls, dns in lookup.items():
             class_node, prefix = class_table[cls]
-            cn = ClassNode.search(ontology.iclass_nodes, ClassNode(class_node, prefix=prefix))
-            sm.add_class_node(cn)
+            cn = ClassNode.search(ontology.iclass_nodes,
+                                  ClassNode(class_node, prefix=prefix))
+            if cn is None:
+                msg = "Cannot find class in ontology: {}".format(ClassNode(class_node, prefix=prefix))
+                raise Exception(msg)
+            sm.add_class_node(cn, add_data_nodes=False)
+
+        for isrc, idst, name in data_links:
+            src, prefix = class_table[isrc]
+            dst = data_nodes[idst]
+            #cn2 = ClassNode.search(ontology.iclass_nodes, ClassNode(class_node, prefix=prefix))
+            #sm.add_class_node(cn2, add_data_nodes=False)
+            link = Link.search(ontology.ilinks, Link(name, ClassNode(src), DataNode(dst)))
+            if link is None:
+                msg = "Cannot find link in ontology: {}".format(Link(name, ClassNode(src), DataNode(dst)))
+                raise Exception(msg)
+            sm.add_link(link)
 
         # finally we add the class links
         for link in class_links:

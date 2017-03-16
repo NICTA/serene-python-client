@@ -101,10 +101,10 @@ class Ontology(BaseSemantic):
         """
         self._stored = False
 
-    def add_class_node(self, node):
+    def add_class_node(self, node, add_data_nodes=True):
         """Unstore if a class node is added"""
         self._unstore()
-        return super().add_class_node(node)
+        return super().add_class_node(node, add_data_nodes)
 
     def add_link(self, link):
         """Unstore if a link is added"""

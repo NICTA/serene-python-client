@@ -267,15 +267,16 @@ class ClassNode(Searchable):
         else:
             parent = ", parent={}".format(self.parent.name)
 
-        return "ClassNode({}, [{}]{})".format(self.name, ", ".join(nodes), parent)
+        #return "ClassNode({}, [{}]{})".format(self.name, ", ".join(nodes), parent)
+        return "ClassNode({})".format(self.name)
 
     def __eq__(self, other):
         return (self.name == other.name) \
-               and (self.prefix == other.prefix) \
-               and (self.nodes == other.nodes)
+               and (self.prefix == other.prefix) # \
+               #and (self.nodes == other.nodes)
 
     def __hash__(self):
-        return hash((self.name, self.prefix, frozenset(self.nodes)))
+        return hash((self.name, self.prefix)) #, frozenset(self.nodes)))
 
 
 class DataNode(Searchable):
@@ -419,11 +420,11 @@ class Link(Searchable):
 
         :return: Dictionary with the SSD link labels
         """
-        if self.prefix is None:
+        if issubclass(type(self.dst), ClassNode) and self.prefix is None:
             msg = "{} has no prefix namespace specified.".format(self)
             raise ValueError(msg)
 
-        return {
+        output = {
             "id": index,
             "source": index_map[self.src],
             "target": index_map[self.dst],
@@ -431,6 +432,7 @@ class Link(Searchable):
             "type": self.link_type,
             "prefix": self.prefix
         }
+        return {k:v for k, v in output.items() if v is not None}
 
     def __repr__(self):
         if (self.src is None) or (self.dst is None):

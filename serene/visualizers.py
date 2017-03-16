@@ -150,34 +150,6 @@ class SSDVisualizer(BaseVisualizer):
                            style='filled',
                            fontname='helvetica')
 
-    # def _draw_transforms(self, graph):
-    #     """
-    #     Draws the Transform objects onto the pygraphviz graph
-    #     :param graph:
-    #     :return:
-    #     """
-    #     for t in self.struct.transforms:
-    #         if type(t) == IdentTransform:
-    #             transform_text = "Identity".format(t.id)
-    #         else:
-    #             transform_text = "Transform({})".format(t.id)
-    #
-    #         graph.add_node(t,
-    #                        label=transform_text,
-    #                        color='white',
-    #                        style='filled',
-    #                        shape='box',
-    #                        fontname='helvetica')
-    #
-    #     graph.add_subgraph(self.struct.transforms,
-    #                        rank='min',
-    #                        name='cluster2',
-    #                        style='filled',
-    #                        color='#9090f0',
-    #                        fontcolor='#6060c0',
-    #                        label='transforms',
-    #                        fontname='helvetica')
-
     def _draw_data_nodes(self, graph):
         """
         Draws the DataNode objects onto the pygraphviz graph

@@ -386,7 +386,9 @@ class SSDEndpoint(IdentifiableEndpoint):
 
         response = self._api.post(ssd.json)
 
-        return ssd.update(response, self._session)
+        return ssd.update(response,
+                          self._session.datasets,
+                          self._session.ontologies)
 
     @decache
     def remove(self, ssd):
@@ -406,24 +408,26 @@ class SSDEndpoint(IdentifiableEndpoint):
 
     @lru_cache(maxsize=32)
     def get(self, key):
-        """Get a single SSD at position key"""
-        return SSD.update(self._api.item(key),
-                          self._session.datasets,
-                          self._session.ontologies)
+        """Get a single ssd at position key"""
+        for o in self.items:
+            if o.id == key:
+                return o
+        msg = "SSD {} does not exist on server".format(key)
+        raise Exception(msg)
 
     @property
     @lru_cache(maxsize=32)
     def items(self):
         """Maintains a list of SSD objects"""
         keys = self._api.keys()
-        ssd = []
+        ssds = []
         for k in keys:
             blob = self._api.item(k)
-            s = SSD.update(blob,
-                           self._session.datasets,
-                           self._session.ontologies)
-            ssd.append(s)
-        return tuple(ssd)
+            s = SSD().update(blob,
+                             self._session.datasets,
+                             self._session.ontologies)
+            ssds.append(s)
+        return tuple(ssds)
 
 
 class OctopusEndpoint(IdentifiableEndpoint):

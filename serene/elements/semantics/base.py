@@ -79,11 +79,12 @@ class BaseSemantic(object):
 
         return self
 
-    def add_class_node(self, node):
+    def add_class_node(self, node, add_data_nodes=True):
         """
         Adds the ClassNode node into the Semantic Model
 
         :param node:
+        :param add_data_nodes:
         :return:
         """
         # if the name is in the class table, then we
@@ -91,7 +92,7 @@ class BaseSemantic(object):
         self._class_table[node.name] = node
 
         # now add the data property links
-        if node.nodes is not None:
+        if add_data_nodes and node.nodes is not None:
             for dataNode in node.nodes:
                 link = Link(dataNode.name, node, dataNode, prefix=dataNode.prefix)
                 self.add_link(link)
@@ -208,7 +209,9 @@ class BaseSemantic(object):
     def _iclass_nodes(self):
         """Returns all inferred class nodes"""
         for node in self.class_nodes:
-            yield ClassNode(node.name, list(self._item_chain(node)), prefix=node.prefix)
+            yield ClassNode(node.name,
+                            list(self._item_chain(node)),
+                            prefix=node.prefix)
 
     def _idata_nodes(self):
         """Returns all inferred data nodes"""
@@ -235,8 +238,11 @@ class BaseSemantic(object):
     def _child_chain(self, z):
         """Returns the item z with all descendants"""
         m = self._child_map()
-        for y in m[z]:
-            yield y
+        if z in m:
+            for y in m[z]:
+                yield y
+        else:
+            yield z
 
     def _ilinks(self):
         """Returns the interpreted links..."""
@@ -348,8 +354,6 @@ class BaseSemantic(object):
     @property
     def links(self):
         """Returns all the links in the graph"""
-        # links = nx.get_edge_attributes(self._graph, self._LINK)
-        # return list(links.values())
         return self._links
 
     @property
@@ -361,6 +365,18 @@ class BaseSemantic(object):
             return issubclass(type(link), ClassNode)
 
         return [link for link in self._links if is_class(link.src) and is_class(link.dst)]
+
+    @property
+    def data_links(self):
+        """Returns all the data links in the graph"""
+        def is_class(link):
+            return issubclass(type(link), ClassNode)
+
+        def is_data(link):
+            return issubclass(type(link), DataNode)
+
+        return [link for link in self._links
+                if is_class(link.src) and is_data(link.dst)]
 
     def get(self, value):
         """
