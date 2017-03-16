@@ -21,6 +21,9 @@ class TestSSD(TestWithServer):
         self._ontologies = None
 
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
+        self._test_file = os.path.join(path, 'data', 'businessInfo.csv')
+        self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.owl')
+        self._test_ssd = os.path.join(path, 'ssd', 'businessInfo.ssd')
         self._test_file = os.path.join(path, 'data','businessInfo.csv')
         self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.ttl')
         self._test_ssd = os.path.join(path, 'ssd','businessInfo.ssd')
@@ -60,3 +63,12 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(single.links), 0)
         # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
         # self.assertEqual(single.class_nodes[0].name, "hello")
+
+    def test_iclass_nodes(self):
+        raise NotImplementedError("Test not implemented")
+
+    def test_idata_nodes(self):
+        raise NotImplementedError("Test not implemented")
+
+    def test_ilinks(self):
+        raise NotImplementedError("Test not implemented")

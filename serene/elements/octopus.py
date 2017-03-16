@@ -9,11 +9,12 @@ import time
 
 from .semantics.ssd import SSD
 from .semantics.ontology import Ontology
+from .dataset import DataSet
 from ..matcher import Status
 from ..utils import convert_datetime
 
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class Octopus(object):
@@ -90,10 +91,10 @@ class Octopus(object):
         self._id = json['id']
 
         # build out the octopus parameters
-        self._ssds = [self._session.ssds.get(o) for o in json['ssds']]
-        self._ontologies = [self._session.ontologies.get(o) for o in json['ontologies']]
+        self._ssds = [self._session.ssd.item(o) for o in json['ssds']]
+        self._ontologies = [self._session.ontology.item(o) for o in json['ontologies']]
         self._model_id = json['lobsterID']
-        self._matcher = self._session.models.get(self._model_id)
+        self._matcher = self._session.model.item(self._model_id)
         self._modeling_props = json['modeling_props']
         self._semantic_type_map = json['semantic_type_map']
         self._state = json['state']

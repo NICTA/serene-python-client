@@ -7,18 +7,18 @@ Defines the Ontology object
 import itertools as it
 import logging
 import os.path
-import random
 import tempfile
-import string
 import pandas as pd
+import itertools as it
 import rdflib
 
 from collections import defaultdict
 from .base import BaseSemantic
-from serene.elements import ClassNode, DataNode
+from serene.elements import ClassNode, DataNode, Link
+from serene.utils import gen_id
 
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class Ontology(BaseSemantic):
@@ -56,7 +56,7 @@ class Ontology(BaseSemantic):
         self.source_file = None  # the original file the user starts with (if any)
 
         # update to a default ID...
-        self._update_id(self._rand_id())
+        self._update_id(gen_id())
 
         # if a file is presented, we use this to update
         if file is not None:
@@ -121,41 +121,6 @@ class Ontology(BaseSemantic):
         self._unstore()
         return super().add_link(link)
 
-    def _class_chain(self, dn):
-        """
-        Returns the chain of parent classes from DataNode -> all parents
-        including the original
-        """
-        if dn is None:
-            raise StopIteration
-        else:
-            yield dn
-            yield from self._class_chain(dn.parent)
-
-    def _item_chain(self, z):
-        for cls in self._class_chain(z):
-            for item in cls.nodes:
-                yield item.name
-
-    def _iclass_nodes(self):
-        """Returns all inferred class nodes"""
-        for node in self.class_nodes:
-            yield ClassNode(node.name, list(self._item_chain(node)), prefix=node.prefix)
-
-    def _idata_nodes(self):
-        """Returns all inferred data nodes"""
-        for node in self.iclass_nodes:
-            for dn in node.nodes:
-                yield dn
-
-    @property
-    def iclass_nodes(self):
-        return self._iclass_nodes()
-
-    @property
-    def idata_nodes(self):
-        return self._idata_nodes()
-
     def _update_id(self, id):
         """
         Updates with the latest id string
@@ -192,19 +157,6 @@ class Ontology(BaseSemantic):
         self.date_modified = json['dateModified']
         self._update_id(json['id'])
         return self
-
-    @staticmethod
-    def _rand_id():
-        """
-        Generates a random temporary id. Note that this is alpha-numeric.
-        Alpha character ids are used to indicate that this ontology is not
-        stored.
-        Integer numbers indicate that this ontology object is stored on the
-        server.
-
-        :return:
-        """
-        return ''.join(random.sample(string.ascii_lowercase, 16))
 
     def to_turtle(self, filename=None):
         """

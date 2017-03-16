@@ -118,7 +118,7 @@ class SchemaMatcher(object):
         if y_actu.empty or y_pred.empty:
             logging.warning("Failed to create confusion matrix")
             return []
-        
+
         return pd.crosstab(y_actu, y_pred)
 
     @decache
@@ -129,7 +129,9 @@ class SchemaMatcher(object):
                      model_type="randomForest",
                      labels=None,
                      cost_matrix=None,
-                     resampling_strategy="ResampleToMean"):
+                     resampling_strategy="ResampleToMean",
+                     numBags=50,
+                     bagSize=100):
         """
         Post a new model to the schema matcher server.
         Refresh SchemaMatcher instance to include the new model.
@@ -169,7 +171,9 @@ class SchemaMatcher(object):
                                    model_type,
                                    label_parse(labels),
                                    cost_matrix,
-                                   resampling_strategy)  # send API request
+                                   resampling_strategy,
+                                   numBags,
+                                   bagSize)  # send API request
         # create model wrapper...
         return Model(json, self.api)
 

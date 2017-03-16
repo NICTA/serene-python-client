@@ -1,8 +1,15 @@
+"""
+Copyright (C) 2017 Data61 CSIRO
+Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+
+Defines the DataSet API
+"""
 import logging
 from urllib.parse import urljoin
 
 from .exceptions import InternalError
 from .http import HTTPObject
+from ..utils import flatten
 
 
 class DataSetAPI(HTTPObject):
@@ -128,3 +135,4 @@ class DataSetAPI(HTTPObject):
             raise InternalError("Failed to delete dataset", e)
         self._handle_errors(r, "DELETE " + uri)
         return r.json()
+

@@ -9,7 +9,7 @@ from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint, OctopusEn
 
 # logging functions...
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class Serene(object):
@@ -51,14 +51,14 @@ class Serene(object):
 
         self._ontologies = OntologyEndpoint(self._session)
 
-        self._ssds = SSDEndpoint(self._session)
+        self._ssds = SSDEndpoint(self)
 
         self._octopii = OctopusEndpoint(self._session)
 
         self._models = ModelEndpoint(self._session)
 
     @staticmethod
-    def SSD(dataset, ontology):
+    def SSD(dataset, ontology, name):
         """
         Here we have the SSD class that the user can use to build SSDs.
         Note that we hide this in a nested class to pass the reference
@@ -67,7 +67,7 @@ class Serene(object):
         we can use real dataset and ontology objects, rather than just
         IDs when talking to/from the server.
         """
-        return SSD(dataset, ontology)
+        return SSD(dataset, ontology, name)
 
     @staticmethod
     def Octopus(ssds,
@@ -121,6 +121,10 @@ class Serene(object):
     @property
     def models(self):
         return self._models
+
+    @property
+    def session(self):
+        return self._session
 
     def __repr__(self):
         return "Serene({}:{}, {})".format(

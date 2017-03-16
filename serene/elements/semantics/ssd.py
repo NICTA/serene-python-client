@@ -18,7 +18,7 @@ from serene.utils import gen_id, convert_datetime
 from serene.visualizers import SSDVisualizer
 
 _logger = logging.getLogger()
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.WARN)
 
 
 class SSD(object):
@@ -32,7 +32,8 @@ class SSD(object):
     """
     def __init__(self,
                  dataset=None,
-                 ontology=None):
+                 ontology=None,
+                 name=None):
         """
         Builds up a SemanticSourceDesc object given a dataset and
         and a parent ontology (or set of ontologies).
@@ -42,7 +43,7 @@ class SSD(object):
             raise Exception(msg)
 
         if not issubclass(type(dataset), DataSet):
-            msg = "Required Ontology, not {}".format(type(ontology))
+            msg = "Required DataSet, not {}".format(type(dataset))
             raise Exception(msg)
 
         # dataset and ontology must be stored on the server!!!!
@@ -54,7 +55,7 @@ class SSD(object):
             msg = "{} must be stored on the server, use <Serene>.ontologies.upload"
             raise Exception(msg)
 
-        self._name = gen_id()
+        self._name = name if name is not None else gen_id()
         self._dataset = dataset
         self._ontology = ontology
         self._VERSION = "0.1"
@@ -105,6 +106,35 @@ class SSD(object):
             self.map(col, ds)
 
         return self
+
+    @classmethod
+    def from_json(cls, blob, session):
+        """Create the object from json directly"""
+
+        reader = SSDReader(blob,
+                           session.datasets,
+                           session.ontologies)
+
+        new = cls(reader.dataset,
+                  reader.ontology,
+                  blob["name"])
+
+        if 'id' in blob:
+            new._stored = True
+            new._name = blob['name']
+            new._date_created = convert_datetime(blob['dateCreated'])
+            new._date_modified = convert_datetime(blob['dateModified'])
+            new._id = int(blob['id'])
+
+        new._ontology = reader.ontology
+        new._dataset = reader.dataset
+        new._semantic_model = reader.semantic_model
+
+        # build up the mapping through the interface...
+        for col, ds in reader.mapping:
+            new.map(col, ds)
+
+        return new
 
     def _find_column(self, column):
         """
@@ -325,7 +355,7 @@ class SSD(object):
         d_class = self._find_class(dst)
 
         # now check that the link is in the ontology...
-        parent_links = self._ontology.links
+        parent_links = self._ontology.ilinks
         target_link = Link(relationship, s_class, d_class)
         link = Link.search(parent_links, target_link)
 
@@ -334,7 +364,7 @@ class SSD(object):
             _logger.error(msg)
             raise Exception(msg)
         elif link in self.links:
-            msg = "Link {} is already in the links"
+            msg = "Link {} is already in the links".format(link)
             _logger.info(msg)
         else:
             # if it is ok, then add the new link to the SemanticModel...
@@ -434,8 +464,20 @@ class SSD(object):
 
         :return: None
         """
+        self.summary()
         SSDVisualizer(self).show()
         return
+
+    def summary(self):
+        """Prints out the summary string..."""
+        print()
+        print("{}:".format(self._name))
+        print(self._full_str())
+
+    @property
+    def name(self):
+        """Returns the current name of the SSD"""
+        return self._name
 
     @property
     def stored(self):
@@ -448,7 +490,7 @@ class SSD(object):
         return self._VERSION
 
     @property
-    def ontologies(self):
+    def ontology(self):
         """The read-only list of ontology objects"""
         return self._ontology
 
@@ -463,6 +505,11 @@ class SSD(object):
         """The SSD as a JSON string"""
         builder = SSDJsonWriter(self)
         return builder.to_json()
+
+    @property
+    def dataset(self):
+        """returns the dataset provided"""
+        return self._dataset
 
     @property
     def model(self):
@@ -483,11 +530,6 @@ class SSD(object):
     def columns(self):
         """The list of columns currently used"""
         return list(self._mapping.keys())
-
-    @property
-    def transforms(self):
-        """All available transforms"""
-        return list(self._transforms)
 
     @property
     def data_nodes(self):
@@ -518,7 +560,7 @@ class SSD(object):
         # combine the relevant links...
         return object_links + [link for link in data_links if link.dst in self.data_nodes]
 
-    def __repr__(self):
+    def _full_str(self):
         """
         Displays the maps of columns to the data nodes of the Ontology
         :return:
@@ -531,23 +573,26 @@ class SSD(object):
 
         return "[\n\t{}\n]".format(full_str)
 
+    def __repr__(self):
+        return "SSD({}, {})".format(self._name, self._dataset.filename)
+
 
 class SSDReader(object):
     """
     The SSDReader is a helper object used to parse an SSD json
     blob from the server.
     """
-    def __init__(self, json, dataset_endpoint, ontology_endpoint):
+    def __init__(self, blob, dataset_endpoint, ontology_endpoint):
         """Builds up the relevant properties from the json blob `json`
             note that we need references to the endpoints to ensure
             that the information is up-to-date with the server.
         """
         self._ds_endpoint = dataset_endpoint
         self._on_endpoint = ontology_endpoint
-        self._ontology = self._find_ontology(json)
-        self._dataset = self._find_dataset(json)
-        self._semantic_model = self._build_semantic(json)
-        self._mapping = self._build_mapping(json)
+        self._ontology = self._find_ontology(blob)
+        self._dataset = self._find_dataset(blob)
+        self._semantic_model = self._build_semantic(blob, self._ontology)
+        self._mapping = self._build_mapping(blob)
 
     @property
     def ontology(self):
@@ -574,7 +619,7 @@ class SSDReader(object):
     def _find_dataset(self, json):
         """Attempts to grab the dataset out from the json string"""
         # fill out the dataset...
-        jsm = json["semanticModel"]
+        # jsm = json["semanticModel"]
 
         columns = [c['attribute'] for c in json['mappings']]
 
@@ -588,7 +633,7 @@ class SSDReader(object):
             msg = "Column {} does not appear on the server".format(columns[0])
             raise Exception(msg)
 
-        ds_key = col_map[columns[0]].parent
+        ds_key = col_map[columns[0]].datasetID
 
         return self._ds_endpoint.get(ds_key)
 
@@ -596,7 +641,7 @@ class SSDReader(object):
         """Builds the mapping from the json string"""
         jsm = json["semanticModel"]
         raw_nodes = jsm["nodes"]
-        raw_map = jsm["mappings"]
+        raw_map = json["mappings"]
 
         def node_split(label):
             """Split the datanode label into ClassNode, DataNode"""
@@ -605,12 +650,13 @@ class SSDReader(object):
 
         def get(label):
             """Try to locate the datanode in the semantic model"""
-            dn = DataNode.search(
-                self._semantic_model.data_nodes,
-                DataNode(*node_split(label)))
+            dn = DataNode.search(self._semantic_model.idata_nodes,
+                                 DataNode(*node_split(label)))
             if dn is None:
                 msg = "DataNode{} does not appear in semantic model.".format(node_split(label))
                 raise Exception(msg)
+            else:
+                return dn
 
         data_nodes = {n["id"]: get(n["label"])
                       for n in raw_nodes
@@ -624,12 +670,16 @@ class SSDReader(object):
             node = data_nodes[link["node"]]
             values.append((cid, node))
 
+        print("BUILD MAPPING")
+        print(values)
+
         return values
 
-    def _build_semantic(self, json):
+    @staticmethod
+    def _build_semantic(blob, ontology):
         """Builds the semantic model from a json string"""
         sm = BaseSemantic()
-        jsm = json["semanticModel"]
+        jsm = blob["semanticModel"]
         raw_nodes = jsm["nodes"]
         links = jsm["links"]
 
@@ -637,20 +687,29 @@ class SSDReader(object):
             items = label.split(".")
             return items[0], items[-1]
 
-        class_table = {n["id"]: n["label"] for n in raw_nodes
+        class_table = {n["id"]: (n["label"], n["prefix"]) for n in raw_nodes
                        if n["type"] == "ClassNode"}
+
+        # print(">>>> class_table >>>>>", class_table)
 
         data_nodes = {n["id"]: node_split(n["label"])[1]
                       for n in raw_nodes
                       if n["type"] == "DataNode"}
 
+        # print("<<<<< data_nodes <<<<<", data_nodes)
+
         class_links = [(n["source"], n["target"], n["label"])
                        for n in links
-                       if n["type"] == "ObjectPropertyLink"]
+                       if n["type"] == "ObjectProperty"]
+
+        # print("===== class_links ====", class_links)
 
         data_links = [(n["source"], n["target"], n["label"])
                       for n in links
-                      if n["type"] == "DataPropertyLink"]
+                      if n["type"] == "DataProperty"]
+
+        # print("+++++ data_links +++++", data_links)
+
 
         # first fill the class links in a lookup table
         lookup = defaultdict(list)
@@ -660,14 +719,16 @@ class SSDReader(object):
 
         # next we pull the class names out with the data nodes
         for cls, dns in lookup.items():
-            class_node = class_table[cls]
-            _dns = [data_nodes[dn] for dn in dns]
-            sm.class_node(class_node, _dns)
+            class_node, prefix = class_table[cls]
+            cn = ClassNode.search(ontology.iclass_nodes, ClassNode(class_node, prefix=prefix))
+            sm.add_class_node(cn)
 
         # finally we add the class links
         for link in class_links:
             src, dst, name = link
-            sm.link(src, name, dst)
+            sm.link(class_table[src][0], name, class_table[dst][0])
+
+        sm.summary()
 
         return sm
 
@@ -691,76 +752,33 @@ class SSDJsonWriter(object):
         self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
 
     def to_dict(self):
-        """
-
-        :return:
-        """
+        """Builds the dictionary representation of the SSD"""
         d = OrderedDict()
-        # d["version"] = self._ssd.version
-        d["name"] = self._ssd.file
-        # d["columns"] = self.columns
-        d["attributes"] = self.attributes
-        d["ontology"] = [self._ssd.ontology.id]
+        d["name"] = self._ssd.name
+        d["ontologies"] = [self._ssd.ontology.id]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
-
         return d
 
     def to_json(self):
-        """
-
-        :return:
-        """
-        return json.dumps(self.to_dict(), indent=4)
-
-    @property
-    def columns(self):
-        """
-
-        :return:
-        """
-        return [
-            {
-                "id": c.index,
-                "name": c.name
-            } for c in self._ssd.columns]
-
-    @property
-    def attributes(self):
-        """
-
-        :return:
-        """
-        return [
-            {
-                "id": self._attr_map[m],
-                "name": m.column.name,
-                "label": m.transform.name,
-                "columnIds": [m.column.index],
-                "sql": m.transform.apply(m.column)
-            } for m in self._ssd.mappings]
+        """Builds the complete json object string"""
+        return json.dumps(self.to_dict())
 
     @property
     def semantic_model(self):
-        """
-
-        :return:
-        """
+        """Builds out the .ssd semantic model section..."""
         return {
             "nodes": [node.ssd_output(index)
                       for index, node in enumerate(self._all_nodes)],
-            "links": [link.ssd_output(self._node_map)
-                      for link in self._ssd.links]
+            "links": [link.ssd_output(index, self._node_map)
+                      for index, link in enumerate(self._ssd.links)]
         }
 
     @property
     def mappings(self):
-        """
-
-        :return:
-        """
+        """BUilds out the .ssd mapping section.."""
         return [
             {
-                "attribute": self._attr_map[m],
+                "attribute": m.column.id, #self._attr_map[m],
                 "node": self._node_map[m.node]
             } for m in self._ssd.mappings if m.node is not None]

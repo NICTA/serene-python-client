@@ -6,7 +6,6 @@ Endpoint objects for the user to view and manipulate. These wrap around
 server Session objects and call methods to talk to the server.
 """
 import collections
-import json
 import os
 import tempfile
 from functools import lru_cache
@@ -18,8 +17,7 @@ from serene.elements import Ontology
 from serene.elements import SSD
 from .elements.octopus import Octopus
 from .matcher.model import Model
-from .utils import flatten
-from .utils import gen_id
+from .utils import flatten, gen_id
 
 
 def decache(func):
@@ -164,7 +162,6 @@ class DataSetEndpoint(IdentifiableEndpoint):
         cols = flatten([c.columns for c in self.items])
         return ReadOnlyDict({c.id: c for c in cols})
 
-    @property
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single dataset at position key"""
@@ -199,22 +196,6 @@ class ModelEndpoint(IdentifiableEndpoint):
         self._session = session
         self._base_type = Model
 
-    # @decache
-    # def upload(self, model):
-    #     """
-    #     Uploads a model to the server
-    #
-    #     :param model
-    #     :return:
-    #     """
-    #     assert(issubclass(type(model), Model))
-    #
-    #     data = json.load(f)
-    #
-    #     response = self._api.post(data)
-    #
-    #     return model.update(response)
-
     @decache
     def remove(self, model):
         """
@@ -231,7 +212,6 @@ class ModelEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    @property
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single model at position key"""
@@ -348,7 +328,11 @@ class OntologyEndpoint(IdentifiableEndpoint):
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single ontology at position key"""
-        return Ontology(file=self._api.owl_file(key))
+        for o in self.items:
+            if o.id == key:
+                return o
+        msg = "Ontology {} does not exist on server".format(key)
+        raise Exception(msg)
 
     @property
     @lru_cache(maxsize=32)
@@ -369,7 +353,7 @@ class SSDEndpoint(IdentifiableEndpoint):
     :param object:
     :return:
     """
-    def __init__(self, session):
+    def __init__(self, parent):
         """
 
         :param self:
@@ -377,8 +361,8 @@ class SSDEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = session.ssd
-        self._session = session
+        self._api = parent.session.ssd
+        self._session = parent
         self._base_type = SSD
 
     def compare(self, x, y, ignore_types=True, ignore_columns=False):
@@ -407,21 +391,18 @@ class SSDEndpoint(IdentifiableEndpoint):
     @decache
     def upload(self, ssd):
         """
-
+        Uploads an SSD to the Serene server
         :param ssd
         :return:
         """
         assert(issubclass(type(ssd), SSD))
 
-        if not os.path.exists(ssd.path):
-            raise ValueError("No SSD path exists for {}.".format(ssd))
+        response = self._api.post(ssd.json)
 
-        with open(ssd.path) as f:
-            data = json.load(f)
+        with open('test.json', 'w') as f:
+            f.write(ssd.json)
 
-        response = self._api.post(data)
-
-        return ssd.update(response)
+        return SSD.from_json(response, self._session)
 
     @decache
     def remove(self, ssd):
@@ -439,7 +420,6 @@ class SSDEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    @property
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single SSD at position key"""
@@ -511,7 +491,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
             modeling_props=octopus.modeling_props
         )
 
-        return octopus.update(response)
+        return Octopus.from_json(response, self._session)
 
     @decache
     def remove(self, octopus):
@@ -529,7 +509,6 @@ class OctopusEndpoint(IdentifiableEndpoint):
         """
         print(self.items)
 
-    @property
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single Ontology at position key"""

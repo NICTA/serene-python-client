@@ -217,7 +217,7 @@ print(ontology.data_nodes)
 # getEmployees: employer,employee
 # postalCodeLookup: zipcode,city,state
 
-business_info_ssd = (sn.SSD(business_info, ontology)
+business_info_ssd = (sn.SSD(business_info, ontology, name='business-info')
                      .map(Column("company"), DataNode("Organization", "name"))
                      .map(Column("ceo"), DataNode("Person", "name"))
                      .map(Column("city"), DataNode("City", "name"))
@@ -233,7 +233,7 @@ input("press any key to continue...")
 #
 # We also have just a string shorthand...
 #
-employee_address_ssd = (sn.SSD(employee_address, ontology)
+employee_address_ssd = (sn.SSD(employee_address, ontology, name='employee-addr')
                         .map("name", "Person.name")
                         .map("address", "Place.name")
                         .map("postcode", "Place.postalCode")
@@ -243,7 +243,7 @@ employee_address_ssd.show()
 
 input("press any key to continue...")
 
-get_cities_ssd = (sn.SSD(get_cities, ontology)
+get_cities_ssd = (sn.SSD(get_cities, ontology, name='cities')
                   .map(Column("city"), DataNode("City", "name"))
                   .map(Column("state"), DataNode("State", "name"))
                   .link("City", "State", relationship="state"))
@@ -252,7 +252,7 @@ get_cities_ssd.show()
 
 input("press any key to continue...")
 
-get_employees_ssd = (sn.SSD(get_employees, ontology)
+get_employees_ssd = (sn.SSD(get_employees, ontology, name='employees')
                      .map(Column("employer"), DataNode("Organization", "name"))
                      .map(Column("employee"), DataNode("Person", "name"))
                      .link("Person", "Organization", relationship="worksFor"))
@@ -263,7 +263,7 @@ get_employees_ssd.show()
 input("press any key to continue...")
 
 
-postal_code_ssd = (sn.SSD(postal_code, ontology)
+postal_code_ssd = (sn.SSD(postal_code, ontology, name='postal-code')
                    .map(Column("zipcode"), DataNode("Place", "postalCode"))
                    .map(Column("city"), DataNode("City", "name"))
                    .map(Column("state"), DataNode("State", "name"))
@@ -272,7 +272,23 @@ postal_code_ssd = (sn.SSD(postal_code, ontology)
 
 postal_code_ssd.show()
 
-input("press any key to continue...")
+# input("press any key to continue...")
+#
+#
+# postal_code_ssd2 = (sn.SSD(postal_code, ontology, name='postal-code')
+#                     .map(Column("zipcode"), DataNode("Place", "postalCode"))
+#                     .map(Column("city"), DataNode("Place", "name"))
+#                     .map(Column("state"), DataNode("Place", "name", new_instance=True))
+#                     .link("City", "State", relationship="state")
+#                     .link("City", "Place", relationship="isPartOf"))
+#
+# postal_code_ssd2.show()
+
+#
+# upload all these to the server. Here we ignore the return value (the SSD object will be updated)
+#
+for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employees_ssd, postal_code_ssd]:
+    sn.ssds.upload(ssd)
 
 # ==========
 #
