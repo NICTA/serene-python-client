@@ -90,11 +90,12 @@ class SSD(object):
         """
         if 'id' in blob:
             self._stored = True
-            self._name = blob['name']
             self._date_created = convert_datetime(blob['dateCreated'])
             self._date_modified = convert_datetime(blob['dateModified'])
             self._id = int(blob['id'])
 
+        if 'name' in blob:
+            self._name = blob['name']
         reader = SSDReader(blob, dataset_endpoint, ontology_endpoint)
 
         self._ontology = reader.ontology
@@ -103,7 +104,9 @@ class SSD(object):
 
         # build up the mapping through the interface...
         for col, ds in reader.mapping:
-            self.map(col, ds)
+            self.map(col, ds, from_reader=True)
+
+        self._semantic_model.summary()
 
         return self
 
@@ -229,7 +232,7 @@ class SSD(object):
         else:
             raise TypeError("This type is not supported in find().")
 
-    def map(self, column, node, transform=None):
+    def map(self, column, node, transform=None, from_reader=False):
         """
         Adds a link between the column and data_node for the
         mapping. A transform can also be applied to change
@@ -238,6 +241,7 @@ class SSD(object):
         :param column: The source Column
         :param data_node: The destination DataNode
         :param transform: The optional transform to be performed on the Column
+        :param from_reader: if the mapping comes from the SSDreader, then we should not change nodes
         :return:
         """
         if issubclass(type(column), str):
@@ -250,9 +254,9 @@ class SSD(object):
                 # TODO: ClassNode should be supported for foreign keys
                 node = ClassNode(node)
 
-        return self._map(column, node, transform, predicted=False)
+        return self._map(column, node, transform, predicted=False, from_reader=from_reader)
 
-    def _map(self, column, node, transform=None, predicted=False):
+    def _map(self, column, node, transform=None, predicted=False, from_reader=False):
         """
         [Internal] Adds a link between the column and data_node for the
         mapping. A transform can also be applied to change
@@ -262,13 +266,17 @@ class SSD(object):
         :param node: The destination DataNode
         :param transform: The optional transform to be performed on the Column
         :param predicted: Is the mapping predicted or not (internal)
+        :param from_reader: if the mapping comes from the SSDreader, then we should not change nodes or semantic model
         :return:
         """
         assert type(column) == Column
         assert type(node) == DataNode
 
         col = self._find_column(column)
-        dn = self._find_data_node(node)
+        if not(from_reader):
+            dn = self._find_data_node(node)
+        else:
+            dn = node
 
         m = self._mapping[col]
         if m.transform in self._transforms:
@@ -283,13 +291,17 @@ class SSD(object):
         self._mapping[col] = Mapping(col, dn, t, predicted)
 
         # grab the parent from the ontology
-        parent = ClassNode.search(self._ontology.class_nodes, dn.parent)
+        if not(from_reader):
+            parent = ClassNode.search(self._ontology.class_nodes, dn.parent)
+        else:
+            parent = dn.parent
         if parent is None:
             msg = "{} does not exist in the ontology.".format(parent)
             raise Exception(msg)
 
-        # by making this mapping, the class node is now in the SemanticModel...
-        self._semantic_model.add_class_node(parent)
+        if not(from_reader):
+            # by making this mapping, the class node is now in the SemanticModel...
+            self._semantic_model.add_class_node(parent)
 
         return self
 
@@ -548,8 +560,8 @@ class SSD(object):
     @property
     def class_nodes(self):
         """All available class nodes"""
-        return list(set(n.parent for n in self.data_nodes if n is not None))
-        # return self._semantic_model.class_nodes
+        # return list(set(n.parent for n in self.data_nodes if n is not None)) # there might be class nodes with no data nodes
+        return self._semantic_model.class_nodes
 
     @property
     def class_links(self):
@@ -656,32 +668,40 @@ class SSDReader(object):
 
         return self._ds_endpoint.get(ds_key)
 
+    @staticmethod
+    def _get_data_nodes(semantic_json):
+        """
+
+        :param semantic_json:
+        :return:
+        """
+
+        class_table = {n["id"]: ClassNode(name=n["label"], prefix=n["prefix"], idx=n["id"])
+                       for n in semantic_json["nodes"]
+                       if n["type"] == "ClassNode"}
+
+        data_links = [(n["source"], n["target"], n["label"], n["prefix"])
+                      for n in semantic_json["links"]
+                      if n["type"] == Link.DATA_LINK]
+
+        # fill out lookups for data node ids
+        lookup = {}
+        for link in data_links:
+            src, dst, name, prefix = link
+            class_node = class_table[src]
+            lookup[dst] = DataNode(class_node, name, prefix=prefix)
+
+        return lookup
+
     def _build_mapping(self, json):
         """Builds the mapping from the json string"""
         jsm = json["semanticModel"]
-        raw_nodes = jsm["nodes"]
         raw_map = json["mappings"]
 
-        # FIXME: this is not correct to create DataNode like this
-        # instead DataNode should be created from destination and the link
-        def node_split(label):
-            """Split the datanode label into ClassNode, DataNode"""
-            items = label.split(".")
-            return items[0], items[-1]
+        raw_data_nodes = self._get_data_nodes(jsm)
 
-        def get(label):
-            """Try to locate the datanode in the semantic model"""
-            dn = DataNode.search(self._semantic_model.idata_nodes,
-                                 DataNode(*node_split(label)))
-            if dn is None:
-                msg = "DataNode{} does not appear in semantic model.".format(node_split(label))
-                raise Exception(msg)
-            else:
-                return dn
-
-        data_nodes = {n["id"]: get(n["label"])
-                      for n in raw_nodes
-                      if n["type"] == "DataNode"}
+        data_nodes = {dn_id: DataNode.search(self._semantic_model.data_nodes, dn)
+                      for (dn_id, dn) in raw_data_nodes.items()}
 
         column_map = {col.id: col for col in self._dataset.columns}
 
@@ -701,20 +721,10 @@ class SSDReader(object):
         raw_nodes = jsm["nodes"]
         links = jsm["links"]
 
-        def node_split(label):
-            items = label.split(".")
-            return items[0], items[-1]
-
-        class_table = {n["id"]: (n["label"], n["prefix"]) for n in raw_nodes
+        class_table = {n["id"]: ClassNode(n["label"], prefix=n["prefix"], idx=n["id"]) for n in raw_nodes
                        if n["type"] == "ClassNode"}
 
-        #print(">>>> class_table >>>>>", class_table)
-
-        data_nodes = {n["id"]: node_split(n["label"])[1]
-                      for n in raw_nodes
-                      if n["type"] == "DataNode"}
-
-        #print("<<<<< data_nodes <<<<<", data_nodes)
+        # print(">>>> class_table >>>>>", class_table)
 
         class_links = [(n["source"], n["target"], n["label"], n["prefix"])
                        for n in links
@@ -724,38 +734,49 @@ class SSDReader(object):
         # for c in class_links:
         #     print(c)
 
-        data_links = [(n["source"], n["target"], n["label"])
+        data_links = [(n["source"], n["target"], n["label"], n["prefix"])
                       for n in links
                       if n["type"] == Link.DATA_LINK]
 
-        #print("+++++ data_links +++++", data_links)
+        # print("+++++ data_links +++++", data_links)
 
-
-        # first fill the class links in a lookup table
+        # fill out lookups for data properties
         lookup = defaultdict(list)
         for link in data_links:
-            src, dst, name = link
-            lookup[src].append(dst)
+            src, dst, name, prefix = link
+            lookup[src].append((dst, name, prefix))
 
-        # next we pull the class names out with the data nodes
-        for cls, dns in lookup.items():
-            class_node, prefix = class_table[cls]
-            cn = ClassNode.search(ontology.iclass_nodes, ClassNode(class_node, prefix=prefix))
+        # print("lookup: ", lookup)
+
+        # Note: we can have class nodes which do not have any data nodes
+        class_node_lookup = {}
+        for cls in class_table:
+            class_node = class_table[cls]
+            cn = ClassNode.search(ontology.iclass_nodes, class_node)
+            # now we change the data nodes on this class node to the ones which exist within the semantic model
+            data_nodes = lookup[cls]
+            cn = ClassNode(cn.name, nodes=None, prefix=cn.prefix)
+            if len(data_nodes):
+                for (dst, name, prefix) in data_nodes:
+                    dns = DataNode.search(ontology.idata_nodes, DataNode(cn, name, prefix=prefix))
+                    cn.nodes.append(dns)
+            # now add this class node together with data nodes
+            # data property links will be automatically added
             sm.add_class_node(cn)
+            class_node_lookup[cls] = cn # update class table with the correct class node
 
         # finally we add the class links
         for link in class_links:
             src, dst, name, prefix = link
+            # print("Processing LINK {}, {}, {}, {}".format( src, name, dst, prefix))
             # source class node...
-            class_node, prefix = class_table[src]
-            scn = ClassNode.search(ontology.iclass_nodes, ClassNode(class_node, prefix=prefix))
+            scn = class_node_lookup[src]
             # dst class node...
-            class_node, prefix = class_table[dst]
-            dcn = ClassNode.search(ontology.iclass_nodes, ClassNode(class_node, prefix=prefix))
-            #print("ADDING LINK {}, {}, {}, {}", scn, name, dcn, prefix)
-            sm.link(scn, name, dcn, prefix=prefix)
+            dcn = class_node_lookup[dst]
+            # print("ADDING LINK {}, {}, {}, {}".format(scn, name, dcn, prefix))
+            sm.link(scn.name, name, dcn.name, prefix=prefix)
 
-        #sm.summary()
+        # print("~~~class nodes: ", sm.class_nodes)
 
         return sm
 
@@ -794,6 +815,7 @@ class SSDJsonWriter(object):
     @property
     def semantic_model(self):
         """Builds out the .ssd semantic model section..."""
+
         return {
             "nodes": [node.ssd_output(index)
                       for index, node in enumerate(self._all_nodes)],

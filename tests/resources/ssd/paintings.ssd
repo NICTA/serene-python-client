@@ -1,0 +1,98 @@
+{
+    "id": 5,
+    "name": "paintings.csv",
+    "attributes": [
+        {
+            "id": 0,
+            "name": "artist",
+            "label": "ident",
+            "columnIds": [
+                0
+            ],
+            "sql": "select artist from 'paintings.csv'"
+        },
+        {
+            "id": 1,
+            "name": "painting",
+            "label": "ident",
+            "columnIds": [
+                1
+            ],
+            "sql": "select painting from 'paintings.csv'"
+        }
+    ],
+    "ontology": [
+        1
+    ],
+    "semanticModel": {
+        "nodes": [
+            {
+                "id": 0,
+                "label": "Man_made_object",
+                "type": "ClassNode"
+            },
+            {
+                "id": 1,
+                "label": "Painting",
+                "type": "ClassNode"
+            },
+            {
+                "id": 2,
+                "label": "Painting.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "Creator",
+                "type": "ClassNode"
+            },
+            {
+                "id": 4,
+                "label": "Creator.name",
+                "type": "DataNode"
+            }
+        ],
+        "links": [
+            {
+                "id":     0,
+                "source": 0,
+                "target": 3,
+                "label": "createdBy",
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id":     1,
+                "source": 0,
+                "target": 1,
+                "label": "ofType",
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 2,
+                "source": 1,
+                "target": 2,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 3,
+                "source": 3,
+                "target": 4,
+                "label": "name",
+                "type": "DataPropertyLink"
+            }
+        ]
+    },
+    "mappings": [
+        {
+            "attribute": 0,
+            "node": 4
+        },
+        {
+            "attribute": 1,
+            "node": 2
+        }
+    ],
+         "dateCreated":"2016-06-17T07:47:56Z",
+         "dateModified":"2016-06-17T07:47:56Z"
+}

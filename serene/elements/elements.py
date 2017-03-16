@@ -223,7 +223,7 @@ class ClassNode(Searchable):
         lambda node: node.parent if node.parent else None
     ]
 
-    def __init__(self, name, nodes=None, prefix=None, parent=None):
+    def __init__(self, name, nodes=None, prefix=None, parent=None, idx=None):
         """
         A ClassNode is initialized with a name, a list of string nodes
         and optional prefix and/or a parent ClassNode
@@ -232,10 +232,12 @@ class ClassNode(Searchable):
         :param nodes: A list of strings to initialze the DataNode objects
         :param prefix: The URI prefix
         :param parent: The parent object if applicable
+        :param idx: node id to distinguish between instances of the same class
         """
         self.name = name
         self.prefix = prefix
         self.parent = parent
+        self.idx = idx
 
         if nodes is None:
             self.nodes = []
@@ -252,6 +254,8 @@ class ClassNode(Searchable):
         if self.prefix is None:
             msg = "There is no prefix specified for {}".format(self)
             raise Exception(msg)
+        if self.idx is not None:
+            ident = self.idx
         return {
             "id": ident,
             "label": self.name,

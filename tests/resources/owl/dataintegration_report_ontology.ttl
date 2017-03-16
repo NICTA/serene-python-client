@@ -67,11 +67,6 @@
           rdfs:domain :Person ;
           rdfs:range :Organization .
 
-
-:operatesIn rdf:type owl:ObjectProperty ;
-            rdfs:domain :Organization ;
-            rdfs:range :City .
-
 #################################################################
 #    Data properties
 #################################################################
@@ -105,7 +100,3 @@
 :startDate rdf:type owl:DatatypeProperty ;
            rdfs:domain :Event ;
            rdfs:range xsd:dateTime .
-
-# class node links - check ObjectProperty
-# classes - check Class
-# datanodes - check Class, check DatatypeProperty

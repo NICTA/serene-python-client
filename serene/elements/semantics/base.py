@@ -28,6 +28,7 @@ class BaseSemantic(object):
         :param file:
         """
         self._uri = ""
+        # we use multidigraph since we can potentially have more than 1 link between 2 nodes
         self._graph = nx.MultiDiGraph()
         self._class_table = {}
         self._links = LinkList()
@@ -92,8 +93,8 @@ class BaseSemantic(object):
 
         # now add the data property links
         if node.nodes is not None:
-            for dataNode in node.nodes:
-                link = Link(dataNode.name, node, dataNode, prefix=dataNode.prefix)
+            for data_node in node.nodes:
+                link = Link(data_node.name, node, data_node, prefix=data_node.prefix)
                 self.add_link(link)
 
         self._graph.add_node(node)

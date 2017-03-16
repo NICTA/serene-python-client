@@ -27,15 +27,20 @@ class TestEvaluateSSD(TestWithServer):
         self._ontologies = None
 
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
-        self._test_file = os.path.join(path, 'data', 'businessInfo.csv')
         self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.ttl')
-        self._test_ssd = os.path.join(path, 'ssd', 'businessInfo.ssd')
+        self._business_file = os.path.join(path, 'data', 'businessInfo.csv')
+        self._business_ssd = os.path.join(path, 'ssd', 'businessInfo.ssd')
+        self._cities_file = os.path.join(path, 'data', 'getCities.csv')
+        self._cities_ssd = os.path.join(path, 'ssd', 'getCities.ssd')
+        self._tricky_cities_ssd = os.path.join(path, 'ssd', 'tricky.ssd')
+        self._objects_owl = os.path.join(path, 'owl', 'objects.ttl')
+        self._paintings_file = os.path.join(path, 'data', 'paintings.csv')
+        self._paintings_ssd = os.path.join(path, 'ssd', 'paintings.ssd')
 
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
         self._ontologies = OntologyEndpoint(self._session)
         self._clear_storage()
-        assert(os.path.isfile(self._test_file))
 
     def _clear_storage(self):
         """Removes all server elements"""
@@ -52,12 +57,12 @@ class TestEvaluateSSD(TestWithServer):
         """
         self._clear_storage()
 
-    def test_evaluate1(self):
+    def test_evaluate_business(self):
         """
         Tests evaluation for business
         :return:
         """
-        ds = self._datasets.upload(self._test_file)
+        ds = self._datasets.upload(self._business_file)
         on = self._ontologies.upload(self._test_owl)
 
         dataset = self._datasets.items[0]
@@ -70,7 +75,48 @@ class TestEvaluateSSD(TestWithServer):
         print("data nodes: ", list(ontology._idata_nodes()))
         print("links: ", list(ontology._ilinks()))
 
-        new_json = dataset.bind_ssd(self._test_ssd, [ontology], ontology._prefixes[''])
+        new_json = dataset.bind_ssd(self._business_ssd, [ontology], str(ontology._prefixes['']))
+
+        print("************************")
+        print("new json...")
+        pprint(new_json)
+
+        empty_ssd = SSD(dataset, on)
+        print("***empty class nodes: ", empty_ssd.class_nodes)
+        ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
+        print("***class table: ", ssd._semantic_model._class_table)
+        print("***class nodes: ", ssd.class_nodes)
+        print("***mappings: ", ssd.mappings)
+        print("***data nodes: ", ssd.data_nodes)
+        pprint(ssd.json)
+
+        self.assertEqual(len(ssd.class_nodes), 4)
+        self.assertEqual(len(ssd.data_nodes), 4)
+        self.assertEqual(len(ssd.mappings), 4)
+        self.assertEqual(len(ssd.links), 3)   # these are only object properties
+        self.assertEqual(new_json, ssd.json)  # somehow check that jsons are appx same
+
+
+
+    def test_evaluate_tricky_cities(self):
+        """
+        Here the ssd has two class nodes of the same type
+        :return:
+        """
+        ds = self._datasets.upload(self._cities_file)
+        on = self._ontologies.upload(self._test_owl)
+
+        dataset = self._datasets.items[0]
+        print(dataset)
+        assert (issubclass(type(dataset), DataSet))
+
+        ontology = self._ontologies.items[0]
+        print("namespaces: ", ontology._prefixes)
+        print("class nodes: ", list(ontology._iclass_nodes()))
+        print("data nodes: ", list(ontology._idata_nodes()))
+        print("links: ", list(ontology._ilinks()))
+
+        new_json = dataset.bind_ssd(self._tricky_cities_ssd, [ontology], str(ontology._prefixes['']))
 
         print("************************")
         print("new json...")
@@ -78,6 +124,48 @@ class TestEvaluateSSD(TestWithServer):
 
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        print(ssd)
+        pprint(ssd.json)
+
+        self.assertEqual(len(ssd.class_nodes), 2)
+        self.assertEqual(len(ssd.data_nodes), 2)
+        self.assertEqual(len(ssd.mappings), 2)
+        self.assertEqual(len(ssd.links), 1)     # these are only object properties
+        self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
+
+        self.fail()
+
+    def test_evaluate_paintings(self):
+        """
+        Here we have a class node with no data nodes
+        :return:
+        """
+        ds = self._datasets.upload(self._paintings_file)
+        on = self._ontologies.upload(self._objects_owl)
+
+        dataset = self._datasets.items[0]
+        print(dataset)
+        assert (issubclass(type(dataset), DataSet))
+
+        ontology = self._ontologies.items[0]
+        print("namespaces: ", ontology._prefixes)
+        print("class nodes: ", list(ontology._iclass_nodes()))
+        print("data nodes: ", list(ontology._idata_nodes()))
+        print("links: ", list(ontology._ilinks()))
+
+        new_json = dataset.bind_ssd(self._paintings_ssd, [ontology], str(ontology._prefixes['']))
+
+        print("************************")
+        print("new json...")
+        pprint(new_json)
+
+        empty_ssd = SSD(dataset, on)
+        ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
+        pprint(ssd.json)
+
+        self.assertEqual(len(ssd.class_nodes), 3)
+        self.assertEqual(len(ssd.links), 2)
+        self.assertEqual(len(ssd.data_nodes), 2)
+        self.assertEqual(len(ssd.mappings), 2)
+        self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
 
         self.fail()
