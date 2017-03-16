@@ -84,10 +84,19 @@ class OntologyAPI(HTTPObject):
 
         Returns: dictionary.
         """
-        logging.debug('Sending request to Serene server to get the ontology info.')
+        logging.debug("Inferring extension pof the ontology...")
+        owl_json = self.item(key)
+        try:
+            extension = os.path.splitext(owl_json["name"])[1]
+        except:
+            logging.debug("...setting default owl extension")
+            extension = "owl"
+
+        logging.debug('Sending request to Serene server to get the ontology file.')
         uri = "{}{}/file".format(self._uri, str(key))
         try:
-            path = os.path.join(tempfile.gettempdir(), "{}.owl".format(self._gen_id()))
+            # extension of the ontology matters!
+            path = os.path.join(tempfile.gettempdir(), "{}{}".format(self._gen_id(),extension))
 
             r = requests.get(uri, stream=True)
             if r.status_code == 200:
