@@ -40,7 +40,7 @@ class Ontology(BaseSemantic):
         will be read to build links and class nodes. Note that not
         all attributes from an OWL file will be imported.
 
-        :param file: The name of the .owl file.
+        :param file: The name of the .ttl file.
         """
         super().__init__()
 
@@ -88,7 +88,7 @@ class Ontology(BaseSemantic):
                 'rdfs': 'http://www.w3.org/2000/01/rdf-schema#'
             }
 
-            self.set_filename("{}.owl".format(self.id))
+            self.set_filename("{}.ttl".format(self.id))
 
         # default filename
         self._filename = os.path.basename(self.path)
@@ -326,7 +326,8 @@ class RDFReader(object):
             for x, y in links:
                 all_links.append((self.label(x),
                                   self.label(link),
-                                  self.label(y)))
+                                  self.label(y),
+                                  self.prefix(link)))
         return all_links
 
     @staticmethod
@@ -406,6 +407,7 @@ class RDFReader(object):
 
     def _build_ontology(self,
                         ontology,
+                        uri,
                         class_nodes,
                         data_node_table,
                         all_links,
@@ -421,6 +423,9 @@ class RDFReader(object):
         :param subclasses: The links that have a parent class
         :return:
         """
+        # first set the uri
+        ontology.uri(uri)
+
         # extract the parents and children, we need to ensure that
         # the parents are created first.
         nodes = self._ordered_classes(class_nodes, subclasses)
@@ -437,14 +442,24 @@ class RDFReader(object):
                                 is_a=parent)
 
         # now we add all the links...
-        for src, link, dst in all_links:
-            ontology.link(src, link, dst)
+        for src, link, dst, prefix in all_links:
+            ontology.link(src, link, dst, prefix=prefix)
 
         # ... and all the prefixes...
         for name, uri in namespaces:
             ontology.prefix(name, uri)
 
         return ontology
+
+    def _extract_uri(self, g):
+        """Extracts the base URI from the Ontology"""
+        candidates = self.subjects(g, object=rdflib.OWL.Ontology)
+
+        if len(candidates) != 1:
+            msg = "Failed to read ontology URI from file. {} found".format(candidates)
+            raise Exception(msg)
+
+        return str(candidates[0])
 
     def to_ontology(self, filename, ontology=None):
         """
@@ -464,6 +479,7 @@ class RDFReader(object):
 
         # build the ontology object...
         ontology = self._build_ontology(ontology,
+                                        self._extract_uri(g),
                                         self.subjects(g, object=rdflib.OWL.Class),
                                         self._extract_data_nodes(g),
                                         self._extract_links(g),

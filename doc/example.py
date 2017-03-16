@@ -151,7 +151,7 @@ if len(ontologies):
 #
 ontology_local = (
     serene.Ontology()
-          .uri("http://www.semanticweb.org/serene/report_example_ontology")
+          .uri("http://www.semanticweb.org/serene/example_ontology")
           .class_node("Place", ["name", "postalCode"])
           .class_node("City", is_a="Place")
           .class_node("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
@@ -225,47 +225,47 @@ business_info_ssd.show()
 
 input("press any key to continue...")
 
+# #
+# # We also have just a string shorthand...
+# #
+# employee_address_ssd = (sn.SSD(employee_address, ontology, name='employee-addr')
+#                         .map("name", "Person.name")
+#                         .map("address", "Place.name")
+#                         .map("postcode", "Place.postalCode")
+#                         .link("Person", "Place", relationship="livesIn"))
 #
-# We also have just a string shorthand...
+# employee_address_ssd.show()
 #
-employee_address_ssd = (sn.SSD(employee_address, ontology, name='employee-addr')
-                        .map("name", "Person.name")
-                        .map("address", "Place.name")
-                        .map("postcode", "Place.postalCode")
-                        .link("Person", "Place", relationship="livesIn"))
-
-employee_address_ssd.show()
-
-input("press any key to continue...")
-
-get_cities_ssd = (sn.SSD(get_cities, ontology, name='cities')
-                  .map(Column("city"), DataNode("City", "name"))
-                  .map(Column("state"), DataNode("State", "name"))
-                  .link("City", "State", relationship="state"))
-
-get_cities_ssd.show()
-
-input("press any key to continue...")
-
-get_employees_ssd = (sn.SSD(get_employees, ontology, name='employees')
-                     .map(Column("employer"), DataNode("Organization", "name"))
-                     .map(Column("employee"), DataNode("Person", "name"))
-                     .link("Person", "Organization", relationship="worksFor"))
-
-
-get_employees_ssd.show()
-
-input("press any key to continue...")
-
-
-postal_code_ssd = (sn.SSD(postal_code, ontology, name='postal-code')
-                   .map(Column("zipcode"), DataNode("Place", "postalCode"))
-                   .map(Column("city"), DataNode("City", "name"))
-                   .map(Column("state"), DataNode("State", "name"))
-                   .link("City", "State", relationship="state")
-                   .link("City", "Place", relationship="isPartOf"))
-
-postal_code_ssd.show()
+# input("press any key to continue...")
+#
+# get_cities_ssd = (sn.SSD(get_cities, ontology, name='cities')
+#                   .map(Column("city"), DataNode("City", "name"))
+#                   .map(Column("state"), DataNode("State", "name"))
+#                   .link("City", "State", relationship="state"))
+#
+# get_cities_ssd.show()
+#
+# input("press any key to continue...")
+#
+# get_employees_ssd = (sn.SSD(get_employees, ontology, name='employees')
+#                      .map(Column("employer"), DataNode("Organization", "name"))
+#                      .map(Column("employee"), DataNode("Person", "name"))
+#                      .link("Person", "Organization", relationship="worksFor"))
+#
+#
+# get_employees_ssd.show()
+#
+# input("press any key to continue...")
+#
+#
+# postal_code_ssd = (sn.SSD(postal_code, ontology, name='postal-code')
+#                    .map(Column("zipcode"), DataNode("Place", "postalCode"))
+#                    .map(Column("city"), DataNode("City", "name"))
+#                    .map(Column("state"), DataNode("State", "name"))
+#                    .link("City", "State", relationship="state")
+#                    .link("City", "Place", relationship="isPartOf"))
+#
+# postal_code_ssd.show()
 
 # input("press any key to continue...")
 #
@@ -282,11 +282,12 @@ postal_code_ssd.show()
 #
 # upload all these to the server. Here we ignore the return value (the SSD object will be updated)
 #
-for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employees_ssd, postal_code_ssd]:
-    asdf = sn.ssds.upload(ssd)
-    ssd.summary()
-    print("SSD ==", ssd.name, ssd.stored)
-    print("SSD ==", asdf.name, asdf.stored)
+# for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employees_ssd, postal_code_ssd]:
+#     sn.ssds.upload(ssd)
+
+sn.ssds.upload(business_info_ssd)
+
+exit()
 
 # ==========
 #
@@ -296,11 +297,11 @@ for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employe
 
 octo_local = sn.Octopus(
     ssds=[
-        #business_info_ssd,
+        business_info_ssd,
         employee_address_ssd,
-        #get_cities_ssd,
-        #get_employees_ssd,
-        #postal_code_ssd
+        get_cities_ssd,
+        get_employees_ssd,
+        postal_code_ssd
     ],
     name='octopus-test',
     description='Testing example for places and companies',
@@ -355,6 +356,7 @@ octo_local = sn.Octopus(
 )
 
 # add this to the endpoint...
+print("Now we upload to the server")
 octo = sn.octopii.upload(octo_local)
 
 # =======================

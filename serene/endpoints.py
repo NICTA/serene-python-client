@@ -407,7 +407,9 @@ class SSDEndpoint(IdentifiableEndpoint):
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single SSD at position key"""
-        return SSD.update(self._api.item(key), self._session)
+        return SSD.update(self._api.item(key),
+                          self._session.datasets,
+                          self._session.ontologies)
 
     @property
     @lru_cache(maxsize=32)
@@ -417,7 +419,9 @@ class SSDEndpoint(IdentifiableEndpoint):
         ssd = []
         for k in keys:
             blob = self._api.item(k)
-            s = SSD.update(blob, self._session)
+            s = SSD.update(blob,
+                           self._session.datasets,
+                           self._session.ontologies)
             ssd.append(s)
         return tuple(ssd)
 

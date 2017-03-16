@@ -46,6 +46,10 @@ class BaseSemantic(object):
                       "nodes={}, prefix={}, parent={}"
                       .format(name, nodes, prefix, is_a))
 
+        # set the prefix to the uri if not available...
+        if prefix is None:
+            prefix = self._uri
+
         # if the parent does not exist, refuse to create the class
         parent_class = None
         if is_a is not None:
@@ -89,14 +93,14 @@ class BaseSemantic(object):
         # now add the data property links
         if node.nodes is not None:
             for dataNode in node.nodes:
-                link = Link(dataNode.name, node, dataNode)
+                link = Link(dataNode.name, node, dataNode, prefix=dataNode.prefix)
                 self.add_link(link)
 
         self._graph.add_node(node)
 
         return self
 
-    def link(self, source, link, dest):
+    def link(self, source, link, dest, prefix=None):
         """
         This function adds a Link relationship between two class nodes
         in the SemanticBase object. The ClassNode source and dest must
@@ -106,11 +110,15 @@ class BaseSemantic(object):
         :param source: The source ClassNode
         :param link: The name of the Link relationship
         :param dest: The destination ClassNode object
+        :param prefix: The ontology namespace for the link
         :return: The ontology object
         """
         _logger.debug("Adding relationship between "
                       "classes {} and {} as '{}'"
                       .format(source, dest, link))
+
+        if prefix is None:
+            prefix = self._uri
 
         if source not in self._class_table:
             msg = "Item {} is not in the class nodes".format(source)
@@ -121,7 +129,7 @@ class BaseSemantic(object):
 
         src = self._class_table[source]
         dst = self._class_table[dest]
-        link = Link(link, src, dst)
+        link = Link(link, src, dst, prefix)
 
         self.add_link(link)
 
@@ -238,7 +246,7 @@ class BaseSemantic(object):
                 self._child_chain(link.dst)
             )
             for src, dst in ilinks:
-                yield Link(link.name, src, dst)
+                yield Link(link.name, src, dst, prefix=link.prefix)
 
     @property
     def ilinks(self):
