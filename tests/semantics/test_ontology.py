@@ -8,7 +8,6 @@ import unittest2 as unittest
 
 import serene
 from serene.elements import ClassNode, DataNode
-from serene.elements import DATA_NODE_LINK_NAME
 
 
 class TestOntology(unittest.TestCase):
