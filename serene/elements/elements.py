@@ -78,7 +78,7 @@ class Column(Searchable):
         )
 
     def __hash__(self):
-        return id(self)
+        return hash((self.name, self.id, self.datasetID))
 
 
 class Mapping(object):
@@ -219,7 +219,7 @@ class ClassNode(Searchable):
     getters = [
         lambda node: node.name,
         lambda node: node.prefix if node.prefix else None,
-        lambda node: node.nodes if len(node.nodes) else None,
+        #lambda node: node.nodes if len(node.nodes) else None,
         lambda node: node.parent if node.parent else None
     ]
 
@@ -240,19 +240,22 @@ class ClassNode(Searchable):
         if nodes is None:
             self.nodes = []
         elif issubclass(type(nodes), list) or issubclass(type(nodes), types.GeneratorType):
-            self.nodes = [DataNode(self, n, dtype=str) for n in nodes]
+            self.nodes = [DataNode(self, n, dtype=str, prefix=prefix) for n in nodes]
         else:
-            self.nodes = [DataNode(self, n, dtype=dtype) for n, dtype in nodes.items()]
+            self.nodes = [DataNode(self, n, dtype=dtype, prefix=prefix) for n, dtype in nodes.items()]
 
     def ssd_output(self, ident):
         """
         The output function has not
         :return:
         """
+        if self.prefix is None:
+            msg = "There is no prefix specified for {}".format(self)
+            raise Exception(msg)
         return {
             "id": ident,
             "label": self.name,
-            "prefix": self.prefix if self.prefix is not None else "",
+            "prefix": self.prefix,
             "type": "ClassNode"
         }
 
@@ -287,7 +290,7 @@ class DataNode(Searchable):
         lambda node: node.parent.prefix if node.parent else None
     ]
 
-    def __init__(self, *names, dtype=str):
+    def __init__(self, *names, dtype=str, prefix=None):
         """
         A DataNode is initialized with name and a parent ClassNode object.
         A DataNode can be initialized in the following ways:
@@ -299,6 +302,7 @@ class DataNode(Searchable):
         :param names: The name of the parent classnode and the name of the DataNode
         """
         self.dtype = dtype
+        self.prefix = prefix
 
         if len(names) == 1:
             # initialized with DataNode("name") - for lookups only...
@@ -380,15 +384,16 @@ class Link(Searchable):
     # the search parameters...
     getters = [
         lambda node: node.name,
-        lambda node: Link.node_match(node)
+        lambda node: Link.node_match(node),
+        lambda node: node.prefix
     ]
 
     # special link names...
     SUBCLASS = "subclass"
-    OBJECT_LINK = "ObjectProperty"
-    DATA_LINK = "DataProperty"
+    OBJECT_LINK = "ObjectPropertyLink"
+    DATA_LINK = "DataPropertyLink"
 
-    def __init__(self, name, src=None, dst=None):
+    def __init__(self, name, src=None, dst=None, prefix=None):
         """
         The link can be initialized with a name, and also
         holds the source and destination ClassNode references.
@@ -400,6 +405,7 @@ class Link(Searchable):
         self.name = name
         self.src = src
         self.dst = dst
+        self.prefix = prefix
         if type(self.dst) == ClassNode:
             self.link_type = self.OBJECT_LINK
         else:
@@ -413,12 +419,17 @@ class Link(Searchable):
 
         :return: Dictionary with the SSD link labels
         """
+        if self.prefix is None:
+            msg = "{} has no prefix namespace specified.".format(self)
+            raise ValueError(msg)
+
         return {
             "id": index,
             "source": index_map[self.src],
             "target": index_map[self.dst],
             "label": self.name,
-            "type": self.link_type
+            "type": self.link_type,
+            "prefix": self.prefix
         }
 
     def __repr__(self):
