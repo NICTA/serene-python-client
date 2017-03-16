@@ -99,13 +99,14 @@ class DataSet(object):
         disp = "DataSet({}, {})".format(self.id, self.filename)
         return disp
 
-    def bind_ssd(self, ssd_json, ontologies):
+    def bind_ssd(self, ssd_json, ontologies, default_ns):
         """
         Modifies ssd json to include proper column ids.
         This method binds ssd_json to the dataset through the column names.
 
         :param ssd_json: location of the file with ssd json
-        :param ontologies
+        :param ontologies: list of ontologies to be used by ssd
+        :param default_ns: default namespace to be used for nodes and properties
         :return: json dict
         """
         # a stored dataset
@@ -126,17 +127,23 @@ class DataSet(object):
         column_map = {c.name: c.id for c in self.columns}
 
         # change ids in attributes
-        data["attributes"] = []
         for attr in attributes:
             attr["id"] = column_map[attr["name"]]
             attr["columnIds"] = [column_map[attr_map[c]] for c in attr["columnIds"]]
-            data["attributes"].append(attr)
 
         # change ids in mappings
-        data["mappings"] = []
         for map in mappings:
             map["attribute"] = column_map[attr_map[map["attribute"]]]
-            data["mappings"].append(map)
+
+        # specify namespaces in nodes and links
+        nodes = data["semanticModel"]["nodes"]
+        links = data["semanticModel"]["links"]
+        for node in nodes:
+            if "prefix" not in node:
+                node["prefix"] = default_ns
+        for link in links:
+            if "prefix" not in link:
+                link["prefix"] = default_ns
 
         # specify proper ids of ontologies
         data["ontology"] = [onto.id for onto in ontologies]

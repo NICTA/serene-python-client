@@ -64,9 +64,11 @@ class TestEvaluateSSD(TestWithServer):
         print(dataset)
         assert(issubclass(type(dataset), DataSet))
 
-        ontologies = self._ontologies.items
+        ontology = self._ontologies.items[0]
+        print("namespaces")
+        print(ontology._prefixes)
 
-        new_json = dataset.bind_ssd(self._test_ssd, ontologies)
+        new_json = dataset.bind_ssd(self._test_ssd, [ontology], ontology._prefixes[''])
 
         print("************************")
         print("new json...")
