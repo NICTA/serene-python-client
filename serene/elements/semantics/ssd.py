@@ -107,7 +107,7 @@ class SSD(object):
 
         # build up the mapping through the interface...
         for col, ds in reader.mapping:
-            self.map(col, ds, from_reader=True)
+            self.map(col, ds, _init=False)
 
         self._semantic_model.summary()
 
@@ -234,7 +234,7 @@ class SSD(object):
         else:
             raise TypeError("This type is not supported in find().")
 
-    def map(self, column, node, transform=None, from_reader=False):
+    def map(self, column, node, _init=True):
         """
         Adds a link between the column and data_node for the
         mapping. A transform can also be applied to change
@@ -242,8 +242,7 @@ class SSD(object):
 
         :param column: The source Column
         :param data_node: The destination DataNode
-        :param transform: The optional transform to be performed on the Column
-        :param from_reader: if the mapping comes from the SSDreader, then we should not change nodes
+        :param _init: if the mapping comes from the SSDreader, then we should not change nodes
         :return:
         """
         if issubclass(type(column), str):
@@ -256,9 +255,9 @@ class SSD(object):
                 # TODO: ClassNode should be supported for foreign keys!
                 node = ClassNode(node)
 
-        return self._map(column, node, transform, predicted=False, from_reader=from_reader)
+        return self._map(column, node, predicted=False, _init=_init)
 
-    def _map(self, column, node, transform=None, predicted=False, from_reader=False):
+    def _map(self, column, node, predicted=False, _init=True):
         """
         [Internal] Adds a link between the column and data_node for the
         mapping. A transform can also be applied to change
@@ -266,27 +265,24 @@ class SSD(object):
 
         :param column: The source Column
         :param node: The destination DataNode
-        :param transform: The optional transform to be performed on the Column
         :param predicted: Is the mapping predicted or not (internal)
-        :param from_reader: if the mapping comes from the SSDreader, then we should not change nodes or semantic model
+        :param _init: if the mapping comes from the SSDreader, then we should not change nodes or semantic model
         :return:
         """
         assert type(column) == Column
         assert type(node) == DataNode
 
         col = self._find_column(column)
-        if not(from_reader):
+        if _init:
             dn = self._find_data_node(node)
         else:
             dn = node
-
-        # print(",,,,,,", dn, dn.parent)
 
         # add the mapping element to the table...
         self._mapping[col] = Mapping(col, dn, None, predicted)
 
         # grab the parent from the ontology
-        if not(from_reader):
+        if _init:
             parent = ClassNode.search(self._ontology.iclass_nodes, dn.parent)
         else:
             parent = dn.parent
@@ -294,11 +290,8 @@ class SSD(object):
             msg = "{} does not exist in the ontology.".format(parent)
             raise Exception(msg)
 
-        # print("_-_-_-_-_- found", parent, "from", dn.parent)
-        # print()
-
         # by making this mapping, the class node is now in the SemanticModel...
-        if not from_reader:
+        if _init:
             self._semantic_model.add_class_node(parent, add_data_nodes=False)
 
         target = Link(dn.name, parent, dn)
@@ -306,11 +299,6 @@ class SSD(object):
         if link is None:
             msg = "{} does not exist in the ontology.".format(target)
             raise Exception(msg)
-        # else:
-        #     print("-------- found link", link, "from", target)
-        #     print("-------- with link", target.src, "to", target.dst)
-        #     print("-------- with link", link.src, "to", link.dst)
-        #     print()
 
         self._semantic_model.add_link(target)
 
@@ -369,19 +357,6 @@ class SSD(object):
             _logger.info(msg)
         else:
             target_link.prefix = link.prefix
-
-            # print(">>>>>>> ADDING LINK!!!!!")
-            # # print("Class nodes before", self.class_nodes)
-            # print(link)
-            # print(link.src)
-            # print(link.dst)
-            # print("><><><><><><", link.prefix)
-            # #
-            # print("adn we are adding")
-            # print(target_link)
-            # print(target_link.src)
-            # print(target_link.dst)
-            # print("><><><><><><", target_link.prefix)
 
             # if it is ok, then add the new link to the SemanticModel...
             self._semantic_model.add_link(target_link)
@@ -584,17 +559,6 @@ class SSD(object):
             from the relevant mappings to the columns. The other links
             are not necessary.
         """
-        # # grab the object links from the model...
-        # object_links = [link for link in self._semantic_model.links
-        #                if link.link_type == Link.OBJECT_LINK]
-        #
-        # # grab the data links from the model...
-        # data_links = [link for link in self._semantic_model.links
-        #               if link.link_type == Link.DATA_LINK]
-        #
-        # # combine the relevant links...
-        # return object_links + [link for link in data_links if link.dst in self.data_nodes]
-        #return self.model.links
         return self.data_links + self.class_links
 
     def _full_str(self):

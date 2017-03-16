@@ -62,69 +62,73 @@ class TestEvaluateSSD(TestWithServer):
         Tests evaluation for business
         :return:
         """
-        ds = self._datasets.upload(self._business_file)
+        self._datasets.upload(self._business_file)
         on = self._ontologies.upload(self._test_owl)
 
         dataset = self._datasets.items[0]
-        print(dataset)
+        #print(dataset)
         assert(issubclass(type(dataset), DataSet))
 
         ontology = self._ontologies.items[0]
-        print("namespaces: ", ontology._prefixes)
-        print("class nodes: ", list(ontology._iclass_nodes()))
-        print("data nodes: ", list(ontology._idata_nodes()))
-        print("links: ", list(ontology._ilinks()))
+        #print("namespaces: ", ontology._prefixes)
+        #print("class nodes: ", list(ontology._iclass_nodes()))
+        #print("data nodes: ", list(ontology._idata_nodes()))
+        #print("links: ", list(ontology._ilinks()))
 
-        new_json = dataset.bind_ssd(self._business_ssd, [ontology], str(ontology._prefixes['']))
+        new_json = dataset.bind_ssd(self._business_ssd,
+                                    [ontology],
+                                    str(ontology._prefixes['']))
 
-        print("************************")
-        print("new json...")
-        pprint(new_json)
+        #print("************************")
+        #print("new json...")
+        #pprint(new_json)
 
         empty_ssd = SSD(dataset, on)
-        print("***empty class nodes: ", empty_ssd.class_nodes)
+        #print("***empty class nodes: ", empty_ssd.class_nodes)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        print("***class table: ", ssd._semantic_model._class_table)
-        print("***class nodes: ", ssd.class_nodes)
-        print("***mappings: ", ssd.mappings)
-        print("***data nodes: ", ssd.data_nodes)
+        #print("***class table: ", ssd._semantic_model._class_table)
+        #print("***class nodes: ", ssd.class_nodes)
+        #print("***mappings: ", ssd.mappings)
+        #print("***data nodes: ", ssd.data_nodes)
         pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 4)
         self.assertEqual(len(ssd.data_nodes), 4)
         self.assertEqual(len(ssd.mappings), 4)
-        self.assertEqual(len(ssd.links), 3)   # these are only object properties
-        self.assertEqual(new_json, ssd.json)  # somehow check that jsons are appx same
+        self.assertEqual(len(ssd.links), 7)   # class and data links
+        self.assertEqual(len(ssd.data_links), 4)   # these are only object properties
+        self.assertEqual(len(ssd.class_links), 3)   # these are only object properties
+        # self.assertEqual(new_json, ssd.json)  # somehow check that jsons are appx same
 
     def test_evaluate_tricky_cities(self):
         """
         Here the ssd has two class nodes of the same type
         :return:
         """
-        ds = self._datasets.upload(self._cities_file)
+        self._datasets.upload(self._cities_file)
         on = self._ontologies.upload(self._test_owl)
 
         dataset = self._datasets.items[0]
-        print(dataset)
+        #print(dataset)
         assert (issubclass(type(dataset), DataSet))
 
         ontology = self._ontologies.items[0]
-        print("namespaces: ", ontology._prefixes)
-        print("class nodes: ", list(ontology._iclass_nodes()))
-        print("data nodes: ", list(ontology._idata_nodes()))
-        print("links: ", list(ontology._ilinks()))
+        #print("namespaces: ", ontology._prefixes)
+        #print("class nodes: ", list(ontology._iclass_nodes()))
+        #print("data nodes: ", list(ontology._idata_nodes()))
+        #print("links: ", list(ontology._ilinks()))
 
         new_json = dataset.bind_ssd(self._tricky_cities_ssd,
                                     [ontology],
                                     str(ontology._prefixes['']))
 
-        print("************************")
-        print("new json...")
-        pprint(new_json)
+        #print("************************")
+        #print("new json...")
+        #pprint(new_json)
 
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        pprint(ssd.json)
+        #pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 2)
         self.assertEqual(len(ssd.data_nodes), 2)
@@ -139,28 +143,28 @@ class TestEvaluateSSD(TestWithServer):
         Here we have a class node with no data nodes
         :return:
         """
-        ds = self._datasets.upload(self._paintings_file)
+        self._datasets.upload(self._paintings_file)
         on = self._ontologies.upload(self._objects_owl)
 
         dataset = self._datasets.items[0]
-        print(dataset)
+        #print(dataset)
         assert (issubclass(type(dataset), DataSet))
 
         ontology = self._ontologies.items[0]
-        print("namespaces: ", ontology._prefixes)
-        print("class nodes: ", list(ontology._iclass_nodes()))
-        print("data nodes: ", list(ontology._idata_nodes()))
-        print("links: ", list(ontology._ilinks()))
+        #print("namespaces: ", ontology._prefixes)
+        #print("class nodes: ", list(ontology._iclass_nodes()))
+        #print("data nodes: ", list(ontology._idata_nodes()))
+        #print("links: ", list(ontology._ilinks()))
 
         new_json = dataset.bind_ssd(self._paintings_ssd, [ontology], str(ontology._prefixes['']))
 
-        print("************************")
-        print("new json...")
-        pprint(new_json)
+        #print("************************")
+        #print("new json...")
+        #pprint(new_json)
 
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        pprint(ssd.json)
+        #pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 3)
         self.assertEqual(len(ssd.links), 2)

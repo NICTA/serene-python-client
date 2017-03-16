@@ -115,8 +115,8 @@ class TestOntologyEndpoint(TestWithServer):
         super().__init__(method_name)
         self._datasets = None
         path = os.path.join(os.path.dirname(__file__), "resources")
-        self._test_file = os.path.join(path, 'owl', 'dataintegration_report_ontology.owl')
-        self._bad_params_file = os.path.join(path, 'owl', 'bad-params.owl')
+        self._test_file = os.path.join(path, 'owl', 'dataintegration_report_ontology.ttl')
+        self._bad_params_file = os.path.join(path, 'owl', 'bad-params.ttl')
         self._ontologies = None
 
     def setUp(self):
