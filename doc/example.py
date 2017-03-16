@@ -34,6 +34,7 @@ except ImportError as e:
 
 import datetime
 import pandas as pd
+import os
 
 from serene import Ontology, DataNode, Mapping, Link, Column, ClassNode, Transform
 
@@ -73,14 +74,18 @@ print(sn)
 
 # assigning the DataSet to a variable will help us keep track...
 #
-business_info = sn.datasets.upload('tests/resources/data/businessInfo.csv')
-employee_address = sn.datasets.upload('tests/resources/data/EmployeeAddresses.csv')
-get_cities = sn.datasets.upload('tests/resources/data/getCities.csv')
-get_employees = sn.datasets.upload('tests/resources/data/getEmployees.csv')
-postal_code = sn.datasets.upload('tests/resources/data/postalCodeLookup.csv')
+data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "data")
+owl_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "owl")
+
+business_info = sn.datasets.upload(os.path.join(data_path, 'businessInfo.csv'))
+employee_address = sn.datasets.upload(os.path.join(data_path, 'EmployeeAddresses.csv'))
+get_cities = sn.datasets.upload(os.path.join(data_path, 'getCities.csv'))
+get_employees = sn.datasets.upload(os.path.join(data_path, 'getEmployees.csv'))
+postal_code = sn.datasets.upload(os.path.join(data_path, 'postalCodeLookup.csv'))
 
 datasets = [business_info, employee_address, get_cities, get_employees, postal_code]
 
+input("Press enter to continue")
 #
 # lets have a look...
 #
@@ -95,7 +100,7 @@ for d in datasets:
 # can use pandas for this
 #
 sn.datasets.remove(employee_address)
-df = pd.read_csv('tests/resources/data/EmployeeAddresses.csv')
+df = pd.read_csv(os.path.join(data_path, 'EmployeeAddresses.csv'))
 # move to first name/last name
 df['name'] = df[['FirstName', 'LastName']].apply(
     lambda row: row[0] + ' ' + row[1], axis=1
@@ -126,7 +131,7 @@ if len(ontologies):
 # #
 # # The most straightforward way is to upload an OWL file directly...
 # #
-# ontology = sn.ontologies.upload('tests/resources/owl/dataintegration_report_ontology.owl')
+# ontology = sn.ontologies.upload('tests/resources/owl/dataintegration_report_ontology.ttl')
 #
 # ontology.show()
 #
@@ -135,7 +140,7 @@ if len(ontologies):
 # #
 # # Or if you want to check it first you can do...
 # #
-# local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.owl')
+# local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
 #
 # local_ontology.show()
 #
@@ -176,7 +181,7 @@ ontology_local.show()
 
 #
 # or output to an owl file if you want...
-ontology_local.to_turtle('tests/resources/owl/test.owl')
+ontology_local.to_turtle(os.path.join(owl_path, 'test.ttl'))
 
 
 #

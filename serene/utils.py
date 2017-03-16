@@ -2,6 +2,7 @@ import logging
 import random
 import string
 from datetime import datetime
+import json
 
 from serene.api.exceptions import InternalError
 
@@ -115,7 +116,7 @@ def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%S.%f"):
         fmt: format which specifies the pattern of datetime format in the string.
 
     Returns: datetime on successful conversion.
-    Raises: InternalDIError if conversion fails.
+    Raises: InternalError if conversion fails.
 
     """
     # here we put "%Y-%m-%dT%H:%M:%S.%f" to be the default format
@@ -128,3 +129,4 @@ def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%S.%f"):
         logging.error("Failed converting string to datetime: " + repr(datetime_string))
         raise InternalError("Failed converting string to datetime: " + repr(datetime_string), e)
     return converted
+

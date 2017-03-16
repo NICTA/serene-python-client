@@ -132,5 +132,3 @@ class Serene(object):
             self._session.port,
             hex(id(self))
         )
-
-

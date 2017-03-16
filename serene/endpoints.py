@@ -365,8 +365,27 @@ class SSDEndpoint(IdentifiableEndpoint):
         self._base_type = SSD
 
     def compare(self, x, y, ignore_types=True, ignore_columns=False):
-        """Compares two SSDs to return something"""
-        pass
+        """
+        Compares two SSDs.
+        This method can be used to evaluate the performance of the semantic modeler.
+        :param x: predicted SSD
+        :param y: correct SSD
+        :param ignore_types: boolean if predicted semantic types should be ignored
+        :param ignore_columns: boolean if data nodes should be ignored
+        :return: dictionary with precision, recall, jaccard metrics
+                of comparison for two sets of RDF triplets constructed from x and y
+        """
+        assert (issubclass(type(x), SSD))
+        assert (issubclass(type(y), SSD))
+
+        compare_json = {"predictedSSD": x.to_json(),
+                        "correctSSD": y.to_json(),
+                        "ignoreSemanticTypes": ignore_types,
+                        "ignoreColumnNodes": ignore_columns
+                        }
+        result = self._session.compare(compare_json)
+
+        return result
 
     @decache
     def upload(self, ssd):

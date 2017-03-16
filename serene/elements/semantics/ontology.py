@@ -446,8 +446,8 @@ class RDFReader(object):
             ontology.link(src, link, dst, prefix=prefix)
 
         # ... and all the prefixes...
-        for name, uri in namespaces:
-            ontology.prefix(name, uri)
+        for prefix, ns in namespaces:
+            ontology.prefix(prefix, ns)
 
         return ontology
 
@@ -475,7 +475,8 @@ class RDFReader(object):
 
         # first load the file
         g = rdflib.Graph()
-        g.load(filename, format='n3')
+        # we guess format
+        g.load(filename, format=rdflib.util.guess_format(filename))
 
         # build the ontology object...
         ontology = self._build_ontology(ontology,

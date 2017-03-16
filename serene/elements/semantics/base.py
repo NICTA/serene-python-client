@@ -28,6 +28,7 @@ class BaseSemantic(object):
         :param file:
         """
         self._uri = ""
+        # we use multidigraph since we can potentially have more than 1 link between 2 nodes
         self._graph = nx.MultiDiGraph()
         self._class_table = {}
         self._links = LinkList()
