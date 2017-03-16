@@ -643,6 +643,8 @@ class SSDReader(object):
         raw_nodes = jsm["nodes"]
         raw_map = json["mappings"]
 
+        # FIXME: this is not correct to create DataNode like this
+        # instead DataNode should be created from destination and the link
         def node_split(label):
             """Split the datanode label into ClassNode, DataNode"""
             items = label.split(".")
