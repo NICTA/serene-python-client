@@ -5,6 +5,7 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Tests the core module
 """
 import unittest2 as unittest
+import os
 
 import serene
 from serene.elements import ClassNode, DataNode
@@ -17,7 +18,9 @@ class TestOntology(unittest.TestCase):
     """
     def __init__(self, methodName="runTest"):
         super().__init__(methodName)
-        self._test_owl = 'tests/resources/owl/dataintegration_report_ontology.owl'
+
+        path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
+        self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.ttl')
 
     @staticmethod
     def empty_ontology():

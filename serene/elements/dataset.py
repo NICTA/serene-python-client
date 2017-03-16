@@ -12,9 +12,11 @@ import collections
 import pandas as pd
 import logging
 import os.path
+import json
 
 from serene.utils import convert_datetime
 from serene.elements import Column
+from serene.elements.semantics.ontology import Ontology
 
 
 class DataSet(object):
@@ -97,6 +99,54 @@ class DataSet(object):
         disp = "DataSet({}, {})".format(self.id, self.filename)
         return disp
 
+    def bind_ssd(self, ssd_json, ontologies):
+        """
+        Modifies ssd json to include proper column ids.
+        This method binds ssd_json to the dataset through the column names.
+
+        :param ssd_json: location of the file with ssd json
+        :param ontologies
+        :return: json dict
+        """
+        # a stored dataset
+        assert (self.stored)
+        assert (len(ontologies) > 0)
+        # stored ontologies
+        for onto in ontologies:
+            assert (issubclass(type(onto), Ontology))
+            assert (onto.stored)
+
+        with open(ssd_json) as f:
+            data = json.load(f)
+
+        attributes = data["attributes"]
+        mappings = data["mappings"]
+        attr_map = {attr["id"]: attr["name"] for attr in attributes}
+
+        column_map = {c.name: c.id for c in self.columns}
+
+        # change ids in attributes
+        data["attributes"] = []
+        for attr in attributes:
+            attr["id"] = column_map[attr["name"]]
+            attr["columnIds"] = [column_map[attr_map[c]] for c in attr["columnIds"]]
+            data["attributes"].append(attr)
+
+        # change ids in mappings
+        data["mappings"] = []
+        for map in mappings:
+            map["attribute"] = column_map[attr_map[map["attribute"]]]
+            data["mappings"].append(map)
+
+        # specify proper ids of ontologies
+        data["ontology"] = [onto.id for onto in ontologies]
+
+        # remove id if present
+        if "id" in data:
+            del data["id"]
+
+
+        return data
 
 class DataSetList(collections.MutableSequence):
     """

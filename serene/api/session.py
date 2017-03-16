@@ -14,6 +14,8 @@ from .data_api import DataSetAPI
 from .model_api import ModelAPI
 from .ontology_api import OntologyAPI
 from .ssd_api import SsdAPI
+from .octopus_api import OctopusAPI
+from .exceptions import InternalError
 
 
 class Session(HTTPObject):
@@ -60,6 +62,7 @@ class Session(HTTPObject):
         self.dataset = DataSetAPI(self._uri, self.session)
         self.model = ModelAPI(self._uri, self.session)
         self.ssd = SsdAPI(self._uri, self.session)
+        self.octopus = OctopusAPI(self._uri, self.session)
 
     def _test_connection(self, root):
         """
@@ -79,8 +82,8 @@ class Session(HTTPObject):
             # attempt to decode the version...
             version = req.json()['version']
 
-            logging.info("Connection to the server has been established.")
-            print("Connection to server established: {}".format(root))
+            logging.info("Connection to the Serene server has been established.")
+            print("Connection to the Serene server established: {}".format(root))
 
             return version
 
@@ -107,5 +110,25 @@ class Session(HTTPObject):
 
     def __str__(self):
         return self.__repr__()
+
+    def compare(self, compare_json):
+        """
+        Compares two SSDs.
+        This method can be used to evaluate the performance of the semantic modeler.
+        :param compare_json: json dict
+        :return: precision, recall, jaccard metrics of comparison for two sets of RDF triplets constructed from x and y
+        """
+        logging.debug('Sending request to the Serene server to compare two SSDs')
+        uri = urljoin(self._uri, 'evaluate/')
+
+        try:
+            r = self.connection.post(uri, data=compare_json)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to perform evaluation", e)
+
+        self._handle_errors(r, "PATCH " + uri)
+
+        return r.json()
 
 

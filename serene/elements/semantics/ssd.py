@@ -78,30 +78,33 @@ class SSD(object):
                 node=None,
                 transform=IdentTransform())
 
-    @classmethod
-    def from_json(cls, json, session):
-        """Create the object from json directly"""
-        new = cls(None,
-                  None)
+    def update(self, json, dataset_endpoint, ontology_endpoint):
+        """
+        Create the object from json directly
 
+        :param json:
+        :param dataset_endpoint:
+        :param ontology_endpoint:
+        :return:
+        """
         if 'id' in json:
-            new._stored = True
-            new._name = json['name']
-            new._date_created = convert_datetime(json['dateCreated'])
-            new._date_modified = convert_datetime(json['dateModified'])
-            new._id = int(json['id'])
+            self._stored = True
+            self._name = json['name']
+            self._date_created = convert_datetime(json['dateCreated'])
+            self._date_modified = convert_datetime(json['dateModified'])
+            self._id = int(json['id'])
 
-        reader = SSDReader(json, session.datasets, session.ontologies)
+        reader = SSDReader(json, dataset_endpoint, ontology_endpoint)
 
-        new._ontology = reader.ontology
-        new._dataset = reader.dataset
-        new._semantic_model = reader.semantic_model
+        self._ontology = reader.ontology
+        self._dataset = reader.dataset
+        self._semantic_model = reader.semantic_model
 
         # build up the mapping through the interface...
         for col, ds in reader.mapping:
-            new.map(col, ds)
+            self.map(col, ds)
 
-        return new
+        return self
 
     def _find_column(self, column):
         """
@@ -573,7 +576,7 @@ class SSDReader(object):
         # fill out the dataset...
         jsm = json["semanticModel"]
 
-        columns = [c['attribute'] for c in jsm['mappings']]
+        columns = [c['attribute'] for c in json['mappings']]
 
         if not len(columns):
             msg = "No columns present in ssd file mappings."
@@ -693,9 +696,9 @@ class SSDJsonWriter(object):
         :return:
         """
         d = OrderedDict()
-        d["version"] = self._ssd.version
+        # d["version"] = self._ssd.version
         d["name"] = self._ssd.file
-        d["columns"] = self.columns
+        # d["columns"] = self.columns
         d["attributes"] = self.attributes
         d["ontology"] = [self._ssd.ontology.id]
         d["semanticModel"] = self.semantic_model

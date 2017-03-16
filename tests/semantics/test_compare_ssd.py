@@ -5,15 +5,21 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Tests the ssd module
 """
 import os
+import logging
+from pprint import pprint
 
-from serene.elements import SSD
+from serene.elements import SSD, Ontology, DataSet
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 from ..utils import TestWithServer
 
+# logging functions...
+_logger = logging.getLogger()
+_logger.setLevel(logging.DEBUG)
 
-class TestSSD(TestWithServer):
+
+class TestEvaluateSSD(TestWithServer):
     """
-    Tests the SSD class
+    Tests the comparison of SSDs
     """
     def __init__(self, method_name="runTest"):
         super().__init__(method_name)
@@ -21,9 +27,9 @@ class TestSSD(TestWithServer):
         self._ontologies = None
 
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
-        self._test_file = os.path.join(path, 'data','businessInfo.csv')
+        self._test_file = os.path.join(path, 'data', 'businessInfo.csv')
         self._test_owl = os.path.join(path, 'owl', 'dataintegration_report_ontology.ttl')
-        self._test_ssd = os.path.join(path, 'ssd','businessInfo.ssd')
+        self._test_ssd = os.path.join(path, 'ssd', 'businessInfo.ssd')
 
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
@@ -46,17 +52,28 @@ class TestSSD(TestWithServer):
         """
         self._clear_storage()
 
-    def test_create(self):
+    def test_evaluate1(self):
         """
-        Tests the SSD creation
+        Tests evaluation for business
         :return:
         """
         ds = self._datasets.upload(self._test_file)
         on = self._ontologies.upload(self._test_owl)
 
-        single = SSD(dataset=ds, ontology=on)
+        dataset = self._datasets.items[0]
+        print(dataset)
+        assert(issubclass(type(dataset), DataSet))
 
-        self.assertEqual(len(single.data_nodes), 4)
-        self.assertEqual(len(single.links), 0)
-        # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
-        # self.assertEqual(single.class_nodes[0].name, "hello")
+        ontologies = self._ontologies.items
+
+        new_json = dataset.bind_ssd(self._test_ssd, ontologies)
+
+        print("************************")
+        print("new json...")
+        pprint(new_json)
+
+        empty_ssd = SSD(dataset, on)
+        ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
+        print(ssd)
+
+        self.fail()
