@@ -36,10 +36,3 @@ class TestIdentTransport(unittest.TestCase):
     def test_nothing(self):
         raise NotImplementedError("Test not implemented")
 
-
-class TestTransformList(unittest.TestCase):
-    """
-    Tests the TransformList object
-    """
-    def test_nothing(self):
-        raise NotImplementedError("Test not implemented")

@@ -10,8 +10,8 @@ from collections import OrderedDict
 from collections import defaultdict
 
 from .base import BaseSemantic
-from ..elements import DataNode, Link, TransformList, IdentTransform
-from ..elements import Transform, Mapping, Column, ClassNode
+from ..elements import DataProperty, ObjectProperty
+from ..elements import Mapping, Column, Class
 from ..dataset import DataSet
 from ..semantics.ontology import Ontology
 from serene.utils import gen_id, convert_datetime
@@ -26,8 +26,8 @@ class SSD(object):
         Semantic source description is the translator between a DataSet
         and a set of Ontologies
 
-        The SemanticSourceDesc contains the data columns, a transform
-        layer, a mapping between each column to a DataNode, and a
+        The SemanticSourceDesc contains the data columns,
+        a mapping between each column to a DataNode, and a
         semantic model built from the available ontologies.
     """
     def __init__(self,
@@ -62,7 +62,6 @@ class SSD(object):
         self._ontology = ontology
         self._VERSION = "0.1"
         self._id = None
-        self._transforms = TransformList()  # to be removed
         self._stored = False  # is stored on the server?
         self._date_created = None
         self._date_modified = None
@@ -79,8 +78,7 @@ class SSD(object):
             for i, column in enumerate(self._dataset.columns):
                 self._mapping[column] = Mapping(
                     column,
-                    node=None,
-                    transform=IdentTransform())
+                    node=None)
 
     def update(self, blob, dataset_endpoint, ontology_endpoint):
         """
@@ -145,32 +143,12 @@ class SSD(object):
         :return: The actual DataNode in the system, or an error if not found or ambiguous
         """
         data_nodes = self._ontology.idata_nodes
-        dn = DataNode.search(data_nodes, data_node)
+        dn = DataProperty.search(data_nodes, data_node)
         if dn is None:
             msg = "Failed to find DataNode: {}".format(data_node)
             _logger.error(msg)
             raise Exception(msg)
         return dn
-
-    def _find_transform(self, transform):
-        """
-        Searches for a Transform in the system given a abbreviated
-        Transform type. e.g. Transform(1)
-
-        would return the full Transform object (if it exists in the system):
-
-        Transform(sql="select * from table")
-
-        :param transform: An abbreviated Transform type
-        :return: The actual Transform in the system, or an error if not found or ambiguous
-        """
-        ts = self._transforms
-        t = Transform.search(ts, transform)
-        if t is None:
-            msg = "Failed to find Transform: {}".format(t)
-            _logger.error(msg)
-            raise Exception(msg)
-        return t
 
     def _find_class(self, cls):
         """
@@ -186,7 +164,7 @@ class SSD(object):
         """
         classes = set(self._ontology.iclass_nodes)
 
-        c = ClassNode.search(classes, cls)
+        c = Class.search(classes, cls)
         if c is None:
             msg = "Failed to find Class: {}".format(c)
             _logger.error(msg)
@@ -205,7 +183,7 @@ class SSD(object):
         :param link: An abbreviated Link type
         :return: The actual Link in the system, or an error if not found or ambiguous
         """
-        link_ = Link.search(self.links, link)
+        link_ = ObjectProperty.search(self.links, link)
         if link_ is None:
             msg = "Failed to find Link: {}".format(link)
             _logger.error(msg)
@@ -216,20 +194,18 @@ class SSD(object):
         """
         Helper function to locate objects using shorthands e.g.
 
-        ssd.find(Transform(1))
+        ssd.find(Column("name"))
 
-        :param item: Transform, Column, ClassNode, Link or DataNode object
+        :param item: Column, ClassNode, Link or DataNode object
         :return:
         """
-        if issubclass(type(item), Transform):
-            return self._find_transform(item)
-        elif issubclass(type(item), DataNode):
+        if issubclass(type(item), DataProperty):
             return self._find_data_node(item)
         elif issubclass(type(item), Column):
             return self._find_column(item)
-        elif issubclass(type(item), ClassNode):
+        elif issubclass(type(item), Class):
             return self._find_class(item)
-        elif issubclass(type(item), Link):
+        elif issubclass(type(item), ObjectProperty):
             return self._find_link(item)
         else:
             raise TypeError("This type is not supported in find().")
@@ -237,8 +213,7 @@ class SSD(object):
     def map(self, column, node, _init=True):
         """
         Adds a link between the column and data_node for the
-        mapping. A transform can also be applied to change
-        the column.
+        mapping.
 
         :param column: The source Column
         :param data_node: The destination DataNode
@@ -250,18 +225,17 @@ class SSD(object):
 
         if issubclass(type(node), str):
             if '.' in node:
-                node = DataNode(*node.split('.'))
+                node = DataProperty(*node.split('.'))
             else:
                 # TODO: ClassNode should be supported for foreign keys!
-                node = ClassNode(node)
+                node = Class(node)
 
         return self._map(column, node, predicted=False, _init=_init)
 
     def _map(self, column, node, predicted=False, _init=True):
         """
         [Internal] Adds a link between the column and data_node for the
-        mapping. A transform can also be applied to change
-        the column.
+        mapping.
 
         :param column: The source Column
         :param node: The destination DataNode
@@ -270,7 +244,7 @@ class SSD(object):
         :return:
         """
         assert type(column) == Column
-        assert type(node) == DataNode
+        assert type(node) == DataProperty
 
         col = self._find_column(column)
         if _init:
@@ -283,7 +257,7 @@ class SSD(object):
 
         # grab the parent from the ontology
         if _init:
-            parent = ClassNode.search(self._ontology.iclass_nodes, dn.parent)
+            parent = Class.search(self._ontology.iclass_nodes, dn.parent)
         else:
             parent = dn.parent
         if parent is None:
@@ -294,8 +268,8 @@ class SSD(object):
         if _init:
             self._semantic_model.add_class_node(parent, add_data_nodes=False)
 
-        target = Link(dn.name, parent, dn)
-        link = Link.search(self._ontology.ilinks, target)
+        target = ObjectProperty(dn.name, parent, dn)
+        link = ObjectProperty.search(self._ontology.ilinks, target)
         if link is None:
             msg = "{} does not exist in the ontology.".format(target)
             raise Exception(msg)
@@ -303,26 +277,6 @@ class SSD(object):
         self._semantic_model.add_link(target)
 
         return self
-
-    def _add_transform(self, transform):
-        """
-        Initialize the transform (if available)
-        otherwise we use the identity transform...
-
-        :param transform:
-        :return:
-        """
-        if transform is not None:
-            if callable(transform):
-                t = Transform(id=None, func=transform)
-            else:
-                t = self._find_transform(transform)
-        else:
-            t = IdentTransform()
-
-        self._transforms.append(t)
-
-        return t
 
     def link(self, src, dst, relationship):
         """
@@ -335,18 +289,18 @@ class SSD(object):
         :return: Updated SSD
         """
         if issubclass(type(src), str):
-            src = ClassNode(src)
+            src = Class(src)
 
         if issubclass(type(dst), str):
-            dst = ClassNode(dst)
+            dst = Class(dst)
 
         s_class = self._find_class(src)
         d_class = self._find_class(dst)
 
         # now check that the link is in the ontology...
         parent_links = self._ontology.ilinks
-        target_link = Link(relationship, s_class, d_class)
-        link = Link.search(parent_links, target_link)
+        target_link = ObjectProperty(relationship, s_class, d_class)
+        link = ObjectProperty.search(parent_links, target_link)
 
         if link is None:
             msg = "Link {} does not exist in the ontology.".format(relationship)
@@ -363,18 +317,13 @@ class SSD(object):
 
         return self
 
-    def sample(self, column, transform=None, n=10):
+    def sample(self, column, n=10):
         """
         Samples the column
 
         ssd.sample(Column('name'))
 
-        optionally you can apply the transform to the column...
-
-        ssd.sample(Column('name'), Transform(1))
-
         :param column: The column object to sample
-        :param transform: An optional transform to apply
         :param n: The number of samples to take
         :return: List of samples from the column
         """
@@ -384,25 +333,16 @@ class SSD(object):
         # next we pull a sample from the Column dataframe...
         samples = col.df[col.name].sample(n).values
 
-        if transform is None:
-            return list(samples)
-        else:
-            # if we have a valid transform, then we can apply it...
-            t = self._find_transform(transform)
-            return list(map(t.func, samples))
+        return list(samples)
 
     def remove(self, item):
         """
-        Remove the item. The item can be a transform or
-        a data node, column or link.
+        Remove the item. The item can be a
+        a dataproperty, column or link.
 
         :return:
         """
-        if type(item) == Transform:
-            elem = self._find_transform(item)
-            self._transforms.remove(elem)
-
-        elif type(item) == DataNode:
+        if type(item) == DataProperty:
             elem = self._find_data_node(item)
             key = None
             value = None
@@ -415,12 +355,8 @@ class SSD(object):
             # we put the default mapping back in...
             self._mapping[key] = Mapping(
                 value.column,
-                node=None,
-                transform=IdentTransform()
+                node=None
             )
-            # we also need to remove the old transform
-            self._transforms.remove(value.transform)
-
             # note that we now need to check whether
             # we should remove the classNode from the
             # SemanticModel
@@ -439,7 +375,7 @@ class SSD(object):
                     break
             del self._mapping[key]
 
-        elif type(item) == Link:
+        elif type(item) == ObjectProperty:
             elem = self._find_link(item)
 
             self._semantic_model.remove_link(elem)
@@ -535,7 +471,6 @@ class SSD(object):
     @property
     def class_nodes(self):
         """All available class nodes"""
-        #return list(set(n.parent for n in self.data_nodes if n is not None))
         return self._semantic_model.class_nodes
 
     @property
@@ -549,7 +484,7 @@ class SSD(object):
         """ClassNode - ClassNode links in the semantic model"""
         # # grab the object links from the model...
         return [link for link in self._semantic_model.links
-                if link.link_type == Link.OBJECT_LINK]
+                if link.link_type == ObjectProperty.OBJECT_LINK]
 
     @property
     def links(self):
@@ -567,7 +502,7 @@ class SSD(object):
         :return:
         """
         map_str = [str(m) for m in self.mappings]
-        link_str = [str(link) for link in self.links if link.link_type == Link.OBJECT_LINK]
+        link_str = [str(link) for link in self.links if link.link_type == ObjectProperty.OBJECT_LINK]
 
         items = map_str + link_str
         full_str = '\n\t'.join(items)
@@ -619,8 +554,6 @@ class SSDReader(object):
 
     def _find_dataset(self, json):
         """Attempts to grab the dataset out from the json string"""
-        # fill out the dataset...
-        # jsm = json["semanticModel"]
 
         columns = [c['attribute'] for c in json['mappings']]
 
@@ -641,25 +574,25 @@ class SSDReader(object):
     @staticmethod
     def _get_data_nodes(semantic_json):
         """
-
+        Extract the datanodes from the json blob
         :param semantic_json:
         :return:
         """
 
-        class_table = {n["id"]: ClassNode(name=n["label"], prefix=n["prefix"], idx=n["id"])
+        class_table = {n["id"]: Class(name=n["label"], prefix=n["prefix"], idx=n["id"])
                        for n in semantic_json["nodes"]
                        if n["type"] == "ClassNode"}
 
         data_links = [(n["source"], n["target"], n["label"], n["prefix"])
                       for n in semantic_json["links"]
-                      if n["type"] == Link.DATA_LINK]
+                      if n["type"] == ObjectProperty.DATA_LINK]
 
         # fill out lookups for data node ids
         lookup = {}
         for link in data_links:
             src, dst, name, prefix = link
             class_node = class_table[src]
-            lookup[dst] = DataNode(class_node, name, prefix=prefix)
+            lookup[dst] = DataProperty(class_node, name, prefix=prefix)
 
         return lookup
 
@@ -670,7 +603,7 @@ class SSDReader(object):
 
         raw_data_nodes = self._get_data_nodes(jsm)
 
-        data_nodes = {dn_id: DataNode.search(self._semantic_model.data_nodes, dn)
+        data_nodes = {dn_id: DataProperty.search(self._semantic_model.data_nodes, dn)
                       for (dn_id, dn) in raw_data_nodes.items()}
 
         column_map = {col.id: col for col in self._dataset.columns}
@@ -691,14 +624,14 @@ class SSDReader(object):
         raw_nodes = jsm["nodes"]
         links = jsm["links"]
 
-        class_table = {n["id"]: ClassNode(n["label"], prefix=n["prefix"], idx=n["id"]) for n in raw_nodes
+        class_table = {n["id"]: Class(n["label"], prefix=n["prefix"], idx=n["id"]) for n in raw_nodes
                        if n["type"] == "ClassNode"}
 
         # print(">>>> class_table >>>>>", class_table)
 
         class_links = [(n["source"], n["target"], n["label"], n["prefix"])
                        for n in links
-                       if n["type"] == Link.OBJECT_LINK]
+                       if n["type"] == ObjectProperty.OBJECT_LINK]
 
         # print("===== class_links ====")
         # for c in class_links:
@@ -706,7 +639,7 @@ class SSDReader(object):
 
         data_links = [(n["source"], n["target"], n["label"], n["prefix"])
                       for n in links
-                      if n["type"] == Link.DATA_LINK]
+                      if n["type"] == ObjectProperty.DATA_LINK]
 
         # print("+++++ data_links +++++", data_links)
 
@@ -722,13 +655,13 @@ class SSDReader(object):
         class_node_lookup = {}
         for cls in class_table:
             class_node = class_table[cls]
-            cn = ClassNode.search(ontology.iclass_nodes, class_node)
+            cn = Class.search(ontology.iclass_nodes, class_node)
             # now we change the data nodes on this class node to the ones which exist within the semantic model
             data_nodes = lookup[cls]
-            cn = ClassNode(cn.name, nodes=None, prefix=cn.prefix)
+            cn = Class(cn.name, nodes=None, prefix=cn.prefix)
             if len(data_nodes):
                 for (dst, name, prefix) in data_nodes:
-                    dns = DataNode.search(ontology.idata_nodes, DataNode(cn, name, prefix=prefix))
+                    dns = DataProperty.search(ontology.idata_nodes, DataProperty(cn, name, prefix=prefix))
                     cn.nodes.append(dns)
             # now add this class node together with data nodes
             # data property links will be automatically added

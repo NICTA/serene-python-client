@@ -93,9 +93,6 @@ class TestSemanticSourceDesc(unittest.TestCase):
     def test_columns(self):
         raise NotImplementedError("Test not implemented")
 
-    def test_transforms(self):
-        raise NotImplementedError("Test not implemented")
-
     def test_data_nodes(self):
         raise NotImplementedError("Test not implemented")
 

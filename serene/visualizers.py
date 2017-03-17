@@ -4,7 +4,7 @@ import webbrowser
 
 import pygraphviz as pgv
 
-from .elements import IdentTransform, Link
+from .elements import ObjectProperty
 
 
 class BaseVisualizer(object):
@@ -58,7 +58,7 @@ class BaseVisualizer(object):
                                rank='source')
 
         for link in self.struct.links:
-            if link.link_type == Link.OBJECT_LINK:
+            if link.link_type == ObjectProperty.OBJECT_LINK:
                 graph.add_edge(link.src,
                                link.dst,
                                label=link.name,
@@ -192,7 +192,7 @@ class SSDVisualizer(BaseVisualizer):
 
     def _draw_mappings(self, graph):
         """
-        Draws the mappings from columns to transforms to DataNodes
+        Draws the mappings from columns to DataProperties
         in pyGraphViz
 
         :param g:
@@ -205,11 +205,6 @@ class SSDVisualizer(BaseVisualizer):
                                color='brown',
                                fontname='helvetica-italic',
                                style='dashed')
-                # graph.add_edge(m.node,
-                #                m.transform,
-                #                color='brown',
-                #                fontname='helvetica-italic',
-                #                style='dashed')
 
     def _draw_elements(self, g):
         """
@@ -222,6 +217,5 @@ class SSDVisualizer(BaseVisualizer):
         self._draw_class_nodes(g)
         self._draw_data_nodes(g)
         self._draw_columns(g)
-        #self._draw_transforms(g)
         self._draw_mappings(g)
         return

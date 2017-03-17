@@ -8,7 +8,7 @@ import unittest2 as unittest
 import os
 
 import serene
-from serene.elements import ClassNode, DataNode
+from serene.elements import Class, DataProperty
 
 
 class TestOntology(unittest.TestCase):
@@ -30,12 +30,12 @@ class TestOntology(unittest.TestCase):
         Tests the class node add method
         :return:
         """
-        single = self.empty_ontology().class_node("hello")
+        single = self.empty_ontology().owl_class("hello")
 
         self.assertEqual(len(single.class_nodes), 1)
         self.assertEqual(len(single.data_nodes), 0)
         self.assertEqual(len(single.links), 0)
-        self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
+        self.assertIsNotNone(Class.search(single.class_nodes, Class("hello")))
         self.assertEqual(single.class_nodes[0].name, "hello")
 
     def test_class_node_one_prop(self):
@@ -43,17 +43,17 @@ class TestOntology(unittest.TestCase):
         Tests adding a class node with one property
         :return:
         """
-        one_prop = self.empty_ontology().class_node("Person", ["name"])
+        one_prop = self.empty_ontology().owl_class("Person", ["name"])
 
         self.assertEqual(len(one_prop.class_nodes), 1)
         self.assertEqual(len(one_prop.data_nodes), 1)
         self.assertEqual(len(one_prop.links), 1)
         self.assertIsNotNone(
-            ClassNode.search(one_prop.class_nodes, ClassNode("Person")))
+            Class.search(one_prop.class_nodes, Class("Person")))
         self.assertIsNotNone(
-            ClassNode.search(one_prop.class_nodes, ClassNode("Person", ["name"])))
+            Class.search(one_prop.class_nodes, Class("Person", ["name"])))
         self.assertIsNotNone(
-            DataNode.search(one_prop.data_nodes, DataNode("Person", "name")))
+            DataProperty.search(one_prop.data_nodes, DataProperty("Person", "name")))
         self.assertEqual(one_prop.class_nodes[0].name, "Person")
         self.assertEqual(one_prop.class_nodes[0].nodes[0].name, "name")
 
@@ -62,23 +62,23 @@ class TestOntology(unittest.TestCase):
         Tests adding a class node with multiple properties
         :return:
         """
-        two_prop = self.empty_ontology().class_node("Person", ["name", "addr"])
+        two_prop = self.empty_ontology().owl_class("Person", ["name", "addr"])
 
         self.assertEqual(len(two_prop.class_nodes), 1)
         self.assertEqual(len(two_prop.data_nodes), 2)
         self.assertEqual(len(two_prop.links), 2)
         self.assertIsNotNone(
-            ClassNode.search(two_prop.class_nodes, ClassNode("Person")))
+            Class.search(two_prop.class_nodes, Class("Person")))
         self.assertIsNotNone(
-            ClassNode.search(two_prop.class_nodes, ClassNode("Person", ["name"])))
+            Class.search(two_prop.class_nodes, Class("Person", ["name"])))
         self.assertIsNotNone(
-            ClassNode.search(two_prop.class_nodes, ClassNode("Person", ["addr"])))
+            Class.search(two_prop.class_nodes, Class("Person", ["addr"])))
         self.assertIsNotNone(
-            ClassNode.search(two_prop.class_nodes, ClassNode("Person", ["name", "addr"])))
+            Class.search(two_prop.class_nodes, Class("Person", ["name", "addr"])))
         self.assertIsNotNone(
-            DataNode.search(two_prop.data_nodes, DataNode("Person", "name")))
+            DataProperty.search(two_prop.data_nodes, DataProperty("Person", "name")))
         self.assertIsNotNone(
-            DataNode.search(two_prop.data_nodes, DataNode("Person", "addr")))
+            DataProperty.search(two_prop.data_nodes, DataProperty("Person", "addr")))
         self.assertEqual(two_prop.class_nodes[0].name, "Person")
         self.assertEqual(
             set([x.name for x in two_prop.class_nodes[0].nodes]),
@@ -91,7 +91,7 @@ class TestOntology(unittest.TestCase):
         :return:
         """
         with self.assertRaises(Exception):
-            self.empty_ontology().class_node("Person", ["name", "name"])
+            self.empty_ontology().owl_class("Person", ["name", "name"])
 
     def test_class_node_no_parent(self):
         """
@@ -99,7 +99,7 @@ class TestOntology(unittest.TestCase):
         :return:
         """
         with self.assertRaises(Exception):
-            self.empty_ontology().class_node("Person", ["name", "addr"], is_a="junk")
+            self.empty_ontology().owl_class("Person", ["name", "addr"], is_a="junk")
 
     def test_class_node_bad_nodes(self):
         """
@@ -107,7 +107,7 @@ class TestOntology(unittest.TestCase):
         :return:
         """
         with self.assertRaises(Exception):
-            self.empty_ontology().class_node("Person", nodes=1234)
+            self.empty_ontology().owl_class("Person", nodes=1234)
 
     def test_class_node_parent(self):
         """
@@ -115,15 +115,15 @@ class TestOntology(unittest.TestCase):
         :return:
         """
         family = (self.empty_ontology()
-                  .class_node("Parent", ["name", "addr"])
-                  .class_node("Child", ["toys"], is_a="Parent"))
+                  .owl_class("Parent", ["name", "addr"])
+                  .owl_class("Child", ["toys"], is_a="Parent"))
 
         self.assertEqual(len(family.class_nodes), 2)
         self.assertEqual(len(family.data_nodes), 3)
         self.assertEqual(len(family.links), 3)
 
-        parent = ClassNode.search(family.class_nodes, ClassNode("Parent"))
-        child = ClassNode.search(family.class_nodes, ClassNode("Child"))
+        parent = Class.search(family.class_nodes, Class("Parent"))
+        child = Class.search(family.class_nodes, Class("Child"))
         links = [link.name for link in family.links]
 
         self.assertEqual(child.parent, parent)
@@ -134,11 +134,11 @@ class TestOntology(unittest.TestCase):
         Tests the class node add ClassNode method
         :return:
         """
-        node = ClassNode("Person")
+        node = Class("Person")
         single = self.empty_ontology().add_class_node(node)
 
         self.assertEqual(len(single.class_nodes), 1)
-        self.assertEqual(ClassNode.search(single.class_nodes, ClassNode("Person")), node)
+        self.assertEqual(Class.search(single.class_nodes, Class("Person")), node)
 
     def test_link(self):
         raise NotImplementedError("Test not implemented")

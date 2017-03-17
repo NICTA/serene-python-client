@@ -14,7 +14,7 @@ import rdflib
 
 from collections import defaultdict
 from .base import BaseSemantic
-from serene.elements import ClassNode, DataNode, Link
+from serene.elements import Class, DataProperty, ObjectProperty
 from serene.utils import gen_id
 
 _logger = logging.getLogger()
@@ -68,7 +68,8 @@ class Ontology(BaseSemantic):
                 # and load into self...
                 try:
                     RDFReader().to_ontology(file, self)
-                except Exception:
+                except Exception as e:
+                    raise e
                     msg = "Failed to read ontology file {}".format(file)
                     raise Exception(msg)
 
@@ -436,10 +437,10 @@ class RDFReader(object):
             else:
                 parent = None
 
-            ontology.class_node(self.label(cls),
-                                data_node_table[cls],
-                                prefix=self.prefix(cls),
-                                is_a=parent)
+            ontology.owl_class(self.label(cls),
+                               data_node_table[cls],
+                               prefix=self.prefix(cls),
+                               is_a=parent)
 
         # now we add all the links...
         for src, link, dst, prefix in all_links:

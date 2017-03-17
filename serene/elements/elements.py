@@ -84,31 +84,21 @@ class Column(Searchable):
 class Mapping(object):
     """
         A Mapping object that describes the link between a column and
-        a data node. An optional transform can be included.
+        a data node.
     """
-    def __init__(self, column, node=None, transform=None, predicted=False):
+    def __init__(self, column, node=None, predicted=False):
         if type(column) != Column:
             raise TypeError("Column type required for 'column' in Mapping object")
 
-        if (node is not None) and (type(node) != DataNode):
+        if (node is not None) and (type(node) != DataProperty):
             raise TypeError("DataNode type required for 'node' in Mapping object")
-
-        if (transform is not None) and not issubclass(type(transform), Transform):
-            raise TypeError("Transform type required for 'transform' in Mapping object: {}".format(transform))
 
         self.column = column
         self.node = node
-        self.transform = transform if transform is not None else IdentTransform()
         self.predicted = predicted
 
     def __repr__(self):
-        if self.transform is not None:
-            if type(self.transform) == IdentTransform:
-                s = "{} -> {}".format(self.column, self.node)
-            else:
-                s = "{} -> Transform({}) -> {}".format(self.column, self.transform.id, self.node)
-        else:
-            s = "{} -> {}".format(self.column, self.node)
+        s = "{} -> {}".format(self.column, self.node)
 
         # we add an asterix to denote predicted values...
         if self.predicted:
@@ -116,99 +106,7 @@ class Mapping(object):
         return s
 
 
-class Transform(Searchable):
-    """
-        The transform object that describes the transform between
-        the raw column and the datanode type.
-    """
-    _id = 0  # Transform ID value...
-    getters = [
-        lambda t: t.id,
-        lambda t: t.name,
-        lambda t: t.sql
-    ]
-
-    def __init__(self, id=None, func=None, name='', sql=None):
-        if id is None:
-            self.id = Transform._id
-            Transform._id += 1
-        else:
-            self.id = id
-        self.name = name
-        self.func = func
-        self.sql = sql if sql is not None else 'SELECT * from {}'.format(name)
-        super().__init__()
-
-    @staticmethod
-    def apply(col):
-        return 'SELECT {} from {}'.format(col.name, col.set_filename)
-
-    def __repr__(self):
-        return "{{\n" \
-               "    id: {}\n" \
-               "    name: {}\n" \
-               "    func: {}\n" \
-               "    sql: {}\n" \
-               "}}".format(self.id, self.name, self.func, self.sql)
-
-    def __hash__(self):
-        return id(self)
-
-
-class IdentTransform(Transform):
-    """
-    Transform that is just the identity...
-    """
-    def __init__(self, id=None, func=None, name='', sql=None):
-        super().__init__(id, func, name, sql)
-        self.name = "ident"
-        self.func = lambda x: x
-
-    @staticmethod
-    def apply(col):
-        return 'SELECT {} from {}'.format(col.name, col.filename)
-
-
-class TransformList(collections.MutableSequence):
-    """
-    Container type for Transform objects in the Semantic Source Description
-
-    """
-    def __init__(self, *args):
-        self.list = list()
-        self.extend(list(args))
-
-    @staticmethod
-    def check(v):
-        if not issubclass(type(v), Transform):
-            raise TypeError("Only Transform types permitted: {}".format(v))
-
-    def __len__(self):
-        return len(self.list)
-
-    def __getitem__(self, i):
-        return self.list[i]
-
-    def __delitem__(self, i):
-        del self.list[i]
-
-    def __setitem__(self, i, v):
-        self.check(v)
-        self.list[i] = v
-
-    def insert(self, i, v):
-        self.check(v)
-        self.list.insert(i, v)
-
-    def __repr__(self):
-        transforms = []
-        for v in self.list:
-            s = "Transform({}): {}".format(v.id, v)
-            transforms.append(s)
-        return '\n'.join(transforms)
-
-
-class ClassNode(Searchable):
+class Class(Searchable):
     """
         ClassNode objects hold the 'types' of the ontology or semantic model.
         A ClassNode can have multiple DataNodes. A DataNode corresponds to an
@@ -219,7 +117,6 @@ class ClassNode(Searchable):
     getters = [
         lambda node: node.name,
         lambda node: node.prefix if node.prefix else None,
-        #lambda node: node.nodes if len(node.nodes) else None,
         lambda node: node.parent if node.parent else None
     ]
 
@@ -242,9 +139,9 @@ class ClassNode(Searchable):
         if nodes is None:
             self.nodes = []
         elif issubclass(type(nodes), list) or issubclass(type(nodes), types.GeneratorType):
-            self.nodes = [DataNode(self, n, dtype=str, prefix=prefix) for n in nodes]
+            self.nodes = [DataProperty(self, n, dtype=str, prefix=prefix) for n in nodes]
         else:
-            self.nodes = [DataNode(self, n, dtype=dtype, prefix=prefix) for n, dtype in nodes.items()]
+            self.nodes = [DataProperty(self, n, dtype=dtype, prefix=prefix) for n, dtype in nodes.items()]
 
     def ssd_output(self, ident):
         """
@@ -283,7 +180,7 @@ class ClassNode(Searchable):
         return hash((self.name, self.prefix)) #, frozenset(self.nodes)))
 
 
-class DataNode(Searchable):
+class DataProperty(Searchable):
     """
         A DataNode is an attribute of a ClassNode. This can correspond to a
         column in a dataset.
@@ -297,20 +194,20 @@ class DataNode(Searchable):
 
     def __init__(self, *names, dtype=str, prefix=None):
         """
-        A DataNode is initialized with name and a parent ClassNode object.
-        A DataNode can be initialized in the following ways:
+        A DataProperty is initialized with name and a parent Class object.
+        A DataProperty can be initialized in the following ways:
 
-        DataNode(ClassNode("Person"), "name")
-        DataNode("Person", "name)
-        DataNode("name")
+        DataProperty(ClassNode("Person"), "name")
+        DataProperty("Person", "name)
+        DataProperty("name")
 
-        :param names: The name of the parent classnode and the name of the DataNode
+        :param names: The name of the parent class and the name of the DataProperty
         """
         self.dtype = dtype
         self.prefix = prefix
 
         if len(names) == 1:
-            # initialized with DataNode("name") - for lookups only...
+            # initialized with DataProperty("name") - for lookups only...
             self.name = names[0]
             self.parent = None
 
@@ -318,12 +215,12 @@ class DataNode(Searchable):
             # here the first element is now the parent...
             parent = names[0]
 
-            if type(parent) == ClassNode:
-                # initialized with DataNode(ClassNode("Person"), "name")
+            if type(parent) == Class:
+                # initialized with DataProperty(Class("Person"), "name")
                 self.parent = parent
             else:
-                # initialized with DataNode("Person", "name")
-                self.parent = ClassNode(parent)
+                # initialized with DataProperty("Person", "name")
+                self.parent = Class(parent)
             self.name = names[1]
 
         else:
@@ -363,9 +260,9 @@ class DataNode(Searchable):
 
     def __repr__(self):
         if self.parent:
-            return "DataNode({}, {})".format(self.parent.name, self.name)
+            return "DataProperty({}, {})".format(self.parent.name, self.name)
         else:
-            return "DataNode({})".format(self.name)
+            return "DataProperty({})".format(self.name)
 
     def __hash__(self):
         if self.parent:
@@ -374,9 +271,9 @@ class DataNode(Searchable):
             return hash(self.name)
 
 
-class Link(Searchable):
+class ObjectProperty(Searchable):
     """
-        A Link is a relationship between ClassNode->ClassNode or ClassNode->DataNode.
+        A Link is a relationship between Class->Class or Class->DataProperty.
     """
     @staticmethod
     def node_match(node):
@@ -389,7 +286,7 @@ class Link(Searchable):
     # the search parameters...
     getters = [
         lambda node: node.name,
-        lambda node: Link.node_match(node),
+        lambda node: ObjectProperty.node_match(node),
         lambda node: node.prefix
     ]
 
@@ -411,7 +308,7 @@ class Link(Searchable):
         self.src = src
         self.dst = dst
         self.prefix = prefix
-        if type(self.dst) == ClassNode:
+        if type(self.dst) == Class:
             self.link_type = self.OBJECT_LINK
         else:
             self.link_type = self.DATA_LINK
@@ -424,7 +321,7 @@ class Link(Searchable):
 
         :return: Dictionary with the SSD link labels
         """
-        if issubclass(type(self.dst), ClassNode) and self.prefix is None:
+        if issubclass(type(self.dst), Class) and self.prefix is None:
             msg = "{} has no prefix namespace specified.".format(self)
             raise ValueError(msg)
 
@@ -460,7 +357,7 @@ class Link(Searchable):
         return hash((self.src, self.dst, self.name))
 
 
-class LinkList(collections.MutableSequence):
+class ObjectPropertyList(collections.MutableSequence):
     """
     Container type for Link objects in the Semantic Source Description
     """
@@ -471,8 +368,8 @@ class LinkList(collections.MutableSequence):
 
     @staticmethod
     def check(v):
-        if not isinstance(v, Link):
-            raise TypeError("Only Link types permitted")
+        if not isinstance(v, ObjectProperty):
+            raise TypeError("Only ObjectProperty types permitted")
 
     def __len__(self):
         return len(self.list)

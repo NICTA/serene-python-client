@@ -7,7 +7,7 @@ Defines the Ontology object
 import logging
 import networkx as nx
 import itertools as it
-from serene.elements import ClassNode, DataNode, Link, LinkList
+from serene.elements import Class, DataProperty, ObjectProperty, ObjectPropertyList
 from serene.visualizers import BaseVisualizer
 from collections import defaultdict
 
@@ -16,6 +16,9 @@ _logger.setLevel(logging.WARN)
 
 LINK_NAME = "relationship"
 
+# ClassNode -> Class
+# Link -> ObjectProperty
+# DataNode -> DataProperty
 
 class BaseSemantic(object):
     """
@@ -31,9 +34,9 @@ class BaseSemantic(object):
         # we use multidigraph since we can potentially have more than 1 link between 2 nodes
         self._graph = nx.MultiDiGraph()
         self._class_table = {}
-        self._links = LinkList()
+        self._links = ObjectPropertyList()
 
-    def class_node(self, name, nodes=None, prefix=None, is_a=None):
+    def owl_class(self, name, nodes=None, prefix=None, is_a=None):
         """
         This function creates a ClassNode on the semantic object.
 
@@ -74,7 +77,7 @@ class BaseSemantic(object):
             raise Exception(msg)
 
         # now we create a class node object...
-        cn = ClassNode(name, node_dict, prefix, parent_class)
+        cn = Class(name, node_dict, prefix, parent_class)
 
         self.add_class_node(cn)
 
@@ -95,7 +98,7 @@ class BaseSemantic(object):
         # now add the data property links
         if add_data_nodes and node.nodes is not None:
             for dataNode in node.nodes:
-                link = Link(dataNode.name, node, dataNode, prefix=dataNode.prefix)
+                link = ObjectProperty(dataNode.name, node, dataNode, prefix=dataNode.prefix)
                 self.add_link(link)
 
         self._graph.add_node(node)
@@ -131,7 +134,7 @@ class BaseSemantic(object):
 
         src = self._class_table[source]
         dst = self._class_table[dest]
-        link = Link(link, src, dst, prefix)
+        link = ObjectProperty(link, src, dst, prefix)
 
         self.add_link(link)
 
@@ -171,7 +174,7 @@ class BaseSemantic(object):
         :return:
         """
         _logger.debug("Attempting to remove link: {}".format(link))
-        target = Link.search(self.links, link)
+        target = ObjectProperty.search(self.links, link)
         if target:
             _logger.debug("Found true link: {}".format(target))
             try:
@@ -210,9 +213,9 @@ class BaseSemantic(object):
     def _iclass_nodes(self):
         """Returns all inferred class nodes"""
         for node in self.class_nodes:
-            yield ClassNode(node.name,
-                            list(self._item_chain(node)),
-                            prefix=node.prefix)
+            yield Class(node.name,
+                        list(self._item_chain(node)),
+                        prefix=node.prefix)
 
     def _idata_nodes(self):
         """Returns all inferred data nodes"""
@@ -253,7 +256,7 @@ class BaseSemantic(object):
                 self._child_chain(link.dst)
             )
             for src, dst in ilinks:
-                yield Link(link.name, src, dst, prefix=link.prefix)
+                yield ObjectProperty(link.name, src, dst, prefix=link.prefix)
 
     @property
     def ilinks(self):
@@ -267,7 +270,7 @@ class BaseSemantic(object):
         :param value:
         :return:
         """
-        return issubclass(type(value), ClassNode) or issubclass(type(value), DataNode)
+        return issubclass(type(value), Class) or issubclass(type(value), DataProperty)
 
     @staticmethod
     def _is_link(value):
@@ -277,7 +280,7 @@ class BaseSemantic(object):
         :param value:
         :return:
         """
-        return issubclass(type(value), Link)
+        return issubclass(type(value), ObjectProperty)
 
     def remove_node(self, node):
         """
@@ -290,7 +293,7 @@ class BaseSemantic(object):
             msg = "{} is not a ClassNode or DataNode".format(node)
             raise Exception(msg)
 
-        elif issubclass(type(node), ClassNode):
+        elif issubclass(type(node), Class):
             _logger.debug("Removing ClassNode: {}".format(node))
             # first we find the actual reference...
             true_node = self._class_table[node.name]
@@ -324,7 +327,7 @@ class BaseSemantic(object):
             _logger.debug("Removing DataNode: {}".format(node))
 
             # first we find the actual reference...
-            true_node = DataNode.search(self.data_nodes, node)
+            true_node = DataProperty.search(self.data_nodes, node)
 
             _logger.debug("Actual node found: {}".format(true_node))
 
@@ -363,7 +366,7 @@ class BaseSemantic(object):
         # links = nx.get_edge_attributes(self._graph, self._LINK)
         # return list(links.values())
         def is_class(link):
-            return issubclass(type(link), ClassNode)
+            return issubclass(type(link), Class)
 
         return [link for link in self._links if is_class(link.src) and is_class(link.dst)]
 
@@ -371,10 +374,10 @@ class BaseSemantic(object):
     def data_links(self):
         """Returns all the data links in the graph"""
         def is_class(link):
-            return issubclass(type(link), ClassNode)
+            return issubclass(type(link), Class)
 
         def is_data(link):
-            return issubclass(type(link), DataNode)
+            return issubclass(type(link), DataProperty)
 
         return [link for link in self._links
                 if is_class(link.src) and is_data(link.dst)]
@@ -385,12 +388,12 @@ class BaseSemantic(object):
         :param value:
         :return:
         """
-        if issubclass(type(value), ClassNode):
-            return ClassNode.search(self.class_nodes, value)
-        elif issubclass(type(value), DataNode):
-            return DataNode.search(self.data_nodes, value)
-        elif issubclass(type(value), Link):
-            return Link.search(self.links, value)
+        if issubclass(type(value), Class):
+            return Class.search(self.class_nodes, value)
+        elif issubclass(type(value), DataProperty):
+            return DataProperty.search(self.data_nodes, value)
+        elif issubclass(type(value), ObjectProperty):
+            return ObjectProperty.search(self.links, value)
         else:
             msg = "{} not supported for get method. Use ClassNode, DataNode or Link"
             raise ValueError(msg)

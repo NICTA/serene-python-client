@@ -36,7 +36,7 @@ import datetime
 import pandas as pd
 import os
 
-from serene import Ontology, DataNode, Mapping, Link, Column, ClassNode, Transform
+from serene import Ontology, DataProperty, Mapping, ObjectProperty, Column, Class
 
 # We have these datasets:
 #
@@ -157,12 +157,12 @@ if len(ontologies):
 ontology_local = (
     serene.Ontology()
           .uri("http://www.semanticweb.org/serene/example_ontology")
-          .class_node("Place", ["name", "postalCode"])
-          .class_node("City", is_a="Place")
-          .class_node("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
-          .class_node("Organization", {"name": str, "phone": int, "email": str})
-          .class_node("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
-          .class_node("State", is_a="Place")
+          .owl_class("Place", ["name", "postalCode"])
+          .owl_class("City", is_a="Place")
+          .owl_class("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
+          .owl_class("Organization", {"name": str, "phone": int, "email": str})
+          .owl_class("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
+          .owl_class("State", is_a="Place")
           .link("Person", "bornIn", "Place")
           .link("Organization", "ceo", "Person")
           .link("Place", "isPartOf", "Place")
@@ -218,10 +218,10 @@ print(ontology.data_nodes)
 # postalCodeLookup: zipcode,city,state
 
 business_info_ssd = (sn.SSD(business_info, ontology, name='business-info')
-                     .map(Column("company"), DataNode("Organization", "name"))
-                     .map(Column("ceo"), DataNode("Person", "name"))
-                     .map(Column("city"), DataNode("City", "name"))
-                     .map(Column("state"), DataNode("State", "name"))
+                     .map(Column("company"), DataProperty("Organization", "name"))
+                     .map(Column("ceo"), DataProperty("Person", "name"))
+                     .map(Column("city"), DataProperty("City", "name"))
+                     .map(Column("state"), DataProperty("State", "name"))
                      .link("Organization", "City", relationship="operatesIn")
                      .link("Organization", "Person", relationship="ceo")
                      .link("City", "State", relationship="state"))
@@ -403,8 +403,8 @@ predicted_ssd = predicted[0].ssd
 #
 # =======================
 
-predicted_ssd.remove(Mapping(Column("name"), DataNode("Place", "name")))
-predicted_ssd = predicted_ssd.map(Column("name"), DataNode("Person", "name"))
+predicted_ssd.remove(Mapping(Column("name"), DataProperty("Place", "name")))
+predicted_ssd = predicted_ssd.map(Column("name"), DataProperty("Person", "name"))
 
 predicted_ssd.show()
 
@@ -428,240 +428,11 @@ octo = sn.octopii.update(octo.add(new_ssd))
 
 print(octo.mappings)
 print()
-print(octo.mappings[DataNode("Person", "name")])
+print(octo.mappings[DataProperty("Person", "name")])
 print()
 
-person_columns = [col for node, col in octo.mappings.items() if node == DataNode("Person", "name")]
+person_columns = [col for node, col in octo.mappings.items() if node == DataProperty("Person", "name")]
 
 print(person_columns)
 print()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#
-# print()
-# print("Ontology built:")
-# print(on)
-# on.show()
-#
-# print()
-# print("output to .owl file")
-# on.to_turtle()
-#
-# input("Press enter to continue...")
-#
-# # add the ontology to the SemanticModeller
-# sm.add_ontology(on)
-#
-# # list all the class nodes
-# print()
-# print("Listing class nodes...")
-# for cn in sm.class_nodes:
-#     print(cn)
-#
-# # list all the data nodes
-# print()
-# print("Listing data nodes...")
-# for dn in sm.data_nodes:
-#     print(dn)
-#
-# # list all the links
-# print()
-# print("Listing the links...")
-# for link in sm.links:
-#     print(link)
-#
-# # ==========================
-# #  CREATING SEMANTIC MODELS
-# # ==========================
-#
-# # once we load the file, the columns exist in the SemanticSourceDescription(SSD),
-# # but they have no DataNodes assigned...
-# ssd = sm.to_ssd("tests/resources/data/EmployeeAddresses.csv")
-#
-# print()
-# print("Printing ssd...")
-# print(ssd)
-#
-# # show the original file location...
-# print()
-# print("Printing filename...")
-# print(ssd.file)
-#
-# # show the data (a Pandas data frame)
-# #print("Printing dataframe...")
-# #print(ssd.df)
-#
-# # show the initial mapping
-# print()
-# print("Printing mapping...")
-# for m in ssd.mappings:
-#     print(m)
-#
-#
-# # you can assign the DataNodes to columns manually...
-# print()
-# print("Adding one map...")
-# ssd.map(Column("postcode"), DataNode("postcode"))
-# print(ssd)
-#
-# # you can assign the DataNodes with a transform...
-# print()
-# print("Ambiguities in the DataNode name will lead to an error:")
-# try:
-#     ssd.map(Column("FirstName"), DataNode("name"))
-# except LookupError as err:
-#     print("Error: {0}".format(err))
-# print()
-# print("This can be resolved by specifying the class node ")
-#
-# ssd.map(Column("FirstName"), DataNode("Person", "name"))
-#
-# print(ssd)
-#
-# # you can assign the DataNodes with a transform...
-# print()
-# print("We can also add transforms")
-# ssd.map(Column("FirstName"), DataNode("Person", "name"), transform=lambda x: x.lower())
-# ssd.map(Column("address"), DataNode("Address", "name"), transform=lambda x: x.upper())
-# print(ssd)
-#
-# # transforms
-# print()
-# print("Printing single transform:")
-# print(ssd.transforms[0])
-#
-# print()
-# print("Printing single transform with find:")
-# print(ssd.find(Transform(6)))
-#
-# print()
-# print("Printing all transforms:")
-# print(ssd.transforms)
-#
-# # links
-#
-# # we can also add links
-# print()
-# print("We can link ClassNodes manually:")
-# ssd.link(ClassNode("Person"), ClassNode("Address"), relationship="lives-at")
-# ssd.link(ClassNode("Address"), ClassNode("Person"), relationship="owned-by")
-# print(ssd)
-#
-# print()
-# print("Though note that we can only choose links from the ontology:")
-# try:
-#     ssd.link(ClassNode("Person"), ClassNode("Address"), relationship="non-existing-link")
-# except Exception as err:
-#     print("Error: {0}".format(err))
-# print()
-#
-# # samples...
-# print()
-# print("You can also sample columns")
-# print(ssd.sample(Column("address")))
-# print()
-# print("You can add transforms to samples as a preview")
-# print(ssd.sample(Column("address"), Transform(6)))
-#
-# # we can also try to auto-fill the SSD
-# ssd.predict()
-# print()
-# print("Predicted model...")
-# print(ssd)
-#
-# # we can just show the predicted models too
-# print()
-# print("Show just the predictions...")
-# for p in ssd.predictions:
-#     print(p)
-#
-# # we can then correct it
-# print()
-# print("Now we can correct the model manually if necessary")
-# ssd.map(Column("LastName"), DataNode("Person", "last-name"))
-# print(ssd)
-#
-# # we can also remove the elements
-# print()
-# print("We can remove links with lookups...")
-# ssd.remove(Link("owned-by"))
-# print(ssd)
-#
-# # list all the data nodes
-# print()
-# print("Listing data nodes...")
-# for dn in ssd.data_nodes:
-#     print(dn)
-#
-#
-# # we can also remove the elements
-# # print()
-# # print("We can remove nodes with DataNode lookups...")
-# # ssd.remove(DataNode("Person", "last-name"))
-# # print(ssd)
-#
-# # list all the data nodes
-# print()
-# print("Listing data nodes...")
-# for dn in ssd.data_nodes:
-#     print(dn)
-#
-# # display
-# print()
-# print("We can also display the semantic model...")
-# ssd.show()
-#
-# # save
-# print()
-# print("We can also save the semantic source description...")
-# ssd.save(file="out.ssd")
-#
-# # we can access the model:
-# print()
-# print("The semantic model")
-# print(ssd.model)
-#
-# print()
-# print("The semantic model links")
-# print(ssd.model.links)
-#
-# print()
-# print("The semantic model nodes")
-# print(ssd.model.class_nodes)
-#
-# # Or print out the json
-# print()
-# print("The source description JSON:")
-# print(ssd.json)
-#
-# # Or print out the json
-# print()
-# print("The source description dictionary:")
-# print(ssd.ssd['semanticModel'])
-#
-# print()
-# print("Columns")
-# print(ssd.columns)
-#
-# print()
-# print("Mappings")
-# print(ssd.mappings)
