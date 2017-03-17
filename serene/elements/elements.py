@@ -390,3 +390,165 @@ class ObjectPropertyList(collections.MutableSequence):
 
     def __repr__(self):
         return '\n'.join(str(link) for link in self.list)
+
+
+class SSDSearchable(Searchable):
+    pass
+
+
+class ClassNode(SSDSearchable):
+
+    # the search parameters...
+    getters = [
+        lambda node: node.label,
+        lambda node: node.index if node.index else None,
+        lambda node: node.prefix if node.prefix else None
+    ]
+
+    def __init__(self, label, index=None, prefix=None):
+        self.label = label
+        self.index = index
+        self.prefix = prefix
+        self.type = "ClassNode"
+
+        super().__init__()
+
+    def __repr__(self):
+        if self.index is None:
+            return "ClassNode({}, {})".format(self.label, self.prefix)
+        else:
+            return "ClassNode({}, {}, {})".format(self.label, self.prefix, self.index)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        return (self.label == other.label) \
+               and (self.prefix == other.prefix)
+
+    def __hash__(self):
+        return hash((self.label, self.prefix))
+
+
+class DataNode(SSDSearchable):
+
+    # the search parameters...
+    getters = [
+        lambda node: node.label,
+        lambda node: node.prefix if node.prefix else None
+    ]
+
+    def __init__(self, *labels, dtype=str, prefix=None):
+        """
+        A DataNode is initialized with name and a parent Class object.
+        A DataNode can be initialized in the following ways:
+
+        DataNode(ClassNode("Person"), "name")
+        DataNode("Person", "name)
+        DataNode("name")
+
+        :param labels: The name of the parent class and the name of the DataNode
+        """
+        self.dtype = dtype
+        self.prefix = prefix
+
+        if len(labels) == 1:
+            # initialized with DataNode("name") - for lookups only...
+            self._label = labels[0]
+
+        elif len(labels) == 2:
+            # here the first element is now the parent...
+            class_node = labels[0]
+
+            if type(class_node) == ClassNode:
+                # initialized with DataNode(Class("Person"), "name")
+                self.class_node = class_node
+            else:
+                # initialized with DataNode("Person", "name")
+                self.class_node = ClassNode(class_node)
+            self._label = labels[1]
+            self.type = "DataNode"
+
+        else:
+            msg = "Insufficient args for DataNode construction."
+            raise Exception(msg)
+
+        super().__init__()
+
+    @property
+    def label(self):
+        return self._label
+
+    @property
+    def full_label(self):
+        return self.class_node.label + '.' + self._label
+
+    def __repr__(self):
+        return "DataNode({})".format(self.class_node, self.label)
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        return (self.label == other.label) \
+               and (self.prefix == other.prefix) \
+               and (self.class_node.label == other.class_node.label)
+
+    def __hash__(self):
+        return hash((self.label, self.prefix, self.class_node))
+
+
+class SSDLink(object):
+    """
+    Link objects for the SSD semantic model
+    """
+    def __init__(self, label, prefix):
+        self.label = label
+        self.prefix = prefix
+        self.type = None
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        return (self.label == other.label) \
+               and (self.prefix == other.prefix)
+
+    def __hash__(self):
+        return hash((self.label, self.prefix))
+
+
+class DataLink(SSDLink):
+    """
+    Link between ClassNode -> DataNode
+    """
+    def __init__(self, label, prefix):
+        super().__init__(label, prefix)
+        self.type = "DataPropertyLink"
+
+    def __repr__(self):
+        return "DataLink({})".format(self.label)
+
+
+class ObjectLink(SSDLink):
+    """
+    Link between ClassNode -> ClassNode
+    """
+    def __init__(self, label, prefix):
+        super().__init__(label, prefix)
+        self.type = "ObjectPropertyLink"
+
+    def __repr__(self):
+        return "ObjectLink({})".format(self.label)
+
+
+class ClassInstanceLink(DataLink):
+    """
+    Link between ClassNode -> DataNode
+    """
+    def __init__(self, label, prefix):
+        super().__init__(label, prefix)
+        self.type = "ClassInstanceLink"
+
+    def __repr__(self):
+        return "ClassLink({})".format(self.label)

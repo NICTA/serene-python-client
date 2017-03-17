@@ -6,7 +6,7 @@ Tests the ssd module
 """
 import os
 
-from serene.elements import SSD
+from serene.elements import SSD, Column, DataNode
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 from ..utils import TestWithServer
 
@@ -51,6 +51,10 @@ class TestSSD(TestWithServer):
         Tests the SSD creation
         :return:
         """
+        self._build_simple()
+
+    def _build_simple(self):
+
         ds = self._datasets.upload(self._test_file)
         on = self._ontologies.upload(self._test_owl)
 
@@ -58,9 +62,26 @@ class TestSSD(TestWithServer):
 
         single = SSD(dataset=ds, ontology=on)
 
-        self.assertEqual(len(single.data_nodes), 4)
+        self.assertEqual(len(single.data_nodes), 0)
         self.assertEqual(len(single.links), 0)
-        # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
+        self.assertEqual(len(single.columns), 4)
+        self.assertEqual(str(single.columns),
+                         "[Column(company), Column(ceo), Column(city), Column(state)]")
+
+        return single
+
+    def test_map(self):
+        """
+        Tests the SSD creation
+        :return:
+        """
+        simple = self._build_simple()
+
+        simple.map(Column("ceo"), DataNode("Person", "name"))
+
+
+
+            # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
         # self.assertEqual(single.class_nodes[0].name, "hello")
 
     # def test_iclass_nodes(self):

@@ -69,7 +69,6 @@ class Ontology(BaseSemantic):
                 try:
                     RDFReader().to_ontology(file, self)
                 except Exception as e:
-                    raise e
                     msg = "Failed to read ontology file {}".format(file)
                     raise Exception(msg)
 
