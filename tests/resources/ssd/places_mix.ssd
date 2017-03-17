@@ -1,10 +1,10 @@
 {
-    "id": 543,
-    "name": "places_dif.csv",
+    "id": 123,
+    "name": "places_mix.csv",
     "attributes": [
         {
             "id": 0,
-            "name": "country",
+            "name": "Country",
             "label": "ident",
             "columnIds": [
                 0
@@ -13,7 +13,7 @@
         },
         {
             "id": 1,
-            "name": "state",
+            "name": "Capital",
             "label": "ident",
             "columnIds": [
                 1
@@ -22,7 +22,7 @@
         },
         {
             "id": 2,
-            "name": "city",
+            "name": "Land",
             "label": "ident",
             "columnIds": [
                 2
@@ -31,7 +31,7 @@
         },
         {
             "id": 3,
-            "name": "suburb",
+            "name": "Hauptstadt",
             "label": "ident",
             "columnIds": [
                 3
@@ -56,31 +56,21 @@
             },
             {
                 "id": 2,
-                "label": "Place",
-                "type": "ClassNode"
+                "label": "Place.name",
+                "type": "DataNode"
             },
             {
                 "id": 3,
-                "label": "Place.name",
-                "type": "DataNode"
+                "label": "Place",
+                "type": "ClassNode"
             },
             {
                 "id": 4,
-                "label": "Place",
-                "type": "ClassNode"
-            },
-            {
-                "id": 5,
                 "label": "Place.name",
                 "type": "DataNode"
             },
             {
-                "id": 6,
-                "label": "Place",
-                "type": "ClassNode"
-            },
-            {
-                "id": 7,
+                "id": 5,
                 "label": "Place.name",
                 "type": "DataNode"
             }
@@ -88,7 +78,7 @@
         "links": [
             {
                 "id":     0,
-                "source": 2,
+                "source": 3,
                 "target": 0,
                 "label": "isPartOf",
                 "type": "ObjectPropertyLink"
@@ -102,38 +92,24 @@
             },
             {
                 "id": 2,
-                "source": 2,
-                "target": 3,
+                "source": 0,
+                "target": 2,
                 "label": "name",
                 "type": "DataPropertyLink"
             },
             {
-                "id":     3,
-                "source": 4,
-                "target": 2,
-                "label": "isPartOf",
-                "type": "ObjectPropertyLink"
+                "id": 3,
+                "source": 3,
+                "target": 4,
+                "label": "name",
+                "type": "DataPropertyLink"
             },
             {
                 "id": 4,
-                "source": 4,
+                "source": 3,
                 "target": 5,
                 "label": "name",
                 "type": "DataPropertyLink"
-            },
-            {
-                "id": 5,
-                "source": 6,
-                "target": 7,
-                "label": "name",
-                "type": "DataPropertyLink"
-            },
-            {
-                "id":     6,
-                "source": 6,
-                "target": 4,
-                "label": "isPartOf",
-                "type": "ObjectPropertyLink"
             }
         ]
     },
@@ -144,15 +120,15 @@
         },
         {
             "attribute": 1,
-            "node": 3
+            "node": 2
         },
         {
             "attribute": 2,
-            "node": 5
+            "node": 4
         },
         {
             "attribute": 3,
-            "node": 7
+            "node": 5
         }
     ],
          "dateCreated":"2016-06-17T07:47:56Z",
