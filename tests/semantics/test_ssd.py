@@ -102,6 +102,27 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 0)
 
+    def test_map_links(self):
+        """
+        Tests the map function for SSD mapping with full map
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name"))
+         #.link("City", "state", "State")
+         #.link("Organization", "location", "City")
+         #.link("Person", "worksFor", "Organization"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        #self.assertEqual(len(simple.object_links), 3)
+
         #link("City", "State", "state")
         #      .link("Organization", "City", "location").link("Person", "Organization",
         #                                                                            "worksFor")

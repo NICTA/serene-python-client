@@ -318,11 +318,12 @@ class SSDGraph(object):
         """
         return self.find(node) is not None
 
-    def add_node(self, node: SSDSearchable):
+    def add_node(self, node: SSDSearchable, index=None):
         """
         Adds a node into the semantic model
 
         :param node: A DataNode or ClassNode to add into the graph
+        :param index: The override index parameter. If None the auto-increment will be used.
         :return:
         """
         n = self.find(node)
@@ -330,18 +331,28 @@ class SSDGraph(object):
             msg = "{} already exists in the SSD: {}".format(node, n)
             raise Exception(msg)
 
-        self._graph.add_node(self._node_id, data=node, node_id=self._node_id)
+        # set the index
+        if index is None:
+            index = self._node_id
+            self._node_id += 1
+
+        # add the node into the semantic model
+        self._graph.add_node(index, data=node, node_id=index)
 
         # add this node into the lookup...
-        self._lookup[node] = self._node_id
-        self._node_id += 1
+        self._lookup[node] = index
 
-    def add_edge(self, src: SSDSearchable, dst: SSDSearchable, link: SSDLink):
+    def add_edge(self,
+                 src: SSDSearchable,
+                 dst: SSDSearchable,
+                 link: SSDLink,
+                 index=None):
         """
         Adds an edge from `src` -> `dest` with `link`
         :param src: A SSDSearchable e.g. a DataNode or ClassNode
         :param dst: A DataNode or ClassNode
         :param link: An SSDLink value to store on the edge.
+        :param index: The override index parameter. If None the auto-increment will be used.
         :return:
         """
         true_src = self.find(src)
@@ -355,11 +366,15 @@ class SSDGraph(object):
             msg = "Link dest {} does not exist in the SSD".format(dst)
             raise Exception(msg)
 
+        # set the index...
+        if index is None:
+            index = self._edge_id
+            self._edge_id += 1
+
         self._graph.add_edge(self._lookup[true_src],
                              self._lookup[true_dst],
                              data=link,
-                             edge_id=self._edge_id)
-        self._edge_id += 1
+                             edge_id=index)
 
     def _node_data(self, node):
         """Helper function to return the data stored at the node"""
