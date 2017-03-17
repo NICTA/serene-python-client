@@ -1,0 +1,160 @@
+{
+    "id": 5,
+    "name": "places_dif.csv",
+    "attributes": [
+        {
+            "id": 0,
+            "name": "country",
+            "label": "ident",
+            "columnIds": [
+                0
+            ],
+            "sql": ""
+        },
+        {
+            "id": 1,
+            "name": "state",
+            "label": "ident",
+            "columnIds": [
+                1
+            ],
+            "sql": ""
+        },
+        {
+            "id": 2,
+            "name": "city",
+            "label": "ident",
+            "columnIds": [
+                2
+            ],
+            "sql": ""
+        },
+        {
+            "id": 3,
+            "name": "suburb",
+            "label": "ident",
+            "columnIds": [
+                3
+            ],
+            "sql": ""
+        }
+    ],
+    "ontology": [
+        1
+    ],
+    "semanticModel": {
+        "nodes": [
+            {
+                "id": 0,
+                "label": "Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": 1,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 2,
+                "label": "Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": 3,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 4,
+                "label": "Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": 5,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 6,
+                "label": "Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": 7,
+                "label": "Place.name",
+                "type": "DataNode"
+            }
+        ],
+        "links": [
+            {
+                "id":     0,
+                "source": 2,
+                "target": 0,
+                "label": "isPartOf",
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 1,
+                "source": 0,
+                "target": 1,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 2,
+                "source": 2,
+                "target": 3,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id":     3,
+                "source": 4,
+                "target": 2,
+                "label": "isPartOf",
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 4,
+                "source": 4,
+                "target": 5,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 5,
+                "source": 6,
+                "target": 7,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id":     6,
+                "source": 6,
+                "target": 4,
+                "label": "isPartOf",
+                "type": "ObjectPropertyLink"
+            }
+        ]
+    },
+    "mappings": [
+        {
+            "attribute": 0,
+            "node": 1
+        },
+        {
+            "attribute": 1,
+            "node": 3
+        },
+        {
+            "attribute": 2,
+            "node": 5
+        },
+        {
+            "attribute": 3,
+            "node": 7
+        }
+    ],
+         "dateCreated":"2016-06-17T07:47:56Z",
+         "dateModified":"2016-06-17T07:47:56Z"
+}

@@ -1,0 +1,124 @@
+{
+    "id": 5,
+    "name": "country_names.csv",
+    "attributes": [
+        {
+            "id": 0,
+            "name": "English",
+            "label": "ident",
+            "columnIds": [
+                0
+            ],
+            "sql": ""
+        },
+        {
+            "id": 1,
+            "name": "French",
+            "label": "ident",
+            "columnIds": [
+                1
+            ],
+            "sql": ""
+        },
+        {
+            "id": 2,
+            "name": "German",
+            "label": "ident",
+            "columnIds": [
+                2
+            ],
+            "sql": ""
+        },
+        {
+            "id": 3,
+            "name": "Russian",
+            "label": "ident",
+            "columnIds": [
+                3
+            ],
+            "sql": ""
+        }
+    ],
+    "ontology": [
+        1
+    ],
+    "semanticModel": {
+        "nodes": [
+            {
+                "id": 0,
+                "label": "Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": 1,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 2,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 4,
+                "label": "Place.name",
+                "type": "DataNode"
+            }
+        ],
+        "links": [
+            {
+                "id": 0,
+                "source": 0,
+                "target": 1,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 1,
+                "source": 0,
+                "target": 2,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id":     2,
+                "source": 0,
+                "target": 3,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 3,
+                "source": 0,
+                "target": 4,
+                "label": "name",
+                "type": "DataPropertyLink"
+            }
+        ]
+    },
+    "mappings": [
+        {
+            "attribute": 0,
+            "node": 1
+        },
+        {
+            "attribute": 1,
+            "node": 2
+        },
+        {
+            "attribute": 2,
+            "node": 3
+        },
+        {
+            "attribute": 3,
+            "node": 4
+        }
+    ],
+         "dateCreated":"2016-06-17T07:47:56Z",
+         "dateModified":"2016-06-17T07:47:56Z"
+}
