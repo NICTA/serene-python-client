@@ -13,11 +13,11 @@ from collections import defaultdict
 
 from .base import BaseSemantic
 from ..elements import DataProperty, ObjectProperty, SSDSearchable, SSDLink, ClassNode, DataNode
-from ..elements import DataLink, ObjectLink, ClassInstanceLink
+from ..elements import DataLink, ObjectLink, ClassInstanceLink, ColumnLink
 from ..elements import Mapping, Column, Class
 from ..dataset import DataSet
 from ..semantics.ontology import Ontology
-from serene.utils import gen_id, convert_datetime, flatten
+from serene.utils import gen_id, convert_datetime, flatten, Searchable
 from serene.visualizers import SSDVisualizer
 
 _logger = logging.getLogger()
@@ -70,26 +70,16 @@ class SSD(object):
         self._date_modified = None
 
         # semantic model
-        #self._semantic_model = BaseSemantic()
-
-        self._graph = SSDGraph() #nx.MultiDiGraph()
-
+        self._semantic_model = SSDGraph()
 
         # the mapping object from Column -> Mapping
         # this should always contain the complete Column set,
         # so that the user can easily see what is and isn't
         # yet mapped.
+        # initialize the columns...
         if self._dataset is not None:
-            self._mapping = self._init_mapping()
-        else:
-            self._mapping = {}
-
-    def _init_mapping(self):
-        """Initialize the mapping to hold Column -> None """
-        m = {}
-        for i, column in enumerate(self._dataset.columns):
-            m[column] = Mapping(column, node=None)
-        return m
+            for col in self._dataset.columns:
+                self._semantic_model.add_node(col)
 
     def update(self, blob, dataset_endpoint, ontology_endpoint):
         """
@@ -138,27 +128,71 @@ class SSD(object):
         :param add_class_node: Should the ClassNode in the DataNode be added
         :return:
         """
-        column, data_node = self._clean_args(column, data_node)
+        column, data_node = self._clean_map_args(column, data_node)
 
         # this will raise an error if the args are not correct
         self._assert_map_args(column, data_node)
 
         # attempt to add the class node
-        self._graph.add_node(data_node.class_node)
+        self._semantic_model.add_node(data_node.class_node)
 
         # add the data node...
-        self._graph.add_node(data_node)
+        self._semantic_model.add_node(data_node)
 
         # add a link between the two, with default prefix namespace...
-        self._graph.add_edge(data_node.class_node,
-                             data_node,
-                             DataLink(data_node.label,
-                                      prefix=self._ontology.uri))
+        self._semantic_model.add_edge(
+            data_node.class_node,
+            data_node,
+            DataLink(data_node.label,
+                     prefix=self._ontology.uri))
 
+        # add a link between the column and data node...
+        self._semantic_model.add_edge(
+            data_node,
+            column,
+            ColumnLink(column.name,
+                       prefix=self._ontology.uri))
+        return self
+
+    def link(self, src, label, dst):
+        """
+        Adds a link between class nodes
+        :param src: The source ClassNode object
+        :param label: The label for the class node
+        :param dst: The destination ClassNode object
+        :return:
+        """
+        src, dst = self._clean_link_args(src, dst)
+
+        # this will raise an error if the args are not correct
+        self._assert_link_args(src, label, dst)
+
+        # add the link into
+        self._semantic_model.add_edge(
+            src, dst, ObjectLink(label, prefix=self._ontology.uri)
+        )
         return self
 
     @staticmethod
-    def _clean_args(column, node):
+    def _clean_link_args(src, dst):
+        """
+        Cleans the args for the link function, here a string will be automatically
+        wrapped int the relevant type
+
+        :param src: ClassNode() or str
+        :param dst: ClassNode() or str
+        :return: ClassNode, ClassNode
+        """
+        if issubclass(type(src), str):
+            src = ClassNode(src)
+
+        if issubclass(type(dst), str):
+            dst = ClassNode(dst)
+
+        return src, dst
+
+    @staticmethod
+    def _clean_map_args(column, node):
         """
         Cleans the args for the map function, here a string will be automatically
         wrapped int the relevant type
@@ -202,6 +236,62 @@ class SSD(object):
             msg = "Failed to find {} in {}".format(data_node, self._ontology)
             raise ValueError(msg)
 
+    def _assert_link_args(self, src, label, dst):
+        """
+        Checks that the requested Class - Class link request is valid
+        :param src: The source class node
+        :param label: The label name for the link
+        :param dst: The destination class node
+        :return: None
+        """
+        # first check the src class in the ontology
+        if not self._class_node_exists(src):
+            msg = "Failed to find {} in {}".format(src, self._ontology)
+            raise ValueError(msg)
+
+        # first check the dst class in the ontology
+        if not self._class_node_exists(dst):
+            msg = "Failed to find {} in {}".format(dst, self._ontology)
+            raise ValueError(msg)
+
+        # next check the link exists in the ontology
+        if not self._link_exists(src, label, dst):
+            msg = "Failed to find {}-{}-{} in {}".format(src, label, dst, self._ontology)
+            raise ValueError(msg)
+
+        # first check the src class in the sm
+        if not self._semantic_model.exists(src):
+            msg = "{} does not exist in the semantic model".format(src)
+            raise Exception(msg)
+
+        # first check the dst class in the sm
+        if not self._semantic_model.exists(dst):
+            msg = "{} does not exist in the semantic model".format(dst)
+            raise Exception(msg)
+
+    def _link_exists(self, src, label, dst):
+        """
+        Checks to see that the link exists in the ontology
+        :param src:
+        :param label:
+        :param dst:
+        :return:
+        """
+        _logger.debug("Searching for {}-{}-{}".format(src, label, dst))
+
+        link_target = ObjectProperty(label, Class(src.label), Class(dst.label))
+
+        _logger.debug("using target: {}".format(link_target))
+        #print("searching the following:")
+        #for z in self._ontology.ilinks:
+        #    print(z)
+        link = ObjectProperty.search(
+            self._ontology.ilinks,
+            link_target
+        )
+        #print("found thing =>", link)
+        return link is not None
+
     def _column_exists(self, column):
         """
 
@@ -244,23 +334,23 @@ class SSD(object):
 
     @property
     def class_nodes(self):
-        return self._graph.class_nodes
+        return self._semantic_model.class_nodes
 
     @property
     def data_nodes(self):
-        return self._graph.data_nodes
+        return self._semantic_model.data_nodes
 
     @property
     def columns(self):
-        return self._dataset.columns
+        return self._semantic_model.columns  # self._dataset.columns
 
     @property
     def data_links(self):
-        return self._graph.data_links
+        return self._semantic_model.data_links
 
     @property
     def object_links(self):
-        return self._graph.object_links
+        return self._semantic_model.object_links
 
     @property
     def links(self):
@@ -277,11 +367,12 @@ class SSD(object):
 
 class SSDGraph(object):
     """
-
+    The Semantic Model object for the SSD
     """
     def __init__(self):
         """
-
+        Simple initialization to start the id counters and
+        hold the graph object
         """
         self._node_id = 0
         self._edge_id = 0
@@ -298,7 +389,7 @@ class SSDGraph(object):
         """
         return [x for x in self._lookup.keys() if type(x) == value_type]
 
-    def find(self, node: SSDSearchable):
+    def find(self, node: Searchable):
         """
         Helper function to find `node` in the semantic model. The search
         is loose on additional node parameters other than label.
@@ -310,7 +401,7 @@ class SSDGraph(object):
         candidates = self._type_list(type(node))
         return type(node).search(candidates, node)
 
-    def exists(self, node: SSDSearchable):
+    def exists(self, node: Searchable):
         """
         Helper function to check if a node exists...
         :param node: A DataNode or ClassNode
@@ -318,7 +409,7 @@ class SSDGraph(object):
         """
         return self.find(node) is not None
 
-    def add_node(self, node: SSDSearchable, index=None):
+    def add_node(self, node: Searchable, index=None):
         """
         Adds a node into the semantic model
 
@@ -329,7 +420,9 @@ class SSDGraph(object):
         n = self.find(node)
         if n is not None:
             msg = "{} already exists in the SSD: {}".format(node, n)
-            raise Exception(msg)
+            _logger.debug(msg)
+            # keep the same index in this case...
+            index = self._lookup[n]
 
         # set the index
         if index is None:
@@ -366,13 +459,20 @@ class SSDGraph(object):
             msg = "Link dest {} does not exist in the SSD".format(dst)
             raise Exception(msg)
 
+        # make sure we aren't rewriting...
+        i_s = self._lookup[true_src]
+        i_d = self._lookup[true_dst]
+        if link in self._all_edge_data(i_s, i_d):
+            _logger.debug("{} is already in the SSD")
+            return
+
         # set the index...
         if index is None:
             index = self._edge_id
             self._edge_id += 1
 
-        self._graph.add_edge(self._lookup[true_src],
-                             self._lookup[true_dst],
+        self._graph.add_edge(i_s,
+                             i_d,
                              data=link,
                              edge_id=index)
 
@@ -383,6 +483,18 @@ class SSDGraph(object):
     def _edge_data(self, src, dst, index=0):
         """Helper function to return the data stored on the edge"""
         return self._graph.edge[src][dst][index][self.DATA_KEY]
+
+    def _all_edge_data(self, src, dst):
+        """Helper function to return all the data stored on the edge"""
+        if src in self._graph.edge and \
+            dst in self._graph.edge[src]:
+
+            z = self._graph.edge[src][dst]
+            return [z[i][self.DATA_KEY] for i in range(len(z))
+                    if z[i] is not None and
+                    z[i][self.DATA_KEY] is not None]
+        else:
+            return []
 
     @property
     def class_nodes(self):
@@ -395,6 +507,12 @@ class SSDGraph(object):
         """Returns the DataNode objects in the graph"""
         return [self._node_data(n) for n in self._graph.nodes()
                 if type(self._node_data(n)) == DataNode]
+
+    @property
+    def columns(self):
+        """Returns the Column objects in the graph"""
+        return [self._node_data(n) for n in self._graph.nodes()
+                if type(self._node_data(n)) == Column]
 
     def _edges_data(self):
         """
@@ -421,9 +539,12 @@ class SSDGraph(object):
         return self._edge_data_filter(ObjectLink)
 
     @property
-    def object_links(self):
+    def class_links(self):
         return self._edge_data_filter(ClassInstanceLink)
 
+    @property
+    def column_links(self):
+        return self._edge_data_filter(ColumnLink)
             # """
     #     Semantic source description is the translator between a DataSet
     #     and a set of Ontologies

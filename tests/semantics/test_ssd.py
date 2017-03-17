@@ -102,6 +102,34 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 0)
 
+    def test_map_overwrite(self):
+        """
+        Tests that re-specifying should overwrite
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .link("City", "state", "State")
+         .link("Organization", "location", "City")
+         .link("Person", "worksFor", "Organization")
+         .link("City", "state", "State")
+         .link("Organization", "location", "City")
+         .link("Person", "worksFor", "Organization"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 3)
+
     def test_map_links(self):
         """
         Tests the map function for SSD mapping with full map
@@ -113,28 +141,13 @@ class TestSSD(TestWithServer):
          .map("company", "Organization.name")
          .map("ceo", "Person.name")
          .map("city", "City.name")
-         .map("state", "State.name"))
-         #.link("City", "state", "State")
-         #.link("Organization", "location", "City")
-         #.link("Person", "worksFor", "Organization"))
+         .map("state", "State.name")
+         .link("City", "state", "State")
+         .link("Organization", "location", "City")
+         .link("Person", "worksFor", "Organization"))
 
         self.assertEqual(len(simple.class_nodes), 4)
         self.assertEqual(len(simple.data_nodes), 4)
         self.assertEqual(len(simple.data_links), 4)
-        #self.assertEqual(len(simple.object_links), 3)
+        self.assertEqual(len(simple.object_links), 3)
 
-        #link("City", "State", "state")
-        #      .link("Organization", "City", "location").link("Person", "Organization",
-        #                                                                            "worksFor")
-
-            # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
-        # self.assertEqual(single.class_nodes[0].name, "hello")
-
-    # def test_iclass_nodes(self):
-    #     raise NotImplementedError("Test not implemented")
-    #
-    # def test_idata_nodes(self):
-    #     raise NotImplementedError("Test not implemented")
-    #
-    # def test_ilinks(self):
-    #     raise NotImplementedError("Test not implemented")

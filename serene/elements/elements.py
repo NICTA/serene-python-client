@@ -542,6 +542,18 @@ class ObjectLink(SSDLink):
         return "ObjectLink({})".format(self.label)
 
 
+class ColumnLink(SSDLink):
+    """
+    Link between DataNode -> Column
+    """
+    def __init__(self, label, prefix):
+        super().__init__(label, prefix)
+        self.type = "ColumnLink"
+
+    def __repr__(self):
+        return "ColumnLink({})".format(self.label)
+
+
 class ClassInstanceLink(DataLink):
     """
     Link between ClassNode -> DataNode
