@@ -25,6 +25,7 @@ class SereneTestServer(object):
         self.server = None
         self.host = None
         self.port = None
+        self.SERENE_TEST_SERVER_PATH = 'SERENE_TEST_SERVER_PATH'
 
     def setup(self):
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests")
@@ -36,8 +37,12 @@ class SereneTestServer(object):
 
         # If launch-test-server is true, then this variable points to
         # the executable which will launch the server. If launch-test-server
-        # is false then this is ignored.
-        filename = config['launch-test-server-exe']
+        # is false then this is ignored. If SERENE_TEST_SERVER_PATH is
+        # defined this will override this variable
+        if self.SERENE_TEST_SERVER_PATH in os.environ:
+            filename = os.environ[self.SERENE_TEST_SERVER_PATH]
+        else:
+            filename = config['launch-test-server-exe']
         tmp_dir = config['launch-test-server-storage']
 
         # The location of the test server.
