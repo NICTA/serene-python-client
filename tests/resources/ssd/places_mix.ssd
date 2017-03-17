@@ -1,0 +1,136 @@
+{
+    "id": 123,
+    "name": "places_mix.csv",
+    "attributes": [
+        {
+            "id": 0,
+            "name": "Country",
+            "label": "ident",
+            "columnIds": [
+                0
+            ],
+            "sql": ""
+        },
+        {
+            "id": 1,
+            "name": "Capital",
+            "label": "ident",
+            "columnIds": [
+                1
+            ],
+            "sql": ""
+        },
+        {
+            "id": 2,
+            "name": "Land",
+            "label": "ident",
+            "columnIds": [
+                2
+            ],
+            "sql": ""
+        },
+        {
+            "id": 3,
+            "name": "Hauptstadt",
+            "label": "ident",
+            "columnIds": [
+                3
+            ],
+            "sql": ""
+        }
+    ],
+    "ontology": [
+        1
+    ],
+    "semanticModel": {
+        "nodes": [
+            {
+                "id": 0,
+                "label": "Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": 1,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 2,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "Place",
+                "type": "ClassNode"
+            },
+            {
+                "id": 4,
+                "label": "Place.name",
+                "type": "DataNode"
+            },
+            {
+                "id": 5,
+                "label": "Place.name",
+                "type": "DataNode"
+            }
+        ],
+        "links": [
+            {
+                "id":     0,
+                "source": 3,
+                "target": 0,
+                "label": "isPartOf",
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 1,
+                "source": 0,
+                "target": 1,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 2,
+                "source": 0,
+                "target": 2,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 3,
+                "source": 3,
+                "target": 4,
+                "label": "name",
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 4,
+                "source": 3,
+                "target": 5,
+                "label": "name",
+                "type": "DataPropertyLink"
+            }
+        ]
+    },
+    "mappings": [
+        {
+            "attribute": 0,
+            "node": 1
+        },
+        {
+            "attribute": 1,
+            "node": 2
+        },
+        {
+            "attribute": 2,
+            "node": 4
+        },
+        {
+            "attribute": 3,
+            "node": 5
+        }
+    ],
+         "dateCreated":"2016-06-17T07:47:56Z",
+         "dateModified":"2016-06-17T07:47:56Z"
+}
