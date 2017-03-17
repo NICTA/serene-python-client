@@ -12,11 +12,12 @@ from collections import OrderedDict
 from collections import defaultdict
 
 from .base import BaseSemantic
-from ..elements import DataProperty, ObjectProperty, SSDSearchable, ClassNode, DataNode, DataLink, ObjectLink
+from ..elements import DataProperty, ObjectProperty, SSDSearchable, SSDLink, ClassNode, DataNode
+from ..elements import DataLink, ObjectLink, ClassInstanceLink
 from ..elements import Mapping, Column, Class
 from ..dataset import DataSet
 from ..semantics.ontology import Ontology
-from serene.utils import gen_id, convert_datetime
+from serene.utils import gen_id, convert_datetime, flatten
 from serene.visualizers import SSDVisualizer
 
 _logger = logging.getLogger()
@@ -137,6 +138,8 @@ class SSD(object):
         :param add_class_node: Should the ClassNode in the DataNode be added
         :return:
         """
+        column, data_node = self._clean_args(column, data_node)
+
         # this will raise an error if the args are not correct
         self._assert_map_args(column, data_node)
 
@@ -149,7 +152,31 @@ class SSD(object):
         # add a link between the two, with default prefix namespace...
         self._graph.add_edge(data_node.class_node,
                              data_node,
-                             DataLink(data_node.label, prefix=self._ontology.uri))
+                             DataLink(data_node.label,
+                                      prefix=self._ontology.uri))
+
+        return self
+
+    @staticmethod
+    def _clean_args(column, node):
+        """
+        Cleans the args for the map function, here a string will be automatically
+        wrapped int the relevant type
+
+        :param column: Column() or str
+        :param node: DataNode(ClassNode(str), str), DataNode(str, str), ClassNode or str
+        :return: column, node as Column(), DataNode/ClassNode
+        """
+        if issubclass(type(column), str):
+            column = Column(column)
+
+        if issubclass(type(node), str):
+            if '.' in node:
+                node = DataNode(*node.split('.'))
+            else:
+                node = ClassNode(node)
+
+        return column, node
 
     def _assert_map_args(self, column, data_node):
         """
@@ -239,6 +266,14 @@ class SSD(object):
     def links(self):
         return self.data_links + self.object_links
 
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @property
+    def ontology(self):
+        return self._ontology
+
 
 class SSDGraph(object):
     """
@@ -252,94 +287,127 @@ class SSDGraph(object):
         self._edge_id = 0
         self._graph = nx.MultiDiGraph()
         self._lookup = {}
+        self.DATA_KEY = 'data'
 
     def _type_list(self, value_type):
         """
+        Helper function to filter out the lookup keys by type.
 
-        :param value_type:
+        :param value_type: The type of the node to search.
         :return:
         """
         return [x for x in self._lookup.keys() if type(x) == value_type]
 
     def find(self, node: SSDSearchable):
         """
+        Helper function to find `node` in the semantic model. The search
+        is loose on additional node parameters other than label.
 
-        :param node:
+        :param node: A ClassNode or DataNode
         :return:
         """
         # first collect the candidates from the lookup keys...
         candidates = self._type_list(type(node))
-        print("candidates", candidates)
         return type(node).search(candidates, node)
+
+    def exists(self, node: SSDSearchable):
+        """
+        Helper function to check if a node exists...
+        :param node: A DataNode or ClassNode
+        :return:
+        """
+        return self.find(node) is not None
 
     def add_node(self, node: SSDSearchable):
         """
+        Adds a node into the semantic model
 
-        :param node:
+        :param node: A DataNode or ClassNode to add into the graph
         :return:
         """
         n = self.find(node)
         if n is not None:
-            msg = "{} already exists in the SSD".format(node)
+            msg = "{} already exists in the SSD: {}".format(node, n)
             raise Exception(msg)
 
-        self._graph.add_node(self._node_id, data=n)
+        self._graph.add_node(self._node_id, data=node, node_id=self._node_id)
+
+        # add this node into the lookup...
         self._lookup[node] = self._node_id
         self._node_id += 1
 
-    def add_edge(self, src: SSDSearchable, dst: SSDSearchable, link):
+    def add_edge(self, src: SSDSearchable, dst: SSDSearchable, link: SSDLink):
         """
-
-        :param src:
-        :param dst:
-        :param link:
+        Adds an edge from `src` -> `dest` with `link`
+        :param src: A SSDSearchable e.g. a DataNode or ClassNode
+        :param dst: A DataNode or ClassNode
+        :param link: An SSDLink value to store on the edge.
         :return:
         """
-        print("Searching for", src)
         true_src = self.find(src)
-        print("found", true_src)
-        print()
-        print("Searching for", dst)
         true_dst = self.find(dst)
-        print("found", true_dst)
-        print()
 
         if true_src is None:
             msg = "Link source {} does not exist in the SSD".format(src)
-            print("lookup =>", self._lookup)
-            print("true-src", true_src)
             raise Exception(msg)
 
         if true_dst is None:
             msg = "Link dest {} does not exist in the SSD".format(dst)
-            print("lookup =>", self._lookup)
-            print("true-dst", true_dst)
             raise Exception(msg)
 
         self._graph.add_edge(self._lookup[true_src],
                              self._lookup[true_dst],
-                             data=link)
+                             data=link,
+                             edge_id=self._edge_id)
+        self._edge_id += 1
+
+    def _node_data(self, node):
+        """Helper function to return the data stored at the node"""
+        return self._graph.node[node][self.DATA_KEY]
+
+    def _edge_data(self, src, dst, index=0):
+        """Helper function to return the data stored on the edge"""
+        return self._graph.edge[src][dst][index][self.DATA_KEY]
 
     @property
     def class_nodes(self):
-        return [n['data'] for n in self._graph.nodes()
-                if type(n['data']) == ClassNode]
+        """Returns the ClassNode objects in the semantic model"""
+        return [self._node_data(n) for n in self._graph.nodes()
+                if type(self._node_data(n)) == ClassNode]
 
     @property
     def data_nodes(self):
-        return [n['data'] for n in self._graph.nodes()
-                if type(n['data']) == DataNode]
+        """Returns the DataNode objects in the graph"""
+        return [self._node_data(n) for n in self._graph.nodes()
+                if type(self._node_data(n)) == DataNode]
+
+    def _edges_data(self):
+        """
+        Helper function to extract all the attribute maps. Note that a multigraph has
+        a dictionary at each edge[x][y] point, so we need to pull out each edge.
+        """
+        return flatten(self._graph.edge[e1][e2].values() for e1, e2 in self._graph.edges())
+
+    def _edge_data_filter(self, value_type: SSDLink):
+        """
+        Helper function to extract a single type of edge...
+        :param value_type: The edge type to filter on
+        :return:
+        """
+        return [e[self.DATA_KEY] for e in self._edges_data()
+                if type(e[self.DATA_KEY]) == value_type]
 
     @property
     def data_links(self):
-        return [e['data'] for e in self._graph.edges()
-                if type(e['data']) == DataLink]
+        return self._edge_data_filter(DataLink)
 
     @property
     def object_links(self):
-        return [e['data'] for e in self._graph.edges()
-                if type(e['data']) == ObjectLink]
+        return self._edge_data_filter(ObjectLink)
 
+    @property
+    def object_links(self):
+        return self._edge_data_filter(ClassInstanceLink)
 
             # """
     #     Semantic source description is the translator between a DataSet

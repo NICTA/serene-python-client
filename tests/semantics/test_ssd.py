@@ -70,16 +70,41 @@ class TestSSD(TestWithServer):
 
         return single
 
-    def test_map(self):
+    def test_map_simple(self):
         """
-        Tests the SSD creation
+        Tests the map function for SSD mapping with one map
         :return:
         """
         simple = self._build_simple()
 
         simple.map(Column("ceo"), DataNode("Person", "name"))
 
+        self.assertEqual(len(simple.class_nodes), 1)
+        self.assertEqual(len(simple.data_nodes), 1)
+        self.assertEqual(len(simple.data_links), 1)
+        self.assertEqual(len(simple.object_links), 0)
 
+    def test_map_full(self):
+        """
+        Tests the map function for SSD mapping with full map
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 0)
+
+        #link("City", "State", "state")
+        #      .link("Organization", "City", "location").link("Person", "Organization",
+        #                                                                            "worksFor")
 
             # self.assertIsNotNone(ClassNode.search(single.class_nodes, ClassNode("hello")))
         # self.assertEqual(single.class_nodes[0].name, "hello")

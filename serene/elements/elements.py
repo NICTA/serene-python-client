@@ -434,7 +434,7 @@ class DataNode(SSDSearchable):
 
     # the search parameters...
     getters = [
-        lambda node: node.label,
+        lambda node: node.full_label,
         lambda node: node.prefix if node.prefix else None
     ]
 
@@ -484,7 +484,7 @@ class DataNode(SSDSearchable):
         return self.class_node.label + '.' + self._label
 
     def __repr__(self):
-        return "DataNode({})".format(self.class_node, self.label)
+        return "DataNode({}, {})".format(self.class_node, self.label)
 
     def __ne__(self, other):
         return not self.__eq__(other)

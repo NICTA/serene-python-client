@@ -35,7 +35,7 @@ class Searchable(object):
     @classmethod
     def search(cls, container, item, errors=False):
         """
-        Finds a DataNode item in a container. The search method enables
+        Finds an item in a container. The search method enables
         shorthand searches based on uniqueness. e.g. if there is only one
         DataNode with name='id' then it can be referenced with DataNode('id').
         Though if there are two DataNode('id', ClassNode('Person')) and
