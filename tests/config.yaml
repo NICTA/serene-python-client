@@ -16,6 +16,7 @@ launch-test-server: true
 # is false then this is ignored.
 #
 launch-test-server-exe: /home/natalia/IdeaProjects/serene/bin/serene-start
+#/home/natalia/IdeaProjects/serene/bin/serene-start
 launch-test-server-storage: /tmp/test
 #
 # The location of the test server.
