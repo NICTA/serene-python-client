@@ -401,7 +401,7 @@ class ClassNode(SSDSearchable):
     # the search parameters...
     getters = [
         lambda node: node.label,
-        lambda node: node.index if node.index else None,
+        lambda node: node.index,  # if node.index is not None else None,
         lambda node: node.prefix if node.prefix else None
     ]
 
@@ -424,10 +424,11 @@ class ClassNode(SSDSearchable):
 
     def __eq__(self, other):
         return (self.label == other.label) \
-               and (self.prefix == other.prefix)
+               and (self.prefix == other.prefix) \
+               and (self.index == other.index)
 
     def __hash__(self):
-        return hash((self.label, self.prefix))
+        return hash((self.label, self.prefix, self.index))
 
 
 class DataNode(SSDSearchable):
@@ -435,7 +436,8 @@ class DataNode(SSDSearchable):
     # the search parameters...
     getters = [
         lambda node: node.full_label,
-        lambda node: node.prefix if node.prefix else None
+        lambda node: node.prefix if node.prefix else None,
+        lambda node: node.class_node if node.class_node else None
     ]
 
     def __init__(self, *labels, dtype=str, prefix=None):
@@ -492,7 +494,7 @@ class DataNode(SSDSearchable):
     def __eq__(self, other):
         return (self.label == other.label) \
                and (self.prefix == other.prefix) \
-               and (self.class_node.label == other.class_node.label)
+               and (self.class_node == other.class_node)
 
     def __hash__(self):
         return hash((self.label, self.prefix, self.class_node))

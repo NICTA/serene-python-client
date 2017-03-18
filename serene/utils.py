@@ -33,7 +33,7 @@ class Searchable(object):
     getters = []
 
     @classmethod
-    def search(cls, container, item, errors=False):
+    def search(cls, container, item, exact=False):
         """
         Finds an item in a container. The search method enables
         shorthand searches based on uniqueness. e.g. if there is only one
@@ -95,7 +95,12 @@ class Searchable(object):
         for get in cls.getters:
             ok, match = find(candidates, item, get)
             if ok:
-                return match
+                if exact and match == item:
+                    return match
+                elif exact and match != item:
+                    return None
+                else:
+                    return match
             if match is None:
                 return None
             else:

@@ -389,7 +389,7 @@ class SSDGraph(object):
         """
         return [x for x in self._lookup.keys() if type(x) == value_type]
 
-    def find(self, node: Searchable):
+    def find(self, node: Searchable, exact=False):
         """
         Helper function to find `node` in the semantic model. The search
         is loose on additional node parameters other than label.
@@ -399,7 +399,7 @@ class SSDGraph(object):
         """
         # first collect the candidates from the lookup keys...
         candidates = self._type_list(type(node))
-        return type(node).search(candidates, node)
+        return type(node).search(candidates, node, exact=exact)
 
     def exists(self, node: Searchable):
         """
@@ -417,10 +417,11 @@ class SSDGraph(object):
         :param index: The override index parameter. If None the auto-increment will be used.
         :return:
         """
-        n = self.find(node)
+        n = self.find(node, exact=True)
         if n is not None:
             msg = "{} already exists in the SSD: {}".format(node, n)
             _logger.debug(msg)
+            print(msg)
             # keep the same index in this case...
             index = self._lookup[n]
 
@@ -486,8 +487,7 @@ class SSDGraph(object):
 
     def _all_edge_data(self, src, dst):
         """Helper function to return all the data stored on the edge"""
-        if src in self._graph.edge and \
-            dst in self._graph.edge[src]:
+        if src in self._graph.edge and dst in self._graph.edge[src]:
 
             z = self._graph.edge[src][dst]
             return [z[i][self.DATA_KEY] for i in range(len(z))

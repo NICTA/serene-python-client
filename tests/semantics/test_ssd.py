@@ -6,7 +6,7 @@ Tests the ssd module
 """
 import os
 
-from serene.elements import SSD, Column, DataNode
+from serene.elements import SSD, Column, DataNode, ClassNode
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 from ..utils import TestWithServer
 
@@ -92,10 +92,53 @@ class TestSSD(TestWithServer):
         simple = self._build_simple()
 
         (simple
+         .map(Column("company"), DataNode("Organization", "name"))
+         .map(Column("ceo"), DataNode("Person", "name"))
+         .map(Column("city"), DataNode("City", "name"))
+         .map(Column("state"), DataNode("State", "name")))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 0)
+
+    def test_map_short_hand(self):
+        """
+        Tests the map function for SSD mapping with short hand strings
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
          .map("company", "Organization.name")
          .map("ceo", "Person.name")
          .map("city", "City.name")
          .map("state", "State.name"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 0)
+
+    def test_map_multi_instance(self):
+        """
+        Tests the map function with multiple instances
+
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map(Column("company"),
+              DataNode(ClassNode("Person", 0), "name"))
+         .map(Column("ceo"),
+              DataNode(ClassNode("Person", 1), "name"))
+         .map(Column("city"),
+              DataNode(ClassNode("Person", 2), "name"))
+         .map(Column("state"),
+              DataNode(ClassNode("Person", 3), "name")))
+
+        print(simple.class_nodes)
 
         self.assertEqual(len(simple.class_nodes), 4)
         self.assertEqual(len(simple.data_nodes), 4)
