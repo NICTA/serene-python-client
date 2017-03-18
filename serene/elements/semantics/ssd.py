@@ -364,6 +364,10 @@ class SSD(object):
     def ontology(self):
         return self._ontology
 
+    def show(self):
+        """Displays the SSD"""
+        self._semantic_model.show()
+
 
 class SSDGraph(object):
     """
@@ -395,6 +399,7 @@ class SSDGraph(object):
         is loose on additional node parameters other than label.
 
         :param node: A ClassNode or DataNode
+        :param exact: Should find return an exact .eq. match or just approximate through the type 'getters'
         :return:
         """
         # first collect the candidates from the lookup keys...
@@ -463,7 +468,7 @@ class SSDGraph(object):
         # make sure we aren't rewriting...
         i_s = self._lookup[true_src]
         i_d = self._lookup[true_dst]
-        if link in self._all_edge_data(i_s, i_d):
+        if link in self.all_edge_data(i_s, i_d):
             _logger.debug("{} is already in the SSD")
             return
 
@@ -477,15 +482,27 @@ class SSDGraph(object):
                              data=link,
                              edge_id=index)
 
-    def _node_data(self, node):
+    def show(self):
+        """
+        Prints to the screen and also shows a graphviz visualization.
+        :return:
+        """
+        SSDVisualizer(self).show()
+
+    @property
+    def graph(self):
+        """Reference to the graph object"""
+        return self._graph
+
+    def node_data(self, node):
         """Helper function to return the data stored at the node"""
         return self._graph.node[node][self.DATA_KEY]
 
-    def _edge_data(self, src, dst, index=0):
+    def edge_data(self, src, dst, index=0):
         """Helper function to return the data stored on the edge"""
         return self._graph.edge[src][dst][index][self.DATA_KEY]
 
-    def _all_edge_data(self, src, dst):
+    def all_edge_data(self, src, dst):
         """Helper function to return all the data stored on the edge"""
         if src in self._graph.edge and dst in self._graph.edge[src]:
 
@@ -499,20 +516,20 @@ class SSDGraph(object):
     @property
     def class_nodes(self):
         """Returns the ClassNode objects in the semantic model"""
-        return [self._node_data(n) for n in self._graph.nodes()
-                if type(self._node_data(n)) == ClassNode]
+        return [self.node_data(n) for n in self._graph.nodes()
+                if type(self.node_data(n)) == ClassNode]
 
     @property
     def data_nodes(self):
         """Returns the DataNode objects in the graph"""
-        return [self._node_data(n) for n in self._graph.nodes()
-                if type(self._node_data(n)) == DataNode]
+        return [self.node_data(n) for n in self._graph.nodes()
+                if type(self.node_data(n)) == DataNode]
 
     @property
     def columns(self):
         """Returns the Column objects in the graph"""
-        return [self._node_data(n) for n in self._graph.nodes()
-                if type(self._node_data(n)) == Column]
+        return [self.node_data(n) for n in self._graph.nodes()
+                if type(self.node_data(n)) == Column]
 
     def _edges_data(self):
         """
@@ -525,7 +542,7 @@ class SSDGraph(object):
         """
         Helper function to extract a single type of edge...
         :param value_type: The edge type to filter on
-        :return:
+        :return: List of SSDLink objects
         """
         return [e[self.DATA_KEY] for e in self._edges_data()
                 if type(e[self.DATA_KEY]) == value_type]
@@ -545,6 +562,7 @@ class SSDGraph(object):
     @property
     def column_links(self):
         return self._edge_data_filter(ColumnLink)
+
             # """
     #     Semantic source description is the translator between a DataSet
     #     and a set of Ontologies

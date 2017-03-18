@@ -253,7 +253,7 @@ class DataProperty(Searchable):
 
     def __repr__(self):
         if self.parent:
-            return "DataProperty({}, {})".format(self.parent.label, self.name)
+            return "DataProperty({}, {})".format(self.parent.label, self.label)
         else:
             return "DataProperty({})".format(self.label)
 

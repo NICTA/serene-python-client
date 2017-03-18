@@ -8,7 +8,7 @@ import logging
 import networkx as nx
 import itertools as it
 from serene.elements import Class, DataProperty, ObjectProperty, ObjectPropertyList
-from serene.visualizers import BaseVisualizer
+from serene.visualizers import OntologyVisualizer
 from collections import defaultdict
 
 _logger = logging.getLogger()
@@ -416,6 +416,6 @@ class BaseSemantic(object):
         print()
 
     def show(self):
-        BaseVisualizer(self).show()
+        OntologyVisualizer(self).show()
         return
 
