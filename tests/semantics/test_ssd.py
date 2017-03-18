@@ -138,12 +138,36 @@ class TestSSD(TestWithServer):
          .map(Column("state"),
               DataNode(ClassNode("Person", 3), "name")))
 
-        print(simple.class_nodes)
-
         self.assertEqual(len(simple.class_nodes), 4)
         self.assertEqual(len(simple.data_nodes), 4)
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 0)
+
+    def test_map_multi_instance_links(self):
+        """
+        Tests the map function with multiple instances in the links
+
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map(Column("company"),
+              DataNode(ClassNode("City", 0), "name"))
+         .map(Column("ceo"),
+              DataNode(ClassNode("City", 1), "name"))
+         .map(Column("city"),
+              DataNode(ClassNode("City", 2), "name"))
+         .map(Column("state"),
+              DataNode(ClassNode("City", 3), "name"))
+         .link(ClassNode("City", 0), "nearby", ClassNode("City", 1))
+         .link(ClassNode("City", 1), "nearby", ClassNode("City", 2))
+         .link(ClassNode("City", 2), "nearby", ClassNode("City", 3)))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 3)
 
     def test_map_overwrite(self):
         """

@@ -115,23 +115,23 @@ class Class(Searchable):
     """
     # the search parameters...
     getters = [
-        lambda node: node.name,
+        lambda node: node.label,
         lambda node: node.prefix if node.prefix else None,
         lambda node: node.parent if node.parent else None
     ]
 
-    def __init__(self, name, nodes=None, prefix=None, parent=None, idx=None):
+    def __init__(self, label, nodes=None, prefix=None, parent=None, idx=None):
         """
         A ClassNode is initialized with a name, a list of string nodes
         and optional prefix and/or a parent ClassNode
 
-        :param name: The string name of the ClassNode
+        :param label: The string name of the ClassNode
         :param nodes: A list of strings to initialze the DataNode objects
         :param prefix: The URI prefix
         :param parent: The parent object if applicable
         :param idx: node id to distinguish between instances of the same class
         """
-        self.name = name
+        self.label = label
         self.prefix = prefix
         self.parent = parent
         self.idx = idx
@@ -155,29 +155,22 @@ class Class(Searchable):
             ident = self.idx
         return {
             "id": ident,
-            "label": self.name,
+            "label": self.label,
             "prefix": self.prefix,
             "type": "ClassNode"
         }
 
     def __repr__(self):
-        nodes = [n.name for n in self.nodes]
+        nodes = [n.label for n in self.nodes]
 
-        if self.parent is None:
-            parent = ""
-        else:
-            parent = ", parent={}".format(self.parent.name)
-
-        #return "ClassNode({}, [{}]{})".format(self.name, ", ".join(nodes), parent)
-        return "ClassNode({})".format(self.name)
+        return "ClassNode({}, [{}])".format(self.label, ", ".join(nodes))
 
     def __eq__(self, other):
-        return (self.name == other.name) \
-               and (self.prefix == other.prefix) # \
-               #and (self.nodes == other.nodes)
+        return (self.label == other.label) \
+               and (self.prefix == other.prefix)
 
     def __hash__(self):
-        return hash((self.name, self.prefix)) #, frozenset(self.nodes)))
+        return hash((self.label, self.prefix))
 
 
 class DataProperty(Searchable):
@@ -187,8 +180,8 @@ class DataProperty(Searchable):
     """
     # the search parameters...
     getters = [
-        lambda node: node.name,
-        lambda node: node.parent.name if node.parent else None,
+        lambda node: node.label,
+        lambda node: node.parent.label if node.parent else None,
         lambda node: node.parent.prefix if node.parent else None
     ]
 
@@ -208,7 +201,7 @@ class DataProperty(Searchable):
 
         if len(names) == 1:
             # initialized with DataProperty("name") - for lookups only...
-            self.name = names[0]
+            self.label = names[0]
             self.parent = None
 
         elif len(names) == 2:
@@ -221,7 +214,7 @@ class DataProperty(Searchable):
             else:
                 # initialized with DataProperty("Person", "name")
                 self.parent = Class(parent)
-            self.name = names[1]
+            self.label = names[1]
 
         else:
             msg = "Insufficient args for DataNode construction."
@@ -235,9 +228,9 @@ class DataProperty(Searchable):
         :return:
         """
         if self.parent is None:
-            label = self.name
+            label = self.label
         else:
-            label = "{}.{}".format(self.parent.name, self.name)
+            label = "{}.{}".format(self.parent.label, self.label)
 
         return {
             "id": ident,
@@ -252,23 +245,23 @@ class DataProperty(Searchable):
     def __eq__(self, other):
         if type(other) is type(self):
             if self.parent is not None and other.parent is not None:
-                return self.name == other.name and \
-                    self.parent.name == other.parent.name
+                return self.label == other.label and \
+                       self.parent.label == other.parent.label
             else:
-                return self.name == other.name
+                return self.label == other.label
         return False
 
     def __repr__(self):
         if self.parent:
-            return "DataProperty({}, {})".format(self.parent.name, self.name)
+            return "DataProperty({}, {})".format(self.parent.label, self.name)
         else:
-            return "DataProperty({})".format(self.name)
+            return "DataProperty({})".format(self.label)
 
     def __hash__(self):
         if self.parent:
-            return hash((self.parent.name, self.name))
+            return hash((self.parent.label, self.label))
         else:
-            return hash(self.name)
+            return hash(self.label)
 
 
 class ObjectProperty(Searchable):
@@ -281,11 +274,11 @@ class ObjectProperty(Searchable):
             return None
         if node.dst is None:
             return None
-        return node.src.name, node.dst.name
+        return node.src.label, node.dst.label
 
     # the search parameters...
     getters = [
-        lambda node: node.name,
+        lambda node: node.label,
         lambda node: ObjectProperty.node_match(node),
         lambda node: node.prefix
     ]
@@ -295,16 +288,16 @@ class ObjectProperty(Searchable):
     OBJECT_LINK = "ObjectPropertyLink"
     DATA_LINK = "DataPropertyLink"
 
-    def __init__(self, name, src=None, dst=None, prefix=None):
+    def __init__(self, label, src=None, dst=None, prefix=None):
         """
         The link can be initialized with a name, and also
         holds the source and destination ClassNode references.
 
-        :param name: The link name
+        :param label: The link name
         :param src: The source ClassNode
         :param dst: The destination ClassNode
         """
-        self.name = name
+        self.label = label
         self.src = src
         self.dst = dst
         self.prefix = prefix
@@ -329,7 +322,7 @@ class ObjectProperty(Searchable):
             "id": index,
             "source": index_map[self.src],
             "target": index_map[self.dst],
-            "label": self.name,
+            "label": self.label,
             "type": self.link_type,
             "prefix": self.prefix
         }
@@ -337,24 +330,24 @@ class ObjectProperty(Searchable):
 
     def __repr__(self):
         if (self.src is None) or (self.dst is None):
-            return "Link({})".format(self.name)
+            return "Link({})".format(self.label)
         elif self.link_type == self.OBJECT_LINK:
             return "ClassNode({}) -> Link({}) -> ClassNode({})" \
-                .format(self.src.name, self.name, self.dst.name)
+                .format(self.src.label, self.label, self.dst.label)
         else:
             return "ClassNode({}) -> Link({}) -> DataNode({})" \
-                .format(self.src.name, self.name, self.dst.name)
+                .format(self.src.label, self.label, self.dst.label)
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __eq__(self, other):
-        return (self.name == other.name) and \
+        return (self.label == other.label) and \
                (self.src == other.src) and \
                (self.dst == other.dst)
 
     def __hash__(self):
-        return hash((self.src, self.dst, self.name))
+        return hash((self.src, self.dst, self.label))
 
 
 class ObjectPropertyList(collections.MutableSequence):

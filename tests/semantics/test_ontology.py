@@ -36,7 +36,7 @@ class TestOntology(unittest.TestCase):
         self.assertEqual(len(single.data_nodes), 0)
         self.assertEqual(len(single.links), 0)
         self.assertIsNotNone(Class.search(single.class_nodes, Class("hello")))
-        self.assertEqual(single.class_nodes[0].name, "hello")
+        self.assertEqual(single.class_nodes[0].label, "hello")
 
     def test_class_node_one_prop(self):
         """
@@ -54,8 +54,8 @@ class TestOntology(unittest.TestCase):
             Class.search(one_prop.class_nodes, Class("Person", ["name"])))
         self.assertIsNotNone(
             DataProperty.search(one_prop.data_nodes, DataProperty("Person", "name")))
-        self.assertEqual(one_prop.class_nodes[0].name, "Person")
-        self.assertEqual(one_prop.class_nodes[0].nodes[0].name, "name")
+        self.assertEqual(one_prop.class_nodes[0].label, "Person")
+        self.assertEqual(one_prop.class_nodes[0].nodes[0].label, "name")
 
     def test_class_node_multi_prop(self):
         """
@@ -79,9 +79,9 @@ class TestOntology(unittest.TestCase):
             DataProperty.search(two_prop.data_nodes, DataProperty("Person", "name")))
         self.assertIsNotNone(
             DataProperty.search(two_prop.data_nodes, DataProperty("Person", "addr")))
-        self.assertEqual(two_prop.class_nodes[0].name, "Person")
+        self.assertEqual(two_prop.class_nodes[0].label, "Person")
         self.assertEqual(
-            set([x.name for x in two_prop.class_nodes[0].nodes]),
+            set([x.label for x in two_prop.class_nodes[0].nodes]),
             {"name", "addr"}
         )
 
@@ -124,7 +124,7 @@ class TestOntology(unittest.TestCase):
 
         parent = Class.search(family.class_nodes, Class("Parent"))
         child = Class.search(family.class_nodes, Class("Child"))
-        links = [link.name for link in family.links]
+        links = [link.label for link in family.links]
 
         self.assertEqual(child.parent, parent)
         self.assertEqual(set(links), {"name", "addr", "toys"})

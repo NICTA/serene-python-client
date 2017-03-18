@@ -93,12 +93,12 @@ class BaseSemantic(object):
         """
         # if the name is in the class table, then we
         # need to remove it from the graph...
-        self._class_table[node.name] = node
+        self._class_table[node.label] = node
 
         # now add the data property links
         if add_data_nodes and node.nodes is not None:
             for dataNode in node.nodes:
-                link = ObjectProperty(dataNode.name, node, dataNode, prefix=dataNode.prefix)
+                link = ObjectProperty(dataNode.label, node, dataNode, prefix=dataNode.prefix)
                 self.add_link(link)
 
         self._graph.add_node(node)
@@ -208,12 +208,12 @@ class BaseSemantic(object):
         """Returns all data nodes in the class chain of z"""
         for cls in self._parent_chain(z):
             for item in cls.nodes:
-                yield item.name
+                yield item.label
 
     def _iclass_nodes(self):
         """Returns all inferred class nodes"""
         for node in self.class_nodes:
-            yield Class(node.name,
+            yield Class(node.label,
                         list(self._item_chain(node)),
                         prefix=node.prefix)
 
@@ -256,7 +256,7 @@ class BaseSemantic(object):
                 self._child_chain(link.dst)
             )
             for src, dst in ilinks:
-                yield ObjectProperty(link.name, src, dst, prefix=link.prefix)
+                yield ObjectProperty(link.label, src, dst, prefix=link.prefix)
 
     @property
     def ilinks(self):
@@ -296,7 +296,7 @@ class BaseSemantic(object):
         elif issubclass(type(node), Class):
             _logger.debug("Removing ClassNode: {}".format(node))
             # first we find the actual reference...
-            true_node = self._class_table[node.name]
+            true_node = self._class_table[node.label]
 
             _logger.debug("Actual node found: {}".format(true_node))
 
@@ -322,7 +322,7 @@ class BaseSemantic(object):
                     self.remove_link(link)
 
             # remove the ClassNode from the class table
-            del self._class_table[true_node.name]
+            del self._class_table[true_node.label]
         else:
             _logger.debug("Removing DataNode: {}".format(node))
 

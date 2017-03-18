@@ -30,7 +30,7 @@ class BaseVisualizer(object):
         """
         for c in self.struct.class_nodes:
             graph.add_node(c,
-                           label=c.name,
+                           label=c.label,
                            color='white',
                            style='filled',
                            fillcolor='#59d0a0',
@@ -49,7 +49,7 @@ class BaseVisualizer(object):
 
                 # ensure that the parent is in the graph!
                 graph.add_node(c.parent,
-                               label=c.parent.name,
+                               label=c.parent.label,
                                color='white',
                                style='filled',
                                fillcolor='#59d0a0',

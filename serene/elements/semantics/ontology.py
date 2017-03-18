@@ -69,6 +69,7 @@ class Ontology(BaseSemantic):
                 try:
                     RDFReader().to_ontology(file, self)
                 except Exception as e:
+                    raise e
                     msg = "Failed to read ontology file {}".format(file)
                     raise Exception(msg)
 
@@ -519,16 +520,16 @@ class RDFWriter(object):
 
         for cls in ontology.class_nodes:
             g.add((
-                rdf(cls.name),
+                rdf(cls.label),
                 rdflib.RDF.type,
                 rdflib.OWL.Class
             ))
 
             if cls.parent is not None:
                 g.add((
-                    rdf(cls.name),
+                    rdf(cls.label),
                     rdflib.RDFS.subClassOf,
-                    rdf(cls.parent.name)
+                    rdf(cls.parent.label)
                 ))
 
     @staticmethod
@@ -559,19 +560,19 @@ class RDFWriter(object):
 
         for link in ontology.class_links:
             g.add((
-                rdf(link.name),
+                rdf(link.label),
                 rdflib.RDF.type,
                 rdflib.OWL.ObjectProperty
             ))
             g.add((
-                rdf(link.name),
+                rdf(link.label),
                 rdflib.RDFS.domain,
-                rdf(link.src.name)
+                rdf(link.src.label)
             ))
             g.add((
-                rdf(link.name),
+                rdf(link.label),
                 rdflib.RDFS.range,
-                rdf(link.dst.name)
+                rdf(link.dst.label)
             ))
 
     def _build_data_nodes(self, g, ontology):
@@ -586,17 +587,17 @@ class RDFWriter(object):
 
         for node in ontology.data_nodes:
             g.add((
-                rdf(node.name),
+                rdf(node.label),
                 rdflib.RDF.type,
                 rdflib.OWL.DatatypeProperty
             ))
             g.add((
-                rdf(node.name),
+                rdf(node.label),
                 rdflib.RDFS.domain,
-                rdf(node.parent.name)
+                rdf(node.parent.label)
             ))
             g.add((
-                rdf(node.name),
+                rdf(node.label),
                 rdflib.RDFS.range,
                 self.TYPE_MAP[node.dtype]
             ))
