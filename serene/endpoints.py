@@ -378,14 +378,13 @@ class SSDEndpoint(IdentifiableEndpoint):
         assert (issubclass(type(x), SSD))
         assert (issubclass(type(y), SSD))
 
-        compare_json = {"predictedSSD": x.to_json(),
-                        "correctSSD": y.to_json(),
-                        "ignoreSemanticTypes": ignore_types,
-                        "ignoreColumnNodes": ignore_columns
-                        }
-        result = self._session.compare(compare_json)
-
-        return result
+        compare_json = {
+            "predictedSSD": x.to_json(),
+            "correctSSD": y.to_json(),
+            "ignoreSemanticTypes": ignore_types,
+            "ignoreColumnNodes": ignore_columns
+        }
+        return self._session.compare(compare_json)
 
     @decache
     def upload(self, ssd):
@@ -396,12 +395,9 @@ class SSDEndpoint(IdentifiableEndpoint):
         """
         assert(issubclass(type(ssd), SSD))
 
-        # test file
-        with open('test.json', 'w') as f:
-            print("SENDING::::")
-            print(ssd.json)
-            print("::::")
-            f.write(ssd.json)
+        # # test file
+        # with open('test.json', 'w') as f:
+        #     f.write(ssd.json)
 
         response = self._api.post(ssd.json)
 
