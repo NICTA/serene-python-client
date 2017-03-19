@@ -33,7 +33,6 @@ class Octopus(object):
                  ontologies=None,
                  modeling_props=None):
         """
-
         :param ssds:
         :param name:
         :param description:
@@ -68,17 +67,6 @@ class Octopus(object):
         self._state = None
 
         self._session = None
-
-    # @classmethod
-    # def from_json(cls, json, session):
-    #     """Create the Octopus from the data directly"""
-    #     new = cls(None)
-    #
-    #     new._session = session
-    #
-    #     new._update(json)
-    #
-    #     return new
 
     def update(self, json, session):
         """Update the object using json..."""
@@ -159,7 +147,7 @@ class Octopus(object):
         def state():
             """Query the server for the model state"""
             json = self._session.octopus.item(self.id)
-            self._update(json)
+            self.update(json)
             return self.state
 
         def is_finished():

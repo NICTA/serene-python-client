@@ -133,6 +133,9 @@ class SSD(object):
         # this will raise an error if the args are not correct
         self._assert_map_args(column, data_node)
 
+        # this now breaks from the server...
+        self._stored = False
+
         # attempt to add the class node
         self._semantic_model.add_node(data_node.class_node)
 
@@ -166,6 +169,9 @@ class SSD(object):
 
         # this will raise an error if the args are not correct
         self._assert_link_args(src, label, dst)
+
+        # this now breaks from the server...
+        self._stored = False
 
         # add the link into
         self._semantic_model.add_edge(
@@ -221,19 +227,29 @@ class SSD(object):
         """
         # Check the column status...
         if not self._column_exists(column):
-            msg = "Failed to find {} in {}".format(column, self._dataset)
+            msg = "Map failed. Failed to find {} in {}".format(column, self._dataset)
             raise ValueError(msg)
 
         # Check the data node status...
-        # first check the class
+        # first check that the class is in the ontology...
         cn = data_node.class_node
         if not self._class_node_exists(cn):
-            msg = "Failed to find {} in {}".format(cn, self._ontology)
+            msg = "Map failed. Failed to find {} in {}".format(cn, self._ontology)
             raise ValueError(msg)
 
-        # next check the datanode
+        # next check the datanode in the ontology
         if not self._data_node_exists(data_node):
-            msg = "Failed to find {} in {}".format(data_node, self._ontology)
+            msg = "Map failed. Failed to find {} in {}".format(data_node, self._ontology)
+            raise ValueError(msg)
+
+        # for columns, only one map can exist...
+        if self._semantic_model.degree(column) > 0:
+            msg = "Map failed. {} already has an existing mapping".format(column)
+            raise ValueError(msg)
+
+        # next check the datanode is unique
+        if self._semantic_model.exists(data_node, exact=True):
+            msg = "Map failed. {} already exists in the SSD".format(data_node)
             raise ValueError(msg)
 
     def _assert_link_args(self, src, label, dst):
@@ -246,27 +262,27 @@ class SSD(object):
         """
         # first check the src class in the ontology
         if not self._class_node_exists(src):
-            msg = "Failed to find {} in {}".format(src, self._ontology)
+            msg = "Link failed. Failed to find {} in {}".format(src, self._ontology)
             raise ValueError(msg)
 
         # first check the dst class in the ontology
         if not self._class_node_exists(dst):
-            msg = "Failed to find {} in {}".format(dst, self._ontology)
+            msg = "Link failed. Failed to find {} in {}".format(dst, self._ontology)
             raise ValueError(msg)
 
         # next check the link exists in the ontology
         if not self._link_exists(src, label, dst):
-            msg = "Failed to find {}-{}-{} in {}".format(src, label, dst, self._ontology)
+            msg = "Link failed. Failed to find {}-{}-{} in {}".format(src, label, dst, self._ontology)
             raise ValueError(msg)
 
         # first check the src class in the sm
         if not self._semantic_model.exists(src):
-            msg = "{} does not exist in the semantic model".format(src)
+            msg = "Link failed. {} does not exist in the semantic model".format(src)
             raise Exception(msg)
 
         # first check the dst class in the sm
         if not self._semantic_model.exists(dst):
-            msg = "{} does not exist in the semantic model".format(dst)
+            msg = "Link failed. {} does not exist in the semantic model".format(dst)
             raise Exception(msg)
 
     def _link_exists(self, src, label, dst):
@@ -282,14 +298,11 @@ class SSD(object):
         link_target = ObjectProperty(label, Class(src.label), Class(dst.label))
 
         _logger.debug("using target: {}".format(link_target))
-        #print("searching the following:")
-        #for z in self._ontology.ilinks:
-        #    print(z)
+
         link = ObjectProperty.search(
             self._ontology.ilinks,
             link_target
         )
-        #print("found thing =>", link)
         return link is not None
 
     def _column_exists(self, column):
@@ -406,13 +419,18 @@ class SSDGraph(object):
         candidates = self._type_list(type(node))
         return type(node).search(candidates, node, exact=exact)
 
-    def exists(self, node: Searchable):
+    def exists(self, node: Searchable, exact=False):
         """
         Helper function to check if a node exists...
         :param node: A DataNode or ClassNode
         :return:
         """
-        return self.find(node) is not None
+        return self.find(node, exact) is not None
+
+    def degree(self, node: Searchable):
+        """Returns the degree of a node in the graph"""
+        key = self.find(node)
+        return self._graph.degree(self._lookup[key])
 
     def add_node(self, node: Searchable, index=None):
         """
@@ -426,7 +444,6 @@ class SSDGraph(object):
         if n is not None:
             msg = "{} already exists in the SSD: {}".format(node, n)
             _logger.debug(msg)
-            print(msg)
             # keep the same index in this case...
             index = self._lookup[n]
 

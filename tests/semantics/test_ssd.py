@@ -102,6 +102,36 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 0)
 
+    def test_duplicate_column_block(self):
+        """
+        Tests the map function can only map a column once
+        :return:
+        """
+        simple = self._build_simple()
+
+        with self.assertRaises(Exception):
+            (simple
+             .map(Column("company"), DataNode("Organization", "name"))
+             .map(Column("ceo"), DataNode("Person", "name"))
+             .map(Column("city"), DataNode("City", "name"))
+             .map(Column("state"), DataNode("State", "name"))
+             .map(Column("company"), DataNode("State", "name"))
+             .map(Column("company"), DataNode("Person", "name")))
+
+    def test_duplicate_data_node_block(self):
+        """
+        Tests the map function can only map a data node once
+        :return:
+        """
+        simple = self._build_simple()
+
+        with self.assertRaises(Exception):
+            (simple
+             .map(Column("company"), DataNode("Organization", "name"))
+             .map(Column("ceo"), DataNode("Person", "name"))
+             .map(Column("city"), DataNode("Person", "name"))
+             .map(Column("state"), DataNode("State", "name")))
+
     def test_map_short_hand(self):
         """
         Tests the map function for SSD mapping with short hand strings
@@ -171,31 +201,25 @@ class TestSSD(TestWithServer):
 
     def test_map_overwrite(self):
         """
-        Tests that re-specifying should overwrite
+        Tests that re-specifying a link or class node should overwrite
         :return:
         """
         simple = self._build_simple()
 
         (simple
-         .map("company", "Organization.name")
-         .map("ceo", "Person.name")
-         .map("city", "City.name")
-         .map("state", "State.name")
-         .map("company", "Organization.name")
-         .map("ceo", "Person.name")
+         .map("company", "Person.name")
+         .map("ceo", "Person.birthDate")
          .map("city", "City.name")
          .map("state", "State.name")
          .link("City", "state", "State")
-         .link("Organization", "location", "City")
-         .link("Person", "worksFor", "Organization")
+         .link("Person", "bornIn", "City")
          .link("City", "state", "State")
-         .link("Organization", "location", "City")
-         .link("Person", "worksFor", "Organization"))
+         .link("Person", "bornIn", "City"))
 
-        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.class_nodes), 3)
         self.assertEqual(len(simple.data_nodes), 4)
         self.assertEqual(len(simple.data_links), 4)
-        self.assertEqual(len(simple.object_links), 3)
+        self.assertEqual(len(simple.object_links), 2)
 
     def test_map_links(self):
         """
