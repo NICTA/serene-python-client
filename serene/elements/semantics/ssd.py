@@ -1416,53 +1416,52 @@ class SSDReader(object):
 
 
 class SSDJsonWriter(object):
-    pass
-    # """
-    # Helper class to build up the json output for the SSD file.
-    # """
-    # def __init__(self, ssd):
-    #     """
-    #
-    #     :param ssd:
-    #     """
-    #     self._ssd = ssd
-    #
-    #     self._all_nodes = [n for n in
-    #                        self._ssd.class_nodes + self._ssd.data_nodes
-    #                        if n is not None]
-    #
-    #     self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
-    #     self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
-    #
-    # def to_dict(self):
-    #     """Builds the dictionary representation of the SSD"""
-    #     d = OrderedDict()
-    #     d["name"] = self._ssd.name
-    #     d["ontologies"] = [self._ssd.ontology.id]
-    #     d["semanticModel"] = self.semantic_model
-    #     d["mappings"] = self.mappings
-    #     return d
-    #
-    # def to_json(self):
-    #     """Builds the complete json object string"""
-    #     return json.dumps(self.to_dict())
-    #
-    # @property
-    # def semantic_model(self):
-    #     """Builds out the .ssd semantic model section..."""
-    #
-    #     return {
-    #         "nodes": [node.ssd_output(index)
-    #                   for index, node in enumerate(self._all_nodes)],
-    #         "links": [link.ssd_output(index, self._node_map)
-    #                   for index, link in enumerate(self._ssd.links)]
-    #     }
-    #
-    # @property
-    # def mappings(self):
-    #     """BUilds out the .ssd mapping section.."""
-    #     return [
-    #         {
-    #             "attribute": m.column.id,
-    #             "node": self._node_map[m.node]
-    #         } for m in self._ssd.mappings if m.node is not None]
+    """
+    Helper class to build up the json output for the SSD file.
+    """
+    def __init__(self, ssd):
+        """
+
+        :param ssd:
+        """
+        self._ssd = ssd
+
+        self._all_nodes = [n for n in
+                           self._ssd.class_nodes + self._ssd.data_nodes
+                           if n is not None]
+
+        self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
+        self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
+
+    def to_dict(self):
+        """Builds the dictionary representation of the SSD"""
+        d = OrderedDict()
+        d["name"] = self._ssd.name
+        d["ontologies"] = [self._ssd.ontology.id]
+        d["semanticModel"] = self.semantic_model
+        d["mappings"] = self.mappings
+        return d
+
+    def to_json(self):
+        """Builds the complete json object string"""
+        return json.dumps(self.to_dict())
+
+    @property
+    def semantic_model(self):
+        """Builds out the .ssd semantic model section..."""
+
+        return {
+            "nodes": [node.ssd_output(index)
+                      for index, node in enumerate(self._all_nodes)],
+            "links": [link.ssd_output(index, self._node_map)
+                      for index, link in enumerate(self._ssd.links)]
+        }
+
+    @property
+    def mappings(self):
+        """BUilds out the .ssd mapping section.."""
+        return [
+            {
+                "attribute": m.column.id,
+                "node": self._node_map[m.node]
+            } for m in self._ssd.mappings if m.node is not None]

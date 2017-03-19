@@ -169,7 +169,7 @@ class TestEvaluateSSD(TestWithServer):
 
     def test_evaluate_places_dif(self):
         """
-        Tests evaluation for country_names
+        Tests evaluation for places_dif
         :return:
         """
         path = os.path.join(self._data_path, "places_dif.csv")
@@ -196,7 +196,7 @@ class TestEvaluateSSD(TestWithServer):
 
     def test_evaluate_places_mix(self):
         """
-        Tests evaluation for country_names
+        Tests evaluation for places_mix
         :return:
         """
         path = os.path.join(self._data_path, "places_mix.csv")
