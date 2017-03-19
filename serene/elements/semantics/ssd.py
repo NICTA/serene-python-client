@@ -147,14 +147,14 @@ class SSD(object):
             data_node.class_node,
             data_node,
             DataLink(data_node.label,
-                     prefix=self._ontology.uri))
+                     prefix=self._ontology.uri_string))
 
         # add a link between the column and data node...
         self._semantic_model.add_edge(
             data_node,
             column,
             ColumnLink(column.name,
-                       prefix=self._ontology.uri))
+                       prefix=self._ontology.uri_string))
         return self
 
     def link(self, src, label, dst):
@@ -175,8 +175,47 @@ class SSD(object):
 
         # add the link into
         self._semantic_model.add_edge(
-            src, dst, ObjectLink(label, prefix=self._ontology.uri)
+            src, dst, ObjectLink(label, prefix=self._ontology.uri_string)
         )
+        return self
+
+    def remove_link(self, item, src=None, dst=None):
+        """
+        Removes a link
+        :param item: a link type e.g. ClassNode("Person") or ObjectLink("worksFor")
+        :param src: Optional source node of link
+        :param dst: Optional destination node of link
+        :return:
+        """
+        if issubclass(type(item), str):
+            item = ObjectLink(item, self.ontology.uri_string)
+
+        if issubclass(type(item), SSDLink):
+            if item.prefix is None:
+                item.prefix = self.ontology.uri_string
+            self._semantic_model.remove_edge(item, src, dst)
+        else:
+            msg = "Remove requires a link type"
+            raise ValueError(msg)
+        return self
+
+    def remove(self, item, src=None, dst=None):
+        """
+        Removes nodes and links
+        :param item: a node or link type e.g. ClassNode("Person") or ObjectLink("worksFor")
+        :param src: Optional source node of link
+        :param dst: Optional destination node of link
+        :return:
+        """
+        if issubclass(type(item), Searchable):
+            self._semantic_model.remove_node(item)
+        elif issubclass(type(item), SSDLink):
+            if item.prefix is None:
+                item.prefix = self.ontology.uri_string
+            self._semantic_model.remove_edge(item, src, dst)
+        else:
+            msg = "Remove requires a node or link type"
+            raise ValueError(msg)
         return self
 
     @staticmethod
@@ -307,7 +346,7 @@ class SSD(object):
 
     def _column_exists(self, column):
         """
-
+        Check that this column exists in the dataset.
         :param column:
         :return:
         """
@@ -423,6 +462,7 @@ class SSDGraph(object):
         """
         Helper function to check if a node exists...
         :param node: A DataNode or ClassNode
+        :param exact: Should the match be exact or approximate
         :return:
         """
         return self.find(node, exact) is not None
@@ -471,16 +511,7 @@ class SSDGraph(object):
         :param index: The override index parameter. If None the auto-increment will be used.
         :return:
         """
-        true_src = self.find(src)
-        true_dst = self.find(dst)
-
-        if true_src is None:
-            msg = "Link source {} does not exist in the SSD".format(src)
-            raise Exception(msg)
-
-        if true_dst is None:
-            msg = "Link dest {} does not exist in the SSD".format(dst)
-            raise Exception(msg)
+        true_src, true_dst = self._check_edge_args(src, dst)
 
         # make sure we aren't rewriting...
         i_s = self._lookup[true_src]
@@ -498,6 +529,113 @@ class SSDGraph(object):
                              i_d,
                              data=link,
                              edge_id=index)
+
+    def all_neighbors(self, n):
+        """returns all neighbours of node `n`"""
+        return self._graph.successors(n) + self._graph.predecessors(n)
+
+    def remove_node(self, node: Searchable):
+        """
+        Removes a node from the graph. Note that a Column node
+        cannot be removed. If node is a Column, the mapping will
+        be removed instead
+
+        :param node: A DataNode, Column or ClassNode
+        :return: None
+        """
+        true_node = self.find(node)
+        if true_node is None:
+            msg = "Remove node failed. {} does not exist.".format(true_node)
+            raise ValueError(msg)
+
+        key = self._lookup[true_node]
+
+        if issubclass(type(true_node), Column):
+            # if it's a column, we just remove the data node...
+            for dn in self.all_neighbors(key):
+                for v in self._ilookup[dn]:
+                    self.remove_node(v)
+            #print("+++++ col removing", node)
+            #if self.exists()
+            #self.remove_edge(ColumnLink(node.name))
+        else:
+            print("<><><><> removing", node)
+            # otherwise, we can remove the node and it's
+            # adjacent links. We also make sure that any
+            # hanging nodes are removed too...
+            neighbors = self.all_neighbors(key)
+            self._graph.remove_node(key)
+            del self._lookup[true_node]
+
+            # remove any hanging neighbors...
+            m = self._ilookup
+            for n in neighbors:
+                # if there are any nodes with no outgoing links
+                # then we should remove them.
+                if self._graph.out_degree(n) == 0:
+                    # we remove the node by the item to chain
+                    # the removal...
+                    for item in m[n]:
+                        if not issubclass(type(item), Column):
+                            self.remove_node(item)
+        return self
+
+    @property
+    def _ilookup(self):
+        """inverse lookup..."""
+        m = defaultdict(list)
+        for k, v in self._lookup.items():
+            m[v].append(k)
+        return m
+
+    def remove_edge(self,
+                    item: SSDLink,
+                    src: Searchable=None,
+                    dst: Searchable=None):
+        """
+        Removes an edge from the graph. Note that a Column node
+        cannot be removed. If node is a Column, the mapping will
+        be removed instead
+
+        :param item: The link object
+        :param src: A DataNode, Column or ClassNode
+        :param dst: A DataNode, Column or ClassNode
+        :return: None
+        """
+        print("REMOVING EDGE >>>>>>", item, src, dst)
+        print("?????", self._edge_list)
+        edges = [(x, y, k) for x, y, k, z in self._edge_list if z == item]
+
+        if len(edges) > 1:
+            # ambiguous, may need the src/dst to find it
+            if src is not None and dst is not None:
+                true_src, true_dst = self._check_edge_args(src, dst)
+
+                i = self._lookup[true_src]
+                j = self._lookup[true_dst]
+
+                if len(self._graph.edge[i][j]) == 1:
+                    # remove the edge and its adjacent links if only one
+                    self._graph.remove_edge(true_src, true_dst, 0)
+
+            msg = "Failed to remove edge. {} is ambiguous".format(item)
+            raise ValueError(msg)
+        elif len(edges) == 0:
+            msg = "Failed to remove edge. {} could not be found.".format(item)
+            raise ValueError(msg)
+        else:
+            x, y, k = edges[0]
+            self._graph.remove_edge(x, y, k)
+
+            if not len(self.all_neighbors(x)):
+                for v in self._ilookup[x]:
+                    self.remove_node(v)
+
+            if not len(self.all_neighbors(y)):
+                for v in self._ilookup[y]:
+                    self.remove_node(v)
+
+        return self
 
     def show(self):
         """
@@ -547,6 +685,40 @@ class SSDGraph(object):
         """Returns the Column objects in the graph"""
         return [self.node_data(n) for n in self._graph.nodes()
                 if type(self.node_data(n)) == Column]
+
+    @property
+    def _edge_list(self):
+        """helper function to return 4-tuple of (x, y, key, item)"""
+        edge_dicts = [(e1, e2, self._graph.edge[e1][e2]) for e1, e2 in self._graph.edges()]
+
+        # flatten out to (e1, e2, key, value)
+        arr = []
+        for x, y, z in edge_dicts:
+            for k, v in z.items():
+                arr.append((x, y, k, v[self.DATA_KEY]))
+
+        return arr
+
+    def _check_edge_args(self, src, dst):
+        """
+        Checks that the edges exist...
+
+        :param src: A DataNode, Column or ClassNode
+        :param dst: A DataNode, Column or ClassNode
+        :return: src, dst
+        """
+        true_src = self.find(src)
+        true_dst = self.find(dst)
+
+        if true_src is None:
+            msg = "Link source {} does not exist in the SSD".format(src)
+            raise Exception(msg)
+
+        if true_dst is None:
+            msg = "Link dest {} does not exist in the SSD".format(dst)
+            raise Exception(msg)
+
+        return true_src, true_dst
 
     def _edges_data(self):
         """

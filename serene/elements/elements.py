@@ -517,7 +517,7 @@ class DataLink(SSDLink):
     """
     Link between ClassNode -> DataNode
     """
-    def __init__(self, label, prefix):
+    def __init__(self, label, prefix=None):
         super().__init__(label, prefix)
         self.type = "DataPropertyLink"
 
@@ -541,12 +541,15 @@ class ColumnLink(SSDLink):
     """
     Link between DataNode -> Column
     """
-    def __init__(self, label, prefix):
+    def __init__(self, label, prefix=None):
         super().__init__(label, prefix)
         self.type = "ColumnLink"
 
     def __repr__(self):
-        return "ColumnLink({})".format(self.label)
+        return "ColumnLink({}, {})".format(self.label, self.prefix)
+
+    def __eq__(self, other):
+        return (self.label == other.label) and (self.type == other.type)
 
 
 class ClassInstanceLink(DataLink):

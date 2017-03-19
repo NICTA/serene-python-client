@@ -6,7 +6,7 @@ Tests the ssd module
 """
 import os
 
-from serene.elements import SSD, Column, DataNode, ClassNode
+from serene.elements import SSD, Column, DataNode, ClassNode, ObjectLink
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 from ..utils import TestWithServer
 
@@ -144,6 +144,87 @@ class TestSSD(TestWithServer):
          .map("ceo", "Person.name")
          .map("city", "City.name")
          .map("state", "State.name"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 0)
+
+    def test_remove(self):
+        """
+        Tests the removal function when removing data nodes and columns
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .remove(DataNode("Person", "name")))
+
+        self.assertEqual(len(simple.class_nodes), 3)
+        self.assertEqual(len(simple.data_nodes), 3)
+        self.assertEqual(len(simple.data_links), 3)
+        self.assertEqual(len(simple.object_links), 0)
+
+    def test_remove_column(self):
+        """
+        Tests the removal function when removing data nodes and columns
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .remove(DataNode("Person", "name"))
+         .remove(Column("city")))
+
+        self.assertEqual(len(simple.class_nodes), 2)
+        self.assertEqual(len(simple.data_nodes), 2)
+        self.assertEqual(len(simple.data_links), 2)
+        self.assertEqual(len(simple.object_links), 0)
+
+    def test_remove_restore(self):
+        """
+        Tests the removal function and then adding back
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .remove(DataNode("Person", "name"))
+         .remove(Column("city"))
+         .map("ceo", "Person.name")
+         .map("city", "City.name"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 0)
+
+    def test_remove_links(self):
+        """
+        Tests the removal function and then adding back
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .link("Organization", "ceo", "Person")
+         .remove_link("ceo"))
 
         self.assertEqual(len(simple.class_nodes), 4)
         self.assertEqual(len(simple.data_nodes), 4)
