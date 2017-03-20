@@ -867,7 +867,19 @@ class SSDReader(object):
                 data_node = DataNode(class_node, label, prefix=prefix)
                 dn_table[data_node].append((src, dst, index))
 
-        # now we need to add the nodes themselves....
+        # now we use the data node table to construct the
+        # nodes in order...
+        self._build_data_nodes_ordered(dn_table)
+
+    def _build_data_nodes_ordered(self, dn_table):
+        """
+        Helper function to create the data nodes in order. We need
+        to do it this way to accommodate multiple data nodes mapping
+        onto a single class node.
+
+        :param dn_table: Dict of DataNode() -> [(class_id, node_id, link_index)...]
+        """
+        # We need to add the nodes from the dn_table....
         for node, values in dn_table.items():
             if len(values) == 1:
                 src, dst, index = values[0]
@@ -1006,7 +1018,6 @@ class SSDJsonWriter(object):
     @property
     def semantic_model(self):
         """Builds out the .ssd semantic model section..."""
-
         return {
             "nodes": self._json_nodes,
             "links": self._json_links
