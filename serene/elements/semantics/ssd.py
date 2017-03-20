@@ -53,13 +53,23 @@ class SSD(object):
                 raise Exception(msg)
 
         if ontology is not None:
-            if not issubclass(type(ontology), Ontology):
-                msg = "Required Ontology, not {}".format(type(ontology))
+            if issubclass(type(ontology), Ontology):
+                # we need a list of ontologies
+                ontology = [ontology]
+
+            if issubclass(type(ontology), list):
+                for onto in ontology:
+                    if not issubclass(type(onto), Ontology):
+                        msg = "Required Ontology, not {}".format(type(onto))
+                        raise Exception(msg)
+                    if not onto.stored:
+                        msg = "{} must be stored on the server, use <Serene>.ontologies.upload".format(onto._uri)
+                        raise Exception(msg)
+            else:
+                msg = "Required list of ontologies, not {}".format(type(ontology))
                 raise Exception(msg)
 
-            if not ontology.stored:
-                msg = "{} must be stored on the server, use <Serene>.ontologies.upload"
-                raise Exception(msg)
+
 
         self._name = name if name is not None else gen_id()
         self._dataset = dataset
@@ -139,14 +149,14 @@ class SSD(object):
             data_node.class_node,
             data_node,
             DataLink(data_node.label,
-                     prefix=self._ontology.namespace))
+                     prefix=self._ontology[0].namespace))
 
         # add a link between the column and data node...
         self._semantic_model.add_edge(
             data_node,
             column,
             ColumnLink(column.name,
-                       prefix=self._ontology.namespace))
+                       prefix=self._ontology[0].namespace))
         return self
 
     def link(self, src, label, dst):
@@ -173,8 +183,9 @@ class SSD(object):
             self._semantic_model.add_node(dst)
 
         # add the link into
+        # TODO: is it ok just to take the first ontology for default namespace?
         self._semantic_model.add_edge(
-            src, dst, ObjectLink(label, prefix=self._ontology.namespace)
+            src, dst, ObjectLink(label, prefix=self._ontology[0].namespace)
         )
         return self
 
@@ -187,11 +198,11 @@ class SSD(object):
         :return:
         """
         if issubclass(type(item), str):
-            item = ObjectLink(item, self.ontology.namespace)
+            item = ObjectLink(item, self.ontology[0].namespace)
 
         if issubclass(type(item), SSDLink):
             if item.prefix is None:
-                item.prefix = self.ontology.namespace
+                item.prefix = self.ontology[0].namespace
 
             # this now breaks from the server...
             self._stored = False
@@ -235,10 +246,10 @@ class SSD(object):
         :return: ClassNode, ClassNode
         """
         if issubclass(type(src), str):
-            src = ClassNode(src, prefix=self._ontology.namespace)
+            src = ClassNode(src, prefix=self._ontology[0].namespace)
 
         if issubclass(type(dst), str):
-            dst = ClassNode(dst, prefix=self._ontology.namespace)
+            dst = ClassNode(dst, prefix=self._ontology[0].namespace)
 
         return src, dst
 
@@ -256,16 +267,19 @@ class SSD(object):
 
         if issubclass(type(node), str):
             if '.' in node:
+                # this is a mapping to a data node
                 items = node.split('.')
-                class_node = ClassNode(items[0], prefix=self._ontology.namespace)
+                # TODO: check if it's ok to take just the first ontology from the list...
+                class_node = ClassNode(items[0], prefix=self._ontology[0].namespace)
                 label = items[-1]
-                node = DataNode(class_node, label, prefix=self._ontology.namespace)
+                node = DataNode(class_node, label, prefix=self._ontology[0].namespace)
             else:
-                node = ClassNode(node, prefix=self._ontology.namespace)
+                # this is a mapping to a class node
+                node = ClassNode(node, prefix=self._ontology[0].namespace)
 
         if issubclass(type(node), SSDSearchable):
             if node.prefix is None:
-                node.prefix = self._ontology.namespace
+                node.prefix = self._ontology[0].namespace
 
         return column, node
 
@@ -350,10 +364,15 @@ class SSD(object):
 
         _logger.debug("using target: {}".format(link_target))
 
-        link = ObjectProperty.search(
-            self._ontology.ilinks,
-            link_target
-        )
+        link = None
+        for onto in self._ontology:
+            # find any match in all ontologies
+            try:
+                link = ObjectProperty.search(onto.ilinks, link_target)
+            except:
+                continue
+            break
+
         return link is not None
 
     def _column_exists(self, column):
@@ -375,7 +394,14 @@ class SSD(object):
         # Check the dataset status...
         # first check the class
         cls_target = Class(cn.label, prefix=cn.prefix)
-        cls = Class.search(self._ontology.class_nodes, cls_target)
+        cls = None
+        for onto in self._ontology:
+            # find any match in all ontologies
+            try:
+                cls = Class.search(onto.class_nodes, cls_target)
+            except:
+                continue
+            break
 
         return cls is not None
 
@@ -392,7 +418,14 @@ class SSD(object):
         cls_target = Class(cn.label, prefix=cn.prefix)
         target = DataProperty(cls_target, data_node.label)
 
-        dn = DataProperty.search(self._ontology.idata_nodes, target)
+        dn = None
+        for onto in self._ontology:
+            # find any match in all ontologies
+            try:
+                dn = DataProperty.search(onto.idata_nodes, target)
+            except:
+                continue
+            break
 
         return dn is not None
 
@@ -936,8 +969,7 @@ class SSDReader(object):
     def _find_ontology(self, json):
         """Pulls the ontology reference from the SSD and queries the server"""
         ontologies = json['ontologies']
-        # TODO: Only one ontology used!! Should be a sequence!
-        return self._on_endpoint.get(ontologies[0])
+        return [self._on_endpoint.get(onto) for onto in ontologies]
 
     def _find_dataset(self, json):
         """Attempts to grab the dataset out from the json string"""
@@ -974,7 +1006,7 @@ class SSDJsonWriter(object):
         """Builds the dictionary representation of the SSD"""
         d = OrderedDict()
         d["name"] = self._ssd.name
-        d["ontologies"] = [self._ssd.ontology.id]
+        d["ontologies"] = [onto.id for onto in self._ssd.ontology]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
         return d

@@ -62,7 +62,7 @@ class TestEvaluateSSD(TestWithServer):
         Be sure to remove all storage elements once a test is finished...
         :return:
         """
-        return
+        # return
         self._clear_storage()
 
     def test_evaluate_business(self):
@@ -212,6 +212,11 @@ class TestEvaluateSSD(TestWithServer):
                                     [on],
                                     str(on._prefixes['']))
 
+        print("************************")
+        print("new json...")
+        pprint(new_json)
+
+
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
         pprint(ssd.json)
@@ -243,16 +248,18 @@ class TestEvaluateSSD(TestWithServer):
 
         new_json = dataset.bind_ssd(self._paintings_ssd, [ontology], str(ontology._prefixes['']))
 
-        #print("************************")
-        #print("new json...")
-        #pprint(new_json)
+        # print("************************")
+        # print("new json...")
+        # pprint(new_json)
 
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        #pprint(ssd.json)
+        # pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 3)
-        self.assertEqual(len(ssd.links), 2)
+        self.assertEqual(len(ssd.links), 4)
+        self.assertEqual(len(ssd.data_links), 2)
+        self.assertEqual(len(ssd.object_links), 2)
         self.assertEqual(len(ssd.data_nodes), 2)
         self.assertEqual(len(ssd.mappings), 2)
         # self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
@@ -266,13 +273,15 @@ class TestEvaluateSSD(TestWithServer):
         """
         dataset = self._datasets.upload(self._museum_file)
 
+        ontologies = []
         for path in os.listdir(self._museum_owl_dir):
             f = os.path.join(self._museum_owl_dir, path)
-            self._ontologies.upload(f)
+            ontologies.append(self._ontologies.upload(f))
 
         assert (issubclass(type(dataset), DataSet))
 
-        ontologies = self._ontologies.items
+        # FIXME: items returns something weird
+        # ontologies = self._ontologies.items
         assert(len(ontologies) == 11)
         #print("namespaces: ", ontology._prefixes)
         #print("class nodes: ", list(ontology._iclass_nodes()))

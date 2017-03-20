@@ -14,8 +14,8 @@ from .http import HTTPObject
 
 @unique
 class OwlFormat(Enum):
-    TURTLE = 'turtle'
-    JSON = 'json-ld'
+    TURTLE = 'ttl'
+    JSON = 'jsonld'
     XML = 'xml'
     RDFa = 'rdfa'
     Notation3 = 'n3'
@@ -112,6 +112,19 @@ class OntologyAPI(HTTPObject):
 
         return path
 
+    @staticmethod
+    def process_format(owl_format):
+        """
+        Helper function to convert from rdflib formats to server formats
+        :param owl_format:
+        :return:
+        """
+        if owl_format == "turtle":
+            return "ttl"
+        elif owl_format == "json-ld":
+            return "jsonld"
+        return owl_format
+
     def post(self, description, file_path, owl_format):
         """
         Post a new ontology to the Serene server.
@@ -125,6 +138,7 @@ class OntologyAPI(HTTPObject):
 
         logging.debug('Sending request to the schema matcher server to post a dataset.')
         uri = self._uri
+        owl_format = self.process_format(owl_format)
 
         if owl_format not in self.OWL_FORMATS:
             msg = "Ontology format value {} is not supported. " \

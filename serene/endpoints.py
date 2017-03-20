@@ -261,10 +261,6 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :return:
         """
 
-        print("*********")
-        print("ontology {}, format {}".format(ontology, owl_format))
-        print("*********")
-
         if issubclass(type(ontology), str):
             # must be a direct filename...
             if not os.path.exists(ontology):

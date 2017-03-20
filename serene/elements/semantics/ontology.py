@@ -464,17 +464,6 @@ class RDFReader(object):
         # first set the uri
         ontology.uri(uri)
 
-        print("<><><><><><><>")
-        print("ontology: ", ontology)
-        print("uri: ", uri)
-        print("class_nodes: ", class_nodes)
-        print("data_node_table: ", data_node_table)
-        print("all_links: ", all_links)
-        print("subclasses: ", subclasses)
-        print("namespaces: ", list(namespaces))
-        print("<><><><><><><>")
-
-
         # extract the parents and children, we need to ensure that
         # the parents are created first.
         nodes = self._ordered_classes(class_nodes, subclasses)
@@ -528,22 +517,13 @@ class RDFReader(object):
         g = rdflib.Graph()
         # we guess format
         fmt = rdflib.util.guess_format(filename)
-        print("*******")
-        print("guessed format: {}".format(fmt))
-        print("*******")
         logging.debug("Loading ontology {} with the format {}".format(filename, fmt))
         g.load(filename, format=fmt)
 
         # get class nodes - we need to leave only those which have URIs
         # blank nodes do not have URIs, we leave them for later
         class_nodes = [s for s in self.subjects(g, object=rdflib.OWL.Class) if issubclass(type(s), rdflib.term.URIRef)]
-        print("********classes")
-        for s in class_nodes:
-            print(s)
         domain_ranges = self._domains_ranges(g)
-        print("********domain ranges")
-        for s in domain_ranges:
-            print(s)
 
         # when reading ontology from file, we add to class nodes all classes which are used as domains or ranges
         # FIXME: this is not completely correct. instead we need an ontology manager which should consider
