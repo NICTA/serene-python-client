@@ -480,13 +480,21 @@ class RDFReader(object):
         g.load(filename, format=rdflib.util.guess_format(filename))
 
         # build the ontology object...
-        ontology = self._build_ontology(ontology,
-                                        self._extract_uri(g),
-                                        self.subjects(g, object=rdflib.OWL.Class),
-                                        self._extract_data_nodes(g),
-                                        self._extract_links(g),
-                                        self._extract_subclasses(g),
-                                        g.namespaces())
+        ontology = self._build_ontology(ontology=ontology,
+                                        uri=self._extract_uri(g),
+                                        class_nodes=self.subjects(g, object=rdflib.OWL.Class),
+                                        data_node_table=self._extract_data_nodes(g),
+                                        all_links=self._extract_links(g),
+                                        subclasses=self._extract_subclasses(g),
+                                        namespaces=g.namespaces())
+
+        # ontology,
+        # uri,
+        # class_nodes,
+        # data_node_table,
+        # all_links,
+        # subclasses,
+        # namespaces
 
         return ontology
 

@@ -343,6 +343,7 @@ class TestSSD(TestWithServer):
          .link("Person", "worksFor", "Organization"))
 
         j = SSDJsonWriter(simple).to_json()
+        pprint(j)
 
         # convert back from json with SSDJsonReader and check that we get the same simple ssd
 
