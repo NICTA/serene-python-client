@@ -754,6 +754,7 @@ class SSDGraph(object):
 
     @property
     def mappings(self):
+        """Helper function for the column -> data mappings"""
         def data(edge):
             return self._graph.node[edge][self.DATA_KEY]
 
