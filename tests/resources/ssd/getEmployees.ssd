@@ -21,7 +21,7 @@
             "sql": "select employee from 'getEmployees.csv'"
         }
     ],
-    "ontology": [
+    "ontologies": [
         1
     ],
     "semanticModel": {

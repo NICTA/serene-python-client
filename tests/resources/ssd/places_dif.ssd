@@ -39,7 +39,7 @@
             "sql": ""
         }
     ],
-    "ontology": [
+    "ontologies": [
         1
     ],
     "semanticModel": {

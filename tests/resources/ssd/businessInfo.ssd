@@ -40,7 +40,7 @@
             "sql": "select state from 'businessInfo.csv'"
         }
     ],
-    "ontology": [
+    "ontologies": [
         1
     ],
     "semanticModel": {

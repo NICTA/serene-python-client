@@ -48,7 +48,7 @@
             "sql": "select workplace from 'personalInfo.csv'"
         }
     ],
-    "ontology": [
+    "ontologies": [
         1
     ],
     "semanticModel": {

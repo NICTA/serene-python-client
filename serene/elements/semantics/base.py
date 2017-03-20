@@ -16,9 +16,6 @@ _logger.setLevel(logging.WARN)
 
 LINK_NAME = "relationship"
 
-# ClassNode -> Class
-# Link -> ObjectProperty
-# DataNode -> DataProperty
 
 class BaseSemantic(object):
     """

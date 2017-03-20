@@ -146,12 +146,11 @@ class DataSet(object):
                 link["prefix"] = default_ns
 
         # specify proper ids of ontologies
-        data["ontology"] = [onto.id for onto in ontologies]
+        data["ontologies"] = [onto.id for onto in ontologies]
 
         # remove id if present
         if "id" in data:
             del data["id"]
-
 
         return data
 
