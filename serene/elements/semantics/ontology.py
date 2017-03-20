@@ -4,7 +4,6 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Defines the Ontology object
 """
-import itertools as it
 import logging
 import os.path
 import tempfile
@@ -68,8 +67,7 @@ class Ontology(BaseSemantic):
                 # and load into self...
                 try:
                     RDFReader().to_ontology(file, self)
-                except Exception as e:
-                    raise e
+                except Exception:
                     msg = "Failed to read ontology file {}".format(file)
                     raise Exception(msg)
 
@@ -100,6 +98,7 @@ class Ontology(BaseSemantic):
         reflected on the server
         :return: None
         """
+        self.source_file = None
         self._stored = False
 
     def add_class_node(self, node, add_data_nodes=True):
@@ -122,13 +121,13 @@ class Ontology(BaseSemantic):
         self._unstore()
         return super().add_link(link)
 
-    def _update_id(self, id):
+    def _update_id(self, id_var):
         """
         Updates with the latest id string
         :param id_var: The identifier string
         :return:
         """
-        self.id = id
+        self.id = id_var
 
     def set_filename(self, value):
         """

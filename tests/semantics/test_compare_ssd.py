@@ -167,7 +167,7 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.mappings), 4)
         #self.assertEqual(len(ssd.links), 4)  # class and data links
         self.assertEqual(len(ssd.data_links), 4)  # these are only data properties
-        self.assertEqual(len(ssd.class_links), 0)  # these are only object properties
+        self.assertEqual(len(ssd.object_links), 0)  # these are only object properties
 
     def test_evaluate_places_dif(self):
         """
@@ -194,7 +194,7 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.mappings), 4)
         self.assertEqual(len(ssd.links), 7)  # class and data links
         self.assertEqual(len(ssd.data_links), 4)  # these are only data properties
-        self.assertEqual(len(ssd.class_links), 3)  # these are only object properties
+        self.assertEqual(len(ssd.object_links), 3)  # these are only object properties
 
     def test_evaluate_places_mix(self):
         """

@@ -284,6 +284,37 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 3)
 
+    def test_map_ambiguous_class(self):
+        """
+        Should throw error to not upload
+        :return:
+        """
+        simple = self._build_simple()
+
+        with self.assertRaises(Exception):
+            (simple
+             .map("English", "Place.name")
+             .map("German", "Place.name")
+             .map("French", "Place.name")
+             .map("Russian", "Place.name"))
+
+    def test_map_multi_data_prop(self):
+        """
+        Multiple data properties should be allowed on a single class if index is specified
+        """
+        simple = self._build_simple()
+        # should be ok.
+        (simple
+         .map("company", DataNode(ClassNode("Place"), "name", 0))
+         .map("ceo", DataNode(ClassNode("Place"), "name", 1))
+         .map("city", DataNode(ClassNode("Place"), "name", 2))
+         .map("state", DataNode(ClassNode("Place"), "name", 3)))
+
+        self.assertEqual(len(simple.class_nodes), 1)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 0)
+
     def test_map_overwrite(self):
         """
         Tests that re-specifying a link or class node should overwrite
@@ -327,6 +358,34 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 3)
 
+    def test_map_link_with_no_data_nodes(self):
+        """
+        Tests the link function when there are no data nodes
+        :return:
+        """
+        simple = self._build_simple()
+
+        # has the only link between Person (which has no data nodes)
+        #
+        #          .--- Person -----.
+        #         /                  \
+        # Organization              Place             Event
+        #    /                      /     \             |
+        #  name                   name   postalCode   endDate
+
+        (simple
+         .map("company", "Organization.name")
+         .map("city", "Place.name")
+         .map("state", "Place.postalCode")
+         .map("ceo", "Event.endDate")
+         .link("Person", "livesIn", "Place")
+         .link("Organization", "ceo", "Person"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 2)
+
     def test_json_writer(self):
         """
         Tests the json writer
@@ -348,10 +407,21 @@ class TestSSD(TestWithServer):
         j["dateCreated"] = now
         j["dateModified"] = now
 
+        # pprint(j)
+
         test = self._build_simple().update(j, self._datasets, self._ontologies)
 
+        # print("SIMPLE ->", simple.data_links)
+        # print("SIMPLE ->", simple.object_links)
+        # print("TEST   ->", test.data_links)
+        # print("TEST   ->", test.object_links)
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.object_links), 3)
+        self.assertEqual(len(simple.data_links), 4)
         self.assertSetEqual(set(simple.class_nodes), set(test.class_nodes))
         self.assertSetEqual(set(simple.data_nodes), set(test.data_nodes))
-        self.assertSetEqual(set(simple.data_links), set(test.data_links))
         self.assertSetEqual(set(simple.object_links), set(test.object_links))
         self.assertDictEqual(simple.mappings, test.mappings)
+        self.assertSetEqual(set(simple.data_links), set(test.data_links))
