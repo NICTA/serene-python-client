@@ -7,6 +7,7 @@ Code for the SSD dataset description object
 import json
 import logging
 import networkx as nx
+import random
 
 from collections import OrderedDict
 from collections import defaultdict
@@ -92,7 +93,6 @@ class SSD(object):
         """
         if 'id' in blob:
             self._stored = True
-            print(blob['dateCreated'])
             self._date_created = convert_datetime(blob['dateCreated'])
             self._date_modified = convert_datetime(blob['dateModified'])
             self._id = int(blob['id'])
@@ -127,10 +127,11 @@ class SSD(object):
         # this now breaks from the server...
         self._stored = False
 
-        # attempt to add the class node
-        self._semantic_model.add_node(data_node.class_node)
+        # attempt to add the class node if not already in the model...
+        if not self._semantic_model.exists(data_node.class_node, exact=True):
+            self._semantic_model.add_node(data_node.class_node)
 
-        # add the data node...
+        # add the data_node
         self._semantic_model.add_node(data_node)
 
         # add a link between the two, with default prefix namespace...
@@ -164,6 +165,13 @@ class SSD(object):
         # this now breaks from the server...
         self._stored = False
 
+        # attempt to add the class nodes if not already in the model...
+        if not self._semantic_model.exists(src, exact=True):
+            self._semantic_model.add_node(src)
+
+        if not self._semantic_model.exists(dst, exact=True):
+            self._semantic_model.add_node(dst)
+
         # add the link into
         self._semantic_model.add_edge(
             src, dst, ObjectLink(label, prefix=self._ontology.namespace)
@@ -184,6 +192,10 @@ class SSD(object):
         if issubclass(type(item), SSDLink):
             if item.prefix is None:
                 item.prefix = self.ontology.namespace
+
+            # this now breaks from the server...
+            self._stored = False
+
             self._semantic_model.remove_edge(item, src, dst)
         else:
             msg = "Remove requires a link type"
@@ -203,14 +215,17 @@ class SSD(object):
         elif issubclass(type(item), SSDLink):
             if item.prefix is None:
                 item.prefix = self.ontology.namespace
+
+            # this now breaks from the server...
+            self._stored = False
+
             self._semantic_model.remove_edge(item, src, dst)
         else:
             msg = "Remove requires a node or link type"
             raise ValueError(msg)
         return self
 
-    @staticmethod
-    def _clean_link_args(src, dst):
+    def _clean_link_args(self, src, dst):
         """
         Cleans the args for the link function, here a string will be automatically
         wrapped int the relevant type
@@ -220,10 +235,10 @@ class SSD(object):
         :return: ClassNode, ClassNode
         """
         if issubclass(type(src), str):
-            src = ClassNode(src)
+            src = ClassNode(src, prefix=self._ontology.namespace)
 
         if issubclass(type(dst), str):
-            dst = ClassNode(dst)
+            dst = ClassNode(dst, prefix=self._ontology.namespace)
 
         return src, dst
 
@@ -311,15 +326,15 @@ class SSD(object):
             msg = "Link failed. Failed to find {}-{}-{} in {}".format(src, label, dst, self._ontology)
             raise ValueError(msg)
 
-        # first check the src class in the sm
-        if not self._semantic_model.exists(src):
-            msg = "Link failed. {} does not exist in the semantic model".format(src)
-            raise Exception(msg)
-
-        # first check the dst class in the sm
-        if not self._semantic_model.exists(dst):
-            msg = "Link failed. {} does not exist in the semantic model".format(dst)
-            raise Exception(msg)
+        # # first check the src class in the semantic model
+        # if not self._semantic_model.exists(src):
+        #     msg = "Link failed. {} does not exist in the semantic model".format(src)
+        #     raise Exception(msg)
+        #
+        # # first check the dst class in the semantic model
+        # if not self._semantic_model.exists(dst):
+        #     msg = "Link failed. {} does not exist in the semantic model".format(dst)
+        #     raise Exception(msg)
 
     def _link_exists(self, src, label, dst):
         """
@@ -421,6 +436,14 @@ class SSD(object):
     def semantic_model(self):
         return self._semantic_model
 
+    @property
+    def json(self):
+        return SSDJsonWriter(self).to_json()
+
+    @property
+    def name(self):
+        return self._name
+
     def show(self):
         """Displays the SSD"""
         self._semantic_model.show()
@@ -437,7 +460,7 @@ class SSDGraph(object):
         """
         self._node_id = 0
         self._edge_id = 0
-        self._graph = nx.MultiDiGraph()  # self._graph.edges[i][j][k] #[self.DATA_KEY]
+        self._graph = nx.MultiDiGraph() # holds the ClassNodes, DataNodes and Column objects
         self._lookup = {}  # object -> int key
         self.DATA_KEY = 'data'
 
@@ -450,7 +473,7 @@ class SSDGraph(object):
         """
         return [x for x in self._lookup.keys() if type(x) == value_type]
 
-    def find(self, node: Searchable, exact=False):
+    def find(self, node: Searchable, exact=False) -> Searchable:
         """
         Helper function to find `node` in the semantic model. The search
         is loose on additional node parameters other than label.
@@ -463,7 +486,7 @@ class SSDGraph(object):
         candidates = self._type_list(type(node))
         return type(node).search(candidates, node, exact=exact)
 
-    def exists(self, node: Searchable, exact=False):
+    def exists(self, node: Searchable, exact=False) -> bool:
         """
         Helper function to check if a node exists...
         :param node: A DataNode or ClassNode
@@ -489,7 +512,6 @@ class SSDGraph(object):
         if n is not None:
             msg = "{} already exists in the SSD: {}".format(node, n)
             _logger.debug(msg)
-            print(msg)
             # keep the same index in this case...
             index = self._lookup[n]
 
@@ -497,8 +519,6 @@ class SSDGraph(object):
         if index is None:
             index = self._node_id
             self._node_id += 1
-
-        print("ADDING {} -=-=-=-=-=-= {}".format(node, index))
 
         # add the node into the semantic model
         self._graph.add_node(index, data=node, node_id=index)
@@ -793,7 +813,6 @@ class SSDReader(object):
         self._graph = SSDGraph()
         self._column_map = self._ds_endpoint.columns
         self._build_graph(blob)
-        #print("><><><><><<><><", self._graph.class_nodes)
 
     def _build_graph(self, blob):
         """Builds up the semantic model graph from the JSON blob"""
@@ -803,6 +822,7 @@ class SSDReader(object):
 
         self._build_graph_nodes(nodes)
         self._build_graph_links(links)
+        self._build_data_nodes(links)
         self._build_graph_mappings(mappings)
 
     def _build_graph_nodes(self, nodes):
@@ -812,20 +832,9 @@ class SSDReader(object):
             prefix = obj['prefix'] if 'prefix' in obj else None
             label = obj['label']
 
-            #if obj['type'] == "DataNode":
-            #
-            #    item = DataNode(*label.split('.'), prefix=prefix)
-            #    print("OK!!! Adding:", item)
-            #    print()
-            #    self._graph.add_node(item, index=index)
-
             if obj['type'] == "ClassNode":
                 item = ClassNode(label, prefix=prefix)
                 self._graph.add_node(item, index=index)
-
-            #print()
-            #print("CLASS NODES", self._graph.class_nodes)
-            #print("NUMBER OF NODES", len(self._graph.class_nodes))
 
     def _build_graph_links(self, links):
         """Pulls out the link objects and adds them into the graph using the interface"""
@@ -840,21 +849,48 @@ class SSDReader(object):
                 item = ObjectLink(label, prefix=prefix)
                 self._graph.add_edge(src, dst, item, index=index)
 
-            elif obj['type'] == "DataPropertyLink":
+    def _build_data_nodes(self, links):
+        """Pulls out the data nodes from the property links and adds them"""
+        dn_table = defaultdict(list)
+
+        # first collect the links and add them to the table...
+        for obj in links:
+            index = obj['id']
+            src = obj['source']
+            dst = obj['target']
+            label = obj['label']
+            prefix = obj['prefix'] if 'prefix' in obj else None
+
+            if obj['type'] == "DataPropertyLink":
                 # first we create the data node...
                 class_node = self._graph.graph.node[src]['data']
                 data_node = DataNode(class_node, label, prefix=prefix)
+                dn_table[data_node].append((src, dst, index))
 
-                print("ADDING DATA NODE {} at {}".format(data_node, dst))
-                self._graph.add_node(data_node, index=dst)
+        # now we need to add the nodes themselves....
+        for node, values in dn_table.items():
+            if len(values) == 1:
+                src, dst, index = values[0]
+                # this case is easy, just add the node and link...
+                self._graph.add_node(node, index=dst)
 
                 # next we add the link between the class
-                item = DataLink(label, prefix=prefix)
+                item = DataLink(node.label, prefix=node.prefix)
                 self._graph.add_edge(src, dst, item, index=index)
+            else:
+                # in this case, we need to provide an index...
+                for i, v in enumerate(values):
+                    src, dst, index = v
+                    item = DataNode(node.class_node,
+                                    node.label,
+                                    index=i,
+                                    prefix=node.prefix)
 
-            #print()
-            #print("2. CLASS NODES", self._graph.class_nodes)
-            #print("2. NUMBER OF NODES", len(self._graph.class_nodes))
+                    self._graph.add_node(item, index=dst)
+
+                    # next we add the link between the class
+                    item = DataLink(node.label, prefix=node.prefix)
+                    self._graph.add_edge(src, dst, item, index=index)
 
     def _build_graph_mappings(self, mappings):
         """
@@ -866,24 +902,12 @@ class SSDReader(object):
             src = obj['node']
             column = self._column_map[dst]
 
-            #print()
-            #print("31. CLASS NODES", self._graph.class_nodes)
-            #print("31. NUMBER OF NODES", len(self._graph.class_nodes))
-
             # add the column to the graph...
             col_id = self._graph.add_node(column, column.id)
-
-            #print()
-            #print("32. CLASS NODES", self._graph.class_nodes)
-            #print("32. NUMBER OF NODES", len(self._graph.class_nodes))
 
             # add the link to the column...
             item = ColumnLink(column.name)
             self._graph.add_edge(src, col_id, item)
-
-            #print()
-            #print("33. CLASS NODES", self._graph.class_nodes)
-            #print("33. NUMBER OF NODES", len(self._graph.class_nodes))
 
     @property
     def ontology(self):
@@ -934,16 +958,10 @@ class SSDJsonWriter(object):
         """
         self._ssd = ssd
 
-        self._all_nodes = [n for n in
-                           self._ssd.class_nodes + self._ssd.data_nodes
-                           if n is not None]
-
-        self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
-
     def to_dict(self):
         """Builds the dictionary representation of the SSD"""
         d = OrderedDict()
-        d["name"] = self._ssd._name
+        d["name"] = self._ssd.name
         d["ontologies"] = [self._ssd.ontology.id]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
@@ -956,32 +974,34 @@ class SSDJsonWriter(object):
     @property
     def _json_links(self):
         """
-
+        Builds the links section for the semantic model
         :return:
         """
-        links = [e for e in self._ssd.semantic_model.graph.edges(data=True)
-                 if type(e[2]['data']) != ColumnLink]
+        links = [(src, dst, item) for src, dst, item
+                 in self._ssd.semantic_model.graph.edges(data=True)
+                 if type(item['data']) != ColumnLink]
 
-        return [{"id": e[2]['edge_id'],
-                 "source": e[0],
-                 "target": e[1],
-                 "label": e[2]['data'].label,
-                 "type": e[2]['data'].type,
-                 "prefix": str(e[2]['data'].prefix)} for e in links]
+        return [{"id": item['edge_id'],
+                 "source": src,
+                 "target": dst,
+                 "label": item['data'].label,
+                 "type": item['data'].type,
+                 "prefix": str(item['data'].prefix)} for src, dst, item in links]
 
     @property
     def _json_nodes(self):
         """
-
+        Builds the nodes section for the semantic model
         :return:
         """
-        nodes = [n for n in self._ssd.semantic_model.graph.nodes(data=True)
-                 if (type(n[1]['data']) == DataNode or type(n[1]['data']) == ClassNode)]
+        nodes = [(index, value) for index, value
+                 in self._ssd.semantic_model.graph.nodes(data=True)
+                 if (type(value['data']) == DataNode or type(value['data']) == ClassNode)]
 
-        return [{"id": n[0],
-                 "label": n[1]['data'].full_label,
-                 "type": n[1]['data'].type,
-                 "prefix": str(n[1]['data'].prefix)} for n in nodes]
+        return [{"id": index,
+                 "label": value['data'].full_label,
+                 "type": value['data'].type,
+                 "prefix": str(value['data'].prefix)} for index, value in nodes]
 
     @property
     def semantic_model(self):
@@ -994,12 +1014,12 @@ class SSDJsonWriter(object):
 
     @property
     def mappings(self):
-        """BUilds out the .ssd mapping section.."""
-
-        maps = [(src, dst) for src, dst, data in self._ssd.semantic_model.graph.edges(data=True)
+        """Builds out the .ssd mapping section.."""
+        maps = [(src, dst) for src, dst, data
+                in self._ssd.semantic_model.graph.edges(data=True)
                 if type(data['data']) == ColumnLink]
 
         return [{
-                    "attribute": dst, #self._ssd._semantic_model.graph.node[m[1]]['data'].id,
+                    "attribute": dst,
                     "node": src
                 } for src, dst in maps]

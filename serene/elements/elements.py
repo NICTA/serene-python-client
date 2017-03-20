@@ -433,11 +433,12 @@ class DataNode(SSDSearchable):
     # the search parameters...
     getters = [
         lambda node: node.full_label,
+        lambda node: node.index,
         lambda node: node.prefix if node.prefix else None,
         lambda node: node.class_node if node.class_node else None
     ]
 
-    def __init__(self, class_node, label, dtype=str, prefix=None):
+    def __init__(self, class_node, label, index=None, prefix=None, dtype=str):
         """
         A DataNode is initialized with name and a parent Class object.
         A DataNode can be initialized in the following ways:
@@ -458,6 +459,7 @@ class DataNode(SSDSearchable):
         self.class_node = class_node
         self._label = label
         self.type = "DataNode"
+        self.index = index
 
         super().__init__()
 
@@ -470,7 +472,10 @@ class DataNode(SSDSearchable):
         return self.class_node.label + '.' + self._label
 
     def __repr__(self):
-        return "DataNode({}, {})".format(self.class_node, self.label)
+        if self.index is not None:
+            return "DataNode({}, {}, {})".format(self.class_node, self.label, self.index)
+        else:
+            return "DataNode({}, {})".format(self.class_node, self.label)
 
     def __ne__(self, other):
         return not self.__eq__(other)
@@ -478,10 +483,11 @@ class DataNode(SSDSearchable):
     def __eq__(self, other):
         return (self.label == other.label) \
                and (str(self.prefix) == str(other.prefix)) \
+               and (self.index == other.index) \
                and (self.class_node == other.class_node)
 
     def __hash__(self):
-        return hash((self.label, str(self.prefix), self.class_node))
+        return hash((self.label, str(self.prefix), self.class_node, self.index))
 
 
 class SSDLink(object):
