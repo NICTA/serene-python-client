@@ -334,7 +334,6 @@ class TestSSD(TestWithServer):
         """
         simple = self._build_simple()
 
-
         (simple
          .map("company", "Organization.name")
          .map("ceo", "Person.name")
@@ -344,32 +343,12 @@ class TestSSD(TestWithServer):
          .link("Organization", "location", "City")
          .link("Person", "worksFor", "Organization"))
 
-        # print("><><><><><>")
-        # for z in simple.class_nodes:
-        #     print(z.label, z.prefix)
-        # print(">>>>>>>>>>")
-
         j = SSDJsonWriter(simple).to_dict()
         now = datetime.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%S.%f")
         j["dateCreated"] = now
         j["dateModified"] = now
 
         test = self._build_simple().update(j, self._datasets, self._ontologies)
-
-        # print("HERE!!")
-        # for x in test.semantic_model.graph.nodes(data=True):
-        #     print(x)
-        # print()
-        #
-        # print("SIMPLE!!!")
-        # for c in simple.class_nodes:
-        #     print(c, hash(c.prefix), hash(c.label), hash(c), id(c))
-        #
-        # print()
-        #
-        # print("TEST!!!")
-        # for c in test.class_nodes:
-        #     print(c, hash(c.prefix), hash(c.label), hash(c), id(c))
 
         self.assertSetEqual(set(simple.class_nodes), set(test.class_nodes))
         self.assertSetEqual(set(simple.data_nodes), set(test.data_nodes))

@@ -90,10 +90,6 @@ class SSD(object):
         :param ontology_endpoint:
         :return:
         """
-        print("=======")
-        print(blob)
-        print("><><><><")
-
         if 'id' in blob:
             self._stored = True
             print(blob['dateCreated'])
