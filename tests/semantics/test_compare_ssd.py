@@ -11,6 +11,7 @@ from pprint import pprint
 from serene.elements import SSD, Ontology, DataSet
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 from ..utils import TestWithServer
+from serene.elements.semantics.base import KARMA_DEFAULT_NS
 
 # logging functions...
 _logger = logging.getLogger()
@@ -61,6 +62,7 @@ class TestEvaluateSSD(TestWithServer):
         Be sure to remove all storage elements once a test is finished...
         :return:
         """
+        return
         self._clear_storage()
 
     def test_evaluate_business(self):
@@ -277,7 +279,7 @@ class TestEvaluateSSD(TestWithServer):
         #print("data nodes: ", list(ontology._idata_nodes()))
         #print("links: ", list(ontology._ilinks()))
 
-        new_json = dataset.bind_ssd(self._museum_ssd, ontologies)
+        new_json = dataset.bind_ssd(self._museum_ssd, ontologies, KARMA_DEFAULT_NS)
 
         #print("************************")
         #print("new json...")

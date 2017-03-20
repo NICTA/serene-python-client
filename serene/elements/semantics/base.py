@@ -7,6 +7,7 @@ Defines the Ontology object
 import logging
 import networkx as nx
 import itertools as it
+from rdflib.namespace import OWL
 from serene.elements import Class, DataProperty, ObjectProperty, ObjectPropertyList
 from serene.visualizers import OntologyVisualizer
 from collections import defaultdict
@@ -16,6 +17,8 @@ _logger.setLevel(logging.WARN)
 
 LINK_NAME = "relationship"
 
+# default namespace in Karma
+KARMA_DEFAULT_NS = "http://isi.edu/integration/karma/dev#"
 
 class BaseSemantic(object):
     """
@@ -55,9 +58,14 @@ class BaseSemantic(object):
         parent_class = None
         if is_a is not None:
             if is_a not in self._class_table:
+                # if is_a == 'Thing':
+                #     # in OWL every class is subclass of Thing
+                #     _logger.debug("Adding Thing node!")
+                #     thing_node = Class('Thing', {}, str(OWL), None)
+                #     self.add_class_node(thing_node)
                 raise Exception("Failed to create class {}. "
-                                "Parent class '{}' does not exist"
-                                .format(name, is_a))
+                            "Parent class '{}' does not exist"
+                            .format(name, is_a))
             else:
                 parent_class = self._class_table[is_a]
 

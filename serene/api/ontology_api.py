@@ -15,9 +15,10 @@ from .http import HTTPObject
 @unique
 class OwlFormat(Enum):
     TURTLE = 'turtle'
-    JSON = 'jsonld'
-    RDF = 'rdfxml'
-    OWL = 'owl'
+    JSON = 'json-ld'
+    XML = 'xml'
+    RDFa = 'rdfa'
+    Notation3 = 'n3'
 
 
 class OntologyAPI(HTTPObject):

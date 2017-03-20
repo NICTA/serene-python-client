@@ -9,6 +9,7 @@ import collections
 import os
 import tempfile
 from functools import lru_cache
+import rdflib
 
 import pandas as pd
 
@@ -259,6 +260,11 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :param owl_format:
         :return:
         """
+
+        print("*********")
+        print("ontology {}, format {}".format(ontology, owl_format))
+        print("*********")
+
         if issubclass(type(ontology), str):
             # must be a direct filename...
             if not os.path.exists(ontology):
@@ -272,10 +278,18 @@ class OntologyEndpoint(IdentifiableEndpoint):
         else:
             raise ValueError("Upload requires Ontology type or direct filename")
 
+        if owl_format is None:
+            try:
+                # we try first to guess the format based on the filename
+                owl_format = rdflib.util.guess_format(filename)
+            except:
+                # use this as default
+                owl_format = 'xml'
+
         json = self._api.post(
             file_path=filename,
             description=description if description is not None else '',
-            owl_format=owl_format if owl_format is not None else 'owl'
+            owl_format=owl_format
         )
         return output.update(json)
 

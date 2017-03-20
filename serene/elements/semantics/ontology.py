@@ -301,6 +301,39 @@ class RDFReader(object):
         """
         return [o for s, p, o in g.triples((subject, predicate, object))]
 
+    def _domains_ranges(self, g):
+        """
+        Extract all classes which are used either as subject or object in ObjectProperties.
+        Add subclass stuff as well.
+
+        :param g: The RDFLib graph object
+        :return: List of 3-tuples with class-label-class
+        """
+        domains_ranges = set()
+
+        object_properties = self.subjects(g, object=rdflib.OWL.ObjectProperty)
+
+        for link in object_properties:
+
+            sources = [s for s in self.objects(g,
+                                   subject=link,
+                                   predicate=rdflib.RDFS.domain)
+                       if issubclass(type(s),rdflib.term.URIRef)]
+            destinations = [s for s in self.objects(g,
+                                        subject=link,
+                                        predicate=rdflib.RDFS.range)
+                            if issubclass(type(s),rdflib.term.URIRef)]
+
+            domains_ranges = domains_ranges.union(sources + destinations)
+
+        subclass = [(s, o) for s, p, o in g.triples((None, rdflib.RDFS.subClassOf, None)) if
+         (issubclass(type(s), rdflib.term.URIRef) and issubclass(type(o), rdflib.term.URIRef))]
+
+        domains_ranges = domains_ranges.union([s for s,o in subclass])
+        domains_ranges = domains_ranges.union([o for s, o in subclass])
+
+        return list(domains_ranges)
+
     def _extract_links(self, g):
         """
         Extracts the links from the RDFLib ontology graph g. Returns a
@@ -324,6 +357,9 @@ class RDFReader(object):
 
             links = it.product(sources, destinations)
 
+            links = [(src, dst) for src, dst in links if (issubclass(type(src),rdflib.term.URIRef)
+                                                          and issubclass(type(dst),rdflib.term.URIRef))]
+
             for x, y in links:
                 all_links.append((self.label(x),
                                   self.label(link),
@@ -338,7 +374,8 @@ class RDFReader(object):
         :param g:
         :return:
         """
-        return {s: o for s, p, o in g.triples((None, rdflib.RDFS.subClassOf, None))}
+        return {s: o for s, p, o in g.triples((None, rdflib.RDFS.subClassOf, None)) if
+                (issubclass(type(s), rdflib.term.URIRef) and issubclass(type(o),rdflib.term.URIRef))}
 
     def _extract_data_nodes(self, g):
         """
@@ -418,6 +455,7 @@ class RDFReader(object):
         Builds up the ontology from the node and link elements...
 
         :param ontology: the initial ontology starting point
+        :param uri:
         :param class_nodes: The list of class nodes from the file
         :param data_node_table: The type table for the data_nodes in the file
         :param all_links: The links for the file
@@ -426,6 +464,17 @@ class RDFReader(object):
         """
         # first set the uri
         ontology.uri(uri)
+
+        print("<><><><><><><>")
+        print("ontology: ", ontology)
+        print("uri: ", uri)
+        print("class_nodes: ", class_nodes)
+        print("data_node_table: ", data_node_table)
+        print("all_links: ", all_links)
+        print("subclasses: ", subclasses)
+        print("namespaces: ", list(namespaces))
+        print("<><><><><><><>")
+
 
         # extract the parents and children, we need to ensure that
         # the parents are created first.
@@ -458,7 +507,9 @@ class RDFReader(object):
 
         if len(candidates) != 1:
             msg = "Failed to read ontology URI from file. {} found".format(candidates)
-            raise Exception(msg)
+            _logger.warn("Ontology has no uri!")
+            return None
+            # raise Exception(msg)
 
         return str(candidates[0])
 
@@ -477,24 +528,37 @@ class RDFReader(object):
         # first load the file
         g = rdflib.Graph()
         # we guess format
-        g.load(filename, format=rdflib.util.guess_format(filename))
+        fmt = rdflib.util.guess_format(filename)
+        print("*******")
+        print("guessed format: {}".format(fmt))
+        print("*******")
+        logging.debug("Loading ontology {} with the format {}".format(filename, fmt))
+        g.load(filename, format=fmt)
+
+        # get class nodes - we need to leave only those which have URIs
+        # blank nodes do not have URIs, we leave them for later
+        class_nodes = [s for s in self.subjects(g, object=rdflib.OWL.Class) if issubclass(type(s), rdflib.term.URIRef)]
+        print("********classes")
+        for s in class_nodes:
+            print(s)
+        domain_ranges = self._domains_ranges(g)
+        print("********domain ranges")
+        for s in domain_ranges:
+            print(s)
+
+        # when reading ontology from file, we add to class nodes all classes which are used as domains or ranges
+        # FIXME: this is not completely correct. instead we need an ontology manager which should consider
+        # all ontologies as one big
+        class_nodes = list(set(class_nodes).union(set(domain_ranges)))
 
         # build the ontology object...
         ontology = self._build_ontology(ontology=ontology,
                                         uri=self._extract_uri(g),
-                                        class_nodes=self.subjects(g, object=rdflib.OWL.Class),
+                                        class_nodes=class_nodes,
                                         data_node_table=self._extract_data_nodes(g),
                                         all_links=self._extract_links(g),
                                         subclasses=self._extract_subclasses(g),
                                         namespaces=g.namespaces())
-
-        # ontology,
-        # uri,
-        # class_nodes,
-        # data_node_table,
-        # all_links,
-        # subclasses,
-        # namespaces
 
         return ontology
 
@@ -634,3 +698,4 @@ class RDFWriter(object):
         self._build_data_nodes(g, ontology)
 
         return g.serialize(format='turtle').decode("utf-8")
+
