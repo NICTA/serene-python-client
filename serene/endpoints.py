@@ -158,7 +158,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
     @property
     @lru_cache(maxsize=32)
     def columns(self):
-        """Get a single dataset at position key"""
+        """Returns a dictionary of col_id -> Column() objects"""
         cols = flatten([c.columns for c in self.items])
         return ReadOnlyDict({c.id: c for c in cols})
 

@@ -94,14 +94,14 @@ class TestEvaluateSSD(TestWithServer):
         #print("***class nodes: ", ssd.class_nodes)
         #print("***mappings: ", ssd.mappings)
         #print("***data nodes: ", ssd.data_nodes)
-        pprint(ssd.json)
+        #pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 4)
         self.assertEqual(len(ssd.data_nodes), 4)
         self.assertEqual(len(ssd.mappings), 4)
-        self.assertEqual(len(ssd.links), 7)   # class and data links
+        #self.assertEqual(len(ssd.links), 7)   # class and data links
         self.assertEqual(len(ssd.data_links), 4)   # these are only data properties
-        self.assertEqual(len(ssd.class_links), 3)   # these are only object properties
+        self.assertEqual(len(ssd.object_links), 3)   # these are only object properties
         # self.assertEqual(new_json, ssd.json)  # somehow check that jsons are appx same
 
     def test_evaluate_tricky_cities(self):
