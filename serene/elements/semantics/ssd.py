@@ -754,10 +754,10 @@ class SSDGraph(object):
 
     @property
     def mappings(self):
-        for k, v in self._lookup.items():
-            print(k, "->", v)
+        def data(edge):
+            return self._graph.node[edge][self.DATA_KEY]
 
-        return {self._lookup[e1]: self._lookup[e2] for e1, e2, _, link
+        return {data(e1): data(e2) for e1, e2, _, link
                 in self._edge_list if type(link) == ColumnLink}
 
 
