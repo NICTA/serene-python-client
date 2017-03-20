@@ -137,14 +137,14 @@ class SSD(object):
             data_node.class_node,
             data_node,
             DataLink(data_node.label,
-                     prefix=self._ontology.uri_string))
+                     prefix=self._ontology.namespace))
 
         # add a link between the column and data node...
         self._semantic_model.add_edge(
             data_node,
             column,
             ColumnLink(column.name,
-                       prefix=self._ontology.uri_string))
+                       prefix=self._ontology.namespace))
         return self
 
     def link(self, src, label, dst):
@@ -165,7 +165,7 @@ class SSD(object):
 
         # add the link into
         self._semantic_model.add_edge(
-            src, dst, ObjectLink(label, prefix=self._ontology.uri_string)
+            src, dst, ObjectLink(label, prefix=self._ontology.namespace)
         )
         return self
 
@@ -178,11 +178,11 @@ class SSD(object):
         :return:
         """
         if issubclass(type(item), str):
-            item = ObjectLink(item, self.ontology.uri_string)
+            item = ObjectLink(item, self.ontology.namespace)
 
         if issubclass(type(item), SSDLink):
             if item.prefix is None:
-                item.prefix = self.ontology.uri_string
+                item.prefix = self.ontology.namespace
             self._semantic_model.remove_edge(item, src, dst)
         else:
             msg = "Remove requires a link type"
@@ -201,7 +201,7 @@ class SSD(object):
             self._semantic_model.remove_node(item)
         elif issubclass(type(item), SSDLink):
             if item.prefix is None:
-                item.prefix = self.ontology.uri_string
+                item.prefix = self.ontology.namespace
             self._semantic_model.remove_edge(item, src, dst)
         else:
             msg = "Remove requires a node or link type"
@@ -922,12 +922,11 @@ class SSDJsonWriter(object):
                            if n is not None]
 
         self._node_map = {m: i for i, m in enumerate(self._all_nodes)}
-        self._attr_map = {m: i for i, m in enumerate(self._ssd.mappings)}
 
     def to_dict(self):
         """Builds the dictionary representation of the SSD"""
         d = OrderedDict()
-        d["name"] = self._ssd.name
+        d["name"] = self._ssd._name
         d["ontologies"] = [self._ssd.ontology.id]
         d["semanticModel"] = self.semantic_model
         d["mappings"] = self.mappings
@@ -938,21 +937,53 @@ class SSDJsonWriter(object):
         return json.dumps(self.to_dict())
 
     @property
+    def _json_links(self):
+        """
+
+        :return:
+        """
+        links = [e for e in self._ssd._semantic_model.graph.edges(data=True)
+                 if type(e[2]['data']) != ColumnLink]
+
+        return [{"id": e[2]['edge_id'],
+                 "source": e[0],
+                 "target": e[1],
+                 "label": e[2]['data'].label,
+                 "type": type(e[2]['data']).__name__,
+                 "prefix": e[2]['data'].prefix} for e in links]
+
+    @property
+    def _json_nodes(self):
+        """
+
+        :return:
+        """
+        nodes = [n for n in self._ssd._semantic_model.graph.nodes(data=True)
+                 if (type(n[1]['data']) == DataNode or type(n[1]['data']) == ClassNode)]
+
+        return [{"id": n[0],
+                 "label": n[1]['data'].label,
+                 "type": type(n[1]['data']).__name__,
+                 "prefix": n[1]['data'].prefix} for n in nodes]
+
+    @property
     def semantic_model(self):
         """Builds out the .ssd semantic model section..."""
 
         return {
-            "nodes": [node.ssd_output(index)
-                      for index, node in enumerate(self._all_nodes)],
-            "links": [link.ssd_output(index, self._node_map)
-                      for index, link in enumerate(self._ssd.links)]
+            "nodes": self._json_nodes,
+            "links": self._json_links
         }
 
     @property
     def mappings(self):
         """BUilds out the .ssd mapping section.."""
+
+        maps = [e for e in self._ssd._semantic_model.graph.edges(data=True)
+                if type(e[2]['data']) == ColumnLink]
+
         return [
             {
-                "attribute": m.column.id,
-                "node": self._node_map[m.node]
-            } for m in self._ssd.mappings if m.node is not None]
+                "attribute": m[1],
+                "node": m[0]
+            } for m in maps]

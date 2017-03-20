@@ -174,16 +174,16 @@ class Ontology(BaseSemantic):
 
         return fname
 
-    def prefix(self, prefix, uri):
+    def prefix(self, prefix, ns):
         """
-        Adds a URI prefix to the ontology
+        Adds a prefixed namespace to the ontology
 
         :param prefix:
-        :param uri:
+        :param ns: namespace
         :return: The ontology object
         """
-        _logger.debug("Adding prefix with prefix={}, uri={}".format(prefix, uri))
-        self._prefixes[prefix] = uri
+        _logger.debug("Adding prefix with prefix={}, uri={}".format(prefix, ns))
+        self._prefixes[prefix] = ns
         return self
 
     def uri(self, uri_string):
@@ -199,8 +199,8 @@ class Ontology(BaseSemantic):
         return self
 
     @property
-    def uri_string(self):
-        return self._uri
+    def namespace(self):
+        return self._prefixes['']
 
     @property
     def prefixes(self):
@@ -480,13 +480,21 @@ class RDFReader(object):
         g.load(filename, format=rdflib.util.guess_format(filename))
 
         # build the ontology object...
-        ontology = self._build_ontology(ontology,
-                                        self._extract_uri(g),
-                                        self.subjects(g, object=rdflib.OWL.Class),
-                                        self._extract_data_nodes(g),
-                                        self._extract_links(g),
-                                        self._extract_subclasses(g),
-                                        g.namespaces())
+        ontology = self._build_ontology(ontology=ontology,
+                                        uri=self._extract_uri(g),
+                                        class_nodes=self.subjects(g, object=rdflib.OWL.Class),
+                                        data_node_table=self._extract_data_nodes(g),
+                                        all_links=self._extract_links(g),
+                                        subclasses=self._extract_subclasses(g),
+                                        namespaces=g.namespaces())
+
+        # ontology,
+        # uri,
+        # class_nodes,
+        # data_node_table,
+        # all_links,
+        # subclasses,
+        # namespaces
 
         return ontology
 
@@ -616,7 +624,7 @@ class RDFWriter(object):
 
         # add the uri...
         g.add((
-            rdflib.term.URIRef(ontology.uri_string),
+            rdflib.term.URIRef(ontology.namespace),
             rdflib.RDF.type,
             rdflib.OWL.Ontology))
 

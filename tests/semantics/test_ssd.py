@@ -6,9 +6,12 @@ Tests the ssd module
 """
 import os
 
-from serene.elements import SSD, Column, DataNode, ClassNode, ObjectLink
+from serene.elements import SSD, Column, DataNode, ClassNode, ObjectLink, ColumnLink
+from serene.elements.semantics.ssd import SSDJsonWriter
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 from ..utils import TestWithServer
+
+from pprint import pprint
 
 
 class TestSSD(TestWithServer):
@@ -323,3 +326,25 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 3)
 
+    def test_json_writer(self):
+        """
+        Tests the json writer
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .link("City", "state", "State")
+         .link("Organization", "location", "City")
+         .link("Person", "worksFor", "Organization"))
+
+        j = SSDJsonWriter(simple).to_json()
+        pprint(j)
+
+        # convert back from json with SSDJsonReader and check that we get the same simple ssd
+
+        self.fail()
