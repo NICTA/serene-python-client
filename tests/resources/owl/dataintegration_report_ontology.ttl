@@ -46,6 +46,10 @@
          rdfs:domain :Person ;
          rdfs:range :Place .
 
+:operatesIn rdf:type owl:ObjectProperty ;
+            rdfs:domain :Organization ;
+            rdfs:range :City .
+
 :location rdf:type owl:ObjectProperty ;
           rdfs:domain :Event ,
                       :Organization ;

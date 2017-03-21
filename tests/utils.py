@@ -11,7 +11,7 @@ import subprocess
 import requests
 import time
 
-from serene import Session
+from serene import Session, Serene
 
 
 class SereneTestServer(object):
@@ -102,18 +102,20 @@ class TestWithServer(unittest.TestCase):
     """
     _server = None
     _session = None
+    _serene = None
 
     @classmethod
     def setUpClass(cls):
         cls._server = SereneTestServer()
         cls._server.setup()
-        cls._session = Session(
+        cls._serene = Serene(
             cls._server.host,
             cls._server.port,
             None,
             None,
             False
         )
+        cls._session = cls._serene.session
 
     @classmethod
     def tearDownClass(cls):

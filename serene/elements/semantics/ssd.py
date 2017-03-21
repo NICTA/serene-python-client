@@ -71,7 +71,7 @@ class SSD(object):
 
         self._name = name if name is not None else gen_id()
         self._dataset = dataset
-        self._ontology = ontology
+        self._ontology = ontology if ontology is not None else []
         self._VERSION = "0.1"
         self._id = None
         self._stored = False  # is stored on the server...
@@ -110,8 +110,7 @@ class SSD(object):
 
         reader = SSDReader(blob,
                            dataset_endpoint,
-                           ontology_endpoint,
-                           self.default_namespace)
+                           ontology_endpoint)
 
         self._ontology = reader.ontology
         self._dataset = reader.dataset
@@ -442,10 +441,11 @@ class SSD(object):
         :return: str
         """
         # TODO: check if it's ok to take just the first ontology from the list...
-        if self._ontology:
+        if self._ontology and len(self._ontology):
             return self._ontology[0].namespace
-
-        return None
+        else:
+            msg = "No ontology available in SSD."
+            raise Exception(msg)
 
     @property
     def class_nodes(self):
@@ -509,7 +509,7 @@ class SSD(object):
 
     def show(self):
         """Displays the SSD"""
-        self._semantic_model.show()
+        self._semantic_model.show(name=self._dataset.filename)
 
 
 class SSDGraph(object):
@@ -739,12 +739,12 @@ class SSDGraph(object):
 
         return self
 
-    def show(self):
+    def show(self, name='source'):
         """
         Prints to the screen and also shows a graphviz visualization.
         :return:
         """
-        SSDVisualizer(self).show()
+        SSDVisualizer(self, name=name).show()
 
     @property
     def graph(self):
@@ -869,7 +869,7 @@ class SSDReader(object):
     The SSDReader is a helper object used to parse an SSD json
     blob from the server.
     """
-    def __init__(self, blob, dataset_endpoint, ontology_endpoint, default_namespace):
+    def __init__(self, blob, dataset_endpoint, ontology_endpoint):
         """Builds up the relevant properties from the json blob `json`
             note that we need references to the endpoints to ensure
             that the information is up-to-date with the server.
@@ -877,11 +877,15 @@ class SSDReader(object):
         self._on_endpoint = ontology_endpoint
         self._ds_endpoint = dataset_endpoint
 
-        self._ns = default_namespace
-
         # add the ontology and dataset objects
         self._ontology = self._find_ontology(blob)
         self._dataset = self._find_dataset(blob)
+
+        if len(self._ontology):
+            self._ns = self._ontology[0].namespace
+        else:
+            msg = "Failed to initialize SSD reader. No ontology found."
+            raise Exception(msg)
 
         # build up the semantic model graph...
         self._graph = SSDGraph()
