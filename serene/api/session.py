@@ -58,11 +58,11 @@ class Session(HTTPObject):
 
         self._uri = urljoin(root, self.version + '/')
 
-        self.ontology = OntologyAPI(self._uri, self.session)
-        self.dataset = DataSetAPI(self._uri, self.session)
-        self.model = ModelAPI(self._uri, self.session)
-        self.ssd = SsdAPI(self._uri, self.session)
-        self.octopus = OctopusAPI(self._uri, self.session)
+        self.ontology_api = OntologyAPI(self._uri, self.session)
+        self.dataset_api = DataSetAPI(self._uri, self.session)
+        self.model_api = ModelAPI(self._uri, self.session)
+        self.ssd_api = SsdAPI(self._uri, self.session)
+        self.octopus_api = OctopusAPI(self._uri, self.session)
 
     def _test_connection(self, root):
         """
@@ -122,7 +122,7 @@ class Session(HTTPObject):
         uri = urljoin(self._uri, 'evaluate/')
 
         try:
-            r = self.connection.post(uri, data=compare_json)
+            r = self.session.post(uri, data=compare_json)
         except Exception as e:
             logging.error(e)
             raise InternalError("Failed to perform evaluation", e)

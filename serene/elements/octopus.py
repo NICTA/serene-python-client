@@ -81,10 +81,10 @@ class Octopus(object):
         self._id = json['id']
 
         # build out the octopus parameters
-        self._ssds = [self._session.ssd.item(o) for o in json['ssds']]
-        self._ontologies = [self._session.ontology.item(o) for o in json['ontologies']]
+        self._ssds = [self._session.ssd_api.item(o) for o in json['ssds']]
+        self._ontologies = [self._session.ontology_api.item(o) for o in json['ontologies']]
         self._model_id = json['lobsterID']
-        self._matcher = self._session.model.item(self._model_id)
+        self._matcher = self._session.model_api.item(self._model_id)
         self._modeling_props = json['modeling_props']
         self._semantic_type_map = json['semantic_type_map']
         self._state = json['state']
@@ -142,12 +142,12 @@ class Octopus(object):
             msg = "{} is not stored on the server. Upload using <Serene>.octopii.upload()"
             raise Exception(msg)
 
-        self._session.octopus.train(self.id)  # launch training
+        self._session.octopus_api.train(self.id)  # launch training
 
         def state():
             """Query the server for the model state"""
-            json = self._session.octopus.item(self.id)
-            self.update(json)
+            json = self._session.octopus_api.item(self.id)
+            self.update(json, self._session)
             return self.state
 
         def is_finished():
@@ -170,7 +170,7 @@ class Octopus(object):
         else:
             key = int(dataset)
 
-        return self._session.octopus.predict(self.id, key)
+        return self._session.octopus_api.predict(self.id, key)
 
 
     @property

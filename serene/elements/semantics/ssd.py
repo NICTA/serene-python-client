@@ -8,6 +8,7 @@ import json
 import logging
 import networkx as nx
 import random
+import copy
 
 from collections import OrderedDict
 from collections import defaultdict
@@ -240,6 +241,14 @@ class SSD(object):
         if issubclass(type(dst), str):
             dst = ClassNode(dst, prefix=self._ontology.namespace)
 
+        if issubclass(type(src), SSDSearchable):
+            if src.prefix is None:
+                src = ClassNode(src.label, src.index, prefix=self._ontology.namespace)
+
+        if issubclass(type(dst), SSDSearchable):
+            if dst.prefix is None:
+                dst = ClassNode(dst.label, dst.index, prefix=self._ontology.namespace)
+
         return src, dst
 
     def _clean_map_args(self, column, node):
@@ -265,8 +274,19 @@ class SSD(object):
 
         if issubclass(type(node), SSDSearchable):
             if node.prefix is None:
-                node.prefix = self._ontology.namespace
+                node = DataNode(node.class_node,
+                                node.label,
+                                node.index,
+                                self._ontology.namespace)
 
+            if node.class_node.prefix is None:
+                class_node = ClassNode(node.class_node.label,
+                                       node.class_node.index,
+                                       self._ontology.namespace)
+                node = DataNode(class_node,
+                                node.label,
+                                node.index,
+                                node.prefix)
         return column, node
 
     def _assert_map_args(self, column, data_node):
@@ -441,6 +461,14 @@ class SSD(object):
         return SSDJsonWriter(self).to_json()
 
     @property
+    def stored(self):
+        return self._stored
+
+    @property
+    def id(self):
+        return self._id
+
+    @property
     def name(self):
         return self._name
 
@@ -508,12 +536,13 @@ class SSDGraph(object):
         :param index: The override index parameter. If None the auto-increment will be used.
         :return:
         """
-        n = self.find(node, exact=True)
-        if n is not None:
-            msg = "{} already exists in the SSD: {}".format(node, n)
+        true_node = self.find(node, exact=True)
+
+        if true_node is not None:
+            msg = "{} already exists in the SSD: {}".format(node, true_node)
             _logger.debug(msg)
             # keep the same index in this case...
-            index = self._lookup[n]
+            index = self._lookup[true_node]
 
         # set the index
         if index is None:
@@ -827,14 +856,25 @@ class SSDReader(object):
 
     def _build_graph_nodes(self, nodes):
         """Pulls out the node objects and adds them into the graph using the interface"""
+        cls_table = defaultdict(list)
+
         for obj in nodes:
             index = obj['id']
-            prefix = obj['prefix'] if 'prefix' in obj else None
+            prefix = obj['prefix'] if 'prefix' in obj else self._ontology.namespace
             label = obj['label']
 
             if obj['type'] == "ClassNode":
                 item = ClassNode(label, prefix=prefix)
-                self._graph.add_node(item, index=index)
+                cls_table[item].append(index)
+                # self._graph.add_node(item, index=index)
+
+        for item, values in cls_table.items():
+            if len(values) == 1:
+                self._graph.add_node(item, index=values[0])
+            else:
+                for i, v in enumerate(values):
+                    new = ClassNode(item.label, index=i, prefix=item.prefix)
+                    self._graph.add_node(new, index=v)
 
     def _build_graph_links(self, links):
         """Pulls out the link objects and adds them into the graph using the interface"""
@@ -843,7 +883,7 @@ class SSDReader(object):
             src = obj['source']
             dst = obj['target']
             label = obj['label']
-            prefix = obj['prefix'] if 'prefix' in obj else None
+            prefix = obj['prefix'] if 'prefix' in obj else self._ontology.namespace
 
             if obj['type'] == "ObjectPropertyLink":
                 item = ObjectLink(label, prefix=prefix)
@@ -859,7 +899,7 @@ class SSDReader(object):
             src = obj['source']
             dst = obj['target']
             label = obj['label']
-            prefix = obj['prefix'] if 'prefix' in obj else None
+            prefix = obj['prefix'] if 'prefix' in obj else self._ontology.namespace
 
             if obj['type'] == "DataPropertyLink":
                 # first we create the data node...

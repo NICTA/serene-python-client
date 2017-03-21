@@ -137,7 +137,7 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.class_nodes), 2)
         self.assertEqual(len(ssd.data_nodes), 2)
         self.assertEqual(len(ssd.mappings), 2)
-        self.assertEqual(len(ssd.links), 1)     # these are only object properties
+        self.assertEqual(len(ssd.object_links), 1)     # these are only object properties
         # self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
 
     def test_evaluate_country_names(self):
@@ -184,6 +184,9 @@ class TestEvaluateSSD(TestWithServer):
                                     str(on._prefixes['']))
 
         empty_ssd = SSD(dataset, on)
+
+        pprint(new_json)
+
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
         pprint(ssd.json)
 
@@ -219,7 +222,7 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.mappings), 4)
         self.assertEqual(len(ssd.links), 5)  # class and data links
         self.assertEqual(len(ssd.data_links), 4)  # these are only data properties
-        self.assertEqual(len(ssd.class_links), 1)  # these are only object properties
+        self.assertEqual(len(ssd.object_links), 1)  # these are only object properties
 
     def test_evaluate_paintings(self):
         """
@@ -247,10 +250,12 @@ class TestEvaluateSSD(TestWithServer):
 
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        #pprint(ssd.json)
+        pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 3)
-        self.assertEqual(len(ssd.links), 2)
+        self.assertEqual(len(ssd.object_links), 2)
+        self.assertEqual(len(ssd.data_links), 2)
+        self.assertEqual(len(ssd.links), 4)
         self.assertEqual(len(ssd.data_nodes), 2)
         self.assertEqual(len(ssd.mappings), 2)
         # self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same

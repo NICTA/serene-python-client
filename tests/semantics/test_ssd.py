@@ -9,7 +9,7 @@ import json
 import datetime
 from serene.elements import SSD, Column, DataNode, ClassNode, ObjectLink, ColumnLink
 from serene.elements.semantics.ssd import SSDJsonWriter
-from serene.endpoints import DataSetEndpoint, OntologyEndpoint
+from serene.endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
 from ..utils import TestWithServer
 
 from pprint import pprint
@@ -23,6 +23,7 @@ class TestSSD(TestWithServer):
         super().__init__(method_name)
         self._datasets = None
         self._ontologies = None
+        self._ssds = None
 
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources")
         self._test_file = os.path.join(path, 'data', 'businessInfo.csv')
@@ -32,6 +33,7 @@ class TestSSD(TestWithServer):
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
         self._ontologies = OntologyEndpoint(self._session)
+        self._ssds = SSDEndpoint(self._session, self._datasets, self._ontologies)
         self._clear_storage()
         assert(os.path.isfile(self._test_file))
 
@@ -358,6 +360,83 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 3)
 
+    def test_default_map_prefix(self):
+        """
+        Tests that the map function adds the default prefixes when missing
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name"))
+
+        prefixes = [z.prefix for z in simple.data_nodes]
+
+        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+
+        prefixes = [z.prefix for z in simple.class_nodes]
+
+        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+
+    def test_default_link_prefix(self):
+        """
+        Tests that the link function adds the default prefixes when missing
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", DataNode(ClassNode("City", prefix=simple.ontology.namespace), "name"))
+         .map("state", DataNode(ClassNode("State", prefix=simple.ontology.namespace), "name"))
+         .link("City", "isPartOf", "State"))
+
+        # the last link should use default namespace, if not, there will be an
+        # ambiguity error...
+
+        prefixes = [z.prefix for z in simple.data_nodes]
+
+        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+
+        prefixes = [z.prefix for z in simple.class_nodes]
+
+        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 1)
+
+    def test_stored(self):
+        """
+        Tests that the storage flag resets when changes are made locally
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .link("Organization", "ceo", "Person")
+         .link("Person", "livesIn", "City")
+         .link("City", "state", "State"))
+
+        uploaded = self._ssds.upload(simple)
+
+        self.assertTrue(uploaded.stored)
+
+        uploaded.link("City", "isPartOf", "State")
+
+        self.assertFalse(uploaded.stored)
+
+        self._ssds.remove(uploaded)
+
     def test_map_link_with_no_data_nodes(self):
         """
         Tests the link function when there are no data nodes
@@ -407,14 +486,7 @@ class TestSSD(TestWithServer):
         j["dateCreated"] = now
         j["dateModified"] = now
 
-        # pprint(j)
-
         test = self._build_simple().update(j, self._datasets, self._ontologies)
-
-        # print("SIMPLE ->", simple.data_links)
-        # print("SIMPLE ->", simple.object_links)
-        # print("TEST   ->", test.data_links)
-        # print("TEST   ->", test.object_links)
 
         self.assertEqual(len(simple.class_nodes), 4)
         self.assertEqual(len(simple.data_nodes), 4)
