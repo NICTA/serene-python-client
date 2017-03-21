@@ -5,10 +5,14 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Tests the ssd module
 """
 import os
-
-from serene.elements import SSD, Column, DataNode, ClassNode, ObjectLink
+import json
+import datetime
+from serene.elements import SSD, Column, DataNode, ClassNode, ObjectLink, ColumnLink
+from serene.elements.semantics.ssd import SSDJsonWriter
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint
 from ..utils import TestWithServer
+
+from pprint import pprint
 
 
 class TestSSD(TestWithServer):
@@ -58,15 +62,15 @@ class TestSSD(TestWithServer):
         ds = self._datasets.upload(self._test_file)
         on = self._ontologies.upload(self._test_owl)
 
-        self.assertEqual(len(self._ontologies.items), 1)
+        #self.assertEqual(len(self._ontologies.items), 1)
 
         single = SSD(dataset=ds, ontology=on)
 
         self.assertEqual(len(single.data_nodes), 0)
         self.assertEqual(len(single.links), 0)
         self.assertEqual(len(single.columns), 4)
-        self.assertEqual(str(single.columns),
-                         "[Column(company), Column(ceo), Column(city), Column(state)]")
+        #self.assertEqual(str(single.columns),
+        #                 "[Column(company), Column(ceo), Column(city), Column(state)]")
 
         return single
 
@@ -77,7 +81,7 @@ class TestSSD(TestWithServer):
         """
         simple = self._build_simple()
 
-        simple.map(Column("ceo"), DataNode("Person", "name"))
+        simple.map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
 
         self.assertEqual(len(simple.class_nodes), 1)
         self.assertEqual(len(simple.data_nodes), 1)
@@ -92,10 +96,10 @@ class TestSSD(TestWithServer):
         simple = self._build_simple()
 
         (simple
-         .map(Column("company"), DataNode("Organization", "name"))
-         .map(Column("ceo"), DataNode("Person", "name"))
-         .map(Column("city"), DataNode("City", "name"))
-         .map(Column("state"), DataNode("State", "name")))
+         .map(Column("company"), DataNode(ClassNode("Organization"), "name"))
+         .map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
+         .map(Column("city"), DataNode(ClassNode("City"), "name"))
+         .map(Column("state"), DataNode(ClassNode("State"), "name")))
 
         self.assertEqual(len(simple.class_nodes), 4)
         self.assertEqual(len(simple.data_nodes), 4)
@@ -111,12 +115,12 @@ class TestSSD(TestWithServer):
 
         with self.assertRaises(Exception):
             (simple
-             .map(Column("company"), DataNode("Organization", "name"))
-             .map(Column("ceo"), DataNode("Person", "name"))
-             .map(Column("city"), DataNode("City", "name"))
-             .map(Column("state"), DataNode("State", "name"))
-             .map(Column("company"), DataNode("State", "name"))
-             .map(Column("company"), DataNode("Person", "name")))
+             .map(Column("company"), "Organization.name")
+             .map(Column("ceo"), "Person.name")
+             .map(Column("city"), "City.name")
+             .map(Column("state"), "State.name")
+             .map(Column("company"), "State.name")
+             .map(Column("company"), "Person.name"))
 
     def test_duplicate_data_node_block(self):
         """
@@ -127,10 +131,10 @@ class TestSSD(TestWithServer):
 
         with self.assertRaises(Exception):
             (simple
-             .map(Column("company"), DataNode("Organization", "name"))
-             .map(Column("ceo"), DataNode("Person", "name"))
-             .map(Column("city"), DataNode("Person", "name"))
-             .map(Column("state"), DataNode("State", "name")))
+             .map(Column("company"), "Organization.name")
+             .map(Column("ceo"), "Person.name")
+             .map(Column("city"), "Person.name")
+             .map(Column("state"), "State.name"))
 
     def test_map_short_hand(self):
         """
@@ -162,7 +166,7 @@ class TestSSD(TestWithServer):
          .map("ceo", "Person.name")
          .map("city", "City.name")
          .map("state", "State.name")
-         .remove(DataNode("Person", "name")))
+         .remove(DataNode(ClassNode("Person"), "name")))
 
         self.assertEqual(len(simple.class_nodes), 3)
         self.assertEqual(len(simple.data_nodes), 3)
@@ -181,7 +185,7 @@ class TestSSD(TestWithServer):
          .map("ceo", "Person.name")
          .map("city", "City.name")
          .map("state", "State.name")
-         .remove(DataNode("Person", "name"))
+         .remove(DataNode(ClassNode("Person"), "name"))
          .remove(Column("city")))
 
         self.assertEqual(len(simple.class_nodes), 2)
@@ -201,7 +205,7 @@ class TestSSD(TestWithServer):
          .map("ceo", "Person.name")
          .map("city", "City.name")
          .map("state", "State.name")
-         .remove(DataNode("Person", "name"))
+         .remove(DataNode(ClassNode("Person"), "name"))
          .remove(Column("city"))
          .map("ceo", "Person.name")
          .map("city", "City.name"))
@@ -280,6 +284,37 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 3)
 
+    def test_map_ambiguous_class(self):
+        """
+        Should throw error to not upload
+        :return:
+        """
+        simple = self._build_simple()
+
+        with self.assertRaises(Exception):
+            (simple
+             .map("English", "Place.name")
+             .map("German", "Place.name")
+             .map("French", "Place.name")
+             .map("Russian", "Place.name"))
+
+    def test_map_multi_data_prop(self):
+        """
+        Multiple data properties should be allowed on a single class if index is specified
+        """
+        simple = self._build_simple()
+        # should be ok.
+        (simple
+         .map("company", DataNode(ClassNode("Place"), "name", 0))
+         .map("ceo", DataNode(ClassNode("Place"), "name", 1))
+         .map("city", DataNode(ClassNode("Place"), "name", 2))
+         .map("state", DataNode(ClassNode("Place"), "name", 3)))
+
+        self.assertEqual(len(simple.class_nodes), 1)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 0)
+
     def test_map_overwrite(self):
         """
         Tests that re-specifying a link or class node should overwrite
@@ -323,3 +358,70 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 3)
 
+    def test_map_link_with_no_data_nodes(self):
+        """
+        Tests the link function when there are no data nodes
+        :return:
+        """
+        simple = self._build_simple()
+
+        # has the only link between Person (which has no data nodes)
+        #
+        #          .--- Person -----.
+        #         /                  \
+        # Organization              Place             Event
+        #    /                      /     \             |
+        #  name                   name   postalCode   endDate
+
+        (simple
+         .map("company", "Organization.name")
+         .map("city", "Place.name")
+         .map("state", "Place.postalCode")
+         .map("ceo", "Event.endDate")
+         .link("Person", "livesIn", "Place")
+         .link("Organization", "ceo", "Person"))
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertEqual(len(simple.object_links), 2)
+
+    def test_json_writer(self):
+        """
+        Tests the json writer
+        :return:
+        """
+        simple = self._build_simple()
+
+        (simple
+         .map("company", "Organization.name")
+         .map("ceo", "Person.name")
+         .map("city", "City.name")
+         .map("state", "State.name")
+         .link("City", "state", "State")
+         .link("Organization", "location", "City")
+         .link("Person", "worksFor", "Organization"))
+
+        j = SSDJsonWriter(simple).to_dict()
+        now = datetime.datetime.now().strftime(format="%Y-%m-%dT%H:%M:%S.%f")
+        j["dateCreated"] = now
+        j["dateModified"] = now
+
+        # pprint(j)
+
+        test = self._build_simple().update(j, self._datasets, self._ontologies)
+
+        # print("SIMPLE ->", simple.data_links)
+        # print("SIMPLE ->", simple.object_links)
+        # print("TEST   ->", test.data_links)
+        # print("TEST   ->", test.object_links)
+
+        self.assertEqual(len(simple.class_nodes), 4)
+        self.assertEqual(len(simple.data_nodes), 4)
+        self.assertEqual(len(simple.object_links), 3)
+        self.assertEqual(len(simple.data_links), 4)
+        self.assertSetEqual(set(simple.class_nodes), set(test.class_nodes))
+        self.assertSetEqual(set(simple.data_nodes), set(test.data_nodes))
+        self.assertSetEqual(set(simple.object_links), set(test.object_links))
+        self.assertDictEqual(simple.mappings, test.mappings)
+        self.assertSetEqual(set(simple.data_links), set(test.data_links))

@@ -406,6 +406,10 @@ class ClassNode(SSDSearchable):
 
         super().__init__()
 
+    @property
+    def full_label(self):
+        return self.label
+
     def __repr__(self):
         if self.index is None:
             return "ClassNode({}, {})".format(self.label, self.prefix)
@@ -417,11 +421,11 @@ class ClassNode(SSDSearchable):
 
     def __eq__(self, other):
         return (self.label == other.label) \
-               and (self.prefix == other.prefix) \
+               and (str(self.prefix) == str(other.prefix)) \
                and (self.index == other.index)
 
     def __hash__(self):
-        return hash((self.label, self.prefix, self.index))
+        return hash((self.label, str(self.prefix), self.index))
 
 
 class DataNode(SSDSearchable):
@@ -429,44 +433,33 @@ class DataNode(SSDSearchable):
     # the search parameters...
     getters = [
         lambda node: node.full_label,
+        lambda node: node.index,
         lambda node: node.prefix if node.prefix else None,
         lambda node: node.class_node if node.class_node else None
     ]
 
-    def __init__(self, *labels, dtype=str, prefix=None):
+    def __init__(self, class_node, label, index=None, prefix=None, dtype=str):
         """
         A DataNode is initialized with name and a parent Class object.
         A DataNode can be initialized in the following ways:
 
         DataNode(ClassNode("Person"), "name")
         DataNode("Person", "name)
-        DataNode("name")
 
-        :param labels: The name of the parent class and the name of the DataNode
+        :param class_node: The class node parent
+        :param label: The name of the parent class and the name of the DataNode
         """
         self.dtype = dtype
         self.prefix = prefix
 
-        if len(labels) == 1:
-            # initialized with DataNode("name") - for lookups only...
-            self._label = labels[0]
+        if type(class_node) != ClassNode:
+            msg = "DataNode must be initialized with a ClassNode"
+            raise ValueError(msg)
 
-        elif len(labels) == 2:
-            # here the first element is now the parent...
-            class_node = labels[0]
-
-            if type(class_node) == ClassNode:
-                # initialized with DataNode(Class("Person"), "name")
-                self.class_node = class_node
-            else:
-                # initialized with DataNode("Person", "name")
-                self.class_node = ClassNode(class_node)
-            self._label = labels[1]
-            self.type = "DataNode"
-
-        else:
-            msg = "Insufficient args for DataNode construction."
-            raise Exception(msg)
+        self.class_node = class_node
+        self._label = label
+        self.type = "DataNode"
+        self.index = index
 
         super().__init__()
 
@@ -479,18 +472,22 @@ class DataNode(SSDSearchable):
         return self.class_node.label + '.' + self._label
 
     def __repr__(self):
-        return "DataNode({}, {})".format(self.class_node, self.label)
+        if self.index is not None:
+            return "DataNode({}, {}, {})".format(self.class_node, self.label, self.index)
+        else:
+            return "DataNode({}, {})".format(self.class_node, self.label)
 
     def __ne__(self, other):
         return not self.__eq__(other)
 
     def __eq__(self, other):
         return (self.label == other.label) \
-               and (self.prefix == other.prefix) \
+               and (str(self.prefix) == str(other.prefix)) \
+               and (self.index == other.index) \
                and (self.class_node == other.class_node)
 
     def __hash__(self):
-        return hash((self.label, self.prefix, self.class_node))
+        return hash((self.label, str(self.prefix), self.class_node, self.index))
 
 
 class SSDLink(object):
@@ -507,10 +504,10 @@ class SSDLink(object):
 
     def __eq__(self, other):
         return (self.label == other.label) \
-               and (self.prefix == other.prefix)
+               and (str(self.prefix) == str(other.prefix))
 
     def __hash__(self):
-        return hash((self.label, self.prefix))
+        return hash((self.label, str(self.prefix)))
 
 
 class DataLink(SSDLink):

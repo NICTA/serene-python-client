@@ -21,7 +21,7 @@
             "sql": "select painting from 'paintings.csv'"
         }
     ],
-    "ontology": [
+    "ontologies": [
         1
     ],
     "semanticModel": {

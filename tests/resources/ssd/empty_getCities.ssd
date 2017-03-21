@@ -21,7 +21,7 @@
             "sql": "select city from 'getCities.csv'"
         }
     ],
-    "ontology": [
+    "ontologies": [
         1
     ],
          "dateCreated":"2016-06-17T07:47:56Z",

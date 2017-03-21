@@ -9,6 +9,7 @@ import collections
 import os
 import tempfile
 from functools import lru_cache
+import rdflib
 
 import pandas as pd
 
@@ -158,7 +159,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
     @property
     @lru_cache(maxsize=32)
     def columns(self):
-        """Get a single dataset at position key"""
+        """Returns a dictionary of col_id -> Column() objects"""
         cols = flatten([c.columns for c in self.items])
         return ReadOnlyDict({c.id: c for c in cols})
 
@@ -259,6 +260,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :param owl_format:
         :return:
         """
+
         if issubclass(type(ontology), str):
             # must be a direct filename...
             if not os.path.exists(ontology):
@@ -272,10 +274,18 @@ class OntologyEndpoint(IdentifiableEndpoint):
         else:
             raise ValueError("Upload requires Ontology type or direct filename")
 
+        if owl_format is None:
+            try:
+                # we try first to guess the format based on the filename
+                owl_format = rdflib.util.guess_format(filename)
+            except:
+                # use this as default
+                owl_format = 'xml'
+
         json = self._api.post(
             file_path=filename,
             description=description if description is not None else '',
-            owl_format=owl_format if owl_format is not None else 'owl'
+            owl_format=owl_format
         )
         return output.update(json)
 
@@ -378,14 +388,13 @@ class SSDEndpoint(IdentifiableEndpoint):
         assert (issubclass(type(x), SSD))
         assert (issubclass(type(y), SSD))
 
-        compare_json = {"predictedSSD": x.to_json(),
-                        "correctSSD": y.to_json(),
-                        "ignoreSemanticTypes": ignore_types,
-                        "ignoreColumnNodes": ignore_columns
-                        }
-        result = self._session.compare(compare_json)
-
-        return result
+        compare_json = {
+            "predictedSSD": x.to_json(),
+            "correctSSD": y.to_json(),
+            "ignoreSemanticTypes": ignore_types,
+            "ignoreColumnNodes": ignore_columns
+        }
+        return self._session.compare(compare_json)
 
     @decache
     def upload(self, ssd):
@@ -396,12 +405,9 @@ class SSDEndpoint(IdentifiableEndpoint):
         """
         assert(issubclass(type(ssd), SSD))
 
-        # test file
-        with open('test.json', 'w') as f:
-            print("SENDING::::")
-            print(ssd.json)
-            print("::::")
-            f.write(ssd.json)
+        # # test file
+        # with open('test.json', 'w') as f:
+        #     f.write(ssd.json)
 
         response = self._api.post(ssd.json)
 

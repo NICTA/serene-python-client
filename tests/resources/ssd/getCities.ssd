@@ -21,7 +21,7 @@
             "sql": "select city from 'getCities.csv'"
         }
     ],
-    "ontology": [
+    "ontologies": [
         1
     ],
     "semanticModel": {

@@ -92,7 +92,7 @@
       "sql": "not implemented"
     }
   ],
-  "ontology": [
+  "ontologies": [
     0,
     5,
     10,

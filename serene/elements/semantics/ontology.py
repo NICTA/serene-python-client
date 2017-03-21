@@ -4,7 +4,6 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Defines the Ontology object
 """
-import itertools as it
 import logging
 import os.path
 import tempfile
@@ -68,8 +67,7 @@ class Ontology(BaseSemantic):
                 # and load into self...
                 try:
                     RDFReader().to_ontology(file, self)
-                except Exception as e:
-                    raise e
+                except Exception:
                     msg = "Failed to read ontology file {}".format(file)
                     raise Exception(msg)
 
@@ -100,6 +98,7 @@ class Ontology(BaseSemantic):
         reflected on the server
         :return: None
         """
+        self.source_file = None
         self._stored = False
 
     def add_class_node(self, node, add_data_nodes=True):
@@ -122,13 +121,13 @@ class Ontology(BaseSemantic):
         self._unstore()
         return super().add_link(link)
 
-    def _update_id(self, id):
+    def _update_id(self, id_var):
         """
         Updates with the latest id string
         :param id_var: The identifier string
         :return:
         """
-        self.id = id
+        self.id = id_var
 
     def set_filename(self, value):
         """
@@ -174,16 +173,16 @@ class Ontology(BaseSemantic):
 
         return fname
 
-    def prefix(self, prefix, uri):
+    def prefix(self, prefix, ns):
         """
-        Adds a URI prefix to the ontology
+        Adds a prefixed namespace to the ontology
 
         :param prefix:
-        :param uri:
+        :param ns: namespace
         :return: The ontology object
         """
-        _logger.debug("Adding prefix with prefix={}, uri={}".format(prefix, uri))
-        self._prefixes[prefix] = uri
+        _logger.debug("Adding prefix with prefix={}, uri={}".format(prefix, ns))
+        self._prefixes[prefix] = ns
         return self
 
     def uri(self, uri_string):
@@ -199,8 +198,8 @@ class Ontology(BaseSemantic):
         return self
 
     @property
-    def uri_string(self):
-        return self._uri
+    def namespace(self):
+        return self._prefixes['']
 
     @property
     def prefixes(self):
@@ -301,6 +300,39 @@ class RDFReader(object):
         """
         return [o for s, p, o in g.triples((subject, predicate, object))]
 
+    def _domains_ranges(self, g):
+        """
+        Extract all classes which are used either as subject or object in ObjectProperties.
+        Add subclass stuff as well.
+
+        :param g: The RDFLib graph object
+        :return: List of 3-tuples with class-label-class
+        """
+        domains_ranges = set()
+
+        object_properties = self.subjects(g, object=rdflib.OWL.ObjectProperty)
+
+        for link in object_properties:
+
+            sources = [s for s in self.objects(g,
+                                   subject=link,
+                                   predicate=rdflib.RDFS.domain)
+                       if issubclass(type(s),rdflib.term.URIRef)]
+            destinations = [s for s in self.objects(g,
+                                        subject=link,
+                                        predicate=rdflib.RDFS.range)
+                            if issubclass(type(s),rdflib.term.URIRef)]
+
+            domains_ranges = domains_ranges.union(sources + destinations)
+
+        subclass = [(s, o) for s, p, o in g.triples((None, rdflib.RDFS.subClassOf, None)) if
+         (issubclass(type(s), rdflib.term.URIRef) and issubclass(type(o), rdflib.term.URIRef))]
+
+        domains_ranges = domains_ranges.union([s for s,o in subclass])
+        domains_ranges = domains_ranges.union([o for s, o in subclass])
+
+        return list(domains_ranges)
+
     def _extract_links(self, g):
         """
         Extracts the links from the RDFLib ontology graph g. Returns a
@@ -324,6 +356,9 @@ class RDFReader(object):
 
             links = it.product(sources, destinations)
 
+            links = [(src, dst) for src, dst in links if (issubclass(type(src),rdflib.term.URIRef)
+                                                          and issubclass(type(dst),rdflib.term.URIRef))]
+
             for x, y in links:
                 all_links.append((self.label(x),
                                   self.label(link),
@@ -338,7 +373,8 @@ class RDFReader(object):
         :param g:
         :return:
         """
-        return {s: o for s, p, o in g.triples((None, rdflib.RDFS.subClassOf, None))}
+        return {s: o for s, p, o in g.triples((None, rdflib.RDFS.subClassOf, None)) if
+                (issubclass(type(s), rdflib.term.URIRef) and issubclass(type(o),rdflib.term.URIRef))}
 
     def _extract_data_nodes(self, g):
         """
@@ -418,6 +454,7 @@ class RDFReader(object):
         Builds up the ontology from the node and link elements...
 
         :param ontology: the initial ontology starting point
+        :param uri:
         :param class_nodes: The list of class nodes from the file
         :param data_node_table: The type table for the data_nodes in the file
         :param all_links: The links for the file
@@ -458,7 +495,9 @@ class RDFReader(object):
 
         if len(candidates) != 1:
             msg = "Failed to read ontology URI from file. {} found".format(candidates)
-            raise Exception(msg)
+            _logger.warn("Ontology has no uri!")
+            return None
+            # raise Exception(msg)
 
         return str(candidates[0])
 
@@ -477,16 +516,28 @@ class RDFReader(object):
         # first load the file
         g = rdflib.Graph()
         # we guess format
-        g.load(filename, format=rdflib.util.guess_format(filename))
+        fmt = rdflib.util.guess_format(filename)
+        logging.debug("Loading ontology {} with the format {}".format(filename, fmt))
+        g.load(filename, format=fmt)
+
+        # get class nodes - we need to leave only those which have URIs
+        # blank nodes do not have URIs, we leave them for later
+        class_nodes = [s for s in self.subjects(g, object=rdflib.OWL.Class) if issubclass(type(s), rdflib.term.URIRef)]
+        domain_ranges = self._domains_ranges(g)
+
+        # when reading ontology from file, we add to class nodes all classes which are used as domains or ranges
+        # FIXME: this is not completely correct. instead we need an ontology manager which should consider
+        # all ontologies as one big
+        class_nodes = list(set(class_nodes).union(set(domain_ranges)))
 
         # build the ontology object...
-        ontology = self._build_ontology(ontology,
-                                        self._extract_uri(g),
-                                        self.subjects(g, object=rdflib.OWL.Class),
-                                        self._extract_data_nodes(g),
-                                        self._extract_links(g),
-                                        self._extract_subclasses(g),
-                                        g.namespaces())
+        ontology = self._build_ontology(ontology=ontology,
+                                        uri=self._extract_uri(g),
+                                        class_nodes=class_nodes,
+                                        data_node_table=self._extract_data_nodes(g),
+                                        all_links=self._extract_links(g),
+                                        subclasses=self._extract_subclasses(g),
+                                        namespaces=g.namespaces())
 
         return ontology
 
@@ -616,7 +667,7 @@ class RDFWriter(object):
 
         # add the uri...
         g.add((
-            rdflib.term.URIRef(ontology.uri_string),
+            rdflib.term.URIRef(ontology.namespace),
             rdflib.RDF.type,
             rdflib.OWL.Ontology))
 
@@ -626,3 +677,4 @@ class RDFWriter(object):
         self._build_data_nodes(g, ontology)
 
         return g.serialize(format='turtle').decode("utf-8")
+
