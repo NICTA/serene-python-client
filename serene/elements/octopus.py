@@ -67,10 +67,16 @@ class Octopus(object):
         self._state = None
 
         self._session = None
+        self._model_endpoint = None
+        self._ontology_endpoint = None
+        self._ssd_endpoint = None
 
-    def update(self, json, session):
+    def update(self, json, session, model_endpoint, ontology_endpoint, ssd_endpoint):
         """Update the object using json..."""
         self._session = session
+        self._model_endpoint = model_endpoint
+        self._ontology_endpoint = ontology_endpoint
+        self._ssd_endpoint = ssd_endpoint
 
         # add the storage parameters...
         self._stored = True
@@ -81,12 +87,12 @@ class Octopus(object):
         self._id = json['id']
 
         # build out the octopus parameters
-        self._ssds = [self._session.ssd_api.item(o) for o in json['ssds']]
-        self._ontologies = [self._session.ontology_api.item(o) for o in json['ontologies']]
+        self._ssds = [self._ssd_endpoint.get(o) for o in json['ssds']]
+        self._ontologies = [self._ontology_endpoint.get(o) for o in json['ontologies']]
         self._model_id = json['lobsterID']
-        self._matcher = self._session.model_api.item(self._model_id)
-        self._modeling_props = json['modeling_props']
-        self._semantic_type_map = json['semantic_type_map']
+        self._matcher = self._model_endpoint.get(self._model_id)
+        self._modeling_props = json['modelingProps']
+        self._semantic_type_map = json['semanticTypeMap']
         self._state = json['state']
 
         # bring in the implied model types...
@@ -147,7 +153,11 @@ class Octopus(object):
         def state():
             """Query the server for the model state"""
             json = self._session.octopus_api.item(self.id)
-            self.update(json, self._session)
+            self.update(json,
+                        self._session,
+                        self._model_endpoint,
+                        self._ontology_endpoint,
+                        self._ssd_endpoint)
             return self.state
 
         def is_finished():

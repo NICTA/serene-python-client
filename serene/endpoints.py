@@ -422,7 +422,7 @@ class SSDEndpoint(IdentifiableEndpoint):
     @decache
     def remove(self, ssd):
         """
-
+        Removes the SSD from the server
         :param ssd:
         :return:
         """
@@ -465,18 +465,24 @@ class OctopusEndpoint(IdentifiableEndpoint):
     :param object:
     :return:
     """
-    def __init__(self, session):
+    def __init__(self, session, model_endpoint, ontology_endpoint, ssd_endpoint):
         """
         Initializes the Octopus endpoint, using a session object
         to populate the SSD and Ontology objects
 
         :param session: The current live session to communicate with the server
+        :param model_endpoint: The session Endpoint object for the models
+        :param ontology_endpoint: The session Endpoint object for the ontologies
+        :param ssd_endpoint: The session Endpoint object for the ssd
         :return:
         """
         super().__init__()
         self._api = session.octopus_api
         self._session = session
         self._base_type = Octopus
+        self._model_endpoint = model_endpoint
+        self._ontology_endpoint = ontology_endpoint
+        self._ssd_endpoint = ssd_endpoint
 
     @decache
     def upload(self, octopus):
@@ -512,7 +518,11 @@ class OctopusEndpoint(IdentifiableEndpoint):
             modeling_props=octopus.modeling_props
         )
 
-        return octopus.update(response, self._session)
+        return octopus.update(response,
+                              self._session,
+                              self._model_endpoint,
+                              self._ontology_endpoint,
+                              self._ssd_endpoint)
 
     @decache
     def remove(self, octopus):
@@ -547,6 +557,10 @@ class OctopusEndpoint(IdentifiableEndpoint):
         octopii = []
         for k in keys:
             blob = self._api.item(k)
-            o = Octopus().update(blob, self._session)
+            o = Octopus().update(blob,
+                                 self._session,
+                                 self._model_endpoint,
+                                 self._ontology_endpoint,
+                                 self._ssd_endpoint)
             octopii.append(o)
         return tuple(octopii)

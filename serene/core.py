@@ -53,12 +53,11 @@ class Serene(object):
 
         self._ssds = SSDEndpoint(self._session, self._datasets, self._ontologies)
 
-        self._octopii = OctopusEndpoint(self._session)
-
         self._models = ModelEndpoint(self._session, self._datasets)
 
-    @staticmethod
-    def SSD(dataset, ontology, name):
+        self._octopii = OctopusEndpoint(self._session, self._models, self._ontologies, self._ssds)
+
+    def SSD(self, dataset, ontology, name):
         """
         Here we have the SSD class that the user can use to build SSDs.
         Note that we hide this in a nested class to pass the reference
