@@ -110,7 +110,8 @@ class SSD(object):
 
         reader = SSDReader(blob,
                            dataset_endpoint,
-                           ontology_endpoint)
+                           ontology_endpoint,
+                           self.default_namespace)
 
         self._ontology = reader.ontology
         self._dataset = reader.dataset
@@ -147,14 +148,14 @@ class SSD(object):
             data_node.class_node,
             data_node,
             DataLink(data_node.label,
-                     prefix=self._ontology[0].namespace))
+                     prefix=self.default_namespace))
 
         # add a link between the column and data node...
         self._semantic_model.add_edge(
             data_node,
             column,
             ColumnLink(column.name,
-                       prefix=self._ontology[0].namespace))
+                       prefix=self.default_namespace))
         return self
 
     def link(self, src, label, dst):
@@ -183,7 +184,7 @@ class SSD(object):
         # add the link into
         # TODO: is it ok just to take the first ontology for default namespace?
         self._semantic_model.add_edge(
-            src, dst, ObjectLink(label, prefix=self._ontology[0].namespace)
+            src, dst, ObjectLink(label, prefix=self.default_namespace)
         )
         return self
 
@@ -196,11 +197,11 @@ class SSD(object):
         :return:
         """
         if issubclass(type(item), str):
-            item = ObjectLink(item, self.ontology[0].namespace)
+            item = ObjectLink(item, self.default_namespace)
 
         if issubclass(type(item), SSDLink):
             if item.prefix is None:
-                item.prefix = self.ontology[0].namespace
+                item.prefix = self.default_namespace
 
             # this now breaks from the server...
             self._stored = False
@@ -223,7 +224,7 @@ class SSD(object):
             self._semantic_model.remove_node(item)
         elif issubclass(type(item), SSDLink):
             if item.prefix is None:
-                item.prefix = self.ontology.namespace
+                item.prefix = self.default_namespace
 
             # this now breaks from the server...
             self._stored = False
@@ -244,18 +245,18 @@ class SSD(object):
         :return: ClassNode, ClassNode
         """
         if issubclass(type(src), str):
-            src = ClassNode(src, prefix=self._ontology[0].namespace)
+            src = ClassNode(src, prefix=self.default_namespace)
 
         if issubclass(type(dst), str):
-            dst = ClassNode(dst, prefix=self._ontology[0].namespace)
+            dst = ClassNode(dst, prefix=self.default_namespace)
 
         if issubclass(type(src), SSDSearchable):
             if src.prefix is None:
-                src = ClassNode(src.label, src.index, prefix=self._ontology.namespace)
+                src = ClassNode(src.label, src.index, prefix=self.default_namespace)
 
         if issubclass(type(dst), SSDSearchable):
             if dst.prefix is None:
-                dst = ClassNode(dst.label, dst.index, prefix=self._ontology.namespace)
+                dst = ClassNode(dst.label, dst.index, prefix=self.default_namespace)
 
         return src, dst
 
@@ -275,25 +276,24 @@ class SSD(object):
             if '.' in node:
                 # this is a mapping to a data node
                 items = node.split('.')
-                # TODO: check if it's ok to take just the first ontology from the list...
-                class_node = ClassNode(items[0], prefix=self._ontology[0].namespace)
+                class_node = ClassNode(items[0], prefix=self.default_namespace)
                 label = items[-1]
-                node = DataNode(class_node, label, prefix=self._ontology[0].namespace)
+                node = DataNode(class_node, label, prefix=self.default_namespace)
             else:
                 # this is a mapping to a class node
-                node = ClassNode(node, prefix=self._ontology[0].namespace)
+                node = ClassNode(node, prefix=self.default_namespace)
 
         if issubclass(type(node), SSDSearchable):
             if node.prefix is None:
                 node = DataNode(node.class_node,
                                 node.label,
                                 node.index,
-                                self._ontology[0].namespace)
+                                self.default_namespace)
 
             if node.class_node.prefix is None:
                 class_node = ClassNode(node.class_node.label,
                                        node.class_node.index,
-                                       self._ontology.namespace)
+                                       self.default_namespace)
                 node = DataNode(class_node,
                                 node.label,
                                 node.index,
@@ -356,16 +356,6 @@ class SSD(object):
         if not self._link_exists(src, label, dst):
             msg = "Link failed. Failed to find {}-{}-{} in {}".format(src, label, dst, self._ontology)
             raise ValueError(msg)
-
-        # # first check the src class in the semantic model
-        # if not self._semantic_model.exists(src):
-        #     msg = "Link failed. {} does not exist in the semantic model".format(src)
-        #     raise Exception(msg)
-        #
-        # # first check the dst class in the semantic model
-        # if not self._semantic_model.exists(dst):
-        #     msg = "Link failed. {} does not exist in the semantic model".format(dst)
-        #     raise Exception(msg)
 
     def _link_exists(self, src, label, dst):
         """
@@ -445,6 +435,15 @@ class SSD(object):
             break
 
         return dn is not None
+
+    @property
+    def default_namespace(self):
+        """
+        The default namespace to add to ClassNode, DataNode and Links if missing.
+        :return: str
+        """
+        # TODO: check if it's ok to take just the first ontology from the list...
+        return self._ontology[0].namespace
 
     @property
     def class_nodes(self):
@@ -856,13 +855,15 @@ class SSDReader(object):
     The SSDReader is a helper object used to parse an SSD json
     blob from the server.
     """
-    def __init__(self, blob, dataset_endpoint, ontology_endpoint):
+    def __init__(self, blob, dataset_endpoint, ontology_endpoint, default_namespace):
         """Builds up the relevant properties from the json blob `json`
             note that we need references to the endpoints to ensure
             that the information is up-to-date with the server.
         """
         self._on_endpoint = ontology_endpoint
         self._ds_endpoint = dataset_endpoint
+
+        self._ns = default_namespace
 
         # add the ontology and dataset objects
         self._ontology = self._find_ontology(blob)
@@ -890,7 +891,7 @@ class SSDReader(object):
 
         for obj in nodes:
             index = obj['id']
-            prefix = obj['prefix'] if 'prefix' in obj else self._ontology.namespace
+            prefix = obj['prefix'] if 'prefix' in obj else self._ns
             label = obj['label']
 
             if obj['type'] == "ClassNode":
@@ -913,7 +914,7 @@ class SSDReader(object):
             src = obj['source']
             dst = obj['target']
             label = obj['label']
-            prefix = obj['prefix'] if 'prefix' in obj else self._ontology[0].namespace
+            prefix = obj['prefix'] if 'prefix' in obj else self._ns
 
             if obj['type'] == "ObjectPropertyLink":
                 item = ObjectLink(label, prefix=prefix)
@@ -929,7 +930,7 @@ class SSDReader(object):
             src = obj['source']
             dst = obj['target']
             label = obj['label']
-            prefix = obj['prefix'] if 'prefix' in obj else self._ontology[0].namespace
+            prefix = obj['prefix'] if 'prefix' in obj else self._ns
 
             if obj['type'] == "DataPropertyLink":
                 # first we create the data node...

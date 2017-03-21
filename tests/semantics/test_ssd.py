@@ -375,11 +375,11 @@ class TestSSD(TestWithServer):
 
         prefixes = [z.prefix for z in simple.data_nodes]
 
-        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+        self.assertEqual(prefixes, [simple.default_namespace for _ in prefixes])
 
         prefixes = [z.prefix for z in simple.class_nodes]
 
-        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+        self.assertEqual(prefixes, [simple.default_namespace for _ in prefixes])
 
     def test_default_link_prefix(self):
         """
@@ -391,8 +391,8 @@ class TestSSD(TestWithServer):
         (simple
          .map("company", "Organization.name")
          .map("ceo", "Person.name")
-         .map("city", DataNode(ClassNode("City", prefix=simple.ontology.namespace), "name"))
-         .map("state", DataNode(ClassNode("State", prefix=simple.ontology.namespace), "name"))
+         .map("city", DataNode(ClassNode("City", prefix=simple.default_namespace), "name"))
+         .map("state", DataNode(ClassNode("State", prefix=simple.default_namespace), "name"))
          .link("City", "isPartOf", "State"))
 
         # the last link should use default namespace, if not, there will be an
@@ -400,11 +400,11 @@ class TestSSD(TestWithServer):
 
         prefixes = [z.prefix for z in simple.data_nodes]
 
-        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+        self.assertEqual(prefixes, [simple.default_namespace for _ in prefixes])
 
         prefixes = [z.prefix for z in simple.class_nodes]
 
-        self.assertEqual(prefixes, [simple.ontology.namespace for _ in prefixes])
+        self.assertEqual(prefixes, [simple.default_namespace for _ in prefixes])
 
         self.assertEqual(len(simple.class_nodes), 4)
         self.assertEqual(len(simple.data_nodes), 4)
