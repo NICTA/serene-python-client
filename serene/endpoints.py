@@ -10,6 +10,7 @@ import os
 import tempfile
 from functools import lru_cache
 import rdflib
+import json
 
 import pandas as pd
 
@@ -392,13 +393,14 @@ class SSDEndpoint(IdentifiableEndpoint):
         assert (issubclass(type(x), SSD))
         assert (issubclass(type(y), SSD))
 
-        compare_json = {
-            "predictedSSD": x.to_json(),
-            "correctSSD": y.to_json(),
-            "ignoreSemanticTypes": ignore_types,
-            "ignoreColumnNodes": ignore_columns
-        }
-        return self._session.compare(compare_json)
+        compare_json = collections.OrderedDict()
+
+        compare_json["predictedSsd"] = x.json_dict
+        compare_json["correctSsd"] = y.json_dict
+        compare_json["ignoreSemanticTypes"] = ignore_types
+        compare_json["ignoreColumnNodes"] = ignore_columns
+
+        return self._session.compare(json.dumps(compare_json))
 
     @decache
     def upload(self, ssd):

@@ -119,7 +119,8 @@ class Session(HTTPObject):
         :return: precision, recall, jaccard metrics of comparison for two sets of RDF triplets constructed from x and y
         """
         logging.debug('Sending request to the Serene server to compare two SSDs')
-        uri = urljoin(self._uri, 'evaluate/')
+        logging.debug('request: ' + str(compare_json))
+        uri = urljoin(self._uri, 'evaluate')
 
         try:
             r = self.session.post(uri, data=compare_json)
@@ -127,7 +128,7 @@ class Session(HTTPObject):
             logging.error(e)
             raise InternalError("Failed to perform evaluation", e)
 
-        self._handle_errors(r, "PATCH " + uri)
+        self._handle_errors(r, "POST " + uri)
 
         return r.json()
 

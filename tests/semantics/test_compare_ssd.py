@@ -9,7 +9,7 @@ import logging
 from pprint import pprint
 
 from serene.elements import SSD, Ontology, DataSet
-from serene.endpoints import DataSetEndpoint, OntologyEndpoint
+from serene.endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
 from ..utils import TestWithServer
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
 
@@ -47,6 +47,7 @@ class TestEvaluateSSD(TestWithServer):
     def setUp(self):
         self._datasets = DataSetEndpoint(self._session)
         self._ontologies = OntologyEndpoint(self._session)
+        self._ssds = SSDEndpoint(self._session, self._datasets, self._ontologies)
         self._clear_storage()
 
     def _clear_storage(self):
@@ -75,35 +76,25 @@ class TestEvaluateSSD(TestWithServer):
         assert(issubclass(type(dataset), DataSet))
 
         ontology = self._ontologies.items[0]
-        #print("namespaces: ", ontology._prefixes)
-        #print("class nodes: ", list(ontology._iclass_nodes()))
-        #print("data nodes: ", list(ontology._idata_nodes()))
-        #print("links: ", list(ontology._ilinks()))
 
         new_json = dataset.bind_ssd(self._business_ssd,
                                     [ontology],
                                     str(ontology._prefixes['']))
 
-        #print("************************")
-        #print("new json...")
-        #pprint(new_json)
-
         empty_ssd = SSD(dataset, on)
-        #print("***empty class nodes: ", empty_ssd.class_nodes)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        #print("***class table: ", ssd._semantic_model._class_table)
-        #print("***class nodes: ", ssd.class_nodes)
-        #print("***mappings: ", ssd.mappings)
-        #print("***data nodes: ", ssd.data_nodes)
-        #pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 4)
         self.assertEqual(len(ssd.data_nodes), 4)
-        self.assertEqual(len(ssd.mappings), 4)
-        #self.assertEqual(len(ssd.links), 7)   # class and data links
         self.assertEqual(len(ssd.data_links), 4)   # these are only data properties
         self.assertEqual(len(ssd.object_links), 3)   # these are only object properties
-        # self.assertEqual(new_json, ssd.json)  # somehow check that jsons are appx same
+
+        res = self._ssds.compare(ssd, ssd)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)
 
     def test_evaluate_tricky_cities(self):
         """
@@ -114,32 +105,28 @@ class TestEvaluateSSD(TestWithServer):
         on = self._ontologies.upload(self._test_owl)
 
         dataset = self._datasets.items[0]
-        #print(dataset)
         assert (issubclass(type(dataset), DataSet))
 
         ontology = self._ontologies.items[0]
-        #print("namespaces: ", ontology._prefixes)
-        #print("class nodes: ", list(ontology._iclass_nodes()))
-        #print("data nodes: ", list(ontology._idata_nodes()))
-        #print("links: ", list(ontology._ilinks()))
 
         new_json = dataset.bind_ssd(self._tricky_cities_ssd,
                                     [ontology],
                                     str(ontology._prefixes['']))
 
-        #print("************************")
-        #print("new json...")
-        #pprint(new_json)
-
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        #pprint(ssd.json)
 
         self.assertEqual(len(ssd.class_nodes), 2)
         self.assertEqual(len(ssd.data_nodes), 2)
         self.assertEqual(len(ssd.mappings), 2)
         self.assertEqual(len(ssd.object_links), 1)     # these are only object properties
-        # self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
+
+        res = self._ssds.compare(ssd, ssd)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)
 
     def test_evaluate_country_names(self):
         """
@@ -168,6 +155,38 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.data_links), 4)  # these are only data properties
         self.assertEqual(len(ssd.object_links), 0)  # these are only object properties
 
+        res = self._ssds.compare(ssd, ssd, False, False)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)
+
+    def test_evaluate_country_names_zero(self):
+        """
+        Tests evaluation for country_names
+        If we ignore everything, then it will all 0
+        :return:
+        """
+        path = os.path.join(self._data_path, "country_names.csv")
+        dataset = self._datasets.upload(path)
+        on = self._ontologies.upload(self._test_owl)
+
+        ssd_path = os.path.join(self._ssd_path, "country_names.ssd")
+        new_json = dataset.bind_ssd(ssd_path,
+                                    [on],
+                                    str(on._prefixes['']))
+
+        empty_ssd = SSD(dataset, on)
+        ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
+
+        res = self._ssds.compare(ssd, ssd, True, True)
+        print(res)
+
+        self.assertEqual(res['precision'], 0)
+        self.assertEqual(res['recall'], 0)
+        self.assertEqual(res['jaccard'], 0)
+
     def test_evaluate_places_dif(self):
         """
         Tests evaluation for places_dif
@@ -195,6 +214,13 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.data_links), 4)  # these are only data properties
         self.assertEqual(len(ssd.object_links), 3)  # these are only object properties
 
+        res = self._ssds.compare(ssd, ssd)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)
+
     def test_evaluate_places_mix(self):
         """
         Tests evaluation for places_mix
@@ -221,6 +247,13 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.links), 5)  # class and data links
         self.assertEqual(len(ssd.data_links), 4)  # these are only data properties
         self.assertEqual(len(ssd.object_links), 1)  # these are only object properties
+
+        res = self._ssds.compare(ssd, ssd, False, True)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)
 
     def test_evaluate_paintings(self):
         """
@@ -256,7 +289,13 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.object_links), 2)
         self.assertEqual(len(ssd.data_nodes), 2)
         self.assertEqual(len(ssd.mappings), 2)
-        # self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
+
+        res = self._ssds.compare(ssd, ssd, True, True)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)
 
 
     def test_evaluate_museum(self):
@@ -272,47 +311,20 @@ class TestEvaluateSSD(TestWithServer):
             f = os.path.join(self._museum_owl_dir, path)
             ontologies.append(self._ontologies.upload(f))
 
-        assert (issubclass(type(dataset), DataSet))
-
-        # FIXME: items returns something weird
-        # ontologies = self._ontologies.items
-        assert(len(ontologies) == 11)
-        #print("namespaces: ", ontology._prefixes)
-        #print("class nodes: ", list(ontology._iclass_nodes()))
-        #print("data nodes: ", list(ontology._idata_nodes()))
-        #print("links: ", list(ontology._ilinks()))
 
         new_json = dataset.bind_ssd(self._museum_ssd, ontologies, KARMA_DEFAULT_NS)
 
-        #print("************************")
-        #print("new json...")
-        #pprint(new_json)
-
         empty_ssd = SSD(dataset, ontologies)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-
-        # pprint(ssd.json)
-
-        print()
-        #ssd.show()
-        print("<><><<><")
-        print(len(ssd.semantic_model.graph.nodes()))
-        print(len(ssd.semantic_model.graph.edges()))
-        print(ssd.semantic_model.graph.nodes())
-        print(ssd.semantic_model.graph.edges())
-        for k, v in ssd.semantic_model._lookup.items():
-            print(k, "->", v)
-        print("<><><><><")
-        for n in ssd.semantic_model.graph.nodes():
-            print(n, "->", ssd.semantic_model.graph.node[n])
-        print("++++++")
-        for n in ssd.semantic_model.graph.edges(data=True):
-            print(n, "->" )
-        print(":::::::::")
-        #self.fail()
 
         self.assertEqual(len(ssd.class_nodes), 6)
         self.assertEqual(len(ssd.links), 14)  # class instance, data property, object property
         self.assertEqual(len(ssd.data_nodes), 10)
         self.assertEqual(len(ssd.mappings), 10)
-        # self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
+
+        res = self._ssds.compare(ssd, ssd, False, False)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)

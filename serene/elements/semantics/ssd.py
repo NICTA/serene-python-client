@@ -442,7 +442,10 @@ class SSD(object):
         :return: str
         """
         # TODO: check if it's ok to take just the first ontology from the list...
-        return self._ontology[0].namespace
+        if self._ontology:
+            return self._ontology[0].namespace
+
+        return None
 
     @property
     def class_nodes(self):
@@ -487,6 +490,10 @@ class SSD(object):
     @property
     def json(self):
         return SSDJsonWriter(self).to_json()
+
+    @property
+    def json_dict(self):
+        return SSDJsonWriter(self).to_dict()
 
     @property
     def stored(self):
