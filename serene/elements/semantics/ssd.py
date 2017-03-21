@@ -182,7 +182,6 @@ class SSD(object):
             self._semantic_model.add_node(dst)
 
         # add the link into
-        # TODO: is it ok just to take the first ontology for default namespace?
         self._semantic_model.add_edge(
             src, dst, ObjectLink(label, prefix=self.default_namespace)
         )
@@ -618,6 +617,14 @@ class SSDGraph(object):
             index = self._edge_id
             self._edge_id += 1
 
+        if i_s not in self._graph.node:
+            msg = "Link failed. Could not find source node {} in semantic model".format(i_s)
+            raise Exception(msg)
+
+        if i_d not in self._graph.node:
+            msg = "Link failed. Could not find destination node {} in semantic model".format(i_d)
+            raise Exception(msg)
+
         self._graph.add_edge(i_s,
                              i_d,
                              data=link,
@@ -932,11 +939,11 @@ class SSDReader(object):
             label = obj['label']
             prefix = obj['prefix'] if 'prefix' in obj else self._ns
 
-            if obj['type'] == "DataPropertyLink":
+            if obj['type'] in {"DataPropertyLink", "ClassInstanceLink"}:
                 # first we create the data node...
                 class_node = self._graph.graph.node[src]['data']
                 data_node = DataNode(class_node, label, prefix=prefix)
-                dn_table[data_node].append((src, dst, index))
+                dn_table[data_node].append((src, dst, index, obj['type']))
 
         # now we use the data node table to construct the
         # nodes in order...
@@ -953,27 +960,42 @@ class SSDReader(object):
         # We need to add the nodes from the dn_table....
         for node, values in dn_table.items():
             if len(values) == 1:
-                src, dst, index = values[0]
+                src, dst, index, obj_type = values[0]
                 # this case is easy, just add the node and link...
                 self._graph.add_node(node, index=dst)
-
-                # next we add the link between the class
-                item = DataLink(node.label, prefix=node.prefix)
-                self._graph.add_edge(src, dst, item, index=index)
+                self._add_graph_link(node, obj_type, src, dst, index)
             else:
                 # in this case, we need to provide an index...
                 for i, v in enumerate(values):
-                    src, dst, index = v
+                    src, dst, index, obj_type = v
                     item = DataNode(node.class_node,
                                     node.label,
                                     index=i,
                                     prefix=node.prefix)
 
                     self._graph.add_node(item, index=dst)
+                    self._add_graph_link(node, obj_type, src, dst, index)
 
-                    # next we add the link between the class
-                    item = DataLink(node.label, prefix=node.prefix)
-                    self._graph.add_edge(src, dst, item, index=index)
+    def _add_graph_link(self, node, obj_type, src, dst, index):
+        """
+        Helper function to add a link to the semantic model graph.
+        :param node:
+        :param obj_type:
+        :param src:
+        :param dst:
+        :param index:
+        :return:
+        """
+        # next we add the link between the class
+        if obj_type == "DataPropertyLink":
+            item = DataLink(node.label, prefix=node.prefix)
+        else:
+            item = ClassInstanceLink(node.label, prefix=node.prefix)
+
+        try:
+            self._graph.add_edge(src, dst, item, index=index)
+        except Exception as e:
+            raise Exception("Failed to add link {}: {}".format(item, str(e)))
 
     def _build_graph_mappings(self, mappings):
         """
@@ -990,7 +1012,10 @@ class SSDReader(object):
 
             # add the link to the column...
             item = ColumnLink(column.name)
-            self._graph.add_edge(src, col_id, item)
+            try:
+                self._graph.add_edge(src, col_id, item)
+            except Exception as e:
+                raise Exception("Failed to add column link {}: {}".format(item, str(e)))
 
     @property
     def ontology(self):

@@ -290,7 +290,26 @@ class TestEvaluateSSD(TestWithServer):
 
         empty_ssd = SSD(dataset, ontologies)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        #pprint(ssd.json)
+
+        # pprint(ssd.json)
+
+        print()
+        #ssd.show()
+        print("<><><<><")
+        print(len(ssd.semantic_model.graph.nodes()))
+        print(len(ssd.semantic_model.graph.edges()))
+        print(ssd.semantic_model.graph.nodes())
+        print(ssd.semantic_model.graph.edges())
+        for k, v in ssd.semantic_model._lookup.items():
+            print(k, "->", v)
+        print("<><><><><")
+        for n in ssd.semantic_model.graph.nodes():
+            print(n, "->", ssd.semantic_model.graph.node[n])
+        print("++++++")
+        for n in ssd.semantic_model.graph.edges(data=True):
+            print(n, "->" )
+        print(":::::::::")
+        #self.fail()
 
         self.assertEqual(len(ssd.class_nodes), 6)
         self.assertEqual(len(ssd.links), 14)  # class instance, data property, object property
