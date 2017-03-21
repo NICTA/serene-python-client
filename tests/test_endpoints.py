@@ -4,9 +4,13 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 
 Tests the core module
 """
+import datetime
 import os
 
-from serene.endpoints import DataSetEndpoint, OntologyEndpoint
+from serene.elements.elements import ClassNode, Column, DataNode
+from serene.elements.semantics.ontology import Ontology
+from serene.elements.semantics.ssd import SSD
+from serene.endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
 from tests.utils import TestWithServer
 
 
@@ -234,7 +238,82 @@ class TestOntologyEndpoint(TestWithServer):
 
 
 class TestSsdEndpoint(TestWithServer):
-    pass
+    def setUp(self):
+        self.datasetEndpoint = DataSetEndpoint(self._session)
+        dataset_path = os.path.join(
+            os.path.dirname(__file__),
+            "resources",
+            "data",
+            "businessInfo.csv")
+        self.dataset = self.datasetEndpoint.upload(dataset_path)
+
+        self.ontologyEndpoint = OntologyEndpoint(self._session)
+        self.ontology = self.ontologyEndpoint.upload(Ontology()
+            .uri("http://www.semanticweb.org/serene/example_ontology")
+            .owl_class("Place", ["name", "postalCode"])
+            .owl_class("City", is_a="Place")
+            .owl_class("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
+            .owl_class("Organization", {"name": str, "phone": int, "email": str})
+            .owl_class("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
+            .owl_class("State", is_a="Place")
+            .link("Person", "bornIn", "Place")
+            .link("Organization", "ceo", "Person")
+            .link("Place", "isPartOf", "Place")
+            .link("Person", "livesIn", "Place")
+            .link("Event", "location", "Place")
+            .link("Organization", "location", "Place")
+            .link("Organization", "operatesIn", "City")
+            .link("Place", "nearby", "Place")
+            .link("Event", "organizer", "Person")
+            .link("City", "state", "State")
+            .link("Person", "worksFor", "Organization"))
+
+        self.ssdEndpoint = SSDEndpoint(
+            self._session,
+            self.datasetEndpoint,
+            self.ontologyEndpoint)
+
+        self.ssd = (
+            SSD(self.dataset, self.ontology, name="business-info")
+                .map(Column("company"), DataNode(ClassNode("Organization"), "name"))
+                .map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
+                .map(Column("city"), DataNode(ClassNode("City"), "name"))
+                .map(Column("state"), DataNode(ClassNode("State"), "name"))
+                .link("Organization", "operatesIn", "City")
+                .link("Organization", "ceo", "Person")
+                .link("City", "state", "State")
+        )
+
+    def tearDown(self):
+        # Cannot proceed because an error from SSDEndpoint.items.
+        for item in self.ssdEndpoint.items:
+            self.ssdEndpoint.remove(item)
+
+        for item in self.ontologyEndpoint.items:
+            self.ontologyEndpoint.remove(item)
+
+        for item in self.datasetEndpoint.items:
+            self.datasetEndpoint.remove(item)
+
+    def test_upload(self):
+        ssd = self.ssdEndpoint.upload(self.ssd)
+
+        self.assertEqual(len(ssd.class_nodes), 4)
+        self.assertEqual(len(ssd.data_nodes), 4)
+        self.assertEqual(len(ssd.data_links), 4)
+        self.assertEqual(len(ssd.columns), 4)
+        self.assertEqual(len(ssd.object_links), 3)
+        self.assertEqual(len(ssd.mappings), 4)
+        self.assertEqual(ssd.dataset, self.dataset)
+        self.assertEqual(len(ssd.ontology), 1)
+
+    def test_compare(self):
+        ssd = self.ssdEndpoint.upload(self.ssd)
+        result = self.ssdEndpoint.compare(ssd, ssd)
+        # This would fail because SSD has no member named to_json which is used
+        # by the compare method of the endpoint object.
+
+
 
 
 class TestOctopusEndpoint(TestWithServer):

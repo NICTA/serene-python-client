@@ -374,8 +374,6 @@ class SSD(object):
             # find any match in all ontologies
             try:
                 link = ObjectProperty.search(onto.ilinks, link_target)
-                _logger.debug("Searching in: {}".format(onto.ilinks))
-                _logger.debug("Link search returned: {}".format(link))
             except:
                 continue
             break
@@ -443,7 +441,7 @@ class SSD(object):
         :return: str
         """
         # TODO: check if it's ok to take just the first ontology from the list...
-        if len(self._ontology):
+        if self._ontology and len(self._ontology):
             return self._ontology[0].namespace
         else:
             msg = "No ontology available in SSD."
@@ -492,6 +490,10 @@ class SSD(object):
     @property
     def json(self):
         return SSDJsonWriter(self).to_json()
+
+    @property
+    def json_dict(self):
+        return SSDJsonWriter(self).to_dict()
 
     @property
     def stored(self):
