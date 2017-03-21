@@ -139,8 +139,8 @@ class Model(object):
         self.state = ModelState(json['state'])
         self.date_created = convert_datetime(json['dateCreated'])
         self.date_modified = convert_datetime(json['dateModified'])
-        self.num_bags = convert_datetime(json['numBags'])
-        self.bag_size = convert_datetime(json['bagSize'])
+        self.num_bags = json['numBags']
+        self.bag_size = json['bagSize']
 
     @decache
     def add_label(self, col, label):

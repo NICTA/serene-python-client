@@ -132,8 +132,10 @@ class SSDVisualizer(BaseVisualizer):
     """
     Visualizer object for drawing an SSD object
     """
-    def __init__(self, struct, outfile=None):
+    def __init__(self, struct, outfile=None, name='source'):
         super().__init__(struct, outfile)
+
+        self._name = name
 
         # the functions used to add nodes for each type
         self.node_functions = {
@@ -207,7 +209,7 @@ class SSDVisualizer(BaseVisualizer):
                            name='cluster1',
                            color='#f09090',
                            fontcolor='#c06060',
-                           label='source',
+                           label=self._name,
                            style='filled',
                            fontname='helvetica')
 
