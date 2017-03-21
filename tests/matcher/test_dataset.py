@@ -9,8 +9,8 @@ from io import StringIO
 
 import unittest2 as unittest
 
-from serene.elements import DataSet
-from serene.elements import DataSetList
+from serene.elements import DataSet, DataSetList, Column
+
 
 class TestDataSet(unittest.TestCase):
     """
@@ -304,5 +304,47 @@ class TestColumn(unittest.TestCase):
     Tests the DataSet class
     """
 
-    def test_junk(self):
-        raise NotImplementedError("Test not implemented")
+    column_json = {
+        'datasetID': 2035625835,
+        'id': 1246005714,
+        'index': 0,
+        'logicalType': 'string',
+        'name': 'company',
+        'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+        'sample': ['Data61'],
+        'size': 59
+    }
+
+    def setUp(self):
+        self.column = Column("testee")
+
+    def test_update(self):
+        self.column.update(self.column_json)
+
+        self.assertEqual(self.column.index, self.column_json["index"])
+        self.assertEqual(self.column.filename, self.column_json["path"])
+        self.assertEqual(self.column.name, self.column_json["name"])
+        self.assertEqual(self.column.id, self.column_json["id"])
+        self.assertEqual(self.column.size, self.column_json["size"])
+        self.assertEqual(self.column.datasetID, self.column_json["datasetID"])
+        self.assertEqual(self.column.sample, self.column_json["sample"])
+        self.assertEqual(
+            self.column.logicalType,
+            self.column_json["logicalType"])
+
+    def test_repr(self):
+        self.assertEqual(repr(self.column), "Column(testee)")
+
+    def test_eq(self):
+        self.assertEqual(
+            self.column.update(self.column_json),
+            Column("testee2").update(self.column_json))
+
+    def test_hash(self):
+        self.assertEqual(
+            hash(self.column.update(self.column_json)),
+            hash((
+                self.column_json["name"],
+                self.column_json["id"],
+                self.column_json["datasetID"]))
+        )

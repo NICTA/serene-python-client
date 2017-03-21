@@ -62,7 +62,6 @@ class TestEvaluateSSD(TestWithServer):
         Be sure to remove all storage elements once a test is finished...
         :return:
         """
-        # return
         self._clear_storage()
 
     def test_evaluate_business(self):
@@ -139,7 +138,7 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.class_nodes), 2)
         self.assertEqual(len(ssd.data_nodes), 2)
         self.assertEqual(len(ssd.mappings), 2)
-        self.assertEqual(len(ssd.links), 1)     # these are only object properties
+        self.assertEqual(len(ssd.object_links), 1)     # these are only object properties
         # self.assertEqual(new_json, ssd.json)    # somehow check that jsons are appx same
 
     def test_evaluate_country_names(self):
@@ -212,11 +211,6 @@ class TestEvaluateSSD(TestWithServer):
                                     [on],
                                     str(on._prefixes['']))
 
-        print("************************")
-        print("new json...")
-        pprint(new_json)
-
-
         empty_ssd = SSD(dataset, on)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
         pprint(ssd.json)
@@ -226,7 +220,7 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(len(ssd.mappings), 4)
         self.assertEqual(len(ssd.links), 5)  # class and data links
         self.assertEqual(len(ssd.data_links), 4)  # these are only data properties
-        self.assertEqual(len(ssd.class_links), 1)  # these are only object properties
+        self.assertEqual(len(ssd.object_links), 1)  # these are only object properties
 
     def test_evaluate_paintings(self):
         """

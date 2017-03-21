@@ -399,16 +399,32 @@ class ClassNode(SSDSearchable):
     ]
 
     def __init__(self, label, index=None, prefix=None):
-        self.label = label
-        self.index = index
-        self.prefix = prefix
-        self.type = "ClassNode"
+        self._label = label
+        self._index = index
+        self._prefix = prefix
+        self._type = "ClassNode"
 
         super().__init__()
 
     @property
     def full_label(self):
         return self.label
+
+    @property
+    def label(self):
+        return self._label
+
+    @property
+    def index(self):
+        return self._index
+
+    @property
+    def prefix(self):
+        return self._prefix
+
+    @property
+    def type(self):
+        return self._type
 
     def __repr__(self):
         if self.index is None:
@@ -420,12 +436,13 @@ class ClassNode(SSDSearchable):
         return not self.__eq__(other)
 
     def __eq__(self, other):
-        return (self.label == other.label) \
+        return (type(self) == type(other)) \
+               and (self.label == other.label) \
                and (str(self.prefix) == str(other.prefix)) \
                and (self.index == other.index)
 
     def __hash__(self):
-        return hash((self.label, str(self.prefix), self.index))
+        return hash((self.index, self.label, str(self.prefix), type(self)))
 
 
 class DataNode(SSDSearchable):
@@ -449,23 +466,43 @@ class DataNode(SSDSearchable):
         :param class_node: The class node parent
         :param label: The name of the parent class and the name of the DataNode
         """
-        self.dtype = dtype
-        self.prefix = prefix
+        self._dtype = dtype
+        self._prefix = prefix
 
         if type(class_node) != ClassNode:
             msg = "DataNode must be initialized with a ClassNode"
             raise ValueError(msg)
 
-        self.class_node = class_node
+        self._class_node = class_node
         self._label = label
-        self.type = "DataNode"
-        self.index = index
+        self._type = "DataNode"
+        self._index = index
 
         super().__init__()
 
     @property
     def label(self):
         return self._label
+
+    @property
+    def class_node(self):
+        return self._class_node
+
+    @property
+    def index(self):
+        return self._index
+
+    @property
+    def prefix(self):
+        return self._prefix
+
+    @property
+    def type(self):
+        return self._type
+
+    @property
+    def dtype(self):
+        return self._dtype
 
     @property
     def full_label(self):
@@ -481,7 +518,8 @@ class DataNode(SSDSearchable):
         return not self.__eq__(other)
 
     def __eq__(self, other):
-        return (self.label == other.label) \
+        return (type(self) == type(other)) \
+               and (self.label == other.label) \
                and (str(self.prefix) == str(other.prefix)) \
                and (self.index == other.index) \
                and (self.class_node == other.class_node)

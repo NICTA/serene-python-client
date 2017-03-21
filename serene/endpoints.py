@@ -110,7 +110,7 @@ class DataSetEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = session.dataset
+        self._api = session.dataset_api
         self._base_type = DataSet
 
     @decache
@@ -185,7 +185,7 @@ class ModelEndpoint(IdentifiableEndpoint):
     :param object:
     :return:
     """
-    def __init__(self, session):
+    def __init__(self, session, dataset_endpoint):
         """
 
         :param self:
@@ -193,8 +193,9 @@ class ModelEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = session.model
+        self._api = session.model_api
         self._session = session
+        self._ds_endpoint = dataset_endpoint
         self._base_type = Model
 
     @decache
@@ -216,7 +217,7 @@ class ModelEndpoint(IdentifiableEndpoint):
     @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single model at position key"""
-        return Model(self._api.item(key), self._session)
+        return Model(self._api.item(key), self._session, self._ds_endpoint)
 
     @property
     @lru_cache(maxsize=32)
@@ -226,7 +227,7 @@ class ModelEndpoint(IdentifiableEndpoint):
         models = []
         for k in keys:
             blob = self._api.item(k)
-            model = Model(blob, self._session)
+            model = Model(blob, self._session, self._ds_endpoint)
             models.append(model)
         return tuple(models)
 
@@ -247,7 +248,7 @@ class OntologyEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = session.ontology
+        self._api = session.ontology_api
         self._base_type = Ontology
 
     @decache
@@ -362,7 +363,7 @@ class SSDEndpoint(IdentifiableEndpoint):
     :param object:
     :return:
     """
-    def __init__(self, parent):
+    def __init__(self, session, dataset_endpoint, ontology_endpoint):
         """
 
         :param self:
@@ -370,9 +371,12 @@ class SSDEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = parent.session.ssd
-        self._session = parent
+        #self._api = parent.session.ssd
+        self._api = session.ssd_api
+        self._session = session
         self._base_type = SSD
+        self._dataset_endpoint = dataset_endpoint
+        self._ontology_endpoint = ontology_endpoint
 
     def compare(self, x, y, ignore_types=True, ignore_columns=False):
         """
@@ -412,8 +416,8 @@ class SSDEndpoint(IdentifiableEndpoint):
         response = self._api.post(ssd.json)
 
         return ssd.update(response,
-                          self._session.datasets,
-                          self._session.ontologies)
+                          self._dataset_endpoint,
+                          self._ontology_endpoint)
 
     @decache
     def remove(self, ssd):
@@ -449,8 +453,8 @@ class SSDEndpoint(IdentifiableEndpoint):
         for k in keys:
             blob = self._api.item(k)
             s = SSD().update(blob,
-                             self._session.datasets,
-                             self._session.ontologies)
+                             self._dataset_endpoint,
+                             self._ontology_endpoint)
             ssds.append(s)
         return tuple(ssds)
 
@@ -470,7 +474,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        self._api = session.octopus
+        self._api = session.octopus_api
         self._session = session
         self._base_type = Octopus
 

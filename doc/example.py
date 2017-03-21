@@ -36,7 +36,7 @@ import datetime
 import pandas as pd
 import os
 
-from serene import Ontology, DataProperty, Mapping, ObjectProperty, Column, Class
+from serene import Ontology, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 
 # We have these datasets:
 #
@@ -71,9 +71,11 @@ print(sn)
 #  Step 2: Upload some training datasets...
 #
 # =======================
-
+#
 # assigning the DataSet to a variable will help us keep track...
 #
+print()
+print("First we upload some datasets...")
 data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "data")
 owl_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "owl")
 
@@ -85,7 +87,7 @@ postal_code = sn.datasets.upload(os.path.join(data_path, 'postalCodeLookup.csv')
 
 datasets = [business_info, employee_address, get_cities, get_employees, postal_code]
 
-input("Press enter to continue")
+print("Done.")
 #
 # lets have a look...
 #
@@ -99,6 +101,9 @@ for d in datasets:
 # employee_address is not so great, we need to combine first and last name. We
 # can use pandas for this
 #
+print()
+print("Here we edit a dataset and re-upload...")
+
 sn.datasets.remove(employee_address)
 df = pd.read_csv(os.path.join(data_path, 'EmployeeAddresses.csv'))
 # move to first name/last name
@@ -112,18 +117,24 @@ del df['LastName']
 #
 employee_address = sn.datasets.upload(df)
 
+print("Done")
+
 # =======================
 #
 #  Step 3: Upload some ontologies
 #
 # =======================
 
+print()
+print("Now we handle the ontologies...")
 #
 # first let's see the ontologies that exist
 #
 ontologies = sn.ontologies.items
 
 if len(ontologies):
+    print()
+    print("Displaying first ontology on the server...")
     ontologies[0].show()
 
     input("Press enter to continue")
@@ -132,6 +143,8 @@ if len(ontologies):
 # # The most straightforward way is to upload an OWL file directly...
 # #
 # ontology = sn.ontologies.upload('tests/resources/owl/dataintegration_report_ontology.ttl')
+#
+# print("Showing the uploaded ontology...")
 #
 # ontology.show()
 #
@@ -143,6 +156,8 @@ if len(ontologies):
 # local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
 #
 # local_ontology.show()
+#
+# print("Showing the local ontology...")
 #
 # input("Press enter to continue...")
 #
@@ -185,6 +200,8 @@ ontology_local.to_turtle(os.path.join(owl_path, 'test.ttl'))
 
 
 #
+print()
+print("Displaying local ontology...")
 input("Press enter to continue...")
 
 #
@@ -217,82 +234,94 @@ print(ontology.data_nodes)
 # getEmployees: employer,employee
 # postalCodeLookup: zipcode,city,state
 
-business_info_ssd = (sn.SSD(business_info, ontology, name='business-info')
-                     .map(Column("company"), DataProperty("Organization", "name"))
-                     .map(Column("ceo"), DataProperty("Person", "name"))
-                     .map(Column("city"), DataProperty("City", "name"))
-                     .map(Column("state"), DataProperty("State", "name"))
-                     .link("Organization", "City", relationship="operatesIn")
-                     .link("Organization", "Person", relationship="ceo")
-                     .link("City", "State", relationship="state"))
+business_info_ssd = (sn
+                     .SSD(business_info, ontology, name='business-info')
+                     .map(Column("company"), DataNode(ClassNode("Organization"), "name"))
+                     .map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
+                     .map(Column("city"), DataNode(ClassNode("City"), "name"))
+                     .map(Column("state"), DataNode(ClassNode("State"), "name"))
+                     .link("Organization", "operatesIn", "City")
+                     .link("Organization", "ceo", "Person")
+                     .link("City", "state", "State"))
 
 business_info_ssd.show()
 
+print()
+print("Displaying businessInfo.csv Semantic Source Description (SSD)")
 input("press any key to continue...")
 
-# #
-# # We also have just a string shorthand...
-# #
-# employee_address_ssd = (sn.SSD(employee_address, ontology, name='employee-addr')
-#                         .map("name", "Person.name")
-#                         .map("address", "Place.name")
-#                         .map("postcode", "Place.postalCode")
-#                         .link("Person", "Place", relationship="livesIn"))
 #
-# employee_address_ssd.show()
+# We also have just a string shorthand...
 #
-# input("press any key to continue...")
-#
-# get_cities_ssd = (sn.SSD(get_cities, ontology, name='cities')
-#                   .map(Column("city"), DataNode("City", "name"))
-#                   .map(Column("state"), DataNode("State", "name"))
-#                   .link("City", "State", relationship="state"))
-#
-# get_cities_ssd.show()
-#
-# input("press any key to continue...")
-#
-# get_employees_ssd = (sn.SSD(get_employees, ontology, name='employees')
-#                      .map(Column("employer"), DataNode("Organization", "name"))
-#                      .map(Column("employee"), DataNode("Person", "name"))
-#                      .link("Person", "Organization", relationship="worksFor"))
-#
-#
-# get_employees_ssd.show()
-#
-# input("press any key to continue...")
-#
-#
-# postal_code_ssd = (sn.SSD(postal_code, ontology, name='postal-code')
-#                    .map(Column("zipcode"), DataNode("Place", "postalCode"))
-#                    .map(Column("city"), DataNode("City", "name"))
-#                    .map(Column("state"), DataNode("State", "name"))
-#                    .link("City", "State", relationship="state")
-#                    .link("City", "Place", relationship="isPartOf"))
-#
-# postal_code_ssd.show()
+employee_address_ssd = (sn
+                        .SSD(employee_address, ontology, name='employee-addr')
+                        .map("name", "Person.name")
+                        .map("address", "Place.name")
+                        .map("postcode", "Place.postalCode")
+                        .link("Person", "livesIn", "Place"))
 
-# input("press any key to continue...")
-#
-#
-# postal_code_ssd2 = (sn.SSD(postal_code, ontology, name='postal-code')
-#                     .map(Column("zipcode"), DataNode("Place", "postalCode"))
-#                     .map(Column("city"), DataNode("Place", "name"))
-#                     .map(Column("state"), DataNode("Place", "name", new_instance=True))
-#                     .link("City", "State", relationship="state")
-#                     .link("City", "Place", relationship="isPartOf"))
-#
-# postal_code_ssd2.show()
+employee_address_ssd.show()
 
-#
+print()
+print("Displaying EmployeeAdddress.csv Semantic Source Description (SSD)")
+input("press any key to continue...")
+
+get_cities_ssd = (sn
+                  .SSD(get_cities, ontology, name='cities')
+                  .map(Column("city"), DataNode(ClassNode("City"), "name"))
+                  .map(Column("state"), DataNode(ClassNode("State"), "name"))
+                  .link("City", "state", "State"))
+
+get_cities_ssd.show()
+
+print()
+print("Displaying getCities.csv Semantic Source Description (SSD)")
+input("press any key to continue...")
+
+get_employees_ssd = (sn
+                     .SSD(get_employees, ontology, name='employees')
+                     .map(Column("employer"), DataNode(ClassNode("Organization"), "name"))
+                     .map(Column("employee"), DataNode(ClassNode("Person"), "name"))
+                     .link("Person", "worksFor", "Organization"))
+
+
+get_employees_ssd.show()
+
+print()
+print("Displaying getEmployees.csv Semantic Source Description (SSD)")
+input("press any key to continue...")
+
+postal_code_ssd = (sn
+                   .SSD(postal_code, ontology, name='postal-code')
+                   .map(Column("zipcode"), "Place.postalCode")
+                   .map(Column("city"), "City.name")
+                   .map(Column("state"), "State.name")
+                   .link("City", "state", "State")
+                   .link("City", "isPartOf", "Place"))
+
+postal_code_ssd.show()
+
+print()
+print("Displaying postalCodeLookup.csv Semantic Source Description (SSD)")
+input("press any key to continue...")
+
+postal_code_ssd2 = (sn
+                    .SSD(postal_code, ontology, name='postal-code')
+                    .map(Column("zipcode"), "Place.postalCode")
+                    .map(Column("city"), "City.name")
+                    .map(Column("state"), "State.name")
+                    .link("City", "state", "State")
+                    .link("City", "isPartOf", "Place"))
+
+postal_code_ssd2.show()
+
+
 # upload all these to the server. Here we ignore the return value (the SSD object will be updated)
-#
-# for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employees_ssd, postal_code_ssd]:
-#     sn.ssds.upload(ssd)
+
+for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employees_ssd, postal_code_ssd]:
+    sn.ssds.upload(ssd)
 
 sn.ssds.upload(business_info_ssd)
-
-exit()
 
 # ==========
 #

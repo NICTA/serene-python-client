@@ -51,11 +51,11 @@ class Serene(object):
 
         self._ontologies = OntologyEndpoint(self._session)
 
-        self._ssds = SSDEndpoint(self)
+        self._ssds = SSDEndpoint(self._session, self._datasets, self._ontologies)
 
         self._octopii = OctopusEndpoint(self._session)
 
-        self._models = ModelEndpoint(self._session)
+        self._models = ModelEndpoint(self._session, self._datasets)
 
     @staticmethod
     def SSD(dataset, ontology, name):

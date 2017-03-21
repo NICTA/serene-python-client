@@ -71,20 +71,20 @@ class SchemaMatcher(object):
     @lru_cache(maxsize=32)
     def datasets(self):
         """Maintains a list of DataSet objects"""
-        keys = self.api.dataset.keys()
+        keys = self.api.dataset_api.keys()
         ds = DataSetList()
         for k in keys:
-            ds.append(DataSet(self.api.dataset.item(k)))
+            ds.append(DataSet(self.api.dataset_api.item(k)))
         return ds
 
     @property
     @lru_cache(maxsize=32)
     def models(self):
         """Maintains a list of Model objects"""
-        keys = self.api.model.keys()
+        keys = self.api.model_api.keys()
         ms = ModelList()
         for k in keys:
-            ms.append(Model(self.api.model.item(k), self.api))
+            ms.append(Model(self.api.model_api.item(k), self.api))
         return ms
 
     @staticmethod
@@ -165,15 +165,15 @@ class SchemaMatcher(object):
             """Convert the column requests into a string id"""
             return {column_parse(k): v for k, v in ld.items()}
 
-        json = self.api.model.post(feature_config,
-                                   description,
-                                   classes,
-                                   model_type,
-                                   label_parse(labels),
-                                   cost_matrix,
-                                   resampling_strategy,
-                                   numBags,
-                                   bagSize)  # send API request
+        json = self.api.model_api.post(feature_config,
+                                       description,
+                                       classes,
+                                       model_type,
+                                       label_parse(labels),
+                                       cost_matrix,
+                                       resampling_strategy,
+                                       numBags,
+                                       bagSize)  # send API request
         # create model wrapper...
         return Model(json, self.api)
 
@@ -191,7 +191,7 @@ class SchemaMatcher(object):
         Returns: newly uploaded MatcherDataset
 
         """
-        json = self.api.dataset.post(description, file_path, type_map)
+        json = self.api.dataset_api.post(description, file_path, type_map)
         return DataSet(json)
 
     @decache
@@ -203,9 +203,9 @@ class SchemaMatcher(object):
         :return: None
         """
         if issubclass(type(key), DataSet):
-            self.api.dataset.delete(key.id)
+            self.api.dataset_api.delete(key.id)
         else:
-            self.api.dataset.delete(key)
+            self.api.dataset_api.delete(key)
 
     @decache
     def remove_model(self, key):
@@ -216,9 +216,9 @@ class SchemaMatcher(object):
         :return: None
         """
         if issubclass(type(key), Model):
-            self.api.model.delete(key.id)
+            self.api.model_api.delete(key.id)
         else:
-            self.api.model.delete(key)
+            self.api.model_api.delete(key)
 
     @decache
     def train_all(self):

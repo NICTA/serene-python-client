@@ -104,7 +104,7 @@ def decache(func):
 
 class Model(object):
     """Holds information about the Model object on the Serene server"""
-    def __init__(self, json, session):
+    def __init__(self, json, session, dataset_endpoint):
 
         self._pp = pprint.PrettyPrinter(indent=4)
 
@@ -113,6 +113,7 @@ class Model(object):
         #self.endpoint = self.parent.api.model
         #self._ds_endpoint = dataset_endpoint
         self._session = session
+        self._ds_endpoint = dataset_endpoint
 
         self.PREDICT_KEYS = [
             "column_id",
@@ -158,7 +159,7 @@ class Model(object):
         label_table = self.label_data
         label_table[key] = value
 
-        json = self._session.model.update(self.id, labels=label_table)
+        json = self._session.model_api.update(self.id, labels=label_table)
 
         self._update(json)
 
@@ -182,7 +183,7 @@ class Model(object):
             key, value = self._label_entry(k, v)
             label_table[key] = value
 
-        json = self._session.model.update(self.id, labels=label_table)
+        json = self._session.model_api.update(self.id, labels=label_table)
 
         self._update(json)
 
@@ -199,11 +200,11 @@ class Model(object):
         Returns: boolean -- True if model is trained, False otherwise
 
         """
-        self._session.model.train(self.id)  # launch training
+        self._session.model_api.train(self.id)  # launch training
 
         def state():
             """Query the server for the model state"""
-            json = self._session.model.item(self.id)
+            json = self._session.model_api.item(self.id)
             self._update(json)
             return self.state
 
@@ -291,7 +292,7 @@ class Model(object):
         else:
             key = int(dataset)
 
-        json = self._session.model.predict(self.id, key)
+        json = self._session.model_api.predict(self.id, key)
 
         df = self._predictions(json)
 
@@ -300,11 +301,11 @@ class Model(object):
     @decache
     def _update(self, json):
         """Re-initializes the model based on an updated json string"""
-        self.__init__(json, self._session)
+        self.__init__(json, self._session, self._ds_endpoint)
 
     def _columns(self):
         # first we grab all the columns out from the datasets
-        return [ds.columns for ds in self._session.datasets.items]
+        return [ds.columns for ds in self._ds_endpoint.items]
 
     @property
     def _column_lookup(self):
