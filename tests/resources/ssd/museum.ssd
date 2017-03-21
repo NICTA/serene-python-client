@@ -346,6 +346,15 @@
         "type": "DataPropertyLink",
         "status": "ForcedByUser",
         "prefix": "http://purl.org/dc/terms/"
+      },
+      {
+        "id": 12,
+        "source": 0,
+        "target": 13,
+        "label": "accessionNumber",
+        "type": "DataPropertyLink",
+        "status": "ForcedByUser",
+        "prefix": "http://www.americanartcollaborative.org/ontology/"
       }
     ]
   },
