@@ -153,9 +153,44 @@ class Serene(object):
             uploaded_datasets.append(self._datasets.upload(d))
 
         # now build the ssds from the files...
-        map_df = pd.read_csv(map_file, skip_blank_lines=True, comment='#')
-        link_df = pd.read_csv(link_file, skip_blank_lines=True, comment='#')
+        map_df = self._read_input_file(map_file)
+        link_df = self._read_input_file(link_file)
 
+        # ensure that these files are ok
+        self._check_parsed_input(map_df, link_df, uploaded_datasets)
+
+        # build up a map of SSDs...
+        ssd_map = self._build_ssd_map(uploaded_ontologies,
+                                      uploaded_datasets,
+                                      map_df,
+                                      link_df)
+
+        # now attempt to upload all the ssds..
+        for ssd in ssd_map.values():
+            uploaded_ssds.append(self._ssds.upload(ssd))
+
+        return uploaded_datasets, uploaded_ontologies, uploaded_ssds
+
+    @staticmethod
+    def _read_input_file(filename):
+        """
+        Helper function to parse the filename into a
+        Pandas data frame
+        """
+        return pd.read_csv(filename,
+                           skip_blank_lines=True,
+                           comment='#')
+
+    @staticmethod
+    def _check_parsed_input(map_df, link_df, uploaded_datasets):
+        """
+        Checks that the parsed inputs are valid...
+
+        :param map_df: The parsed mapping file
+        :param link_df: The parsed link file
+        :param uploaded_datasets: The datasets uploaded to the server
+        :return: None
+        """
         # check that the datasets match
         map_datasets = set(list(map_df['filename'].unique()))
         link_datasets = set(list(link_df['filename'].unique()))
@@ -169,6 +204,19 @@ class Serene(object):
 
         assert(link_datasets == server_datasets)
 
+    @staticmethod
+    def _build_ssd_map(uploaded_ontologies,
+                       uploaded_datasets,
+                       map_df,
+                       link_df):
+        """
+        Builds the ssd map from the uploaded ontologies and datasets
+        :param uploaded_ontologies: List of uploaded ontologies
+        :param uploaded_datasets: List of uploaded datasets
+        :param map_df: The parsed mapping file
+        :param link_df: The parsed link file
+        :return: A dict of filename -> SSD()
+        """
         ssd_map = {ds.filename: SSD(ds, uploaded_ontologies)
                    for ds in uploaded_datasets}
 
@@ -189,11 +237,7 @@ class Serene(object):
             # now add the links...
             ssd_map[file].link(src, link, dst)
 
-        # now attempt to upload all the ssds..
-        for ssd in ssd_map.values():
-            uploaded_ssds.append(self._ssds.upload(ssd))
-
-        return uploaded_datasets, uploaded_ontologies, uploaded_ssds
+        return ssd_map
 
     @property
     def ontologies(self):

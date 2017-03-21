@@ -533,10 +533,10 @@ octo = sn.octopii.update(octo.add(new_ssd))
 
 print(octo.mappings)
 print()
-print(octo.mappings[DataProperty("Person", "name")])
+print(octo.mappings[DataNode(ClassNode("Person"), "name")])
 print()
 
-person_columns = [col for node, col in octo.mappings.items() if node == DataProperty("Person", "name")]
+person_columns = [col for node, col in octo.mappings.items() if node == DataNode(ClassNode("Person"), "name")]
 
 print(person_columns)
 print()
