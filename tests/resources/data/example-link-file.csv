@@ -1,0 +1,6 @@
+file, src, type, dst
+EmployeeAdddress.csv, Person, livesIn, Place
+getCities.csv, City, state, State
+getEmployees.csv, Person, worksFor, Organization
+postalCodeLookup.csv, City, state, State
+postalCodeLookup.csv, City, isPartOf, Place

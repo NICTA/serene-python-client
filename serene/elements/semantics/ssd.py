@@ -505,7 +505,7 @@ class SSD(object):
 
     def show(self):
         """Displays the SSD"""
-        self._semantic_model.show()
+        self._semantic_model.show(name=self._dataset.filename)
 
 
 class SSDGraph(object):
@@ -735,12 +735,12 @@ class SSDGraph(object):
 
         return self
 
-    def show(self):
+    def show(self, name='source'):
         """
         Prints to the screen and also shows a graphviz visualization.
         :return:
         """
-        SSDVisualizer(self).show()
+        SSDVisualizer(self, name=name).show()
 
     @property
     def graph(self):

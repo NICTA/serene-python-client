@@ -1,0 +1,11 @@
+column, file, class
+name, EmployeeAdddress.csv, Person.name
+address, EmployeeAdddress.csv, Place.name
+postcode, EmployeeAdddress.csv, Place.postalCode
+city, getCities.csv, City.name
+state, getCities.csv, State.name
+employer, getEmployees.csv, Organization.name
+employee, getEmployees.csv, Person.name
+zipcode, postalCodeLookup.csv, Place.postalCode
+city, postalCodeLookup.csv, City.name
+state, postalCodeLookup.csv, State.name

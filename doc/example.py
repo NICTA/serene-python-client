@@ -1,4 +1,80 @@
 """
+
+attr_id,class
+cooling@residential_listing_-_feature_details@house_listing@homeseekers.csv,cooling
+cooling@house_listing@nky.csv,cooling
+ac@house_listing@windermere.csv,cooling
+house_location@house_listing@nky.csv,address
+location@residential_listing_-_basic_features@house_listing@homeseekers.csv,address
+address@house_listing@windermere.csv,address
+house_location@house_listing@yahoo.csv,address
+house_location@house_listing@texas.csv,address
+
+company@file.csv,Organization.name
+ceo@file.csv,Person.name
+file.csv,Organization-ceo-Person
+file.csv,Organization-location-City
+file.csv,Person-livesIn-City
+
+
+business_info_ssd = (sn
+                     .SSD(business_info, ontology, name='business-info')
+                     .map(Column("company"), DataNode(ClassNode("Organization"), "name"))
+                     .map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
+                     .map(Column("city"), DataNode(ClassNode("City"), "name"))
+                     .map(Column("state"), DataNode(ClassNode("State"), "name"))
+                     .link("Organization", "operatesIn", "City")
+                     .link("Organization", "ceo", "Person")
+                     .link("City", "state", "State"))
+
+business_info_ssd.show()
+
+print()
+print("Displaying businessInfo.csv Semantic Source Description (SSD)")
+input("press any key to continue...")
+
+#
+# We also have just a string shorthand...
+#
+
+ontology_file = 'tests/resources/owl/dataintegration_report_ontology.ttl'
+
+datasets = [
+    'tests/resources/data/businessInfo.csv',
+    'tests/resources/data/EmployeeAddresses.csv',
+    'tests/resources/data/getCities.csv',
+    'tests/resources/data/getEmployees.csv',
+    'tests/resources/data/postalCodeLookup.csv',
+]
+
+map_file = tests/resources/data/example-map-file.csv
+
+> cat example-map-file.csv
+
+attr_id, class
+name@EmployeeAdddress.csv, Person.name
+address@EmployeeAdddress.csv, Place.name
+postcode@EmployeeAdddress.csv, Place.postalCode
+getCities.csv@city, City.name
+getCities.csv@state, State.name
+employer@getEmployees.csv, Organization.name
+employee@getEmployees.csv, Person.name
+zipcode@postalCodeLookup.csv, Place.postalCode
+city@postalCodeLookup.csv, City.name
+state@postalCodeLookup.csv, State.name
+
+link_file = tests/resources/data/example-link-file.csv
+
+> cat example-link-file.csv
+
+file, src, type, dst
+EmployeeAdddress.csv, Person, livesIn, Place
+getCities.csv, City, state, State
+getEmployees.csv, Person, worksFor, Organization
+postalCodeLookup.csv, City, state, State
+postalCodeLookup.csv, City, isPartOf, Place
+
+
  input
   Some knowledge about the ontology or where you want to end up...
   /some/junk/test1.csv  - contains columns: name, birth, city, state, workplace

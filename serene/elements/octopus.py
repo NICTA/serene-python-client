@@ -102,6 +102,8 @@ class Octopus(object):
         self._num_bags = self._matcher.num_bags
         self._bag_size = self._matcher.bag_size
 
+        return self
+
     def add(self, value):
         """
         Use this to add a labelled SSD or additional ontology to the local object.
@@ -153,16 +155,16 @@ class Octopus(object):
         def state():
             """Query the server for the model state"""
             json = self._session.octopus_api.item(self.id)
-            self.update(json,
-                        self._session,
-                        self._model_endpoint,
-                        self._ontology_endpoint,
-                        self._ssd_endpoint)
-            return self.state
+            octo = self.update(json,
+                               self._session,
+                               self._model_endpoint,
+                               self._ontology_endpoint,
+                               self._ssd_endpoint)
+            return octo.state
 
         def is_finished():
             """Check if training is finished"""
-            return state().status in {Status.COMPLETE, Status.ERROR}
+            return state()['status'] in {Status.COMPLETE, Status.ERROR}
 
         print("Training model {}...".format(self.id))
         while not is_finished():
@@ -171,7 +173,7 @@ class Octopus(object):
 
         print("Training complete for {}".format(self.id))
         logging.info("Training complete for {}.".format(self.id))
-        return state().status == Status.COMPLETE
+        return state()['status'] == Status.COMPLETE
 
     def predict(self, dataset):
         """Runs a prediction across the `dataset`"""
@@ -181,7 +183,6 @@ class Octopus(object):
             key = int(dataset)
 
         return self._session.octopus_api.predict(self.id, key)
-
 
     @property
     def stored(self):

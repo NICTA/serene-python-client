@@ -2,6 +2,8 @@
 License...
 """
 import logging
+import os
+import pandas as pd
 
 from .api.session import Session
 from .elements import Octopus, SSD
@@ -46,6 +48,10 @@ class Serene(object):
 
         """
         self._session = Session(host, port, auth, cert, trust_env)
+
+        if self._session is None:
+            msg = "Failed to initialize session at {}:{}".format(host, port)
+            raise Exception(msg)
 
         self._datasets = DataSetEndpoint(self._session)
 
@@ -100,6 +106,88 @@ class Serene(object):
             ontologies=ontologies,
             modeling_props=modeling_props
         )
+
+    def load(self, ontology=None, datasets=None, map_file=None, link_file=None):
+        """
+        Load sets up the server with training data from files. The user must specify
+        the list of datasets, the list of ontologies, a map file in the format:
+
+        column,file,class
+        column_name, filename, class.property
+        column_name, filename, class.property
+        column_name, filename, class.property
+
+        and a link file in the following format
+
+        file,src,link,dst
+        filename, source_class, link_label, destination_class
+        filename, source_class, link_label, destination_class
+        filename, source_class, link_label, destination_class
+        filename, source_class, link_label, destination_class
+
+        :param ontology: A list of ontologies, or a single ontology
+        :param datasets: A list of CSV datasets
+        :param map_file: A CSV file with the column - data_node mappings as above
+        :param link_file: A CSV file with the class-class links as above
+        :return: (dataset list, ontology list, ssd list)
+        """
+        if type(ontology) == str:
+            ontology = [ontology]
+
+        uploaded_ontologies = []
+        uploaded_datasets = []
+        uploaded_ssds = []
+
+        # first upload the ontologies...
+        for o in ontology:
+            if not os.path.exists(o):
+                msg = "Ontology {} does not exist."
+                raise ValueError(msg)
+            uploaded_ontologies.append(self._ontologies.upload(o))
+
+        # secondly upload the datasets....
+        for d in datasets:
+            if not os.path.exists(d):
+                msg = "Dataset {} does not exist."
+                raise ValueError(msg)
+            uploaded_datasets.append(self._datasets.upload(d))
+
+        # now build the ssds from the files...
+        map_df = pd.read_csv(map_file)
+        link_df = pd.read_csv(link_file)
+
+        # check that the datasets match
+        map_datasets = set(map_df['file'].unique())
+        link_datasets = set(link_df['file'].unique())
+        server_datasets = set([x.filename for x in uploaded_datasets])
+        assert(map_datasets == server_datasets)
+        assert(link_datasets == server_datasets)
+
+        ssd_map = {ds.filename: SSD(ds, uploaded_ontologies)
+                   for ds in uploaded_datasets}
+
+        # first go through the map file...
+        for _, row in map_df.iterrows():
+            column = row['column']
+            file = row['file']
+            data_node = row['class']
+            # now add the map...
+            ssd_map[file].map(column, data_node)
+
+        # first go through the map file...
+        for _, row in link_df.iterrows():
+            file = row['file']
+            src = row['src']
+            link = row['link']
+            dst = row['dst']
+            # now add the links...
+            ssd_map[file].link(src, link, dst)
+
+        # now attempt to upload all the ssds..
+        for ssd in ssd_map.values():
+            uploaded_ssds.append(self._ssds.upload(ssd))
+
+        return uploaded_datasets, uploaded_ontologies, uploaded_ssds
 
     @property
     def ontologies(self):
