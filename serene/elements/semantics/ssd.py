@@ -374,6 +374,8 @@ class SSD(object):
             # find any match in all ontologies
             try:
                 link = ObjectProperty.search(onto.ilinks, link_target)
+                _logger.debug("Searching in: {}".format(onto.ilinks))
+                _logger.debug("Link search returned: {}".format(link))
             except:
                 continue
             break

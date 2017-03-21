@@ -1,6 +1,16 @@
-file, src, type, dst
-EmployeeAdddress.csv, Person, livesIn, Place
-getCities.csv, City, state, State
-getEmployees.csv, Person, worksFor, Organization
-postalCodeLookup.csv, City, state, State
-postalCodeLookup.csv, City, isPartOf, Place
+filename,src,link,dst
+#
+# links for employee addresses
+#
+EmployeeAddressesSingleName.csv,Person,livesIn,Place
+
+getCities.csv,City,state,State
+
+getEmployees.csv,Person,worksFor,Organization
+
+postalCodeLookup.csv,City,state,State
+postalCodeLookup.csv,City,isPartOf,Place
+
+businessInfo.csv,Organization,operatesIn,City
+businessInfo.csv,Organization,ceo,Person
+businessInfo.csv,City,state,State

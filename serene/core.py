@@ -112,14 +112,14 @@ class Serene(object):
         Load sets up the server with training data from files. The user must specify
         the list of datasets, the list of ontologies, a map file in the format:
 
-        column,file,class
+        column,filename,class
         column_name, filename, class.property
         column_name, filename, class.property
         column_name, filename, class.property
 
         and a link file in the following format
 
-        file,src,link,dst
+        filename,src,link,dst
         filename, source_class, link_label, destination_class
         filename, source_class, link_label, destination_class
         filename, source_class, link_label, destination_class
@@ -141,26 +141,32 @@ class Serene(object):
         # first upload the ontologies...
         for o in ontology:
             if not os.path.exists(o):
-                msg = "Ontology {} does not exist."
+                msg = "Ontology {} does not exist.".format(o)
                 raise ValueError(msg)
             uploaded_ontologies.append(self._ontologies.upload(o))
 
         # secondly upload the datasets....
         for d in datasets:
             if not os.path.exists(d):
-                msg = "Dataset {} does not exist."
+                msg = "Dataset {} does not exist.".format(d)
                 raise ValueError(msg)
             uploaded_datasets.append(self._datasets.upload(d))
 
         # now build the ssds from the files...
-        map_df = pd.read_csv(map_file)
-        link_df = pd.read_csv(link_file)
+        map_df = pd.read_csv(map_file, skip_blank_lines=True, comment='#')
+        link_df = pd.read_csv(link_file, skip_blank_lines=True, comment='#')
 
         # check that the datasets match
-        map_datasets = set(map_df['file'].unique())
-        link_datasets = set(link_df['file'].unique())
+        map_datasets = set(list(map_df['filename'].unique()))
+        link_datasets = set(list(link_df['filename'].unique()))
         server_datasets = set([x.filename for x in uploaded_datasets])
-        assert(map_datasets == server_datasets)
+        if map_datasets != server_datasets:
+            msg = "Map file datasets not equal to server datasets: \n {} \n {}".format(map_datasets, server_datasets)
+            raise Exception(msg)
+        if link_datasets != server_datasets:
+            msg = "Link file datasets not equal to server datasets: \n {} \n {}".format(link_datasets, server_datasets)
+            raise Exception(msg)
+
         assert(link_datasets == server_datasets)
 
         ssd_map = {ds.filename: SSD(ds, uploaded_ontologies)
@@ -169,14 +175,14 @@ class Serene(object):
         # first go through the map file...
         for _, row in map_df.iterrows():
             column = row['column']
-            file = row['file']
+            file = row['filename']
             data_node = row['class']
             # now add the map...
             ssd_map[file].map(column, data_node)
 
         # first go through the map file...
         for _, row in link_df.iterrows():
-            file = row['file']
+            file = row['filename']
             src = row['src']
             link = row['link']
             dst = row['dst']
