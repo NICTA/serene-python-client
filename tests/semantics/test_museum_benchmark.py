@@ -52,12 +52,15 @@ class TestMuseum(TestWithServer):
             ds_name = os.path.splitext(ds)[0]
             ssd_f = os.path.join(self._museum_ssd, ds_name+".ssd")
 
-            _logger.debug("Adding dataset: ", ds_f)
+            _logger.debug("Adding dataset: " + str(ds_f))
             dataset = self._datasets.upload(ds_f, description="museum_benchmark")
 
-            _logger.debug("Adding ssd: ", ssd_f)
+            _logger.debug("Adding ssd: " + str(ssd_f))
             new_json = dataset.bind_ssd(ssd_f, ontologies, KARMA_DEFAULT_NS)
+            _logger.debug("+++++++++++ obtained ssd json")
+            _logger.debug(new_json)
             empty_ssd = SSD(dataset, ontologies)
+            _logger.debug("empty created")
             ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
             self._ssds.upload(ssd)
 

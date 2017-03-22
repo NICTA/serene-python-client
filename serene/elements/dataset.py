@@ -122,18 +122,29 @@ class DataSet(object):
 
         attributes = data["attributes"]
         mappings = data["mappings"]
-        attr_map = {attr["id"]: attr["name"] for attr in attributes}
 
         column_map = {c.name: c.id for c in self.columns}
+        attr_map = {attr["id"]: attr["name"] for attr in attributes}
 
         # change ids in attributes
         for attr in attributes:
-            attr["id"] = column_map[attr["name"]]
-            attr["columnIds"] = [column_map[attr_map[c]] for c in attr["columnIds"]]
+            if attr["name"] not in column_map:
+                logging.warning("Attribute name {} is not in column map".format(attr["name"]))
+                del attr
+            else:
+                attr["id"] = column_map[attr["name"]]
+                attr["columnIds"] = [column_map[attr_map[c]] for c in attr["columnIds"]]
+
+        nodes_to_delete = set()
 
         # change ids in mappings
         for map in mappings:
-            map["attribute"] = column_map[attr_map[map["attribute"]]]
+            if attr_map[map["attribute"]] not in column_map:
+                logging.warning("Deleting attribute {} from mappings".format(attr_map[map["attribute"]]))
+                nodes_to_delete.add(map["node"])
+                del map
+            else:
+                map["attribute"] = column_map[attr_map[map["attribute"]]]
 
         # specify namespaces in nodes and links
         nodes = data["semanticModel"]["nodes"]
@@ -141,9 +152,17 @@ class DataSet(object):
         for node in nodes:
             if "prefix" not in node:
                 node["prefix"] = default_ns
+            if node["id"] in nodes_to_delete:
+                logging.warning("Deleting node {}".format(node["id"]))
+                del node
+
         for link in links:
             if "prefix" not in link:
                 link["prefix"] = default_ns
+
+            if link["source"] in nodes_to_delete or link["target"] in nodes_to_delete:
+                logging.warning("Deleting link {}".format(link["id"]))
+                del link
 
         # specify proper ids of ontologies
         data["ontologies"] = [onto.id for onto in ontologies]
