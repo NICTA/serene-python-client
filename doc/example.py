@@ -112,7 +112,7 @@ import datetime
 import pandas as pd
 import os
 
-from serene import Ontology, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
+from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 
 # We have these datasets:
 #
@@ -213,7 +213,7 @@ if len(ontologies):
     print("Displaying first ontology on the server...")
     ontologies[0].show()
 
-    input("Press enter to continue")
+    # input("Press enter to continue")
 
 # #
 # # The most straightforward way is to upload an OWL file directly...
@@ -229,7 +229,9 @@ if len(ontologies):
 # #
 # # Or if you want to check it first you can do...
 # #
-# local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
+#local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
+#ontology_local = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
+
 #
 # local_ontology.show()
 #
@@ -265,7 +267,7 @@ ontology_local = (
           .link("Event", "organizer", "Person")
           .link("City", "state", "State")
           .link("Person", "worksFor", "Organization"))
-#
+
 # Have a quick look...
 #
 ontology_local.show()
@@ -413,9 +415,9 @@ octo_local = sn.Octopus(
         get_employees_ssd,
         postal_code_ssd
     ],
+    ontologies=[ontology],
     name='octopus-test',
     description='Testing example for places and companies',
-    ontologies=[ontology],
     resampling_strategy="NoResampling",  # optional
     num_bags=100,  # optional
     bag_size=10,  # optional
@@ -483,6 +485,10 @@ octo.train()
 print("Done.")
 print("The final state for {} is {}".format(octo.id, octo.state))
 
+if octo.state.status in {Status.ERROR}:
+    print("Something went wrong. Failed to train the Octopus.")
+    exit()
+
 # =======================
 #
 #  Step 7. Run predictions
@@ -490,14 +496,24 @@ print("The final state for {} is {}".format(octo.id, octo.state))
 # =======================
 
 personal_info = sn.datasets.upload('tests/resources/data/personalInfo.csv')
-predicted = octo.predict(personal_info, candidates=3)
+predicted = octo.predict(personal_info)
 
-for p in predicted:
-    print("Predicted candidate rank", p.score.rank)
-    print("Score:")
-    p.score.show()
-    p.ssd.show()
-    input("Press any key to continue...")
+print("><><><><")
+for k in predicted['predictions']:
+    print(k['score'])
+    print()
+    SSD().update(k['ssd'], sn.datasets, sn.ontologies).show()
+    input("Press enter to continue...")
+print("<<<<<<<<")
+
+print(predicted)
+
+# for p in predicted:
+#     print("Predicted candidate rank", p.score.rank)
+#     print("Score:")
+#     p.score.show()
+#     p.ssd.show()
+#     input("Press any key to continue...")
 
 # the best is number 0!
 predicted_ssd = predicted[0].ssd
@@ -536,7 +552,8 @@ print()
 print(octo.mappings[DataNode(ClassNode("Person"), "name")])
 print()
 
-person_columns = [col for node, col in octo.mappings.items() if node == DataNode(ClassNode("Person"), "name")]
+person_columns = [col for node, col in octo.mappings.items()
+                  if node == DataNode(ClassNode("Person"), "name")]
 
 print(person_columns)
 print()

@@ -158,13 +158,11 @@ class DataSetEndpoint(IdentifiableEndpoint):
         print(self.items)
 
     @property
-    @lru_cache(maxsize=32)
     def columns(self):
         """Returns a dictionary of col_id -> Column() objects"""
-        cols = flatten([c.columns for c in self.items])
+        cols = flatten([ds.columns for ds in self.items])
         return ReadOnlyDict({c.id: c for c in cols})
 
-    @lru_cache(maxsize=32)
     def get(self, key):
         """Get a single dataset at position key"""
         return DataSet(self._api.item(key))
