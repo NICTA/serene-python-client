@@ -49,8 +49,15 @@ class OctopusAPI(HTTPObject):
         uri = self._uri
 
         try:
-            data = self._process_octopus_input(ssds, name, description, feature_config, model_type,
-                                               resampling_strategy, num_bags, bag_size, ontologies,
+            data = self._process_octopus_input(ssds,
+                                               name,
+                                               description,
+                                               feature_config,
+                                               model_type,
+                                               resampling_strategy,
+                                               num_bags,
+                                               bag_size,
+                                               ontologies,
                                                modeling_props)
             r = self.connection.post(uri, json=data)
         except Exception as e:
@@ -95,7 +102,6 @@ class OctopusAPI(HTTPObject):
             data = self._process_octopus_input(ssds, name, description, feature_config, model_type,
                                                resampling_strategy, num_bags, bag_size, ontologies,
                                                modeling_props)
-
             r = self.connection.post(uri, json=data)
         except Exception as e:
             logging.error(e)
