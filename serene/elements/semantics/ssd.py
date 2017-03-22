@@ -447,6 +447,13 @@ class SSD(object):
             msg = "No ontology available in SSD."
             raise Exception(msg)
 
+    def __repr__(self):
+        """Output string"""
+        if self.stored:
+            return "SSD({}, {})".format(self.id, self.name)
+        else:
+            return "SSD(local, {})".format(self.name)
+
     @property
     def class_nodes(self):
         return self._semantic_model.class_nodes

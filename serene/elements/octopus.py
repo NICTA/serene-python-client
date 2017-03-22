@@ -12,6 +12,7 @@ from .semantics.ontology import Ontology
 from .dataset import DataSet
 from ..matcher import Status
 from ..utils import convert_datetime
+from ..matcher import ModelState
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
@@ -93,7 +94,7 @@ class Octopus(object):
         self._matcher = self._model_endpoint.get(self._model_id)
         self._modeling_props = json['modelingProps']
         self._semantic_type_map = json['semanticTypeMap']
-        self._state = json['state']
+        self._state = ModelState(json['state'])
 
         # bring in the implied model types...
         self._feature_config = self._matcher.features
@@ -164,16 +165,18 @@ class Octopus(object):
 
         def is_finished():
             """Check if training is finished"""
-            return state()['status'] in {Status.COMPLETE, Status.ERROR}
+            return state().status in {Status.COMPLETE, Status.ERROR}
 
         print("Training model {}...".format(self.id))
+        iter = 0
         while not is_finished():
-            logging.info("Waiting for the training to complete...")
-            time.sleep(2)  # wait in polling loop
+            print("\rWaiting for the training to complete " + '.'*iter, end='')
+            time.sleep(0.5)  # wait in polling loop
+            iter += 1
 
         print("Training complete for {}".format(self.id))
         logging.info("Training complete for {}.".format(self.id))
-        return state()['status'] == Status.COMPLETE
+        return state().status == Status.COMPLETE
 
     def predict(self, dataset):
         """Runs a prediction across the `dataset`"""
@@ -183,6 +186,13 @@ class Octopus(object):
             key = int(dataset)
 
         return self._session.octopus_api.predict(self.id, key)
+
+    def __repr__(self):
+        """Output string"""
+        if self.stored:
+            return "Octopus({}, {})".format(self.id, self.name)
+        else:
+            return "Octopus(local, {})".format(self.name)
 
     @property
     def stored(self):
