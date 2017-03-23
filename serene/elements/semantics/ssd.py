@@ -521,6 +521,14 @@ class SSD(object):
         """Displays the SSD"""
         self._semantic_model.show(name=self._dataset.filename)
 
+    def __repr__(self):
+        props = "name={}, dataset={}, ontology={}".format(
+            self._name, self._dataset, self._ontology)
+        if self._stored:
+            return "SSD({}, {})".format(self._id, props)
+        else:
+            return "SSD(local, {})".format(props)
+
 
 class SSDGraph(object):
     """
@@ -591,8 +599,9 @@ class SSDGraph(object):
 
         # set the index
         if index is None:
-            index = self._node_id
-            self._node_id += 1
+            # we need to be careful that this node is not in the graph...
+            nodes = self._graph.nodes()
+            index = max(nodes) + 1 if len(nodes) else 0
 
         # add the node into the semantic model
         self._graph.add_node(index, data=node, node_id=index)
@@ -631,8 +640,9 @@ class SSDGraph(object):
 
         # set the index...
         if index is None:
-            index = self._edge_id
-            self._edge_id += 1
+            # we need to be careful that the auto index is not in the graph...
+            edges = [v['edge_id'] for _, _, v in self._graph.edges(data=True)]
+            index = max(edges) + 1 if len(edges) else 0
 
         if i_s not in self._graph.node:
             msg = "Link failed. Could not find source node {} in semantic model".format(i_s)
