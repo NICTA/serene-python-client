@@ -16,7 +16,7 @@ from serene.elements.semantics.ssd import SSD
 from serene.endpoints import (DataSetEndpoint, ModelEndpoint, OctopusEndpoint,
                               OntologyEndpoint, SSDEndpoint)
 from tests.utils import TestWithServer
-
+from serene.api.http import BadRequestError
 
 class TestDataSetEndpoint(TestWithServer):
     """
@@ -241,52 +241,64 @@ class TestOntologyEndpoint(TestWithServer):
         self.assertEqual(len(self._ontologies.items), 0)
 
 
+def initSsdEndpoint(session):
+    result = {}
+    result["datasetEndpoint"] = DataSetEndpoint(session)
+    dataset_path = os.path.join(
+        os.path.dirname(__file__),
+        "resources",
+        "data",
+        "businessInfo.csv")
+    result["dataset"] = result["datasetEndpoint"].upload(dataset_path)
+
+    result["ontologyEndpoint"] = OntologyEndpoint(session)
+    result["ontology"] = result["ontologyEndpoint"].upload(Ontology()
+        .uri("http://www.semanticweb.org/serene/example_ontology")
+        .owl_class("Place", ["name", "postalCode"])
+        .owl_class("City", is_a="Place")
+        .owl_class("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
+        .owl_class("Organization", {"name": str, "phone": int, "email": str})
+        .owl_class("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
+        .owl_class("State", is_a="Place")
+        .link("Person", "bornIn", "Place")
+        .link("Organization", "ceo", "Person")
+        .link("Place", "isPartOf", "Place")
+        .link("Person", "livesIn", "Place")
+        .link("Event", "location", "Place")
+        .link("Organization", "location", "Place")
+        .link("Organization", "operatesIn", "City")
+        .link("Place", "nearby", "Place")
+        .link("Event", "organizer", "Person")
+        .link("City", "state", "State")
+        .link("Person", "worksFor", "Organization"))
+
+    result["ssdEndpoint"] = SSDEndpoint(
+        session,
+        result["datasetEndpoint"],
+        result["ontologyEndpoint"])
+
+    result["localSsd"] = (
+        SSD(result["dataset"], result["ontology"], name="business-info")
+            .map(Column("company"), DataNode(ClassNode("Organization"), "name"))
+            .map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
+            .map(Column("city"), DataNode(ClassNode("City"), "name"))
+            .map(Column("state"), DataNode(ClassNode("State"), "name"))
+            .link("Organization", "operatesIn", "City")
+            .link("Organization", "ceo", "Person")
+            .link("City", "state", "State")
+    )
+
+    return result
+
 class TestSsdEndpoint(TestWithServer):
     def setUp(self):
-        self.datasetEndpoint = DataSetEndpoint(self._session)
-        dataset_path = os.path.join(
-            os.path.dirname(__file__),
-            "resources",
-            "data",
-            "businessInfo.csv")
-        self.dataset = self.datasetEndpoint.upload(dataset_path)
-
-        self.ontologyEndpoint = OntologyEndpoint(self._session)
-        self.ontology = self.ontologyEndpoint.upload(Ontology()
-            .uri("http://www.semanticweb.org/serene/example_ontology")
-            .owl_class("Place", ["name", "postalCode"])
-            .owl_class("City", is_a="Place")
-            .owl_class("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
-            .owl_class("Organization", {"name": str, "phone": int, "email": str})
-            .owl_class("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
-            .owl_class("State", is_a="Place")
-            .link("Person", "bornIn", "Place")
-            .link("Organization", "ceo", "Person")
-            .link("Place", "isPartOf", "Place")
-            .link("Person", "livesIn", "Place")
-            .link("Event", "location", "Place")
-            .link("Organization", "location", "Place")
-            .link("Organization", "operatesIn", "City")
-            .link("Place", "nearby", "Place")
-            .link("Event", "organizer", "Person")
-            .link("City", "state", "State")
-            .link("Person", "worksFor", "Organization"))
-
-        self.ssdEndpoint = SSDEndpoint(
-            self._session,
-            self.datasetEndpoint,
-            self.ontologyEndpoint)
-
-        self.ssd = (
-            SSD(self.dataset, self.ontology, name="business-info")
-                .map(Column("company"), DataNode(ClassNode("Organization"), "name"))
-                .map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
-                .map(Column("city"), DataNode(ClassNode("City"), "name"))
-                .map(Column("state"), DataNode(ClassNode("State"), "name"))
-                .link("Organization", "operatesIn", "City")
-                .link("Organization", "ceo", "Person")
-                .link("City", "state", "State")
-        )
+        init_result = initSsdEndpoint(self._session)
+        self.datasetEndpoint = init_result["datasetEndpoint"]
+        self.dataset = init_result["dataset"]
+        self.ontologyEndpoint = init_result["ontologyEndpoint"]
+        self.ontology = init_result["ontology"]
+        self.ssdEndpoint = init_result["ssdEndpoint"]
+        self.ssd = init_result["localSsd"]
 
     def tearDown(self):
         for item in self.ssdEndpoint.items:
@@ -346,114 +358,83 @@ class TestSsdEndpoint(TestWithServer):
 
         self.assertEqual(len(self.ssdEndpoint.items), 2)
 
+def initOctopusEndpoint(session):
+    result = initSsdEndpoint(session)
+
+    result["ssd"] = result["ssdEndpoint"].upload(result["localSsd"])
+
+    result["modelEndpoint"] = ModelEndpoint(session, result["datasetEndpoint"])
+    result["octopusEndpoint"] = OctopusEndpoint(
+        session,
+        result["datasetEndpoint"],
+        result["modelEndpoint"],
+        result["ontologyEndpoint"],
+        result["ssdEndpoint"])
+
+    result["localOctopus"] = Octopus(
+        ssds=[result["ssd"]],
+        name="octopus test",
+        description="no description for a test",
+        model_type="randomForest",
+        resampling_strategy="NoResampling",
+        num_bags=100,
+        bag_size=10,
+        ontologies=[result["ontology"]],
+        modeling_props={},
+        feature_config={
+            "activeFeatures": [
+                "num-unique-vals",
+                "prop-unique-vals",
+                "prop-missing-vals",
+                "ratio-alpha-chars",
+                "prop-numerical-chars",
+                "prop-whitespace-chars",
+                "prop-entries-with-at-sign",
+                "prop-entries-with-hyphen",
+                "prop-range-format",
+                "is-discrete",
+                "entropy-for-discrete-values"
+            ],
+            "activeFeatureGroups": [
+                "inferred-data-type",
+                "stats-of-text-length",
+                "stats-of-numeric-type",
+                "prop-instances-per-class-in-knearestneighbours",
+                "mean-character-cosine-similarity-from-class-examples",
+                "min-editdistance-from-class-examples",
+                "min-wordnet-jcn-distance-from-class-examples",
+                "min-wordnet-lin-distance-from-class-examples"
+            ],
+            "featureExtractorParams": [
+                {
+                    "name": "prop-instances-per-class-in-knearestneighbours",
+                    "num-neighbours": 3
+                }, {
+                    "name": "min-editdistance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-jcn-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-lin-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }
+            ]
+        }
+    )
+
+    return result
+
 
 class TestOctopusEndpoint(TestWithServer):
     def setUp(self):
-        self.datasetEndpoint = DataSetEndpoint(self._session)
-        dataset_path = os.path.join(
-            os.path.dirname(__file__),
-            "resources",
-            "data",
-            "businessInfo.csv")
-        self.dataset = self.datasetEndpoint.upload(dataset_path)
-
-        self.ontologyEndpoint = OntologyEndpoint(self._session)
-        self.ontology = self.ontologyEndpoint.upload(Ontology()
-            .uri("http://www.semanticweb.org/serene/example_ontology")
-            .owl_class("Place", ["name", "postalCode"])
-            .owl_class("City", is_a="Place")
-            .owl_class("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
-            .owl_class("Organization", {"name": str, "phone": int, "email": str})
-            .owl_class("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
-            .owl_class("State", is_a="Place")
-            .link("Person", "bornIn", "Place")
-            .link("Organization", "ceo", "Person")
-            .link("Place", "isPartOf", "Place")
-            .link("Person", "livesIn", "Place")
-            .link("Event", "location", "Place")
-            .link("Organization", "location", "Place")
-            .link("Organization", "operatesIn", "City")
-            .link("Place", "nearby", "Place")
-            .link("Event", "organizer", "Person")
-            .link("City", "state", "State")
-            .link("Person", "worksFor", "Organization"))
-
-        self.ssdEndpoint = SSDEndpoint(
-            self._session,
-            self.datasetEndpoint,
-            self.ontologyEndpoint)
-
-        self.ssd = self.ssdEndpoint.upload(
-            SSD(self.dataset, self.ontology, name="business-info")
-                .map(Column("company"), DataNode(ClassNode("Organization"), "name"))
-                .map(Column("ceo"), DataNode(ClassNode("Person"), "name"))
-                .map(Column("city"), DataNode(ClassNode("City"), "name"))
-                .map(Column("state"), DataNode(ClassNode("State"), "name"))
-                .link("Organization", "operatesIn", "City")
-                .link("Organization", "ceo", "Person")
-                .link("City", "state", "State")
-        )
-
-        self.modelEndpoint = ModelEndpoint(
-            self._session, self.datasetEndpoint)
-        self.octopusEndpoint = OctopusEndpoint(
-            self._session,
-            self.datasetEndpoint,
-            self.modelEndpoint,
-            self.ontologyEndpoint,
-            self.ssdEndpoint)
-
-        self.octopus = Octopus(
-            ssds=[self.ssd],
-            name="octopus test",
-            description="no description for a test",
-            model_type="randomForest",
-            resampling_strategy="NoResampling",
-            num_bags=100,
-            bag_size=10,
-            ontologies=[self.ontology],
-            modeling_props={},
-            feature_config={
-                "activeFeatures": [
-                    "num-unique-vals",
-                    "prop-unique-vals",
-                    "prop-missing-vals",
-                    "ratio-alpha-chars",
-                    "prop-numerical-chars",
-                    "prop-whitespace-chars",
-                    "prop-entries-with-at-sign",
-                    "prop-entries-with-hyphen",
-                    "prop-range-format",
-                    "is-discrete",
-                    "entropy-for-discrete-values"
-                ],
-                "activeFeatureGroups": [
-                    "inferred-data-type",
-                    "stats-of-text-length",
-                    "stats-of-numeric-type",
-                    "prop-instances-per-class-in-knearestneighbours",
-                    "mean-character-cosine-similarity-from-class-examples",
-                    "min-editdistance-from-class-examples",
-                    "min-wordnet-jcn-distance-from-class-examples",
-                    "min-wordnet-lin-distance-from-class-examples"
-                ],
-                "featureExtractorParams": [
-                    {
-                        "name": "prop-instances-per-class-in-knearestneighbours",
-                        "num-neighbours": 3
-                    }, {
-                        "name": "min-editdistance-from-class-examples",
-                        "max-comparisons-per-class": 3
-                    }, {
-                        "name": "min-wordnet-jcn-distance-from-class-examples",
-                        "max-comparisons-per-class": 3
-                    }, {
-                        "name": "min-wordnet-lin-distance-from-class-examples",
-                        "max-comparisons-per-class": 3
-                    }
-                ]
-            }
-        )
+        init_result = initOctopusEndpoint(self._session)
+        self.ssdEndpoint = init_result["ssdEndpoint"]
+        self.ontologyEndpoint = init_result["ontologyEndpoint"]
+        self.datasetEndpoint = init_result["datasetEndpoint"]
+        self.modelEndpoint = init_result["modelEndpoint"]
+        self.octopusEndpoint = init_result["octopusEndpoint"]
+        self.octopus = init_result["localOctopus"]
 
     def tearDown(self):
         for item in self.octopusEndpoint.items:
@@ -514,18 +495,56 @@ class TestOctopusEndpoint(TestWithServer):
 
         self.assertEqual(len(self.octopusEndpoint.items), 2)
 
+
 class TestModelEndpoint(TestWithServer):
+    def setUp(self):
+        init_result = initOctopusEndpoint(self._session)
+        self.ssdEndpoint = init_result["ssdEndpoint"]
+        self.ontologyEndpoint = init_result["ontologyEndpoint"]
+        self.datasetEndpoint = init_result["datasetEndpoint"]
+        self.modelEndpoint = init_result["modelEndpoint"]
+        self.octopusEndpoint = init_result["octopusEndpoint"]
+        self.octopus = self.octopusEndpoint.upload(init_result["localOctopus"])
+
+    def tearDown(self):
+        for item in self.octopusEndpoint.items:
+            self.octopusEndpoint.remove(item)
+
+        for item in self.ssdEndpoint.items:
+            self.ssdEndpoint.remove(item)
+
+        for item in self.ontologyEndpoint.items:
+            self.ontologyEndpoint.remove(item)
+
+        for item in self.datasetEndpoint.items:
+            self.datasetEndpoint.remove(item)
+
+        for item in self.modelEndpoint.items:
+            self.modelEndpoint.remove(item)
+
     def test_remove(self):
-        pass
+        def remove():
+            self.modelEndpoint.remove(self.octopus.matcher_id)
+
+        self.assertRaises(BadRequestError, remove)
 
     def test_show(self):
-        pass
+        output = StringIO()
+        sys_stdout = sys.stdout
+        sys.stdout = output
+        try:
+            self.modelEndpoint.show()
+        finally:
+            sys.stdout = sys_stdout
+
+        # This raises NotFoundError
+        self.assertGreater(len(output.getvalue()), 0)
 
     def test_get(self):
-        pass
+        model = self.modelEndpoint.get(self.octopus.matcher_id)
+
+        self.assertEqual(model.id, self.octopus.matcher_id)
 
     def test_items(self):
-        pass
-
-    def test_(self):
-        pass
+        # This raises NotFoundError
+        self.assertEqual(len(self.modelEndpoint.items), 1)
