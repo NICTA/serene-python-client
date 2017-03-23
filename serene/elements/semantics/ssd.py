@@ -511,6 +511,14 @@ class SSD(object):
         """Displays the SSD"""
         self._semantic_model.show(name=self._dataset.filename)
 
+    def __repr__(self):
+        props = "name={}, dataset={}, ontology={}".format(
+            self._name, self._dataset, self._ontology)
+        if self._stored:
+            return "SSD({}, {})".format(self._id, props)
+        else:
+            return "SSD(local, {})".format(props)
+
 
 class SSDGraph(object):
     """
