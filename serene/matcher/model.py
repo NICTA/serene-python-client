@@ -117,6 +117,7 @@ class Model(object):
 
         self.PREDICT_KEYS = [
             "column_id",
+            "column_name",
             "confidence",
             "dataset_id",
             "model_id",
@@ -370,12 +371,17 @@ class Model(object):
         df = pd.DataFrame(table)
 
         # now we add the user labels
-        return pd.merge(
+        final = pd.merge(
             df,
             self.labels[['column_id', 'user_label']],
             on='column_id',
             how='left'
         )
+
+        final['column_name'] = final['column_id'].apply(
+            lambda col_id: self._column_lookup[col_id].name)
+
+        return final
 
     def _flat_predict(self, json):
         """
@@ -421,7 +427,7 @@ class Model(object):
         datasetID = json['dataSetID']
         modelID = json['modelID']
 
-        # next drop the key into a "columnID":key inside the child dict
+        # next drop the key into a "columnID":key inside the child dictionary
         dlist = [update(d, "column_id", int(k)) for k, d in json['predictions'].items()]
 
         # we now want to flatten the nested items
@@ -439,6 +445,7 @@ class Model(object):
         for d in final:
             for k, v in d.items():
                 table[k].append(v)
+
         return table
 
     def _flatten(self, d, parent_key='', sep='_'):

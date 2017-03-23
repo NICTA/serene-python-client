@@ -230,7 +230,7 @@ if len(ontologies):
 # # Or if you want to check it first you can do...
 # #
 #local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
-#ontology_local = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
+ontology_local = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
 
 #
 # local_ontology.show()
@@ -247,26 +247,26 @@ if len(ontologies):
 #
 # Or you can build one programmatically
 #
-ontology_local = (
-    serene.Ontology()
-          .uri("http://www.semanticweb.org/serene/example_ontology")
-          .owl_class("Place", ["name", "postalCode"])
-          .owl_class("City", is_a="Place")
-          .owl_class("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
-          .owl_class("Organization", {"name": str, "phone": int, "email": str})
-          .owl_class("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
-          .owl_class("State", is_a="Place")
-          .link("Person", "bornIn", "Place")
-          .link("Organization", "ceo", "Person")
-          .link("Place", "isPartOf", "Place")
-          .link("Person", "livesIn", "Place")
-          .link("Event", "location", "Place")
-          .link("Organization", "location", "Place")
-          .link("Organization", "operatesIn", "City")
-          .link("Place", "nearby", "Place")
-          .link("Event", "organizer", "Person")
-          .link("City", "state", "State")
-          .link("Person", "worksFor", "Organization"))
+# ontology_local = (
+#     serene.Ontology()
+#           .uri("http://www.semanticweb.org/serene/example_ontology")
+#           .owl_class("Place", ["name", "postalCode"])
+#           .owl_class("City", is_a="Place")
+#           .owl_class("Person", {"name": str, "phone": int, "birthDate": datetime.datetime})
+#           .owl_class("Organization", {"name": str, "phone": int, "email": str})
+#           .owl_class("Event", {"startDate": datetime.datetime, "endDate": datetime.datetime})
+#           .owl_class("State", is_a="Place")
+#           .link("Person", "bornIn", "Place")
+#           .link("Organization", "ceo", "Person")
+#           .link("Place", "isPartOf", "Place")
+#           .link("Person", "livesIn", "Place")
+#           .link("Event", "location", "Place")
+#           .link("Organization", "location", "Place")
+#           .link("Organization", "operatesIn", "City")
+#           .link("Place", "nearby", "Place")
+#           .link("Event", "organizer", "Person")
+#           .link("City", "state", "State")
+#           .link("Person", "worksFor", "Organization"))
 
 # Have a quick look...
 #
@@ -280,7 +280,7 @@ ontology_local.to_turtle(os.path.join(owl_path, 'test.ttl'))
 #
 print()
 print("Displaying local ontology...")
-input("Press enter to continue...")
+# input("Press enter to continue...")
 
 #
 # If ok, we can upload this to the server as well...
@@ -326,7 +326,7 @@ business_info_ssd.show()
 
 print()
 print("Displaying businessInfo.csv Semantic Source Description (SSD)")
-input("press any key to continue...")
+# input("press any key to continue...")
 
 #
 # We also have just a string shorthand...
@@ -342,7 +342,7 @@ employee_address_ssd.show()
 
 print()
 print("Displaying EmployeeAdddress.csv Semantic Source Description (SSD)")
-input("press any key to continue...")
+# input("press any key to continue...")
 
 get_cities_ssd = (sn
                   .SSD(get_cities, ontology, name='cities')
@@ -354,7 +354,7 @@ get_cities_ssd.show()
 
 print()
 print("Displaying getCities.csv Semantic Source Description (SSD)")
-input("press any key to continue...")
+# input("press any key to continue...")
 
 get_employees_ssd = (sn
                      .SSD(get_employees, ontology, name='employees')
@@ -367,7 +367,7 @@ get_employees_ssd.show()
 
 print()
 print("Displaying getEmployees.csv Semantic Source Description (SSD)")
-input("press any key to continue...")
+# input("press any key to continue...")
 
 postal_code_ssd = (sn
                    .SSD(postal_code, ontology, name='postal-code')
@@ -381,7 +381,7 @@ postal_code_ssd.show()
 
 print()
 print("Displaying postalCodeLookup.csv Semantic Source Description (SSD)")
-input("press any key to continue...")
+# input("press any key to continue...")
 
 postal_code_ssd2 = (sn
                     .SSD(postal_code, ontology, name='postal-code')
@@ -498,25 +498,22 @@ if octo.state.status in {Status.ERROR}:
 personal_info = sn.datasets.upload('tests/resources/data/personalInfo.csv')
 predicted = octo.predict(personal_info)
 
-print("><><><><")
-for k in predicted['predictions']:
-    print(k['score'])
-    print()
-    SSD().update(k['ssd'], sn.datasets, sn.ontologies).show()
-    input("Press enter to continue...")
-print("<<<<<<<<")
+print()
+print("Predicted schema matcher results::")
+print()
+schema_results = octo.matcher_predict(personal_info)
+print(schema_results)
 
-print(predicted)
 
-# for p in predicted:
-#     print("Predicted candidate rank", p.score.rank)
-#     print("Score:")
-#     p.score.show()
-#     p.ssd.show()
-#     input("Press any key to continue...")
+print()
+print("Predicted results::")
+print()
+for pred in predicted:
+    print(pred.score)
+    pred.ssd.show()
+    #input("Press enter to continue...")
 
-# the best is number 0!
-predicted_ssd = predicted[0].ssd
+
 
 # =======================
 #
@@ -524,11 +521,25 @@ predicted_ssd = predicted[0].ssd
 #
 # =======================
 
-predicted_ssd.remove(Mapping(Column("name"), DataProperty("Place", "name")))
-predicted_ssd = predicted_ssd.map(Column("name"), DataProperty("Person", "name"))
+print("the best is number 0!")
+print("Fixing birthdate column")
 
+predicted_ssd = predicted[0].ssd
 predicted_ssd.show()
 
+print("Showing first guess...")
+input("Press any key to continue...")
+
+predicted_ssd.remove(Column("birthDate"))
+predicted_ssd.show()
+
+print("Removing birth date assignment")
+input("Press any key to continue...")
+
+predicted_ssd.map(Column("birthDate"), DataNode(ClassNode("Person"), "birthDate"))
+predicted_ssd.show()
+
+print("Adding correct birthdate node")
 input("Press any key to continue...")
 
 # =======================
@@ -539,7 +550,7 @@ input("Press any key to continue...")
 
 new_ssd = sn.ssds.upload(predicted_ssd)
 
-octo = sn.octopii.update(octo.add(new_ssd))
+#octo = sn.octopii.update(octo.add(new_ssd))
 
 # =======================
 #
