@@ -61,7 +61,7 @@ class Serene(object):
 
         self._models = ModelEndpoint(self._session, self._datasets)
 
-        self._octopii = OctopusEndpoint(self._session, self._models, self._ontologies, self._ssds)
+        self._octopii = OctopusEndpoint(self._session, self._datasets, self._models, self._ontologies, self._ssds)
 
     def SSD(self, dataset, ontology, name):
         """

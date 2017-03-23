@@ -370,7 +370,6 @@ class SSDEndpoint(IdentifiableEndpoint):
         :return:
         """
         super().__init__()
-        #self._api = parent.session.ssd
         self._api = session.ssd_api
         self._session = session
         self._base_type = SSD
@@ -408,10 +407,6 @@ class SSDEndpoint(IdentifiableEndpoint):
         :return:
         """
         assert(issubclass(type(ssd), SSD))
-
-        # # test file
-        # with open('test.json', 'w') as f:
-        #     f.write(ssd.json)
 
         response = self._api.post(ssd.json)
 
@@ -465,12 +460,13 @@ class OctopusEndpoint(IdentifiableEndpoint):
     :param object:
     :return:
     """
-    def __init__(self, session, model_endpoint, ontology_endpoint, ssd_endpoint):
+    def __init__(self, session, dataset_endpoint, model_endpoint, ontology_endpoint, ssd_endpoint):
         """
         Initializes the Octopus endpoint, using a session object
         to populate the SSD and Ontology objects
 
         :param session: The current live session to communicate with the server
+        :param dataset_endpoint: The session Endpoint object for the datasets
         :param model_endpoint: The session Endpoint object for the models
         :param ontology_endpoint: The session Endpoint object for the ontologies
         :param ssd_endpoint: The session Endpoint object for the ssd
@@ -480,6 +476,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
         self._api = session.octopus_api
         self._session = session
         self._base_type = Octopus
+        self._dataset_endpoint = dataset_endpoint
         self._model_endpoint = model_endpoint
         self._ontology_endpoint = ontology_endpoint
         self._ssd_endpoint = ssd_endpoint
@@ -520,6 +517,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
 
         return octopus.update(response,
                               self._session,
+                              self._dataset_endpoint,
                               self._model_endpoint,
                               self._ontology_endpoint,
                               self._ssd_endpoint)
@@ -559,6 +557,7 @@ class OctopusEndpoint(IdentifiableEndpoint):
             blob = self._api.item(k)
             o = Octopus().update(blob,
                                  self._session,
+                                 self._dataset_endpoint,
                                  self._model_endpoint,
                                  self._ontology_endpoint,
                                  self._ssd_endpoint)
