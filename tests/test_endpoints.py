@@ -398,6 +398,7 @@ class TestOctopusEndpoint(TestWithServer):
             self._session, self.datasetEndpoint)
         self.octopusEndpoint = OctopusEndpoint(
             self._session,
+            self.datasetEndpoint,
             self.modelEndpoint,
             self.ontologyEndpoint,
             self.ssdEndpoint)
