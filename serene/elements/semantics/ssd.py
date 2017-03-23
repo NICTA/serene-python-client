@@ -447,6 +447,13 @@ class SSD(object):
             msg = "No ontology available in SSD."
             raise Exception(msg)
 
+    def __repr__(self):
+        """Output string"""
+        if self.stored:
+            return "SSD({}, {})".format(self.id, self.name)
+        else:
+            return "SSD(local, {})".format(self.name)
+
     @property
     def class_nodes(self):
         return self._semantic_model.class_nodes
@@ -589,8 +596,9 @@ class SSDGraph(object):
 
         # set the index
         if index is None:
-            index = self._node_id
-            self._node_id += 1
+            # we need to be careful that this node is not in the graph...
+            nodes = self._graph.nodes()
+            index = max(nodes) + 1 if len(nodes) else 0
 
         # add the node into the semantic model
         self._graph.add_node(index, data=node, node_id=index)
@@ -629,8 +637,9 @@ class SSDGraph(object):
 
         # set the index...
         if index is None:
-            index = self._edge_id
-            self._edge_id += 1
+            # we need to be careful that the auto index is not in the graph...
+            edges = [v['edge_id'] for _, _, v in self._graph.edges(data=True)]
+            index = max(edges) + 1 if len(edges) else 0
 
         if i_s not in self._graph.node:
             msg = "Link failed. Could not find source node {} in semantic model".format(i_s)
