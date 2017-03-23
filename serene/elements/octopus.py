@@ -16,7 +16,12 @@ from ..matcher import ModelState
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
-
+# # create console handler
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.WARN)
+# formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+# ch.setFormatter(formatter)
+# _logger.addHandler(ch)
 
 class Octopus(object):
     """

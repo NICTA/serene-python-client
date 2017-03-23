@@ -1,1 +1,152 @@
-{"id":1920049276,"name":"s09-s-18-artists.json","attributes":[{"id":36298,"name":"birthDate","label":"identity","columnIds":[36298],"sql":"not implemented"},{"id":35871,"name":"values","label":"identity","columnIds":[35871],"sql":"not implemented"},{"id":35864,"name":"values","label":"identity","columnIds":[35864],"sql":"not implemented"},{"id":36285,"name":"deathDate","label":"identity","columnIds":[36285],"sql":"not implemented"}],"ontologies":[0,5,10,1,6,9,2,7,3,8,4],"semanticModel":{"nodes":[{"id":4,"label":"Person.dateOfDeath","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":2,"label":"Person.biographicalInformation","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":3,"label":"Person.nameOfThePerson","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":1,"label":"Person.dateOfBirth","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":0,"label":"Person","type":"ClassNode","status":"Normal","prefix":"http://www.americanartcollaborative.org/ontology/"}],"links":[{"id":3,"source":0,"target":4,"label":"dateOfDeath","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"},{"id":0,"source":0,"target":1,"label":"dateOfBirth","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"},{"id":1,"source":0,"target":2,"label":"biographicalInformation","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"},{"id":2,"source":0,"target":3,"label":"nameOfThePerson","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"}]},"mappings":[{"attribute":35864,"node":3},{"attribute":35871,"node":2},{"attribute":36285,"node":4},{"attribute":36298,"node":1}],"dateCreated":"2017-03-21T18:29:30.691","dateModified":"2017-03-21T18:29:30.691"}
+{
+    "attributes": [
+        {
+            "columnIds": [
+                36298
+            ],
+            "id": 36298,
+            "label": "identity",
+            "name": "birthDate",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                124062999
+            ],
+            "id": 124062999,
+            "label": "identity",
+            "name": "biography",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1580610404
+            ],
+            "id": 1580610404,
+            "label": "identity",
+            "name": "name",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                36285
+            ],
+            "id": 36285,
+            "label": "identity",
+            "name": "deathDate",
+            "sql": "not implemented"
+        }
+    ],
+    "dateCreated": "2017-03-21T18:29:30.691",
+    "dateModified": "2017-03-21T18:29:30.691",
+    "id": 1920049276,
+    "mappings": [
+        {
+            "attribute": 1580610404,
+            "node": 3
+        },
+        {
+            "attribute": 124062999,
+            "node": 2
+        },
+        {
+            "attribute": 36285,
+            "node": 4
+        },
+        {
+            "attribute": 36298,
+            "node": 1
+        }
+    ],
+    "name": "s09-s-18-artists.json",
+    "ontologies": [
+        0,
+        5,
+        10,
+        1,
+        6,
+        9,
+        2,
+        7,
+        3,
+        8,
+        4
+    ],
+    "semanticModel": {
+        "links": [
+            {
+                "id": 3,
+                "label": "dateOfDeath",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 4,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 0,
+                "label": "dateOfBirth",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 1,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 1,
+                "label": "biographicalInformation",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 2,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 2,
+                "label": "nameOfThePerson",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 3,
+                "type": "DataPropertyLink"
+            }
+        ],
+        "nodes": [
+            {
+                "id": 4,
+                "label": "Person.dateOfDeath",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 2,
+                "label": "Person.biographicalInformation",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "Person.nameOfThePerson",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 1,
+                "label": "Person.dateOfBirth",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 0,
+                "label": "Person",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "status": "Normal",
+                "type": "ClassNode"
+            }
+        ]
+    }
+}

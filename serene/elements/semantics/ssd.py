@@ -24,7 +24,6 @@ from serene.visualizers import SSDVisualizer
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
 
-
 class SSD(object):
     """
         Semantic source description is the translator between a DataSet

@@ -1,1 +1,329 @@
-{"id":1710409772,"name":"s29-gilcrease.csv","attributes":[{"id":172004,"name":"Classification","label":"identity","columnIds":[172004],"sql":"not implemented"},{"id":172000,"name":"ObjectID","label":"identity","columnIds":[172000],"sql":"not implemented"},{"id":172001,"name":"Object Number","label":"identity","columnIds":[172001],"sql":"not implemented"},{"id":172010,"name":"Title","label":"identity","columnIds":[172010],"sql":"not implemented"},{"id":172011,"name":"Dated","label":"identity","columnIds":[172011],"sql":"not implemented"},{"id":172014,"name":"Dimensions","label":"identity","columnIds":[172014],"sql":"not implemented"},{"id":172013,"name":"Medium","label":"identity","columnIds":[172013],"sql":"not implemented"},{"id":172008,"name":"Alpha Sort","label":"identity","columnIds":[172008],"sql":"not implemented"},{"id":172015,"name":"Description","label":"identity","columnIds":[172015],"sql":"not implemented"}],"ontologies":[0,5,10,1,6,9,2,7,3,8,4],"semanticModel":{"nodes":[{"id":10,"label":"Person.nameOfThePerson","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":7,"label":"CulturalHeritageObject.created","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":11,"label":"CulturalHeritageObject.description","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":0,"label":"CulturalHeritageObject","type":"ClassNode","status":"Normal","prefix":"http://www.americanartcollaborative.org/ontology/"},{"id":2,"label":"Concept","type":"ClassNode","status":"Normal","prefix":"http://www.w3.org/2008/05/skos#"},{"id":1,"label":"Person","type":"ClassNode","status":"Normal","prefix":"http://www.americanartcollaborative.org/ontology/"},{"id":4,"label":"CulturalHeritageObject.objectId","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":5,"label":"CulturalHeritageObject.accessionNumber","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":8,"label":"CulturalHeritageObject.extent","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":6,"label":"CulturalHeritageObject.title","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":3,"label":"Concept.prefLabel","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":9,"label":"CulturalHeritageObject.medium","type":"DataNode","status":"ForcedByUser","prefix":""}],"links":[{"id":2,"source":2,"target":3,"label":"prefLabel","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://www.w3.org/2008/05/skos#"},{"id":9,"source":1,"target":10,"label":"nameOfThePerson","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"},{"id":5,"source":0,"target":6,"label":"title","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":7,"source":0,"target":8,"label":"extent","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":6,"source":0,"target":7,"label":"created","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":0,"source":0,"target":1,"label":"creator","type":"ObjectPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":3,"source":0,"target":4,"label":"objectId","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://www.americanartcollaborative.org/ontology/"},{"id":4,"source":0,"target":5,"label":"accessionNumber","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://www.americanartcollaborative.org/ontology/"},{"id":1,"source":0,"target":2,"label":"hasType","type":"ObjectPropertyLink","status":"ForcedByUser","prefix":"http://www.europeana.eu/schemas/edm/"},{"id":10,"source":0,"target":11,"label":"description","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":8,"source":0,"target":9,"label":"medium","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"}]},"mappings":[{"attribute":172000,"node":4},{"attribute":172001,"node":5},{"attribute":172004,"node":3},{"attribute":172008,"node":10},{"attribute":172010,"node":6},{"attribute":172011,"node":7},{"attribute":172013,"node":9},{"attribute":172014,"node":8},{"attribute":172015,"node":11}],"dateCreated":"2017-03-21T18:29:30.682","dateModified":"2017-03-21T18:29:30.682"}
+{
+    "attributes": [
+        {
+            "columnIds": [
+                1992960967
+            ],
+            "id": 1992960967,
+            "label": "identity",
+            "name": "Classification",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                787358635
+            ],
+            "id": 787358635,
+            "label": "identity",
+            "name": "ObjectID",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1449651839
+            ],
+            "id": 1449651839,
+            "label": "identity",
+            "name": "ObjectNumber",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                616922887
+            ],
+            "id": 616922887,
+            "label": "identity",
+            "name": "Title",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                203867336
+            ],
+            "id": 203867336,
+            "label": "identity",
+            "name": "Dated",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                663595246
+            ],
+            "id": 663595246,
+            "label": "identity",
+            "name": "Dimensions",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                489759016
+            ],
+            "id": 489759016,
+            "label": "identity",
+            "name": "Medium",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1982309242
+            ],
+            "id": 1982309242,
+            "label": "identity",
+            "name": "AlphaSort",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1177582756
+            ],
+            "id": 1177582756,
+            "label": "identity",
+            "name": "Description",
+            "sql": "not implemented"
+        }
+    ],
+    "dateCreated": "2017-03-21T18:29:30.682",
+    "dateModified": "2017-03-21T18:29:30.682",
+    "id": 1710409772,
+    "mappings": [
+        {
+            "attribute": 787358635,
+            "node": 4
+        },
+        {
+            "attribute": 1449651839,
+            "node": 5
+        },
+        {
+            "attribute": 1992960967,
+            "node": 3
+        },
+        {
+            "attribute": 1982309242,
+            "node": 10
+        },
+        {
+            "attribute": 616922887,
+            "node": 6
+        },
+        {
+            "attribute": 203867336,
+            "node": 7
+        },
+        {
+            "attribute": 489759016,
+            "node": 9
+        },
+        {
+            "attribute": 663595246,
+            "node": 8
+        },
+        {
+            "attribute": 1177582756,
+            "node": 11
+        }
+    ],
+    "name": "s29-gilcrease.csv",
+    "ontologies": [
+        0,
+        5,
+        10,
+        1,
+        6,
+        9,
+        2,
+        7,
+        3,
+        8,
+        4
+    ],
+    "semanticModel": {
+        "links": [
+            {
+                "id": 2,
+                "label": "prefLabel",
+                "prefix": "http://www.w3.org/2008/05/skos#",
+                "source": 2,
+                "status": "ForcedByUser",
+                "target": 3,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 9,
+                "label": "nameOfThePerson",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 1,
+                "status": "ForcedByUser",
+                "target": 10,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 5,
+                "label": "title",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 6,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 7,
+                "label": "extent",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 8,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 6,
+                "label": "created",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 7,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 0,
+                "label": "creator",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 1,
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 3,
+                "label": "objectId",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 4,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 4,
+                "label": "accessionNumber",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 5,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 1,
+                "label": "hasType",
+                "prefix": "http://www.europeana.eu/schemas/edm/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 2,
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 10,
+                "label": "description",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 11,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 8,
+                "label": "medium",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 9,
+                "type": "DataPropertyLink"
+            }
+        ],
+        "nodes": [
+            {
+                "id": 10,
+                "label": "Person.nameOfThePerson",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 7,
+                "label": "CulturalHeritageObject.created",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 11,
+                "label": "CulturalHeritageObject.description",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 0,
+                "label": "CulturalHeritageObject",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "status": "Normal",
+                "type": "ClassNode"
+            },
+            {
+                "id": 2,
+                "label": "Concept",
+                "prefix": "http://www.w3.org/2008/05/skos#",
+                "status": "Normal",
+                "type": "ClassNode"
+            },
+            {
+                "id": 1,
+                "label": "Person",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "status": "Normal",
+                "type": "ClassNode"
+            },
+            {
+                "id": 4,
+                "label": "CulturalHeritageObject.objectId",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 5,
+                "label": "CulturalHeritageObject.accessionNumber",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 8,
+                "label": "CulturalHeritageObject.extent",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 6,
+                "label": "CulturalHeritageObject.title",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "Concept.prefLabel",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 9,
+                "label": "CulturalHeritageObject.medium",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            }
+        ]
+    }
+}

@@ -85,7 +85,8 @@ class TestSSDJson(TestWithServer):
 
         empty_ssd = SSD(dataset, [ontology])
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        # pprint(ssd.json)
+        pprint(ssd.json)
+        self.fail()
 
         self.assertEqual(len(ssd.class_nodes), 4)
         self.assertEqual(len(ssd.data_nodes), 4)
