@@ -12,9 +12,60 @@ from .semantics.ontology import Ontology
 from .dataset import DataSet
 from ..matcher import Status
 from ..utils import convert_datetime
+from ..matcher import ModelState
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
+
+
+class OctopusScore(object):
+    """
+    The score object from the prediction
+    """
+    def __init__(self, json):
+        """Converts the json blob to the score values"""
+        # karma score values
+        self.sizeReduction = json['sizeReduction']
+        self.nodeConfidence = json['nodeConfidence']
+        self.nodeCoherence = json['nodeCoherence']
+        self.linkCoherence = json['linkCoherence']
+        self.linkCost = json['linkCost']
+
+        # weighted average of sizeReduction, nodeConfidence, nodeCoherence
+        self.karmaScore = json['karmaScore']
+
+        # order using all karma score values...
+        self.karmaRank = json['karmaRank']
+
+        # additional scores: percentage of original columns included in semantic model
+        self.nodeCoverage = json['nodeCoverage']
+
+    def __repr__(self):
+        """Output string"""
+        base = "Score(rank={:d}, score={:.2f}, confidence={:.2f}, coverage={:.2f})"
+        return base.format(
+            self.karmaRank,
+            self.karmaScore,
+            self.nodeConfidence,
+            self.nodeCoverage)
+
+
+class SSDResult(object):
+    """Octopus Prediction result object"""
+    def __init__(self, ssd, score):
+        self._score = score
+        self._ssd = ssd
+
+    @property
+    def score(self):
+        return self._score
+
+    @property
+    def ssd(self):
+        return self._ssd
+
+    def __repr__(self):
+        return "SSDResult({})".format(self.score.karmaRank)
 
 
 class Octopus(object):
@@ -67,13 +118,15 @@ class Octopus(object):
         self._state = None
 
         self._session = None
+        self._dataset_endpoint = None
         self._model_endpoint = None
         self._ontology_endpoint = None
         self._ssd_endpoint = None
 
-    def update(self, json, session, model_endpoint, ontology_endpoint, ssd_endpoint):
+    def update(self, json, session, dataset_endpoint, model_endpoint, ontology_endpoint, ssd_endpoint):
         """Update the object using json..."""
         self._session = session
+        self._dataset_endpoint = dataset_endpoint
         self._model_endpoint = model_endpoint
         self._ontology_endpoint = ontology_endpoint
         self._ssd_endpoint = ssd_endpoint
@@ -93,7 +146,7 @@ class Octopus(object):
         self._matcher = self._model_endpoint.get(self._model_id)
         self._modeling_props = json['modelingProps']
         self._semantic_type_map = json['semanticTypeMap']
-        self._state = json['state']
+        self._state = ModelState(json['state'])
 
         # bring in the implied model types...
         self._feature_config = self._matcher.features
@@ -157,6 +210,7 @@ class Octopus(object):
             json = self._session.octopus_api.item(self.id)
             octo = self.update(json,
                                self._session,
+                               self._dataset_endpoint,
                                self._model_endpoint,
                                self._ontology_endpoint,
                                self._ssd_endpoint)
@@ -164,25 +218,74 @@ class Octopus(object):
 
         def is_finished():
             """Check if training is finished"""
-            return state()['status'] in {Status.COMPLETE, Status.ERROR}
+            return state().status in {Status.COMPLETE, Status.ERROR}
 
         print("Training model {}...".format(self.id))
+        iter = 0
         while not is_finished():
-            logging.info("Waiting for the training to complete...")
-            time.sleep(2)  # wait in polling loop
+            print("\rWaiting for the training to complete " + '.'*iter, end='')
+            time.sleep(0.5)  # wait in polling loop
+            iter += 1
 
         print("Training complete for {}".format(self.id))
         logging.info("Training complete for {}.".format(self.id))
-        return state()['status'] == Status.COMPLETE
+        return state().status == Status.COMPLETE
 
     def predict(self, dataset):
-        """Runs a prediction across the `dataset`"""
+        """
+        :param dataset: The dataset to perform a prediction
+        :return: List of (SSD, OctopusScore), ordered by best Karma rank
+        """
+        if not dataset.stored:
+            msg = "{} is not stored on the server.".format(dataset)
+            raise ValueError(msg)
+
         if issubclass(type(dataset), DataSet):
             key = dataset.id
         else:
             key = int(dataset)
 
-        return self._session.octopus_api.predict(self.id, key)
+        blob = self._session.octopus_api.predict(self.id, key)
+
+        prediction_list = blob['predictions']
+
+        output = []
+        for pred in prediction_list:
+            ssd = SSD().update(pred['ssd'],
+                               self._dataset_endpoint,
+                               self._ontology_endpoint)
+            score = OctopusScore(pred['score'])
+            output.append(SSDResult(ssd, score))
+
+        return output
+
+    def matcher_predict(self, dataset, scores=True, features=False):
+        """
+        Returns the schema matcher results for a prediction on `dataset`
+
+        :param dataset: The dataset to use for prediction
+        :param scores: If true return the scores
+        :param features: If true return all the feature values
+        :return:
+        """
+        if not dataset.stored:
+            msg = "{} is not stored on the server.".format(dataset)
+            raise ValueError(msg)
+
+        if issubclass(type(dataset), DataSet):
+            key = dataset.id
+        else:
+            key = int(dataset)
+
+        model = self._model_endpoint.get(self._model_id) #self._session.model_api.predict(self._model_id, key)
+        return model.predict(key, scores, features)
+
+    def __repr__(self):
+        """Output string"""
+        if self.stored:
+            return "Octopus({}, {})".format(self.id, self.name)
+        else:
+            return "Octopus(local, {})".format(self.name)
 
     @property
     def stored(self):

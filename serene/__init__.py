@@ -9,5 +9,7 @@ from serene.const import CODE_VERSION
 from .api import Session
 from .core import Serene
 from .elements import *
+from .matcher import *
+
 
 __version__ = CODE_VERSION
