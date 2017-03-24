@@ -466,9 +466,6 @@ class TestOctopusEndpoint(TestWithServer):
         for item in self.datasetEndpoint.items:
             self.datasetEndpoint.remove(item)
 
-        for item in self.modelEndpoint.items:
-            self.modelEndpoint.remove(item)
-
     def test_upload(self):
         octopus = self.octopusEndpoint.upload(self.octopus)
         self.assertIsNotNone(octopus.id)
@@ -542,9 +539,6 @@ class TestModelEndpoint(TestWithServer):
         for item in self.datasetEndpoint.items:
             self.datasetEndpoint.remove(item)
 
-        for item in self.modelEndpoint.items:
-            self.modelEndpoint.remove(item)
-
     def test_remove(self):
         def remove():
             self.modelEndpoint.remove(self.octopus.matcher_id)
@@ -560,7 +554,6 @@ class TestModelEndpoint(TestWithServer):
         finally:
             sys.stdout = sys_stdout
 
-        # This raises NotFoundError
         self.assertGreater(len(output.getvalue()), 0)
 
     def test_get(self):
@@ -569,5 +562,4 @@ class TestModelEndpoint(TestWithServer):
         self.assertEqual(model.id, self.octopus.matcher_id)
 
     def test_items(self):
-        # This raises NotFoundError
         self.assertEqual(len(self.modelEndpoint.items), 1)
