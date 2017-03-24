@@ -16,3 +16,5 @@ config/
 dataint/
 serene_python_client.egg-info/
 
+tests/resources/museum_benchmark/data_copy/
+tests/resources/museum_benchmark/ssd_copy/

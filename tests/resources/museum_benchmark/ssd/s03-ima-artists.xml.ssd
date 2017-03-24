@@ -1,152 +1,152 @@
 {
-  "id": 98123198,
-  "name": "s03-ima-artists.xml",
-  "attributes": [
-    {
-      "id": 1357,
-      "name": "nationality",
-      "label": "identity",
-      "columnIds": [
-        1357
-      ],
-      "sql": "not implemented"
-    },
-    {
-      "id": 3617,
-      "name": "deathDate",
-      "label": "identity",
-      "columnIds": [
-        3617
-      ],
-      "sql": "not implemented"
-    },
-    {
-      "id": 1359,
-      "name": "name",
-      "label": "identity",
-      "columnIds": [
-        1359
-      ],
-      "sql": "not implemented"
-    },
-    {
-      "id": 3238,
-      "name": "birthDate",
-      "label": "identity",
-      "columnIds": [
-        3238
-      ],
-      "sql": "not implemented"
-    }
-  ],
-  "ontologies": [
-    0,
-    5,
-    10,
-    1,
-    6,
-    9,
-    2,
-    7,
-    3,
-    8,
-    4
-  ],
-  "semanticModel": {
-    "nodes": [
-      {
-        "id": 4,
-        "label": "Person.dateOfBirth",
-        "type": "DataNode",
-        "status": "ForcedByUser",
-        "prefix": ""
-      },
-      {
-        "id": 1,
-        "label": "Person.countryAssociatedWithThePerson",
-        "type": "DataNode",
-        "status": "ForcedByUser",
-        "prefix": ""
-      },
-      {
-        "id": 3,
-        "label": "Person.nameOfThePerson",
-        "type": "DataNode",
-        "status": "ForcedByUser",
-        "prefix": ""
-      },
-      {
-        "id": 2,
-        "label": "Person.dateOfDeath",
-        "type": "DataNode",
-        "status": "ForcedByUser",
-        "prefix": ""
-      },
-      {
-        "id": 0,
-        "label": "Person",
-        "type": "ClassNode",
-        "status": "Normal",
-        "prefix": "http://www.americanartcollaborative.org/ontology/"
-      }
+    "attributes": [
+        {
+            "columnIds": [
+                1703606848
+            ],
+            "id": 1703606848,
+            "label": "identity",
+            "name": "artists.artist.nationality",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                3617
+            ],
+            "id": 3617,
+            "label": "identity",
+            "name": "deathDate",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                108037399
+            ],
+            "id": 108037399,
+            "label": "identity",
+            "name": "artists.artist.name",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                3238
+            ],
+            "id": 3238,
+            "label": "identity",
+            "name": "birthDate",
+            "sql": "not implemented"
+        }
     ],
-    "links": [
-      {
-        "id": 0,
-        "source": 0,
-        "target": 1,
-        "label": "countryAssociatedWithThePerson",
-        "type": "DataPropertyLink",
-        "status": "ForcedByUser",
-        "prefix": "http://rdvocab.info/ElementsGr2/"
-      },
-      {
-        "id": 1,
-        "source": 0,
-        "target": 2,
-        "label": "dateOfDeath",
-        "type": "DataPropertyLink",
-        "status": "ForcedByUser",
-        "prefix": "http://rdvocab.info/ElementsGr2/"
-      },
-      {
-        "id": 2,
-        "source": 0,
-        "target": 3,
-        "label": "nameOfThePerson",
-        "type": "DataPropertyLink",
-        "status": "ForcedByUser",
-        "prefix": "http://rdvocab.info/ElementsGr2/"
-      },
-      {
-        "id": 3,
-        "source": 0,
-        "target": 4,
-        "label": "dateOfBirth",
-        "type": "DataPropertyLink",
-        "status": "ForcedByUser",
-        "prefix": "http://rdvocab.info/ElementsGr2/"
-      }
-    ]
-  },
-  "mappings": [
-    {
-      "attribute": 1357,
-      "node": 1
-    },
-    {
-      "attribute": 1359,
-      "node": 3
-    },
-    {
-      "attribute": 3238,
-      "node": 4
-    },
-    {
-      "attribute": 3617,
-      "node": 2
+    "dateCreated": "2017-03-21T18:29:30.686",
+    "dateModified": "2017-03-21T18:29:30.686",
+    "id": 98123198,
+    "mappings": [
+        {
+            "attribute": 1703606848,
+            "node": 1
+        },
+        {
+            "attribute": 108037399,
+            "node": 3
+        },
+        {
+            "attribute": 3238,
+            "node": 4
+        },
+        {
+            "attribute": 3617,
+            "node": 2
+        }
+    ],
+    "name": "s03-ima-artists.xml",
+    "ontologies": [
+        0,
+        5,
+        10,
+        1,
+        6,
+        9,
+        2,
+        7,
+        3,
+        8,
+        4
+    ],
+    "semanticModel": {
+        "links": [
+            {
+                "id": 0,
+                "label": "countryAssociatedWithThePerson",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 1,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 1,
+                "label": "dateOfDeath",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 2,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 2,
+                "label": "nameOfThePerson",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 3,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 3,
+                "label": "dateOfBirth",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 4,
+                "type": "DataPropertyLink"
+            }
+        ],
+        "nodes": [
+            {
+                "id": 4,
+                "label": "Person.dateOfBirth",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 1,
+                "label": "Person.countryAssociatedWithThePerson",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "Person.nameOfThePerson",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 2,
+                "label": "Person.dateOfDeath",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 0,
+                "label": "Person",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "status": "Normal",
+                "type": "ClassNode"
+            }
+        ]
     }
-  ],
-  "dateCreated": "2017-03-21T18:29:30.686",
-  "dateModified": "2017-03-21T18:29:30.686"
 }

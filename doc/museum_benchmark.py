@@ -61,6 +61,7 @@ for path in os.listdir(owl_dir):
 print("*********** Ontologies from museum benchmark")
 for onto in ontologies:
     print(onto)
+print()
 
 # =======================
 #
@@ -78,7 +79,7 @@ if os.path.exists(os.path.join(dataset_dir, "data.tar.gz")):
     with tarfile.open(os.path.join(dataset_dir, "data.tar.gz")) as f:
         f.extractall(path=dataset_dir)
 
-input("Press enter to continue...")
+input("Press enter to upload datasets and ssds...")
 
 for ds in os.listdir(dataset_dir):
     if ds.endswith(".gz"):
@@ -115,6 +116,7 @@ input("Press enter to continue...")
 print("*********** Datasets and semantic source descriptions from museum benchmark")
 for i, ds in enumerate(datasets):
     print(i, ": dataset=", ds, "; ssd=", ssds[i])
+print()
 
 # =======================
 #
@@ -130,6 +132,8 @@ for i, ds in enumerate(datasets):
         test_sample.append(i)
     else:
         train_sample.append(i)
+
+train_sample = train_sample[:5]
 
 print("Indexes for training sample: ", train_sample)
 print("Indexes for testing sample: ", test_sample)
@@ -229,15 +233,15 @@ start = time.time()
 predicted = octo.predict(datasets[test_sample[0]])
 print("Prediction done in: {}".format(time.time() - start))
 
-print("><><><><")
-for k in predicted['predictions']:
-    print(k['score'])
-    print()
-    SSD().update(k['ssd'], sn.datasets, sn.ontologies).show()
-    input("Press enter to continue...")
-print("<<<<<<<<")
-
 print(predicted)
+
+print("><><><><")
+for res in predicted:
+    print(res)
+    print()
+    res.ssd.show()
+    # input("Press enter to continue...")
+print("><><><><")
 
 # for p in predicted:
 #     print("Predicted candidate rank", p.score.rank)
@@ -254,3 +258,13 @@ predicted_ssd = predicted[0].ssd
 # Step 8. Evaluate against ground truth
 #
 # =======================
+
+# ssds[test_sample[0]] is ground truth
+comparison = sn.ssds.compare(predicted_ssd, ssds[test_sample[0]], True, False)
+print("===== Best prediction versus ground truth ===========")
+print(comparison)
+print("================")
+
+for i, pred in enumerate(predicted):
+    comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], True, False)
+    print("SsdResult({}) comparison: {}".format(i,comparison))
