@@ -73,6 +73,56 @@ class SSDResult(object):
         return "SSDResult({})".format(self.score.karmaRank)
 
 
+class OctopusScore(object):
+    """
+    The score object from the prediction
+    """
+    def __init__(self, json):
+        """Converts the json blob to the score values"""
+        # karma score values
+        self.sizeReduction = json['sizeReduction']
+        self.nodeConfidence = json['nodeConfidence']
+        self.nodeCoherence = json['nodeCoherence']
+        self.linkCoherence = json['linkCoherence']
+        self.linkCost = json['linkCost']
+
+        # weighted average of sizeReduction, nodeConfidence, nodeCoherence
+        self.karmaScore = json['karmaScore']
+
+        # order using all karma score values...
+        self.karmaRank = json['karmaRank']
+
+        # additional scores: percentage of original columns included in semantic model
+        self.nodeCoverage = json['nodeCoverage']
+
+    def __repr__(self):
+        """Output string"""
+        base = "Score(rank={:d}, score={:.2f}, confidence={:.2f}, coverage={:.2f})"
+        return base.format(
+            self.karmaRank,
+            self.karmaScore,
+            self.nodeConfidence,
+            self.nodeCoverage)
+
+
+class SSDResult(object):
+    """Octopus Prediction result object"""
+    def __init__(self, ssd, score):
+        self._score = score
+        self._ssd = ssd
+
+    @property
+    def score(self):
+        return self._score
+
+    @property
+    def ssd(self):
+        return self._ssd
+
+    def __repr__(self):
+        return "SSDResult({})".format(self.score.karmaRank)
+
+
 class Octopus(object):
     """
         Octopus is the central integration map for a collection of DataSets.
