@@ -1,1 +1,374 @@
-{"id":50968162,"name":"s13-s-art-institute-of-chicago.xml","attributes":[{"id":51402,"name":"Titleofartwork","label":"identity","columnIds":[51402],"sql":"not implemented"},{"id":51416,"name":"Nationality","label":"identity","columnIds":[51416],"sql":"not implemented"},{"id":51404,"name":"Accessionid","label":"identity","columnIds":[51404],"sql":"not implemented"},{"id":51414,"name":"Typeofartwork","label":"identity","columnIds":[51414],"sql":"not implemented"},{"id":52905,"name":"birthDate","label":"identity","columnIds":[52905],"sql":"not implemented"},{"id":51400,"name":"ImageURL","label":"identity","columnIds":[51400],"sql":"not implemented"},{"id":51420,"name":"Artistname","label":"identity","columnIds":[51420],"sql":"not implemented"},{"id":53033,"name":"deathDate","label":"identity","columnIds":[53033],"sql":"not implemented"},{"id":51406,"name":"Credit","label":"identity","columnIds":[51406],"sql":"not implemented"},{"id":51408,"name":"Dimensions","label":"identity","columnIds":[51408],"sql":"not implemented"}],"ontologies":[0,5,10,1,6,9,2,7,3,8,4],"semanticModel":{"nodes":[{"id":4,"label":"CulturalHeritageObject.title","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":10,"label":"Person.nameOfThePerson","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":5,"label":"Person.countryAssociatedWithThePerson","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":3,"label":"WebResource","type":"ClassNode","status":"Normal","prefix":"http://www.europeana.eu/schemas/edm/"},{"id":9,"label":"WebResource.classLink","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":8,"label":"Person.dateOfBirth","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":6,"label":"CulturalHeritageObject.accessionNumber","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":0,"label":"CulturalHeritageObject","type":"ClassNode","status":"Normal","prefix":"http://www.americanartcollaborative.org/ontology/"},{"id":1,"label":"Person","type":"ClassNode","status":"Normal","prefix":"http://www.americanartcollaborative.org/ontology/"},{"id":12,"label":"CulturalHeritageObject.provenance","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":13,"label":"CulturalHeritageObject.extent","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":11,"label":"Person.dateOfDeath","type":"DataNode","status":"ForcedByUser","prefix":""},{"id":2,"label":"EuropeanaAggregation","type":"ClassNode","status":"Normal","prefix":"http://www.europeana.eu/schemas/edm/"},{"id":7,"label":"CulturalHeritageObject.medium","type":"DataNode","status":"ForcedByUser","prefix":""}],"links":[{"id":9,"source":1,"target":10,"label":"nameOfThePerson","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"},{"id":1,"source":2,"target":0,"label":"aggregatedCHO","type":"ObjectPropertyLink","status":"ForcedByUser","prefix":"http://www.europeana.eu/schemas/edm/"},{"id":11,"source":0,"target":12,"label":"provenance","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":10,"source":1,"target":11,"label":"dateOfDeath","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"},{"id":5,"source":0,"target":6,"label":"accessionNumber","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://www.americanartcollaborative.org/ontology/"},{"id":6,"source":0,"target":7,"label":"medium","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":12,"source":0,"target":13,"label":"extent","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":7,"source":1,"target":8,"label":"dateOfBirth","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"},{"id":0,"source":0,"target":1,"label":"creator","type":"ObjectPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":2,"source":2,"target":3,"label":"hasView","type":"ObjectPropertyLink","status":"ForcedByUser","prefix":"http://www.europeana.eu/schemas/edm/"},{"id":3,"source":0,"target":4,"label":"title","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://purl.org/dc/terms/"},{"id":8,"source":3,"target":9,"label":"classLink","type":"ClassInstanceLink","status":"ForcedByUser","prefix":"http://isi.edu/integration/karma/dev#"},{"id":4,"source":1,"target":5,"label":"countryAssociatedWithThePerson","type":"DataPropertyLink","status":"ForcedByUser","prefix":"http://rdvocab.info/ElementsGr2/"}]},"mappings":[{"attribute":51400,"node":9},{"attribute":51402,"node":4},{"attribute":51404,"node":6},{"attribute":51406,"node":12},{"attribute":51408,"node":13},{"attribute":51414,"node":7},{"attribute":51416,"node":5},{"attribute":51420,"node":10},{"attribute":52905,"node":8},{"attribute":53033,"node":11}],"dateCreated":"2017-03-21T18:29:30.547","dateModified":"2017-03-21T18:29:30.547"}
+{
+    "attributes": [
+        {
+            "columnIds": [
+                1599004766
+            ],
+            "id": 1599004766,
+            "label": "identity",
+            "name": "Items.Item.Titleofartwork",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1893278784
+            ],
+            "id": 1893278784,
+            "label": "identity",
+            "name": "Items.Item.Nationality",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1970398940
+            ],
+            "id": 1970398940,
+            "label": "identity",
+            "name": "Items.Item.Accessionid",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                746110986
+            ],
+            "id": 746110986,
+            "label": "identity",
+            "name": "Items.Item.Typeofartwork",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                52905
+            ],
+            "id": 52905,
+            "label": "identity",
+            "name": "birthDate",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1278249274
+            ],
+            "id": 1278249274,
+            "label": "identity",
+            "name": "Items.Item.ImageURL",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1636467752
+            ],
+            "id": 1636467752,
+            "label": "identity",
+            "name": "Items.Item.Artistname",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                53033
+            ],
+            "id": 53033,
+            "label": "identity",
+            "name": "deathDate",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                1104938476
+            ],
+            "id": 1104938476,
+            "label": "identity",
+            "name": "Items.Item.Credit",
+            "sql": "not implemented"
+        },
+        {
+            "columnIds": [
+                968182603
+            ],
+            "id": 968182603,
+            "label": "identity",
+            "name": "Items.Item.Dimensions",
+            "sql": "not implemented"
+        }
+    ],
+    "dateCreated": "2017-03-21T18:29:30.547",
+    "dateModified": "2017-03-21T18:29:30.547",
+    "id": 50968162,
+    "mappings": [
+        {
+            "attribute": 1278249274,
+            "node": 9
+        },
+        {
+            "attribute": 1599004766,
+            "node": 4
+        },
+        {
+            "attribute": 1970398940,
+            "node": 6
+        },
+        {
+            "attribute": 1104938476,
+            "node": 12
+        },
+        {
+            "attribute": 968182603,
+            "node": 13
+        },
+        {
+            "attribute": 746110986,
+            "node": 7
+        },
+        {
+            "attribute": 1893278784,
+            "node": 5
+        },
+        {
+            "attribute": 1636467752,
+            "node": 10
+        },
+        {
+            "attribute": 52905,
+            "node": 8
+        },
+        {
+            "attribute": 53033,
+            "node": 11
+        }
+    ],
+    "name": "s13-s-art-institute-of-chicago.xml",
+    "ontologies": [
+        0,
+        5,
+        10,
+        1,
+        6,
+        9,
+        2,
+        7,
+        3,
+        8,
+        4
+    ],
+    "semanticModel": {
+        "links": [
+            {
+                "id": 9,
+                "label": "nameOfThePerson",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 1,
+                "status": "ForcedByUser",
+                "target": 10,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 1,
+                "label": "aggregatedCHO",
+                "prefix": "http://www.europeana.eu/schemas/edm/",
+                "source": 2,
+                "status": "ForcedByUser",
+                "target": 0,
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 11,
+                "label": "provenance",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 12,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 10,
+                "label": "dateOfDeath",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 1,
+                "status": "ForcedByUser",
+                "target": 11,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 5,
+                "label": "accessionNumber",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 6,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 6,
+                "label": "medium",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 7,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 12,
+                "label": "extent",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 13,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 7,
+                "label": "dateOfBirth",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 1,
+                "status": "ForcedByUser",
+                "target": 8,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 0,
+                "label": "creator",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 1,
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 2,
+                "label": "hasView",
+                "prefix": "http://www.europeana.eu/schemas/edm/",
+                "source": 2,
+                "status": "ForcedByUser",
+                "target": 3,
+                "type": "ObjectPropertyLink"
+            },
+            {
+                "id": 3,
+                "label": "title",
+                "prefix": "http://purl.org/dc/terms/",
+                "source": 0,
+                "status": "ForcedByUser",
+                "target": 4,
+                "type": "DataPropertyLink"
+            },
+            {
+                "id": 8,
+                "label": "classLink",
+                "prefix": "http://isi.edu/integration/karma/dev#",
+                "source": 3,
+                "status": "ForcedByUser",
+                "target": 9,
+                "type": "ClassInstanceLink"
+            },
+            {
+                "id": 4,
+                "label": "countryAssociatedWithThePerson",
+                "prefix": "http://rdvocab.info/ElementsGr2/",
+                "source": 1,
+                "status": "ForcedByUser",
+                "target": 5,
+                "type": "DataPropertyLink"
+            }
+        ],
+        "nodes": [
+            {
+                "id": 4,
+                "label": "CulturalHeritageObject.title",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 10,
+                "label": "Person.nameOfThePerson",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 5,
+                "label": "Person.countryAssociatedWithThePerson",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 3,
+                "label": "WebResource",
+                "prefix": "http://www.europeana.eu/schemas/edm/",
+                "status": "Normal",
+                "type": "ClassNode"
+            },
+            {
+                "id": 9,
+                "label": "WebResource.classLink",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 8,
+                "label": "Person.dateOfBirth",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 6,
+                "label": "CulturalHeritageObject.accessionNumber",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 0,
+                "label": "CulturalHeritageObject",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "status": "Normal",
+                "type": "ClassNode"
+            },
+            {
+                "id": 1,
+                "label": "Person",
+                "prefix": "http://www.americanartcollaborative.org/ontology/",
+                "status": "Normal",
+                "type": "ClassNode"
+            },
+            {
+                "id": 12,
+                "label": "CulturalHeritageObject.provenance",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 13,
+                "label": "CulturalHeritageObject.extent",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 11,
+                "label": "Person.dateOfDeath",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            },
+            {
+                "id": 2,
+                "label": "EuropeanaAggregation",
+                "prefix": "http://www.europeana.eu/schemas/edm/",
+                "status": "Normal",
+                "type": "ClassNode"
+            },
+            {
+                "id": 7,
+                "label": "CulturalHeritageObject.medium",
+                "prefix": "",
+                "status": "ForcedByUser",
+                "type": "DataNode"
+            }
+        ]
+    }
+}

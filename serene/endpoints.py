@@ -525,6 +525,34 @@ class OctopusEndpoint(IdentifiableEndpoint):
                               self._ssd_endpoint)
 
     @decache
+    def update(self, octopus):
+        """
+        Updates the octopus on the server...
+        :param octopus: The Octopus object to replace from the server...
+        :return:
+        """
+        if octopus.id is None:
+            msg = "{} does not have a valid id".format(octopus)
+            raise ValueError(msg)
+        response = self._api.update(key=octopus.id,
+                                    ssds=[ssd.id for ssd in octopus.ssds],
+                                    name=octopus.name,
+                                    description=octopus.description,
+                                    feature_config=octopus.feature_config,
+                                    model_type=octopus.model_type,
+                                    resampling_strategy=octopus.resampling_strategy,
+                                    num_bags=octopus.num_bags,
+                                    bag_size=octopus.bag_size,
+                                    ontologies=[o.id for o in octopus.ontologies],
+                                    modeling_props=octopus.modeling_props)
+        return octopus.update(response,
+                              self._session,
+                              self._dataset_endpoint,
+                              self._model_endpoint,
+                              self._ontology_endpoint,
+                              self._ssd_endpoint)
+
+    @decache
     def remove(self, octopus):
         """
         Removes the Octopus from the server...

@@ -537,6 +537,7 @@ print("Removing birth date assignment")
 input("Press any key to continue...")
 
 predicted_ssd.map(Column("birthDate"), DataNode(ClassNode("Person"), "birthDate"))
+predicted_ssd.link("Person", "worksFor", "Organization")
 predicted_ssd.show()
 
 print("Adding correct birthdate node")
@@ -549,8 +550,7 @@ input("Press any key to continue...")
 # =======================
 
 new_ssd = sn.ssds.upload(predicted_ssd)
-
-#octo = sn.octopii.update(octo.add(new_ssd))
+octo = sn.octopii.update(octo.add(new_ssd))
 
 # =======================
 #
@@ -558,14 +558,12 @@ new_ssd = sn.ssds.upload(predicted_ssd)
 #
 # =======================
 
-print(octo.mappings)
-print()
-print(octo.mappings[DataNode(ClassNode("Person"), "name")])
-print()
+maps = octo.mappings(DataNode(ClassNode("Person"), "name"))
 
-person_columns = [col for node, col in octo.mappings.items()
-                  if node == DataNode(ClassNode("Person"), "name")]
+print()
+print("These are the columns mapped to Person.name:")
+for dn in maps:
+    print(dn, "which is in", dn.dataset)
 
-print(person_columns)
 print()
 

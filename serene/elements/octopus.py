@@ -17,6 +17,61 @@ from math import inf
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
+# # create console handler
+# ch = logging.StreamHandler()
+# ch.setLevel(logging.WARN)
+# formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s')
+# ch.setFormatter(formatter)
+# _logger.addHandler(ch)
+
+class OctopusScore(object):
+    """
+    The score object from the prediction
+    """
+    def __init__(self, json):
+        """Converts the json blob to the score values"""
+        # karma score values
+        self.sizeReduction = json['sizeReduction']
+        self.nodeConfidence = json['nodeConfidence']
+        self.nodeCoherence = json['nodeCoherence']
+        self.linkCoherence = json['linkCoherence']
+        self.linkCost = json['linkCost']
+
+        # weighted average of sizeReduction, nodeConfidence, nodeCoherence
+        self.karmaScore = json['karmaScore']
+
+        # order using all karma score values...
+        self.karmaRank = json['karmaRank']
+
+        # additional scores: percentage of original columns included in semantic model
+        self.nodeCoverage = json['nodeCoverage']
+
+    def __repr__(self):
+        """Output string"""
+        base = "Score(rank={:d}, score={:.2f}, confidence={:.2f}, coverage={:.2f})"
+        return base.format(
+            self.karmaRank,
+            self.karmaScore,
+            self.nodeConfidence,
+            self.nodeCoverage)
+
+
+class SSDResult(object):
+    """Octopus Prediction result object"""
+    def __init__(self, ssd, score):
+        self._score = score
+        self._ssd = ssd
+
+    @property
+    def score(self):
+        return self._score
+
+    @property
+    def ssd(self):
+        return self._ssd
+
+    def __repr__(self):
+        return "SSDResult({})".format(self.score.karmaRank)
 
 
 class OctopusScore(object):
@@ -224,7 +279,7 @@ class Octopus(object):
         iter = 0
         while not is_finished():
             print("\rWaiting for the training to complete " + '.'*iter, end='')
-            time.sleep(0.5)  # wait in polling loop
+            time.sleep(3)  # wait in polling loop
             iter += 1
 
         print("Training complete for {}".format(self.id))
@@ -286,6 +341,15 @@ class Octopus(object):
             return "Octopus({}, {})".format(self.id, self.name)
         else:
             return "Octopus(local, {})".format(self.name)
+
+    def mappings(self, data_node):
+        """Returns all the Column objects that map to `datanode`..."""
+        z = [(ssd.semantic_model.find(data_node), ssd) for ssd in self._ssds]
+
+        # filter out the None values for find
+        zz = [(node, ssd) for node, ssd in z if node is not None]
+
+        return [ssd.mappings[node] for node, ssd in zz]
 
     @property
     def stored(self):
