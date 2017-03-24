@@ -99,6 +99,83 @@ class DataSet(object):
         disp = "DataSet({}, {})".format(self.id, self.filename)
         return disp
 
+    @staticmethod
+    def _process_attributes(attributes, column_map, attr_map):
+        """
+        Helper method for bind_ssd to process attributes
+        :param attributes: attributes from the original ssd
+        :param column_map: dictionary column_name -> column_id
+        :param attr_map: dictionary attribute_id -> attribute_name
+        :return: list of attributes which will be in the bound ssd
+        """
+        new_attributes = []
+        # change ids in attributes
+        for attr in attributes:
+            if attr["name"] not in column_map:
+                logging.warning("Attribute name {} is not in column map".format(attr["name"]))
+            else:
+                attr["id"] = column_map[attr["name"]]
+                attr["columnIds"] = [column_map[attr_map[c]] for c in attr["columnIds"]]
+                new_attributes.append(attr)
+        return new_attributes
+
+    @staticmethod
+    def _process_mappings(mappings, column_map, attr_map):
+        """
+        Helper method for bind_ssd to process mappings
+        :param mappings: list of mappings in the original ssd
+        :param column_map: dictionary column_name -> column_id
+        :param attr_map: dictionary attribute_id -> attribute_name
+        :return:    list of mappings which will be in the bound ssd;
+                    set of node ids which should be removed from semantic model
+        """
+        nodes_to_delete = set()
+        new_mappings = []
+        # change ids in mappings
+        for map in mappings:
+            if attr_map[map["attribute"]] not in column_map:
+                logging.warning("Deleting attribute {} from mappings".format(attr_map[map["attribute"]]))
+                nodes_to_delete.add(map["node"])
+            else:
+                map["attribute"] = column_map[attr_map[map["attribute"]]]
+                new_mappings.append(map)
+
+        return new_mappings, nodes_to_delete
+
+    @staticmethod
+    def _process_semantic_model(semantic_model, nodes_to_delete, default_ns):
+        """
+        Helper method for bind_ssd to process nodes and links in the semantic model
+        :param semantic_model: semantic model from the original ssd
+        :param nodes_to_delete: set of nodes to be removed from nodes and links
+        :param default_ns: default namespace for nodes and links
+        :return: list of nodes and links for the semantic model which will be used in the bound ssd
+        """
+        # specify namespaces in nodes and links
+        nodes = semantic_model["nodes"]
+        links = semantic_model["links"]
+        new_nodes = []
+        new_links = []
+        for node in nodes:
+            if "prefix" not in node:
+                node["prefix"] = default_ns
+            if node["id"] in nodes_to_delete:
+                logging.warning("Deleting node {}".format(node["id"]))
+                del node
+            else:
+                new_nodes.append(node)
+
+        for link in links:
+            if "prefix" not in link:
+                link["prefix"] = default_ns
+
+            if link["source"] in nodes_to_delete or link["target"] in nodes_to_delete:
+                logging.warning("Deleting link {}".format(link["id"]))
+                del link
+            else:
+                new_links.append(link)
+        return new_nodes, new_links
+
     def bind_ssd(self, ssd_json, ontologies, default_ns):
         """
         Modifies ssd json to include proper column ids.
@@ -120,33 +197,30 @@ class DataSet(object):
         with open(ssd_json) as f:
             data = json.load(f)
 
+        logging.debug("Binding process begins!")
         attributes = data["attributes"]
         mappings = data["mappings"]
-        attr_map = {attr["id"]: attr["name"] for attr in attributes}
 
         column_map = {c.name: c.id for c in self.columns}
+        attr_map = {attr["id"]: attr["name"] for attr in attributes}
 
-        # change ids in attributes
-        for attr in attributes:
-            attr["id"] = column_map[attr["name"]]
-            attr["columnIds"] = [column_map[attr_map[c]] for c in attr["columnIds"]]
-
-        # change ids in mappings
-        for map in mappings:
-            map["attribute"] = column_map[attr_map[map["attribute"]]]
+        new_attributes = self._process_attributes(attributes, column_map, attr_map)
+        new_mappings, nodes_to_delete = self._process_mappings(mappings, column_map, attr_map)
 
         # specify namespaces in nodes and links
-        nodes = data["semanticModel"]["nodes"]
-        links = data["semanticModel"]["links"]
-        for node in nodes:
-            if "prefix" not in node:
-                node["prefix"] = default_ns
-        for link in links:
-            if "prefix" not in link:
-                link["prefix"] = default_ns
+        new_nodes, new_links = self._process_semantic_model(data["semanticModel"], nodes_to_delete, default_ns)
 
         # specify proper ids of ontologies
         data["ontologies"] = [onto.id for onto in ontologies]
+        data["mappings"] = new_mappings
+        data["attributes"] = new_attributes
+        if len(new_attributes) < 1 or len(mappings) < 1:
+            logging.warning("There are no attributes or mappings in ssd!")
+            data["semanticModel"]["nodes"] = []
+            data["semanticModel"]["links"] = []
+        else:
+            data["semanticModel"]["nodes"] = new_nodes
+            data["semanticModel"]["links"] = new_links
 
         # remove id if present
         if "id" in data:

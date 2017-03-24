@@ -24,7 +24,6 @@ from serene.visualizers import SSDVisualizer
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
 
-
 class SSD(object):
     """
         Semantic source description is the translator between a DataSet
@@ -99,6 +98,8 @@ class SSD(object):
         :param ontology_endpoint:
         :return:
         """
+        _logger.debug("Updating ssd")
+
         if 'id' in blob:
             self._stored = True
             self._date_created = convert_datetime(blob['dateCreated'])
@@ -115,6 +116,8 @@ class SSD(object):
         self._ontology = reader.ontology
         self._dataset = reader.dataset
         self._semantic_model = reader.semantic_model
+
+        _logger.debug("Ssd update success!")
 
         return self
 
@@ -518,6 +521,14 @@ class SSD(object):
         """Displays the SSD"""
         self._semantic_model.show(name=self._dataset.filename)
 
+    def __repr__(self):
+        props = "name={}, dataset={}, ontology={}".format(
+            self._name, self._dataset, self._ontology)
+        if self._stored:
+            return "SSD({}, {})".format(self._id, props)
+        else:
+            return "SSD(local, {})".format(props)
+
 
 class SSDGraph(object):
     """
@@ -903,6 +914,7 @@ class SSDReader(object):
 
     def _build_graph(self, blob):
         """Builds up the semantic model graph from the JSON blob"""
+        _logger.debug("Building graph for semantic model from blob")
         nodes = blob['semanticModel']['nodes']
         links = blob['semanticModel']['links']
         mappings = blob['mappings']
@@ -914,6 +926,7 @@ class SSDReader(object):
 
     def _build_graph_nodes(self, nodes):
         """Pulls out the node objects and adds them into the graph using the interface"""
+        _logger.debug("Building nodes for semantic model from blob")
         cls_table = defaultdict(list)
 
         for obj in nodes:
@@ -936,6 +949,7 @@ class SSDReader(object):
 
     def _build_graph_links(self, links):
         """Pulls out the link objects and adds them into the graph using the interface"""
+        _logger.debug("Building links for semantic model from blob")
         for obj in links:
             index = obj['id']
             src = obj['source']
@@ -949,6 +963,7 @@ class SSDReader(object):
 
     def _build_data_nodes(self, links):
         """Pulls out the data nodes from the property links and adds them"""
+        _logger.debug("Building data nodes for semantic model from blob")
         dn_table = defaultdict(list)
 
         # first collect the links and add them to the table...
@@ -977,6 +992,7 @@ class SSDReader(object):
 
         :param dn_table: Dict of DataNode() -> [(class_id, node_id, link_index)...]
         """
+        _logger.debug("Building ordered nodes for semantic model from blob")
         # We need to add the nodes from the dn_table....
         for node, values in dn_table.items():
             if len(values) == 1:
