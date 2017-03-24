@@ -240,7 +240,7 @@ for res in predicted:
     print(res)
     print()
     res.ssd.show()
-    # input("Press enter to continue...")
+    input("Press enter to continue...")
 print("><><><><")
 
 # for p in predicted:
@@ -263,6 +263,7 @@ predicted_ssd = predicted[0].ssd
 comparison = sn.ssds.compare(predicted_ssd, ssds[test_sample[0]], True, False)
 print("===== Best prediction versus ground truth ===========")
 print(comparison)
+predicted_ssd.show()
 print("================")
 
 for i, pred in enumerate(predicted):
