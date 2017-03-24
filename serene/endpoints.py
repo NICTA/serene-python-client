@@ -502,6 +502,8 @@ class OctopusEndpoint(IdentifiableEndpoint):
                       "<Serene>.ontologies.upload(<Ontology>) to update.".format(ontology)
                 raise ValueError(msg)
 
+        octopus.check_modeling_props()
+
         response = self._api.post(
             ssds=[s.id for s in octopus.ssds],
             name=octopus.name if octopus.name is not None else "unknown",

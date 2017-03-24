@@ -358,6 +358,7 @@ class TestSsdEndpoint(TestWithServer):
 
         self.assertEqual(len(self.ssdEndpoint.items), 2)
 
+
 def initOctopusEndpoint(session):
     result = initSsdEndpoint(session)
 
@@ -371,6 +372,47 @@ def initOctopusEndpoint(session):
         result["ontologyEndpoint"],
         result["ssdEndpoint"])
 
+    feature_config = {
+        "activeFeatures": [
+            "num-unique-vals",
+            "prop-unique-vals",
+            "prop-missing-vals",
+            "ratio-alpha-chars",
+            "prop-numerical-chars",
+            "prop-whitespace-chars",
+            "prop-entries-with-at-sign",
+            "prop-entries-with-hyphen",
+            "prop-range-format",
+            "is-discrete",
+            "entropy-for-discrete-values"
+        ],
+        "activeFeatureGroups": [
+            "inferred-data-type",
+            "stats-of-text-length",
+            "stats-of-numeric-type",
+            "prop-instances-per-class-in-knearestneighbours",
+            "mean-character-cosine-similarity-from-class-examples",
+            "min-editdistance-from-class-examples",
+            "min-wordnet-jcn-distance-from-class-examples",
+            "min-wordnet-lin-distance-from-class-examples"
+        ],
+        "featureExtractorParams": [
+            {
+                "name": "prop-instances-per-class-in-knearestneighbours",
+                "num-neighbours": 3
+            }, {
+                "name": "min-editdistance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }, {
+                "name": "min-wordnet-jcn-distance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }, {
+                "name": "min-wordnet-lin-distance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }
+        ]
+    }
+
     result["localOctopus"] = Octopus(
         ssds=[result["ssd"]],
         name="octopus test",
@@ -381,46 +423,20 @@ def initOctopusEndpoint(session):
         bag_size=10,
         ontologies=[result["ontology"]],
         modeling_props={},
-        feature_config={
-            "activeFeatures": [
-                "num-unique-vals",
-                "prop-unique-vals",
-                "prop-missing-vals",
-                "ratio-alpha-chars",
-                "prop-numerical-chars",
-                "prop-whitespace-chars",
-                "prop-entries-with-at-sign",
-                "prop-entries-with-hyphen",
-                "prop-range-format",
-                "is-discrete",
-                "entropy-for-discrete-values"
-            ],
-            "activeFeatureGroups": [
-                "inferred-data-type",
-                "stats-of-text-length",
-                "stats-of-numeric-type",
-                "prop-instances-per-class-in-knearestneighbours",
-                "mean-character-cosine-similarity-from-class-examples",
-                "min-editdistance-from-class-examples",
-                "min-wordnet-jcn-distance-from-class-examples",
-                "min-wordnet-lin-distance-from-class-examples"
-            ],
-            "featureExtractorParams": [
-                {
-                    "name": "prop-instances-per-class-in-knearestneighbours",
-                    "num-neighbours": 3
-                }, {
-                    "name": "min-editdistance-from-class-examples",
-                    "max-comparisons-per-class": 3
-                }, {
-                    "name": "min-wordnet-jcn-distance-from-class-examples",
-                    "max-comparisons-per-class": 3
-                }, {
-                    "name": "min-wordnet-lin-distance-from-class-examples",
-                    "max-comparisons-per-class": 3
-                }
-            ]
-        }
+        feature_config=feature_config
+    )
+
+    result["localInvalidOctopus"] = Octopus(
+        ssds=[result["ssd"]],
+        name="octopus test",
+        description="no description for a test",
+        model_type="randomForest",
+        resampling_strategy="NoResampling",
+        num_bags=100,
+        bag_size=10,
+        ontologies=[result["ontology"]],
+        modeling_props={"topkSteinerTrees": -1},
+        feature_config=feature_config
     )
 
     return result
@@ -435,6 +451,7 @@ class TestOctopusEndpoint(TestWithServer):
         self.modelEndpoint = init_result["modelEndpoint"]
         self.octopusEndpoint = init_result["octopusEndpoint"]
         self.octopus = init_result["localOctopus"]
+        self.invalidOctopus = init_result["localInvalidOctopus"]
 
     def tearDown(self):
         for item in self.octopusEndpoint.items:
@@ -464,6 +481,12 @@ class TestOctopusEndpoint(TestWithServer):
         self.assertEqual(octopus.bag_size, self.octopus.bag_size)
         self.assertEqual(octopus.ontologies[0].id, self.octopus.ontologies[0].id)
         self.assertGreater(len(octopus.modeling_props.keys()), 0)
+
+    def test_upload_with_invalid_modeling_props(self):
+        def upload():
+            self.octopusEndpoint.upload(self.invalidOctopus)
+
+        self.assertRaises(ValueError, upload)
 
     def test_remove(self):
         octopus = self.octopusEndpoint.upload(self.octopus)

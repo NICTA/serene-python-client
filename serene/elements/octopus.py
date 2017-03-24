@@ -7,12 +7,13 @@ Code for the Octopus object
 import logging
 import time
 
-from .semantics.ssd import SSD
-from .semantics.ontology import Ontology
-from .dataset import DataSet
-from ..matcher import Status
+from ..matcher import ModelState, Status
 from ..utils import convert_datetime
-from ..matcher import ModelState
+from .dataset import DataSet
+from .semantics.ontology import Ontology
+from .semantics.ssd import SSD
+from math import inf
+
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
@@ -113,7 +114,6 @@ class Octopus(object):
 
         self._model_id = None
         self._matcher = None
-        self._modeling_props = None
         self._semantic_type_map = None
         self._state = None
 
@@ -359,4 +359,32 @@ class Octopus(object):
     def bag_size(self):
         return self._bag_size
 
+    def check_modeling_props(self):
+        def in_range(x, a, b, inclusive=True):
+            return a <= x <= b if inclusive else a < x < b
 
+        def prop_in_range(name, a, b, inclusive=True):
+            if name not in self._modeling_props:
+                return
+
+            prop = self._modeling_props[name]
+
+            if not in_range(prop, a, b, inclusive):
+                message = "Modeling property {name} should be in range {a} {sign} {name} {sign} {b}"
+                raise ValueError(message.format(
+                    name=name,
+                    a=a,
+                    b=b,
+                    sign="<=" if inclusive else "<"
+                ))
+
+        if not isinstance(self._modeling_props, dict):
+            return
+
+        prop_in_range("mappingBranchFactor", 0, inf, False)
+        prop_in_range("numCandidateMappings", 0, inf, False)
+        prop_in_range("topkSteinerTrees", 0, inf, False)
+        prop_in_range("numSemanticTypes", 0, inf, False)
+        prop_in_range("confidenceWeight", 0, 1)
+        prop_in_range("coherenceWeight", 0, 1)
+        prop_in_range("sizeWeight", 0, 1)
