@@ -12,6 +12,7 @@ import datetime
 import pandas as pd
 import os
 import time
+import tarfile
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
@@ -72,7 +73,16 @@ ssd_dir = os.path.join(benchmark_path, "ssd")
 datasets = [] # list of museum datasets
 ssds = [] # list of semantic source descriptions from museum benchmark
 
+# we need to unzip first the data
+if os.path.exists(os.path.join(dataset_dir, "data.tar.gz")):
+    with tarfile.open(os.path.join(dataset_dir, "data.tar.gz")) as f:
+        f.extractall(path=dataset_dir)
+
+input("Press enter to continue...")
+
 for ds in os.listdir(dataset_dir):
+    if ds.endswith(".gz"):
+        continue
     ds_f = os.path.join(dataset_dir, ds)
     ds_name = os.path.splitext(ds)[0]
     # associated semantic source description for this dataset
@@ -93,7 +103,15 @@ for ds in os.listdir(dataset_dir):
         empty_ssd = SSD(dataset, ontologies)
         ssd = empty_ssd.update(new_json, sn.datasets, sn.ontologies)
         ssds.append(sn.ssds.upload(ssd))
+    # we remove the csv dataset
+    os.remove(ds_f)
 
+
+if len(datasets) != len(ssds):
+    print("Something went wrong. Failed to read all datasets and ssds.")
+    exit()
+
+input("Press enter to continue...")
 print("*********** Datasets and semantic source descriptions from museum benchmark")
 for i, ds in enumerate(datasets):
     print(i, ": dataset=", ds, "; ssd=", ssds[i])
