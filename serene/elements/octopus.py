@@ -287,6 +287,15 @@ class Octopus(object):
         else:
             return "Octopus(local, {})".format(self.name)
 
+    def mappings(self, data_node):
+        """Returns all the Column objects that map to `datanode`..."""
+        z = [(ssd.semantic_model.find(data_node), ssd) for ssd in self._ssds]
+
+        # filter out the None values for find
+        zz = [(node, ssd) for node, ssd in z if node is not None]
+
+        return [ssd.mappings[node] for node, ssd in zz]
+
     @property
     def stored(self):
         return self._stored

@@ -47,7 +47,7 @@ class Column(Searchable):
         self.index = index
         super().__init__()
 
-    def update(self, json):
+    def update(self, json, dataset):
         """
         Update a Column object using a json table...
 
@@ -61,6 +61,9 @@ class Column(Searchable):
         self.datasetID = json['datasetID']
         self.sample = json['sample']
         self.logicalType = json['logicalType']
+
+        self.dataset = dataset
+
         return self
 
     def __repr__(self):

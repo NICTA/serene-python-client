@@ -32,7 +32,7 @@ class DataSet(object):
         :param json:
         """
         self.id = json['id']
-        self.columns = [Column('--').update(c) for c in json['columns']]
+        self.columns = [Column('--').update(c, self) for c in json['columns']]
         self.filename = json['filename']
         self.path = json['path']
         self.type_map = json['typeMap']
