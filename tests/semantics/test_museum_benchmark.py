@@ -145,4 +145,4 @@ class TestMuseum(TestWithServer):
             print(map)
         print()
 
-        self.fail()
+        self.assertEqual(len(ssd.mappings), len(f.mappings))

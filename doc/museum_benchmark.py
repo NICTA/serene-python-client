@@ -8,11 +8,10 @@ except ImportError as e:
     sys.path.insert(0, '.')
     import serene
 
-import datetime
-import pandas as pd
 import os
 import time
 import tarfile
+import tempfile
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
@@ -260,12 +259,16 @@ predicted_ssd = predicted[0].ssd
 # =======================
 
 # ssds[test_sample[0]] is ground truth
-comparison = sn.ssds.compare(predicted_ssd, ssds[test_sample[0]], True, False)
+ground_truth = ssds[test_sample[0]]
+comparison = sn.ssds.compare(predicted_ssd, ground_truth, True, False)
 print("===== Best prediction versus ground truth ===========")
 print(comparison)
-predicted_ssd.show()
+predicted_ssd.show(title="best recommendation: \n"+str(comparison),
+                   outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
+ground_truth.show(title='ground truth', outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
 print("================")
 
+input("Press enter to continue...")
 for i, pred in enumerate(predicted):
     comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], True, False)
     print("SsdResult({}) comparison: {}".format(i,comparison))

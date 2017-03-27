@@ -5,7 +5,7 @@ import webbrowser
 import pygraphviz as pgv
 
 from .elements import ObjectProperty, ClassNode, DataNode, Column
-from .elements import DataLink, ColumnLink, ObjectLink
+from .elements import DataLink, ColumnLink, ObjectLink, ClassInstanceLink
 
 
 class BaseVisualizer(object):
@@ -24,7 +24,7 @@ class BaseVisualizer(object):
         """Function to draw all elements onto the graph"""
         pass
 
-    def show(self):
+    def show(self, title=''):
         """
         Show the graph using pygraphviz
         :return:
@@ -35,6 +35,9 @@ class BaseVisualizer(object):
                        overlap=False,
                        splines='true',
                        fontname='helvetica')
+
+        if title and len(title)>0:
+            g.graph_attr['label'] = title
 
         self._draw_elements(g)
 
@@ -148,7 +151,8 @@ class SSDVisualizer(BaseVisualizer):
         self.link_functions = {
             ObjectLink: self._add_object_link,
             DataLink: self._add_data_link,
-            ColumnLink: self._add_column
+            ColumnLink: self._add_column,
+            ClassInstanceLink: self._add_class_link
         }
 
     def _filter_nodes(self, value_type):
@@ -224,6 +228,14 @@ class SSDVisualizer(BaseVisualizer):
     @staticmethod
     def _add_data_link(graph, src, dst, _):
         """Function to add the DataLinks"""
+        graph.add_edge(src, dst,
+                       color='gray',
+                       fontname='helvetica-italic')
+
+    @staticmethod
+    def _add_class_link(graph, src, dst, _):
+        """Function to add the ClassInstanceLinks.
+        For now they are treated as DataPropertyLinks..."""
         graph.add_edge(src, dst,
                        color='gray',
                        fontname='helvetica-italic')

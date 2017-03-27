@@ -517,9 +517,9 @@ class SSD(object):
     def name(self):
         return self._name
 
-    def show(self):
+    def show(self, title='', outfile=None):
         """Displays the SSD"""
-        self._semantic_model.show(name=self._dataset.filename)
+        self._semantic_model.show(name=self._dataset.filename, title=title, outfile=outfile)
 
     def __repr__(self):
         props = "name={}, dataset={}, ontology={}".format(
@@ -759,12 +759,15 @@ class SSDGraph(object):
 
         return self
 
-    def show(self, name='source'):
+    def show(self, name='source', title='',  outfile=None):
         """
         Prints to the screen and also shows a graphviz visualization.
+
+        :param title: Optional title for the graph
+        :param outfile: file where graph will be stored; if None - a temporary file will be created
         :return:
         """
-        SSDVisualizer(self, name=name).show()
+        SSDVisualizer(self, name=name, outfile=outfile).show(title=title)
 
     @property
     def graph(self):
