@@ -293,7 +293,6 @@ class TestSSDJson(TestWithServer):
 
         new_json = dataset.bind_ssd(self._museum_ssd, ontologies, KARMA_DEFAULT_NS)
 
-
         empty_ssd = SSD(dataset, ontologies)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
 

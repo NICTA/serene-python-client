@@ -7,9 +7,8 @@ Tests the museum benchmark
 import os
 import logging
 import tarfile
-from pprint import pprint
 
-from serene.elements import SSD, Ontology, DataSet
+from serene.elements import SSD
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
 from ..utils import TestWithServer
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
@@ -40,6 +39,13 @@ class TestMuseum(TestWithServer):
         self._clear_storage()
 
         _logger.debug("SetUp complete")
+
+    def tearDown(self):
+        """
+        Be sure to remove all storage elements once a test is finished...
+        :return:
+        """
+        self._clear_storage()
 
     def _add_owls(self):
         # add ontologies
@@ -86,15 +92,6 @@ class TestMuseum(TestWithServer):
         for on in self._ontologies.items:
             self._ontologies.remove(on)
 
-
-    def tearDown(self):
-        """
-        Be sure to remove all storage elements once a test is finished...
-        :return:
-        """
-        self._clear_storage()
-
-
     def test_evaluate_museum(self):
         """
         Test that museum benchmark can be uploaded!
@@ -117,30 +114,23 @@ class TestMuseum(TestWithServer):
         self.assertEqual(len(self._ssds.items), 29)
         self.assertEqual(len(self._datasets.items), 29)
 
+        # first grab the JSON object from the dataset...
         datasets = self._datasets.items
         s27_ds = ""
         for ds in datasets:
             if "s27-s-the-huntington.json" in ds.filename:
                 s27_ds = ds
 
-        print(s27_ds)
-        s27_ssd = os.path.join(self._benchmark_path, "s27-s-the-huntington.json.ssd")
+        # secondly grab the reference SSD
+        s27_ssd = os.path.join(self._benchmark_path, "ssd", "s27-s-the-huntington.json.ssd")
 
+        # bind the dataset and ssd together...
         new_json = s27_ds.bind_ssd(s27_ssd, ontologies, KARMA_DEFAULT_NS)
+
+        # create a new ssd and update with the reference JSON
         empty_ssd = SSD(s27_ds, ontologies)
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
-        print("Converted")
-        print(ssd)
-        print()
-        print("Converted mappings")
-        for m in ssd.mappings:
-            print(m)
-        f = self._ssds.upload(ssd)
-        print("UPLOADED")
-        print(f)
-        print()
-        print("UPLOADED mappings")
-        for m in f.mappings:
-            print(m)
-        print()
 
+        # upload to the server and ensure it is parsed correctly...
+        f = self._ssds.upload(ssd)
+        self.assertEqual(set(ssd.mappings), set(f.mappings))
