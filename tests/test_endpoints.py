@@ -157,7 +157,7 @@ class TestOntologyEndpoint(TestWithServer):
         on = self._ontologies.upload(
             self._test_file,
             description=description_string,
-            owl_format='owl'
+            owl_format='ttl'
         )
 
         self.assertEqual(len(self._ontologies.items), 1)

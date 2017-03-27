@@ -15,6 +15,7 @@ from serene.utils import Searchable
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
 
+
 class Column(Searchable):
     """
     Holds a reference to the original data column

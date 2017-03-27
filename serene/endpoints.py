@@ -17,6 +17,7 @@ import pandas as pd
 from serene.elements.dataset import DataSet
 from serene.elements import Ontology
 from serene.elements import SSD
+from serene.api import OwlFormat
 from .elements.octopus import Octopus
 from .matcher.model import Model
 from .utils import flatten, gen_id
@@ -281,6 +282,12 @@ class OntologyEndpoint(IdentifiableEndpoint):
             except:
                 # use this as default
                 owl_format = 'xml'
+        elif owl_format not in [z.value for z in OwlFormat]:
+            msg = "Format {} is not value. Use one of {}".format(
+                owl_format,
+                [z.value for z in OwlFormat]
+            )
+            raise ValueError(msg)
 
         json = self._api.post(
             file_path=filename,

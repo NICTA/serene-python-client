@@ -7,6 +7,6 @@ Serene Python client: Data Integration Software
 from .data_api import DataSetAPI
 from .session import Session
 from .model_api import ModelAPI
-from .ontology_api import OntologyAPI
+from .ontology_api import OntologyAPI, OwlFormat
 from .ssd_api import SsdAPI
 from .octopus_api import OctopusAPI

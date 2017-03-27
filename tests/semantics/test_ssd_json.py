@@ -86,7 +86,6 @@ class TestSSDJson(TestWithServer):
         empty_ssd = SSD(dataset, [ontology])
         ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
         pprint(ssd.json)
-        self.fail()
 
         self.assertEqual(len(ssd.class_nodes), 4)
         self.assertEqual(len(ssd.data_nodes), 4)
@@ -274,7 +273,6 @@ class TestSSDJson(TestWithServer):
         self.assertEqual(len(uploaded.object_links), 2)
         self.assertEqual(len(uploaded.data_nodes), 2)
         self.assertEqual(len(uploaded.mappings), 2)
-
 
     def test_evaluate_museum(self):
         """
