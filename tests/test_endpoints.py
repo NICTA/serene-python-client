@@ -18,6 +18,7 @@ from serene.endpoints import (DataSetEndpoint, ModelEndpoint, OctopusEndpoint,
 from tests.utils import TestWithServer
 from serene.api.http import BadRequestError
 
+
 class TestDataSetEndpoint(TestWithServer):
     """
     Tests the dataset endpoint

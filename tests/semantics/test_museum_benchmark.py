@@ -133,16 +133,14 @@ class TestMuseum(TestWithServer):
         print(ssd)
         print()
         print("Converted mappings")
-        for map in ssd.mappings:
-            print(map)
-        print()
+        for m in ssd.mappings:
+            print(m)
         f = self._ssds.upload(ssd)
         print("UPLOADED")
         print(f)
         print()
         print("UPLOADED mappings")
-        for map in f.mappings:
-            print(map)
+        for m in f.mappings:
+            print(m)
         print()
 
-        self.fail()

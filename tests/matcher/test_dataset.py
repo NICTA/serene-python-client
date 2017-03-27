@@ -299,21 +299,28 @@ class TestDataSetList(unittest.TestCase):
     def test_summary(self):
         self.assertEqual(self.datasetList.summary.shape[0], 2)
 
+
 class TestColumn(unittest.TestCase):
     """
     Tests the DataSet class
     """
 
-    column_json = {
-        'datasetID': 2035625835,
-        'id': 1246005714,
-        'index': 0,
-        'logicalType': 'string',
-        'name': 'company',
-        'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
-        'sample': ['Data61'],
-        'size': 59
-    }
+    def __init__(self):
+        """
+
+        """
+        super().__init__()
+        self.column_json = {
+            'datasetID': 2035625835,
+            'id': 1246005714,
+            'index': 0,
+            'logicalType': 'string',
+            'name': 'company',
+            'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+            'sample': ['Data61'],
+            'size': 59
+        }
+        self.column = None
 
     def setUp(self):
         self.column = Column("testee")
