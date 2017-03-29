@@ -160,13 +160,13 @@ class Class(Searchable):
             "id": ident,
             "label": self.label,
             "prefix": self.prefix,
-            "type": "ClassNode"
+            "type": "Class"
         }
 
     def __repr__(self):
         nodes = [n.label for n in self.nodes]
 
-        return "ClassNode({}, [{}])".format(self.label, ", ".join(nodes))
+        return "Class({}, [{}])".format(self.label, ", ".join(nodes))
 
     def __eq__(self, other):
         return (self.label == other.label) \
@@ -238,7 +238,7 @@ class DataProperty(Searchable):
         return {
             "id": ident,
             "label": label,
-            "type": "DataNode"
+            "type": "DataProperty"
         }
 
     def __ne__(self, other):
