@@ -356,8 +356,9 @@ class RDFReader(object):
 
             links = it.product(sources, destinations)
 
-            links = [(src, dst) for src, dst in links if (issubclass(type(src),rdflib.term.URIRef)
-                                                          and issubclass(type(dst),rdflib.term.URIRef))]
+            links = [(src, dst) for src, dst in links
+                     if (issubclass(type(src), rdflib.term.URIRef)
+                     and issubclass(type(dst), rdflib.term.URIRef))]
 
             for x, y in links:
                 all_links.append((self.label(x),

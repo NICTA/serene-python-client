@@ -36,7 +36,7 @@ class BaseVisualizer(object):
                        splines='true',
                        fontname='helvetica')
 
-        if title and len(title)>0:
+        if title and len(title):
             g.graph_attr['label'] = title
 
         self._draw_elements(g)

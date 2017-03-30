@@ -48,7 +48,6 @@ class TestSerene(TestWithServer):
         for on in self._serene.ontologies.items:
             self._serene.ontologies.remove(on)
 
-
     def test_load(self):
         ds, on, ssds = self._serene.load(self._test_owl,
                                          [

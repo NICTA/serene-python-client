@@ -311,7 +311,6 @@ class TestEvaluateSSD(TestWithServer):
             f = os.path.join(self._museum_owl_dir, path)
             ontologies.append(self._ontologies.upload(f))
 
-
         new_json = dataset.bind_ssd(self._museum_ssd, ontologies, KARMA_DEFAULT_NS)
 
         empty_ssd = SSD(dataset, ontologies)
