@@ -130,9 +130,10 @@ for i, ds in enumerate(datasets):
     if "s16" in ds.filename:
         test_sample.append(i)
     else:
+        # if "s07" in ds.filename or "s08" in ds.filename:
         train_sample.append(i)
 
-train_sample = train_sample[:5]
+# train_sample = train_sample[:5]
 
 print("Indexes for training sample: ", train_sample)
 print("Indexes for testing sample: ", test_sample)
@@ -148,12 +149,31 @@ octo_local = sn.Octopus(
     ontologies=ontologies,
     name='octopus-without-s16',
     description='Testing example for places and companies',
-    resampling_strategy="NoResampling",  # optional
-    num_bags=100,  # optional
-    bag_size=10,  # optional
+    resampling_strategy="BaggingToMax",  # optional
+    num_bags=10,  # optional
+    bag_size=50,  # optional
     model_type="randomForest",
     modeling_props={
-
+        "compatibleProperties": True,
+        "ontologyAlignment": False,
+        "addOntologyPaths": False,
+        "mappingBranchingFactor": 50,
+        "numCandidateMappings": 10,
+        "topkSteinerTrees": 10,
+        "multipleSameProperty": False,
+        "confidenceWeight": 1.0,
+        "coherenceWeight": 1.0,
+        "sizeWeight": 0.5,
+        "numSemanticTypes": 4,
+        "thingNode": False,
+        "nodeClosure": True,
+        "propertiesDirect": True,
+        "propertiesIndirect": True,
+        "propertiesSubclass": True,
+        "propertiesWithOnlyDomain": True,
+        "propertiesWithOnlyRange": True,
+        "propertiesWithoutDomainRange": False,
+        "unknownThreshold": 0.05
     },
     feature_config={
         "activeFeatures": [
@@ -170,30 +190,31 @@ octo_local = sn.Octopus(
             "entropy-for-discrete-values"
         ],
         "activeFeatureGroups": [
+            "char-dist-features",
             "inferred-data-type",
             "stats-of-text-length",
-            "stats-of-numeric-type",
-            "prop-instances-per-class-in-knearestneighbours",
-            "mean-character-cosine-similarity-from-class-examples",
-            "min-editdistance-from-class-examples",
-            "min-wordnet-jcn-distance-from-class-examples",
-            "min-wordnet-lin-distance-from-class-examples"
+            "stats-of-numeric-type"
+            # ,"prop-instances-per-class-in-knearestneighbours",
+            # "mean-character-cosine-similarity-from-class-examples",
+            # "min-editdistance-from-class-examples",
+            # "min-wordnet-jcn-distance-from-class-examples",
+            # "min-wordnet-lin-distance-from-class-examples"
         ],
-        "featureExtractorParams": [
-            {
-                "name": "prop-instances-per-class-in-knearestneighbours",
-                "num-neighbours": 3
-            }, {
-                "name": "min-editdistance-from-class-examples",
-                "max-comparisons-per-class": 3
-            }, {
-                "name": "min-wordnet-jcn-distance-from-class-examples",
-                "max-comparisons-per-class": 3
-            }, {
-                "name": "min-wordnet-lin-distance-from-class-examples",
-                "max-comparisons-per-class": 3
-            }
-        ]
+        # "featureExtractorParams": [
+        #     {
+        #         "name": "prop-instances-per-class-in-knearestneighbours",
+        #         "num-neighbours": 3
+        #     }, {
+        #         "name": "min-editdistance-from-class-examples",
+        #         "max-comparisons-per-class": 3
+        #     }, {
+        #         "name": "min-wordnet-jcn-distance-from-class-examples",
+        #         "max-comparisons-per-class": 3
+        #     }, {
+        #         "name": "min-wordnet-lin-distance-from-class-examples",
+        #         "max-comparisons-per-class": 3
+        #     }
+        # ]
     }
 )
 
@@ -231,8 +252,15 @@ if octo.state.status in {Status.ERROR}:
 start = time.time()
 predicted = octo.predict(datasets[test_sample[0]])
 print("Prediction done in: {}".format(time.time() - start))
-
 print(predicted)
+
+print()
+print("Showing ground truth...")
+# ssds[test_sample[0]] is ground truth
+ground_truth = ssds[test_sample[0]]
+ground_truth.show(title='ground truth',
+                  outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
+input("Press enter to see predicted semantic models...")
 
 print("><><><><")
 for res in predicted:
@@ -251,6 +279,7 @@ print("><><><><")
 
 # the best is number 0!
 predicted_ssd = predicted[0].ssd
+# predicted_ssd.unmapped_columns
 
 # =======================
 #
@@ -260,15 +289,16 @@ predicted_ssd = predicted[0].ssd
 
 # ssds[test_sample[0]] is ground truth
 ground_truth = ssds[test_sample[0]]
-comparison = sn.ssds.compare(predicted_ssd, ground_truth, True, False)
+comparison = sn.ssds.compare(predicted_ssd, ground_truth, False, False)
 print("===== Best prediction versus ground truth ===========")
 print(comparison)
 predicted_ssd.show(title="best recommendation: \n"+str(comparison),
                    outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
-ground_truth.show(title='ground truth', outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
+# ground_truth.show(title='ground truth',
+#                   outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
 print("================")
 
 input("Press enter to continue...")
 for i, pred in enumerate(predicted):
-    comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], True, False)
+    comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], False, False)
     print("SsdResult({}) comparison: {}".format(i,comparison))

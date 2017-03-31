@@ -494,6 +494,12 @@ class SSD(object):
         return self._semantic_model.mappings
 
     @property
+    def unmapped_columns(self):
+        mapped_cols = set(self.mappings.values())
+        all_cols = set(self._dataset.columns)
+        return all_cols - mapped_cols
+
+    @property
     def semantic_model(self):
         return self._semantic_model
 
@@ -1110,11 +1116,6 @@ class SSDJsonWriter(object):
         d["name"] = self._ssd.name
         d["ontologies"] = [onto.id for onto in self._ssd.ontology]
         d["semanticModel"] = self.semantic_model
-
-        print(">>>>>>>>", self.semantic_model)
-
-        print("<<<<<<<<", self.mappings)
-
         d["mappings"] = self.mappings
         return d
 
