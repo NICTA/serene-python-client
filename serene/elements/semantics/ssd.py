@@ -1110,11 +1110,6 @@ class SSDJsonWriter(object):
         d["name"] = self._ssd.name
         d["ontologies"] = [onto.id for onto in self._ssd.ontology]
         d["semanticModel"] = self.semantic_model
-
-        print(">>>>>>>>", self.semantic_model)
-
-        print("<<<<<<<<", self.mappings)
-
         d["mappings"] = self.mappings
         return d
 

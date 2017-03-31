@@ -12,13 +12,36 @@ import collections
 import logging
 import pprint
 import time
-from enum import Enum
+from enum import Enum, unique
 from functools import lru_cache
 
 import pandas as pd
 
 from serene.elements.dataset import DataSet, Column
 from serene.utils import convert_datetime
+
+@unique
+class SamplingStrategy(Enum):
+    UPSAMPLE_TO_MAX = "UpsampleToMax"
+    RESAMPLE_TO_MEAN = "ResampleToMean"
+    UPSAMPLE_TO_MEAN = "UpsampleToMean"
+    BAGGING = "Bagging"
+    BAGGING_TO_MAX = "BaggingToMax"
+    BAGGING_TO_MEAN = "BaggingToMean"
+    NO_RESAMPLING = "NoResampling"
+
+    @classmethod
+    def values(cls):
+        return [z.value for z in cls]
+
+
+@unique
+class ModelType(Enum):
+    RANDOM_FOREST = "randomForest"
+
+    @classmethod
+    def values(cls):
+        return [z.value for z in cls]
 
 
 class Status(Enum):
@@ -78,6 +101,14 @@ class ModelState(object):
                 self.status,
                 self.date_modified
             )
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __eq__(self, other):
+        return (self.status == other.status) and \
+               (self.message == other.message) and \
+               (self.date_modified == other.date_modified)
 
 
 def decache(func):

@@ -5,14 +5,11 @@ Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
 Tests the ssd module
 """
 import os
-import json
 import datetime
-from serene.elements import SSD, Column, DataNode, ClassNode, ObjectLink, ColumnLink
+from serene.elements import SSD, Column, DataNode, ClassNode
 from serene.elements.semantics.ssd import SSDJsonWriter
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
 from ..utils import TestWithServer
-
-from pprint import pprint
 
 
 class TestSSD(TestWithServer):
@@ -64,16 +61,11 @@ class TestSSD(TestWithServer):
         ds = self._datasets.upload(self._test_file)
         on = self._ontologies.upload(self._test_owl)
 
-        #self.assertEqual(len(self._ontologies.items), 1)
-
         single = SSD(dataset=ds, ontology=on)
 
         self.assertEqual(len(single.data_nodes), 0)
         self.assertEqual(len(single.links), 0)
         self.assertEqual(len(single.columns), 4)
-        #self.assertEqual(str(single.columns),
-        #                 "[Column(company), Column(ceo), Column(city), Column(state)]")
-
         return single
 
     def test_map_simple(self):

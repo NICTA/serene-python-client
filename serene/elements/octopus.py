@@ -7,7 +7,7 @@ Code for the Octopus object
 import logging
 import time
 
-from ..matcher import ModelState, Status
+from ..matcher import ModelState, Status, ModelType, SamplingStrategy
 from ..utils import convert_datetime
 from .dataset import DataSet
 from .semantics.ontology import Ontology
@@ -19,12 +19,6 @@ except ImportError:
 
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
-# # create console handler
-# ch = logging.StreamHandler()
-# ch.setLevel(logging.WARN)
-# formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(module)s - %(message)s')
-# ch.setFormatter(formatter)
-# _logger.addHandler(ch)
 
 
 class OctopusScore(object):
@@ -104,6 +98,18 @@ class Octopus(object):
         :param ontologies:
         :param modeling_props:
         """
+        if model_type not in ModelType.values():
+            msg = "Model type {} is invalid, use one of {}".format(
+                model_type, ModelType.values()
+            )
+            raise ValueError(msg)
+
+        if resampling_strategy not in SamplingStrategy.values():
+            msg = "Resampling strategy type {} is invalid, use one of {}".format(
+                resampling_strategy, SamplingStrategy.values()
+            )
+            raise ValueError(msg)
+
         self._id = None
         self._stored = False
         self._date_created = None
