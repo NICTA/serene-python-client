@@ -494,6 +494,12 @@ class SSD(object):
         return self._semantic_model.mappings
 
     @property
+    def unmapped_columns(self):
+        mapped_cols = set(self.mappings.values())
+        all_cols = set(self._dataset.columns)
+        return all_cols - mapped_cols
+
+    @property
     def semantic_model(self):
         return self._semantic_model
 

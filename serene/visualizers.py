@@ -203,6 +203,7 @@ class SSDVisualizer(BaseVisualizer):
                            name='cluster3',
                            style='filled',
                            color='#e0e0e0',
+                           label='',
                            fontcolor='#909090',
                            fontname='helvetica')
 
