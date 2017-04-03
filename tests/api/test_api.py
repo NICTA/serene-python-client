@@ -1,14 +1,16 @@
 from functools import partial
 from io import TextIOBase
 
+from mock import MagicMock, Mock, call, patch
 from requests import Response, Session
 from unittest2 import TestCase
 
-from mock import MagicMock, Mock, call, patch
 from serene.api.data_api import DataSetAPI
 from serene.api.exceptions import InternalError
 from serene.api.model_api import ModelAPI
 from serene.api.ontology_api import OntologyAPI, OwlFormat
+from serene.api.ssd_api import SsdAPI
+from serene.elements import DataSet, Ontology, SSD
 
 
 class TestDataSetAPI(TestCase):
@@ -486,3 +488,144 @@ class TestOntologyAPI(TestCase):
         api_owl_file = partial(self.api.owl_file, 1)
 
         self.assertRaises(InternalError, api_owl_file)
+
+
+class TestSsdAPI(TestCase):
+    def setUp(self):
+        self.connection = Mock(Session())
+        self.root_uri = "http://localhost/"
+        self.ssd_path = "ssd/"
+        self.uri = self.root_uri + self.ssd_path
+        self.api = SsdAPI(self.root_uri, self.connection)
+        self.response = Mock(Response())
+
+        self.dataset_json = {
+            "dateCreated": "2017-03-16T15:29:03.388",
+            "dateModified": "2017-03-16T15:29:03.388",
+            "description": "",
+            "filename": "businessInfo.csv",
+            "id": 2035625835,
+            "path": "/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv",
+            "typeMap": {},
+            "columns": [
+                {
+                    "datasetID": 2035625835,
+                    "id": 1246005714,
+                    "index": 0,
+                    "logicalType": "string",
+                    "name": "company",
+                    "path": "/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv",
+                    "sample": ["Data61"],
+                    "size": 59
+                },
+                {
+                    "datasetID": 2035625835,
+                    "id": 281689915,
+                    "index": 1,
+                    "logicalType": "string",
+                    "name": "ceo",
+                    "path": "/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv",
+                    "sample": ["Garv Mcowen"],
+                    "size": 59
+                }
+            ]
+        }
+
+        self.dataset = DataSet(self.dataset_json)
+        self.ontology = Ontology().update({
+            "name": __file__,
+            "id": 123,
+            "description": "test ontology",
+            "dateCreated": "2017-03-16T15:29:03.388",
+            "dateModified": "2017-03-16T15:29:03.388"
+        })
+        self.ssd_json = SSD(self.dataset, self.ontology, "test ssd").json
+
+    def test_keys(self):
+        keys = [1, 2]
+        self.response.status_code = 200
+        self.response.json = Mock(return_value=keys)
+        self.connection.get = Mock(return_value=self.response)
+        result = self.api.keys()
+
+        self.assertEqual(result, keys)
+        self.connection.get.assert_called_with(self.uri)
+
+    def test_keys_with_connection_exception(self):
+        self.connection.get = Mock(side_effect=Exception)
+
+        self.assertRaises(InternalError, self.api.keys)
+
+    def test_post(self):
+        message = "Created"
+        self.response.status_code = 200
+        self.response.json = Mock(return_value=message)
+        self.connection.post = Mock(return_value=self.response)
+        result = self.api.post(self.ssd_json)
+
+        args = self.connection.post.call_args
+        self.assertEqual(args[0][0], self.uri)
+        self.assertEqual(
+            args[1]["data"],
+            self.ssd_json)
+        self.assertEqual(result, message)
+
+    def test_post_with_connection_exception(self):
+        self.connection.post = Mock(side_effect=Exception)
+        api_post = partial(
+            self.api.post, self.ssd_json)
+
+        self.assertRaises(InternalError, api_post)
+
+    def test_update(self):
+        message = "Updated"
+        key = 1
+        self.response.status_code = 200
+        self.response.json = Mock(return_value=message)
+        self.connection.post = Mock(return_value=self.response)
+        result = self.api.update(key, self.ssd_json)
+
+        args = self.connection.post.call_args
+        self.assertEqual(args[0][0], self.uri + str(key))
+        self.assertEqual(args[1]["data"], self.ssd_json)
+        self.assertEqual(result, message)
+
+    def test_update_with_connection_exception(self):
+        self.connection.post = Mock(side_effect=Exception)
+        api_update = partial(self.api.update, 1, self.ssd_json)
+
+        self.assertRaises(InternalError, api_update)
+
+    def test_item(self):
+        key = 1
+        self.response.status_code = 200
+        self.response.json = Mock(return_value=self.ssd_json)
+        self.connection.get = Mock(return_value=self.response)
+        result = self.api.item(key)
+
+        self.assertEqual(result, self.ssd_json)
+        self.connection.get.assert_called_with(self.uri + str(key))
+
+    def test_item_with_connection_exception(self):
+        self.connection.get = Mock(side_effect=Exception)
+        api_item = partial(self.api.item, 1)
+
+        self.assertRaises(InternalError, api_item)
+
+
+    def test_delete(self):
+        message = "Deleted"
+        key = 1
+        self.response.status_code = 200
+        self.response.json = Mock(return_value=message)
+        self.connection.delete = Mock(return_value=self.response)
+        result = self.api.delete(key)
+
+        self.assertEqual(result, message)
+        self.connection.delete.assert_called_with(self.uri + str(key))
+
+    def test_delete_with_connection_exception(self):
+        self.connection.delete = Mock(side_effect=Exception)
+        api_delete = partial(self.api.delete, 1)
+
+        self.assertRaises(InternalError, api_delete)
