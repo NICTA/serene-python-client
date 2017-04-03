@@ -22,7 +22,7 @@ class TestDataSet(unittest.TestCase):
         'description': '',
         'filename': 'businessInfo.csv',
         'id': 2035625835,
-        'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+        'path': 'tests/resources/data/businessinfo.csv',
         'typeMap': {},
         'columns': [
             {
@@ -31,7 +31,7 @@ class TestDataSet(unittest.TestCase):
                 'index': 0,
                 'logicalType': 'string',
                 'name': 'company',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Data61'],
                 'size': 59
             },
@@ -41,7 +41,7 @@ class TestDataSet(unittest.TestCase):
                 'index': 1,
                 'logicalType': 'string',
                 'name': 'ceo',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Garv Mcowen'],
                 'size': 59
             }
@@ -54,7 +54,7 @@ class TestDataSet(unittest.TestCase):
         'description': '',
         'filename': 'businessInfo.csv',
         'id': 2035625835,
-        'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+        'path': 'tests/resources/data/businessinfo.csv',
         'typeMap': {},
         'columns': [
             {
@@ -63,7 +63,7 @@ class TestDataSet(unittest.TestCase):
                 'index': 0,
                 'logicalType': 'string',
                 'name': 'company',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo2.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Data61'],
                 'size': 59
             },
@@ -73,7 +73,7 @@ class TestDataSet(unittest.TestCase):
                 'index': 1,
                 'logicalType': 'string',
                 'name': 'ceo',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo2.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Garv Mcowen'],
                 'size': 59
             }
@@ -86,7 +86,7 @@ class TestDataSet(unittest.TestCase):
         'description': '',
         'filename': 'businessInfo.csv',
         'id': 2035625835,
-        'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+        'path': 'tests/resources/data/businessinfo.csv',
         'typeMap': {},
         'columns': [
             {
@@ -95,7 +95,7 @@ class TestDataSet(unittest.TestCase):
                 'index': 0,
                 'logicalType': 'string',
                 'name': 'ceo',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Data61'],
                 'size': 59
             },
@@ -105,12 +105,18 @@ class TestDataSet(unittest.TestCase):
                 'index': 1,
                 'logicalType': 'string',
                 'name': 'ceo',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Garv Mcowen'],
                 'size': 59
             }
         ]
     }
+
+    def __init__(self, methodName='runTest'):
+        super().__init__(methodName=methodName)
+
+        # sample dataset to use...
+        self.dataset = None
 
     def setUp(self):
         self.dataset = DataSet(self.dataset_json)
@@ -156,8 +162,8 @@ class TestDataSet(unittest.TestCase):
 
     def test_summary(self):
         output = StringIO()
+        sys_stdout = sys.stdout
         try:
-            sys_stdout = sys.stdout
             sys.stdout = output
             self.dataset.summary()
         finally:
@@ -170,18 +176,18 @@ class TestDataSet(unittest.TestCase):
             repr(self.dataset),
             "DataSet(2035625835, businessInfo.csv)")
 
+
 class TestDataSetList(unittest.TestCase):
     """
     Tests the DataSetList class
     """
-
-    dataset_json1 = dataset_json = {
+    dataset_json1 = {
         'dateCreated': '2017-03-16T15:29:03.388',
         'dateModified': '2017-03-16T15:29:03.388',
         'description': '',
         'filename': 'businessInfo.csv',
         'id': 2035625835,
-        'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+        'path': 'tests/resources/data/businessinfo.csv',
         'typeMap': {},
         'columns': [
             {
@@ -190,7 +196,7 @@ class TestDataSetList(unittest.TestCase):
                 'index': 0,
                 'logicalType': 'string',
                 'name': 'company',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Data61'],
                 'size': 59
             },
@@ -200,20 +206,20 @@ class TestDataSetList(unittest.TestCase):
                 'index': 1,
                 'logicalType': 'string',
                 'name': 'ceo',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+                'path': 'tests/resources/data/businessinfo.csv',
                 'sample': ['Garv Mcowen'],
                 'size': 59
             }
         ]
     }
 
-    dataset_json2 = dataset_json = {
+    dataset_json2 = {
         'dateCreated': '2017-03-16T15:29:03.388',
         'dateModified': '2017-03-16T15:29:03.388',
         'description': '',
         'filename': 'businessInfo2.csv',
         'id': 2035625836,
-        'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+        'path': 'tests/resources/data/businessinfo2.csv',
         'typeMap': {},
         'columns': [
             {
@@ -222,7 +228,7 @@ class TestDataSetList(unittest.TestCase):
                 'index': 0,
                 'logicalType': 'string',
                 'name': 'company',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo2.csv',
+                'path': 'tests/resources/data/businessinfo2.csv',
                 'sample': ['Data61'],
                 'size': 59
             },
@@ -232,7 +238,7 @@ class TestDataSetList(unittest.TestCase):
                 'index': 1,
                 'logicalType': 'string',
                 'name': 'ceo',
-                'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo2.csv',
+                'path': 'tests/resources/data/businessinfo2.csv',
                 'sample': ['Garv Mcowen'],
                 'size': 59
             }
@@ -245,9 +251,17 @@ class TestDataSetList(unittest.TestCase):
         self.datasetList = DataSetList(self.dataset1, self.dataset2)
 
     def test_check(self):
+        """
+        Checks the dataset list takes dataset objects
+        :return:
+        """
         self.assertIsNone(DataSetList.check(self.dataset1))
 
     def test_check_with_non_dataset(self):
+        """
+        Checks that the dataset list rejects non-dataset objects
+        :return:
+        """
         checked = 1
         self.assertRaisesRegex(
             TypeError,
@@ -256,37 +270,73 @@ class TestDataSetList(unittest.TestCase):
             checked)
 
     def test_len(self):
+        """
+        Tests that the length property of DataSetList is maintained.
+        :return:
+        """
         self.assertEqual(len(self.datasetList), 2)
 
     def test_getitem(self):
+        """
+        Tests that the element extraction of DataSetList is working
+        :return:
+        """
         self.assertIs(self.datasetList[1], self.dataset2)
 
     def test_delitem(self):
-        def delete(): del self.datasetList[0]
+        """
+        Tests that the DataSetList deletes items correctly
+        :return:
+        """
+        def delete():
+            del self.datasetList[0]
+
         self.assertRaisesRegex(
             Exception,
             "Use Serene\.remove_dataset to correctly remove dataset",
             delete)
 
     def test_setitem(self):
+        """
+        Tests that the DataSetList can assign items
+        :return:
+        """
         self.datasetList[1] = self.dataset1
         self.assertIs(self.datasetList[1], self.dataset1)
 
     def test_setitem_with_non_dataset(self):
-        def setitem(): self.datasetList[1] = 1
+        """
+        Tests that the DataSetList cannot assign non-dataset items
+        :return:
+        """
+        def setitem():
+            self.datasetList[1] = 1
+
         self.assertRaises(TypeError, setitem)
 
     def test_insert(self):
+        """
+        Tests that the DataSetList can insert dataset items
+        :return:
+        """
         self.datasetList.insert(1, self.dataset1)
         self.assertSequenceEqual(
             self.datasetList,
             [self.dataset1, self.dataset1, self.dataset2])
 
     def test_insert_with_non_dataset(self):
+        """
+        Tests that the DataSetList cannot insert non-dataset items
+        :return:
+        """
         def insert(): self.datasetList.insert(1, 1)
         self.assertRaises(TypeError, insert)
 
     def test_repr(self):
+        """
+        Tests that the DataSetList writes output strings correctly
+        :return:
+        """
         self.assertEqual(
             repr(self.datasetList),
             "[{}]".format(
@@ -297,26 +347,63 @@ class TestDataSetList(unittest.TestCase):
         )
 
     def test_summary(self):
+        """
+        Tests that the output summary is produced correctly.
+        :return:
+        """
         self.assertEqual(self.datasetList.summary.shape[0], 2)
 
 
 class TestColumn(unittest.TestCase):
     """
-    Tests the DataSet class
+    Tests the Column class
     """
 
     def __init__(self):
         """
-
+        Initializes the Column testing suite
         """
         super().__init__()
+
+        self.sample_ds = DataSet({
+            'dateCreated': '2017-03-16T15:29:03.388',
+            'dateModified': '2017-03-16T15:29:03.388',
+            'description': '',
+            'filename': 'businessInfo.csv',
+            'id': 2035625835,
+            'path': 'tests/resources/data/businessinfo.csv',
+            'typeMap': {},
+            'columns': [
+                {
+                    'datasetID': 2035625835,
+                    'id': 1234567890,
+                    'index': 0,
+                    'logicalType': 'string',
+                    'name': 'company',
+                    'path': 'tests/resources/data/businessinfo.csv',
+                    'sample': ['Data61'],
+                    'size': 59
+                },
+                {
+                    'datasetID': 2035625835,
+                    'id': 123456789,
+                    'index': 1,
+                    'logicalType': 'string',
+                    'name': 'ceo',
+                    'path': 'tests/resources/data/businessinfo.csv',
+                    'sample': ['Garv Mcowen'],
+                    'size': 59
+                }
+            ]
+        })
+
         self.column_json = {
             'datasetID': 2035625835,
             'id': 1246005714,
             'index': 0,
             'logicalType': 'string',
             'name': 'company',
-            'path': '/Users/li151/Dev/serene/./storage/datasets/2035625835/businessinfo.csv',
+            'path': 'tests/resources/data/businessinfo.csv',
             'sample': ['Data61'],
             'size': 59
         }
@@ -326,6 +413,10 @@ class TestColumn(unittest.TestCase):
         self.column = Column("testee")
 
     def test_update(self):
+        """
+        Tests that the column is updated correctly from json.
+        :return:
+        """
         self.column.update(self.column_json)
 
         self.assertEqual(self.column.index, self.column_json["index"])
@@ -335,19 +426,26 @@ class TestColumn(unittest.TestCase):
         self.assertEqual(self.column.size, self.column_json["size"])
         self.assertEqual(self.column.datasetID, self.column_json["datasetID"])
         self.assertEqual(self.column.sample, self.column_json["sample"])
-        self.assertEqual(
-            self.column.logicalType,
-            self.column_json["logicalType"])
+        self.assertEqual(self.column.logicalType, self.column_json["logicalType"])
 
     def test_repr(self):
+        """Tests that the string is output correctly"""
         self.assertEqual(repr(self.column), "Column(testee)")
 
     def test_eq(self):
+        """
+        Checks that the Column equality is operating correctly
+        :return:
+        """
         self.assertEqual(
             self.column.update(self.column_json),
-            Column("testee2").update(self.column_json))
+            Column("testee2").update(self.column_json, self.sample_ds))
 
     def test_hash(self):
+        """
+        Tests that the hash codes of Column are calculated correctly
+        :return:
+        """
         self.assertEqual(
             hash(self.column.update(self.column_json)),
             hash((

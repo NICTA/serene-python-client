@@ -399,7 +399,6 @@ postal_code_ssd2.show()
 for ssd in [business_info_ssd, employee_address_ssd, get_cities_ssd, get_employees_ssd, postal_code_ssd]:
     sn.ssds.upload(ssd)
 
-sn.ssds.upload(business_info_ssd)
 
 # ==========
 #
