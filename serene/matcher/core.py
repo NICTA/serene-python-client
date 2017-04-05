@@ -130,8 +130,8 @@ class SchemaMatcher(object):
                      labels=None,
                      cost_matrix=None,
                      resampling_strategy="ResampleToMean",
-                     numBags=50,
-                     bagSize=100):
+                     num_bags=50,
+                     bag_size=100):
         """
         Post a new model to the schema matcher server.
         Refresh SchemaMatcher instance to include the new model.
@@ -172,8 +172,8 @@ class SchemaMatcher(object):
                                        label_parse(labels),
                                        cost_matrix,
                                        resampling_strategy,
-                                       numBags,
-                                       bagSize)  # send API request
+                                       num_bags,
+                                       bag_size)  # send API request
         # create model wrapper...
         return Model(json, self.api)
 

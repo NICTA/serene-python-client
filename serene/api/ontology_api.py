@@ -77,6 +77,9 @@ class OntologyAPI(HTTPObject):
     def _gen_id():
         return ''.join(random.sample(string.ascii_uppercase, 10))
 
+    def _create_local_owl_file(self, path):
+        return open(path, "wb")
+
     def owl_file(self, key):
         """
         Get the actual owl file from the repository on the Serene server.
@@ -87,6 +90,7 @@ class OntologyAPI(HTTPObject):
         """
         logging.debug("Inferring extension pof the ontology...")
         owl_json = self.item(key)
+
         try:
             extension = os.path.splitext(owl_json["name"])[1]
         except:
@@ -97,11 +101,14 @@ class OntologyAPI(HTTPObject):
         uri = "{}{}/file".format(self._uri, str(key))
         try:
             # extension of the ontology matters!
-            path = os.path.join(tempfile.gettempdir(), "{}{}".format(self._gen_id(),extension))
+            path = os.path.join(
+                tempfile.gettempdir(),
+                "{}{}".format(self._gen_id(), extension))
 
             r = requests.get(uri, stream=True)
+
             if r.status_code == 200:
-                with open(path, 'wb') as f:
+                with self._create_local_owl_file(path) as f:
                     for chunk in r.iter_content(1024):
                         f.write(chunk)
             else:
@@ -212,7 +219,7 @@ class OntologyAPI(HTTPObject):
             r = self.connection.delete(uri)
         except Exception as e:
             logging.error(e)
-            raise InternalError("delete_dataset", e)
+            raise InternalError("delete_ontology", e)
 
         self._handle_errors(r, "DELETE " + uri)
 

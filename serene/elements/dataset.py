@@ -187,12 +187,12 @@ class DataSet(object):
         :return: json dict
         """
         # a stored dataset
-        assert (self.stored)
+        assert self.stored
         assert (len(ontologies) > 0)
         # stored ontologies
         for onto in ontologies:
             assert (issubclass(type(onto), Ontology))
-            assert (onto.stored)
+            assert onto.stored
 
         with open(ssd_json) as f:
             data = json.load(f)
@@ -227,6 +227,7 @@ class DataSet(object):
             del data["id"]
 
         return data
+
 
 class DataSetList(collections.MutableSequence):
     """
@@ -281,7 +282,7 @@ class DataSetList(collections.MutableSequence):
         for elem in self.list:
             df.loc[len(df)] = [
                 elem.id,
-                os.path.basename(elem.set_filename),
+                elem.filename,
                 elem.description,
                 elem.date_created,
                 elem.date_modified,

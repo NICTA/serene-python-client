@@ -27,8 +27,8 @@ class ModelAPI(HTTPObject):
              labels=None,
              cost_matrix=None,
              resampling_strategy="ResampleToMean",
-             numBags=50,
-             bagSize=100):
+             num_bags=50,
+             bag_size=100):
         """
         Post a new model to the schema matcher server.
 
@@ -58,8 +58,8 @@ class ModelAPI(HTTPObject):
                                              labels,
                                              cost_matrix,
                                              resampling_strategy,
-                                             numBags,
-                                             bagSize)
+                                             num_bags,
+                                             bag_size)
             r = self.connection.post(uri, json=data)
         except Exception as e:
             logging.error(e)
@@ -76,8 +76,8 @@ class ModelAPI(HTTPObject):
                labels=None,
                cost_matrix=None,
                resampling_strategy=None,
-               numBags=None,
-               bagSize=None):
+               num_bags=None,
+               bag_size=None):
         """
         Update an existing model in the model repository at the schema matcher server.
 
@@ -103,8 +103,8 @@ class ModelAPI(HTTPObject):
                                              labels,
                                              cost_matrix,
                                              resampling_strategy,
-                                             numBags,
-                                             bagSize)
+                                             num_bags,
+                                             bag_size)
 
             r = self.connection.post(uri, json=data)
         except Exception as e:
@@ -220,8 +220,8 @@ class ModelAPI(HTTPObject):
                              labels=None,
                              cost_matrix=None,
                              resampling_strategy=None,
-                             numBags=None,
-                             bagSize=None):
+                             num_bags=None,
+                             bag_size=None):
         """Prepares a json update string for the model update request"""
         data = {
             "description": description,
@@ -231,7 +231,7 @@ class ModelAPI(HTTPObject):
             "costMatrix": cost_matrix,
             "resamplingStrategy": resampling_strategy,
             "features": feature_config,
-            "numBags": numBags,
-            "bagSize": bagSize
+            "numBags": num_bags,
+            "bagSize": bag_size
         }
         return {k: v for k, v in data.items() if v is not None}
