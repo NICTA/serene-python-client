@@ -311,3 +311,31 @@ class TestSSDJson(TestWithServer):
         self.assertEqual(len(uploaded.object_links), 5)  # object property
         self.assertEqual(len(uploaded.data_nodes), 10)
         self.assertEqual(len(uploaded.mappings), 10)
+
+    def test_show_multi_levels(self):
+        data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources",
+                            "museum_benchmark", "data_copy", "s07-s-13.json.csv")
+        dataset = self._datasets.upload(data_path)
+
+        print("--------------------1")
+
+        ontologies = []
+        for path in os.listdir(self._museum_owl_dir):
+            f = os.path.join(self._museum_owl_dir, path)
+            ontologies.append(self._ontologies.upload(f))
+
+        print("--------------------2")
+
+        self.assertEqual(len(ontologies), 11)
+
+        ssd_path = os.path.join(self._ssd_path, "s07_many_levels.ssd")
+        new_json = dataset.bind_ssd(ssd_path, ontologies, KARMA_DEFAULT_NS)
+
+        empty_ssd = SSD(dataset, ontologies)
+        ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
+
+        print("HERE!!!!!!!!!!!!!!!!!!!")
+        ssd.show()
+        print(ssd)
+
+        self.fail()

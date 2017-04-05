@@ -41,6 +41,10 @@ class BaseVisualizer(object):
 
         self._draw_elements(g)
 
+        print()
+        print(g)
+        print()
+
         g.draw(self.outfile, prog='dot')
         webbrowser.open("file://{}".format(os.path.abspath(self.outfile)))
 
@@ -171,8 +175,9 @@ class SSDVisualizer(BaseVisualizer):
                               style='filled',
                               fillcolor='#59d0a0',
                               shape='ellipse',
-                              fontname='helvetica',
-                              rank='source')
+                              fontname='helvetica'
+                              # , rank='source'
+                              )
 
     @staticmethod
     def _add_data_node(graph, key, node):
@@ -183,8 +188,9 @@ class SSDVisualizer(BaseVisualizer):
                               style='filled',
                               fontcolor='black',
                               shape='ellipse',
-                              fontname='helvetica',
-                              rank='same')
+                              fontname='helvetica'
+                              # ,rank='same'
+                              )
 
     @staticmethod
     def _add_column_node(graph, key, node):
@@ -200,18 +206,22 @@ class SSDVisualizer(BaseVisualizer):
         """Add the bounding box for the data nodes"""
         graph.add_subgraph(self._filter_nodes(DataNode),
                            rank='same',
-                           name='cluster3',
+                           name='cluster2',
                            style='filled',
                            color='#e0e0e0',
                            label='',
                            fontcolor='#909090',
                            fontname='helvetica')
 
+    def _add_class_cluster(self, graph):
+        """Add subgraph for the class nodes"""
+        graph.add_subgraph(self._filter_nodes(ClassNode))
+
     def _add_column_bounds(self, graph):
         """Add the bounding box for the columns"""
         graph.add_subgraph(self._filter_nodes(Column),
-                           rank='max',
-                           name='cluster1',
+                           rank='same',
+                           name='cluster3',
                            color='#f09090',
                            fontcolor='#c06060',
                            label=self._name,
@@ -264,9 +274,11 @@ class SSDVisualizer(BaseVisualizer):
                 msg = "Unknown node type in graph: {}".format(node)
                 raise Exception(msg)
 
+
     def _draw_bounds(self, graph):
         """Draw the bounding boxes for the DataNodes and Columns"""
         # add the boundaries...
+        self._add_class_cluster(graph)
         self._add_data_bounds(graph)
         self._add_column_bounds(graph)
 
@@ -293,5 +305,5 @@ class SSDVisualizer(BaseVisualizer):
         :return: None
         """
         self._draw_nodes(graph)
-        self._draw_bounds(graph)
         self._draw_links(graph)
+        self._draw_bounds(graph)

@@ -12,6 +12,7 @@ import os
 import time
 import tarfile
 import tempfile
+from pprint import pprint
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
@@ -127,7 +128,7 @@ test_sample = []
 
 # s16 will be test
 for i, ds in enumerate(datasets):
-    if "s16" in ds.filename:
+    if "s07" in ds.filename:
         test_sample.append(i)
     else:
         # if "s07" in ds.filename or "s08" in ds.filename:
@@ -147,11 +148,11 @@ print("Indexes for testing sample: ", test_sample)
 octo_local = sn.Octopus(
     ssds=[ssds[i] for i in train_sample],
     ontologies=ontologies,
-    name='octopus-without-s16',
+    name='octopus-without-s07',
     description='Testing example for places and companies',
-    resampling_strategy="BaggingToMax",  # optional
+    resampling_strategy="BaggingToMean",  # optional
     num_bags=10,  # optional
-    bag_size=50,  # optional
+    bag_size=30,  # optional
     model_type="randomForest",
     modeling_props={
         "compatibleProperties": True,
@@ -194,17 +195,18 @@ octo_local = sn.Octopus(
             "inferred-data-type",
             "stats-of-text-length",
             "stats-of-numeric-type"
-            # ,"prop-instances-per-class-in-knearestneighbours",
-            # "mean-character-cosine-similarity-from-class-examples",
-            # "min-editdistance-from-class-examples",
-            # "min-wordnet-jcn-distance-from-class-examples",
-            # "min-wordnet-lin-distance-from-class-examples"
+            ,"prop-instances-per-class-in-knearestneighbours"
+            ,"mean-character-cosine-similarity-from-class-examples"
+            # ,"min-editdistance-from-class-examples"
+            # ,"min-wordnet-jcn-distance-from-class-examples"
+            # ,"min-wordnet-lin-distance-from-class-examples"
         ],
-        # "featureExtractorParams": [
-        #     {
-        #         "name": "prop-instances-per-class-in-knearestneighbours",
-        #         "num-neighbours": 3
-        #     }, {
+        "featureExtractorParams": [
+            {
+                "name": "prop-instances-per-class-in-knearestneighbours",
+                "num-neighbours": 3
+            }
+        # , {
         #         "name": "min-editdistance-from-class-examples",
         #         "max-comparisons-per-class": 3
         #     }, {
@@ -214,7 +216,7 @@ octo_local = sn.Octopus(
         #         "name": "min-wordnet-lin-distance-from-class-examples",
         #         "max-comparisons-per-class": 3
         #     }
-        # ]
+        ]
     }
 )
 
@@ -280,7 +282,27 @@ print("><><><><")
 # the best is number 0!
 predicted_ssd = predicted[0].ssd
 # predicted_ssd.unmapped_columns
+print()
+print("============Best recommendation=========")
+print(predicted_ssd)
 
+print("Mappings:")
+for map in predicted_ssd.mappings.items():
+    print(map)
+
+print("Unmapped columns:")
+print(predicted_ssd.unmapped_columns)
+print()
+
+print("Columns: ")
+for col in predicted_ssd.columns:
+    print("name={}, id={}".format(col.name, col.id))
+
+print()
+print(predicted_ssd.json)
+print()
+pprint(predicted_ssd.json)
+input("Press enter to continue...")
 # =======================
 #
 # Step 8. Evaluate against ground truth
@@ -290,8 +312,6 @@ predicted_ssd = predicted[0].ssd
 # ssds[test_sample[0]] is ground truth
 ground_truth = ssds[test_sample[0]]
 comparison = sn.ssds.compare(predicted_ssd, ground_truth, False, False)
-print("===== Best prediction versus ground truth ===========")
-print(comparison)
 predicted_ssd.show(title="best recommendation: \n"+str(comparison),
                    outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
 # ground_truth.show(title='ground truth',

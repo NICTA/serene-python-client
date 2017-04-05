@@ -237,26 +237,6 @@ class TestSSD(TestWithServer):
         self.assertEqual(len(simple.data_links), 4)
         self.assertEqual(len(simple.object_links), 0)
 
-    def test_remove_links(self):
-        """
-        Tests the removal function and then adding back
-        :return:
-        """
-        simple = self._build_simple()
-
-        (simple
-         .map("company", "Organization.name")
-         .map("ceo", "Person.name")
-         .map("city", "City.name")
-         .map("state", "State.name")
-         .link("Organization", "ceo", "Person")
-         .remove_link("ceo"))
-
-        self.assertEqual(len(simple.class_nodes), 4)
-        self.assertEqual(len(simple.data_nodes), 4)
-        self.assertEqual(len(simple.data_links), 4)
-        self.assertEqual(len(simple.object_links), 0)
-
     def test_map_multi_instance(self):
         """
         Tests the map function with multiple instances
