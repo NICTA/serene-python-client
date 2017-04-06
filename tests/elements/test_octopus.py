@@ -186,6 +186,19 @@ class TestOctopus(TestWithServer):
             }
         )
 
+    def tearDown(self):
+        for o in self._serene.octopii.items:
+            self._serene.octopii.remove(o)
+
+        for ssd in self._serene.ssds.items:
+            self._serene.ssds.remove(ssd)
+
+        for ds in self._serene.datasets.items:
+            self._serene.datasets.remove(ds)
+
+        for o in self._serene.ontologies.items:
+            self._serene.ontologies.remove(o)
+
     def _octopus(self):
         """
         Upload an octopus object...

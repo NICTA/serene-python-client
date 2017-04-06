@@ -36,6 +36,9 @@ class TestSSD(TestWithServer):
 
     def _clear_storage(self):
         """Removes all server elements"""
+        for ssd in self._ssds.items:
+            self._ssds.remove(ssd)
+
         for ds in self._datasets.items:
             self._datasets.remove(ds)
 
