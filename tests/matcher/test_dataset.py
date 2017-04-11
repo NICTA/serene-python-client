@@ -113,7 +113,7 @@ class TestDataSet(unittest.TestCase):
     }
 
     def __init__(self, methodName='runTest'):
-        super().__init__(methodName=methodName)
+        super().__init__(methodName)
 
         # sample dataset to use...
         self.dataset = None
@@ -359,11 +359,11 @@ class TestColumn(unittest.TestCase):
     Tests the Column class
     """
 
-    def __init__(self):
+    def __init__(self, methodName='runTest'):
         """
         Initializes the Column testing suite
         """
-        super().__init__()
+        super().__init__(methodName)
 
         self.sample_ds = DataSet({
             'dateCreated': '2017-03-16T15:29:03.388',
@@ -417,7 +417,7 @@ class TestColumn(unittest.TestCase):
         Tests that the column is updated correctly from json.
         :return:
         """
-        self.column.update(self.column_json)
+        self.column.update(self.column_json, self.sample_ds)
 
         self.assertEqual(self.column.index, self.column_json["index"])
         self.assertEqual(self.column.filename, self.column_json["path"])
@@ -438,7 +438,7 @@ class TestColumn(unittest.TestCase):
         :return:
         """
         self.assertEqual(
-            self.column.update(self.column_json),
+            self.column.update(self.column_json, self.sample_ds),
             Column("testee2").update(self.column_json, self.sample_ds))
 
     def test_hash(self):
@@ -447,7 +447,7 @@ class TestColumn(unittest.TestCase):
         :return:
         """
         self.assertEqual(
-            hash(self.column.update(self.column_json)),
+            hash(self.column.update(self.column_json, self.sample_ds)),
             hash((
                 self.column_json["name"],
                 self.column_json["id"],

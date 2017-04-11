@@ -52,6 +52,9 @@ class TestEvaluateSSD(TestWithServer):
 
     def _clear_storage(self):
         """Removes all server elements"""
+        for ssd in self._ssds.items:
+            self._ssds.remove(ssd)
+
         for ds in self._datasets.items:
             self._datasets.remove(ds)
 
@@ -296,7 +299,6 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(res['precision'], 1)
         self.assertEqual(res['recall'], 1)
         self.assertEqual(res['jaccard'], 1)
-
 
     def test_evaluate_museum(self):
         """

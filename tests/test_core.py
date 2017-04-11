@@ -39,6 +39,9 @@ class TestSerene(TestWithServer):
 
     def _clear_storage(self):
         """Removes all server elements"""
+        for o in self._serene.octopii.items:
+            self._serene.octopii.remove(o)
+
         for ssd in self._serene.ssds.items:
             self._serene.ssds.remove(ssd)
 
@@ -49,6 +52,10 @@ class TestSerene(TestWithServer):
             self._serene.ontologies.remove(on)
 
     def test_load(self):
+        """
+        Tests the loading mechanism
+        :return:
+        """
         ds, on, ssds = self._serene.load(self._test_owl,
                                          [
                                              self._business_file,

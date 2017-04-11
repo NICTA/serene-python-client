@@ -80,7 +80,6 @@ class TestMuseum(TestWithServer):
             # we remove the csv dataset
             os.remove(ds_f)
 
-
     def _clear_storage(self):
         """Removes all server elements"""
         for ssd in self._ssds.items:

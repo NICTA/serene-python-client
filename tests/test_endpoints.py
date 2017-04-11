@@ -291,6 +291,7 @@ def initSsdEndpoint(session):
 
     return result
 
+
 class TestSsdEndpoint(TestWithServer):
     def setUp(self):
         init_result = initSsdEndpoint(self._session)

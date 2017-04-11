@@ -491,7 +491,7 @@ class TestOntologyAPI(TestCase):
         self.assertRaises(InternalError, api_owl_file)
 
 
-def init_test_ssd(target):
+def init_ssd(target):
     target.dataset_json = {
         "dateCreated": "2017-03-16T15:29:03.388",
         "dateModified": "2017-03-16T15:29:03.388",
@@ -546,7 +546,7 @@ class TestSsdAPI(TestCase):
         self.api = SsdAPI(self.root_uri, self.connection)
         self.response = Mock(Response())
 
-        init_test_ssd(self)
+        init_ssd(self)
 
     def test_keys(self):
         keys = [1, 2]
@@ -646,7 +646,7 @@ class TestOctopusAPI(TestCase):
         self.api = OctopusAPI(self.root_uri, self.connection)
         self.response = Mock(Response())
 
-        init_test_ssd(self)
+        init_ssd(self)
 
         self.name = "test octopus"
         self.feature_config = {
