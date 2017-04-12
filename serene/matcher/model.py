@@ -256,7 +256,9 @@ class Model(object):
     @lru_cache(maxsize=32)
     def predict(self, dataset, scores=True, features=False):
         """Runs a prediction across the `dataset`"""
+        logging.debug("Model prediction start...")
         df = self._full_predict(dataset)
+        logging.debug("--> fullp predict done")
 
         keys = [k for k in self.PREDICT_KEYS]
 
@@ -265,6 +267,7 @@ class Model(object):
 
         if scores:
             keys += [col for col in df.columns if self.PREDICT_SCORE_PRE in col]
+        logging.debug("-->finished processing df")
 
         return df[keys]
 

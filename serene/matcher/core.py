@@ -12,6 +12,7 @@ import pandas as pd
 from ..elements import DataSet, DataSetList, Column
 from .model import ModelList, Model
 from ..api import session
+from ..endpoints import DataSetEndpoint
 
 
 def decache(func):
@@ -175,7 +176,7 @@ class SchemaMatcher(object):
                                        num_bags,
                                        bag_size)  # send API request
         # create model wrapper...
-        return Model(json, self.api, self.api.dataset_api)
+        return Model(json, self.api, dataset_endpoint=DataSetEndpoint(self.api))
 
     @decache
     def create_dataset(self, file_path, description, type_map):
