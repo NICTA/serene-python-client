@@ -175,7 +175,7 @@ class SchemaMatcher(object):
                                        num_bags,
                                        bag_size)  # send API request
         # create model wrapper...
-        return Model(json, self.api)
+        return Model(json, self.api, self.api.dataset_api)
 
     @decache
     def create_dataset(self, file_path, description, type_map):
