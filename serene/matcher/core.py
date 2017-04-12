@@ -9,7 +9,7 @@ from functools import lru_cache
 
 import pandas as pd
 
-from ..elements import DataSet, DataSetList
+from ..elements import DataSet, DataSetList, Column
 from .model import ModelList, Model
 from ..api import session
 
