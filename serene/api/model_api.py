@@ -190,7 +190,7 @@ class ModelAPI(HTTPObject):
             raise InternalError("Failed to predict Model", e)
 
         self._handle_errors(r, "POST " + uri)
-
+        logging.debug('Model prediction reply obtained.')
         return r.json()
 
     def keys(self):

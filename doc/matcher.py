@@ -5,13 +5,13 @@ except ImportError as e:
     sys.path.insert(0, '.')
     import serene
 
-from serene.matcher import SchemaMatcher
+from serene.matcher.core import SchemaMatcher
 import os.path
 
 #
 # First setup the example dataset path...
 #
-EXAMPLE_DATASET = os.path.join('tests', 'resources', 'medium.csv')
+EXAMPLE_DATASET = os.path.join('../tests', 'resources', 'medium.csv')
 
 # connect to the server...
 # host and port are for now taken from the config.settings.py file

@@ -258,7 +258,7 @@ class Model(object):
         """Runs a prediction across the `dataset`"""
         logging.debug("Model prediction start...")
         df = self._full_predict(dataset)
-        logging.debug("--> fullp predict done")
+        logging.debug("--> full predict done")
 
         keys = [k for k in self.PREDICT_KEYS]
 
@@ -329,7 +329,9 @@ class Model(object):
 
         json = self._session.model_api.predict(self.id, key)
 
+        logging.debug("converting model predictions to pandas df")
         df = self._predictions(json)
+        logging.debug("convertion success")
 
         return df
 
@@ -401,6 +403,7 @@ class Model(object):
         :return: Flattened dictionary of lists for each key
         """
         table = self._flat_predict(json)
+        logging.debug("flattening of predictions success")
 
         df = pd.DataFrame(table)
 
@@ -412,8 +415,11 @@ class Model(object):
             how='left'
         )
 
+        logging.debug("merging of predictions success")
+
         final['column_name'] = final['column_id'].apply(
             lambda col_id: self._column_lookup[col_id].name)
+        logging.debug("looking up columns")
 
         return final
 
