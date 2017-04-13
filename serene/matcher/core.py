@@ -68,15 +68,14 @@ class SchemaMatcher(object):
         logging.info('Initialising schema matcher class object.')
         self.api = session.Session(host, port, auth, cert, trust_env)
 
+        self._dataset_endpoint = DataSetEndpoint(self.api)
+
     @property
     @lru_cache(maxsize=32)
     def datasets(self):
         """Maintains a list of DataSet objects"""
-        keys = self.api.dataset_api.keys()
-        ds = DataSetList()
-        for k in keys:
-            ds.append(DataSet(self.api.dataset_api.item(k)))
-        return ds
+
+        return self._dataset_endpoint.items
 
     @property
     @lru_cache(maxsize=32)
@@ -176,7 +175,7 @@ class SchemaMatcher(object):
                                        num_bags,
                                        bag_size)  # send API request
         # create model wrapper...
-        return Model(json, self.api, dataset_endpoint=DataSetEndpoint(self.api))
+        return Model(json, self.api, dataset_endpoint=self._dataset_endpoint)
 
     @decache
     def create_dataset(self, file_path, description, type_map):
@@ -192,8 +191,10 @@ class SchemaMatcher(object):
         Returns: newly uploaded MatcherDataset
 
         """
-        json = self.api.dataset_api.post(description, file_path, type_map)
-        return DataSet(json)
+        return self._dataset_endpoint.upload(filename=file_path,
+                                             description=description,
+                                             type_map=type_map)
+
 
     @decache
     def remove_dataset(self, key):
@@ -203,10 +204,11 @@ class SchemaMatcher(object):
         :param key: The key for the dataset or DataSet object
         :return: None
         """
-        if issubclass(type(key), DataSet):
-            self.api.dataset_api.delete(key.id)
-        else:
-            self.api.dataset_api.delete(key)
+        self._dataset_endpoint.remove(key)
+        # if issubclass(type(key), DataSet):
+        #     self.api.dataset_api.delete(key.id)
+        # else:
+        #     self.api.dataset_api.delete(key)
 
     @decache
     def remove_model(self, key):
