@@ -84,7 +84,7 @@ class SchemaMatcher(object):
         keys = self.api.model_api.keys()
         ms = ModelList()
         for k in keys:
-            ms.append(Model(self.api.model_api.item(k), self.api))
+            ms.append(Model(self.api.model_api.item(k), self.api, self._dataset_endpoint))
         return ms
 
     @staticmethod
