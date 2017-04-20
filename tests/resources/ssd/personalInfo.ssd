@@ -101,52 +101,60 @@
         ],
         "links": [
             {
+                "id"    : 0,
                 "source": 0,
                 "target": 3,
                 "label": "bornIn",
-                "type": "ObjectProperty"
+                "type": "ObjectPropertyLink"
             },
             {
+                "id"    : 1,
                 "source": 0,
                 "target": 1,
                 "label": "name",
-                "type": "DataProperty"
+                "type": "DataPropertyLink"
             },
             {
+                "id"    : 2,
                 "source": 0,
                 "target": 2,
                 "label": "birthDate",
-                "type": "DataProperty"
+                "type": "DataPropertyLink"
             },
             {
+                "id"    : 3,
                 "source": 3,
                 "target": 5,
-                "label": "state",
-                "type": "ObjectProperty"
+                "label": "isPartOf",
+                "type": "ObjectPropertyLink"
             },
             {
+                "id"    : 4,
                 "source": 3,
                 "target": 4,
                 "label": "name",
-                "type": "DataProperty"
+                "type": "DataPropertyLink"
             },
             {
+                "id"    : 5,
                 "source": 0,
                 "target": 7,
                 "label": "worksFor",
-                "type": "ObjectProperty"
+                "type": "ObjectPropertyLink"
             },
             {
+                "id"    : 6,
                 "source": 5,
                 "target": 6,
                 "label": "name",
-                "type": "DataProperty"
+                "type": "DataPropertyLink"
             },
             {
+                "id"    : 7,
                 "source": 7,
                 "target": 8,
                 "label": "name",
-                "type": "DataProperty"
+                "type": "DataPropertyLink"
             }
         ]
     },
@@ -171,5 +179,7 @@
             "attribute": 4,
             "node": 8
         }
-    ]
+    ],
+    "dateCreated":"2016-06-17T07:47:56Z",
+    "dateModified":"2016-06-17T07:47:56Z"
 }
