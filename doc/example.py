@@ -230,7 +230,7 @@ if len(ontologies):
 # # Or if you want to check it first you can do...
 # #
 #local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
-ontology_local = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
+ontology_local = serene.Ontology(os.path.join(owl_path, 'dataintegration_report_ontology.ttl'))
 
 #
 # local_ontology.show()
@@ -322,7 +322,7 @@ business_info_ssd = (sn
                      .link("Organization", "ceo", "Person")
                      .link("City", "state", "State"))
 
-business_info_ssd.show()
+business_info_ssd.show(outfile="businessInfo.dot")
 
 print()
 print("Displaying businessInfo.csv Semantic Source Description (SSD)")
@@ -494,7 +494,7 @@ if octo.state.status in {Status.ERROR}:
 #
 # =======================
 
-personal_info = sn.datasets.upload('tests/resources/data/personalInfo.csv')
+personal_info = sn.datasets.upload(os.path.join(data_path,'personalInfo.csv'))
 predicted = octo.predict(personal_info)
 
 print()
@@ -537,7 +537,7 @@ input("Press any key to continue...")
 
 predicted_ssd.map(Column("birthDate"), DataNode(ClassNode("Person"), "birthDate"))
 predicted_ssd.link("Person", "worksFor", "Organization")
-predicted_ssd.show()
+predicted_ssd.show(outfile="personInfo.dot")
 
 print("Adding correct birthdate node")
 input("Press any key to continue...")
