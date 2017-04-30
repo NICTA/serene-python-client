@@ -422,7 +422,26 @@ octo_local = sn.Octopus(
     bag_size=10,  # optional
     model_type="randomForest",
     modeling_props={
-
+        "compatibleProperties": True,
+        "ontologyAlignment": True,
+        "addOntologyPaths": True,
+        "mappingBranchingFactor": 50,
+        "numCandidateMappings": 10,
+        "topkSteinerTrees": 50,
+        "multipleSameProperty": True,
+        "confidenceWeight": 1.0,
+        "coherenceWeight": 1.0,
+        "sizeWeight": 0.5,
+        "numSemanticTypes": 10,
+        "thingNode": False,
+        "nodeClosure": True,
+        "propertiesDirect": True,
+        "propertiesIndirect": True,
+        "propertiesSubclass": True,
+        "propertiesWithOnlyDomain": True,
+        "propertiesWithOnlyRange": True,
+        "propertiesWithoutDomainRange": False,
+        "unknownThreshold": 0.05
     },
     feature_config={
         "activeFeatures": [

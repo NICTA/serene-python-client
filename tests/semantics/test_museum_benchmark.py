@@ -7,6 +7,7 @@ Tests the museum benchmark
 import os
 import logging
 import tarfile
+import csv
 
 from serene.elements import SSD
 from serene.endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint
@@ -101,6 +102,32 @@ class TestMuseum(TestWithServer):
         self.assertEqual(len(self._ssds.items), 29)
         self.assertEqual(len(self._datasets.items), 29)
         self.assertEqual(len(self._ontologies.items), 11)
+
+    def test_mappings(self):
+        """
+        Get label data for museum benchmark files
+        :return:
+        """
+        ontologies = self._add_owls()
+        self._add_datasets(ontologies)
+        self.assertEqual(len(self._ssds.items), 29)
+        self.assertEqual(len(self._datasets.items), 29)
+        self.assertEqual(len(self._ontologies.items), 11)
+
+        for ssd in self._ssds.items:
+            print("name: ", ssd.name)
+            print("mappings: ",ssd.mappings)
+            csvF = ssd.name + ".columnmap.txt"
+            with open(csvF, "w+") as csvfile:
+                csvwriter = csv.writer(csvfile, dialect="excel")
+                csvwriter.writerow(["key", "column_name", "source_name", "semantic_type"])
+                for key, value in ssd.mappings.items():
+                    label = key.class_node.label + "---" + key.label
+                    column = value.name
+                    print("column: ", column, ", label:", label)
+                    csvwriter.writerow([column, column, ssd.name, label])
+
+        self.fail()
 
     def test_s27(self):
         """
