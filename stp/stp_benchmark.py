@@ -13,6 +13,7 @@ import time
 import tarfile
 import tempfile
 from pprint import pprint
+import networkx as nx
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
@@ -114,9 +115,17 @@ if len(datasets) != len(ssds):
 
 input("Press enter to continue...")
 print("*********** Datasets and semantic source descriptions from museum benchmark")
-for i, ds in enumerate(datasets):
-    print(i, ": dataset=", ds, "; ssd=", ssds[i])
+ssd_path = "ssds/"
+# for i, ds in enumerate(datasets):
+#     print(i, ": dataset=", ds, "; ssd=", ssds[i])
+#     # nx.write_edgelist(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".edgelist"))
+#     # nx.write_adjlist(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".adjlist"))
+#     # nx.write_multiline_adjlist(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".madjlist"))
+#     nx.write_graphml(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".graphml"))
+
 print()
+
+input("Press enter to continue...")
 
 # =======================
 #
@@ -150,18 +159,18 @@ octo_local = sn.Octopus(
     ontologies=ontologies,
     name='octopus-without-s07',
     description='Testing example for places and companies',
-    resampling_strategy="BaggingToMean",  # optional
+    resampling_strategy="NoResampling",  # optional
     num_bags=10,  # optional
     bag_size=30,  # optional
     model_type="randomForest",
     modeling_props={
         "compatibleProperties": True,
-        "ontologyAlignment": True,
-        "addOntologyPaths": True,
+        "ontologyAlignment": False,
+        "addOntologyPaths": False,
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
-        "multipleSameProperty": True,
+        "multipleSameProperty": False,
         "confidenceWeight": 1.0,
         "coherenceWeight": 1.0,
         "sizeWeight": 0.5,
@@ -190,7 +199,8 @@ octo_local = sn.Octopus(
             "is-discrete",
             "entropy-for-discrete-values",
             "shannon-entropy"
-        ],
+        ]
+        ,
         "activeFeatureGroups": [
             "char-dist-features",
             "inferred-data-type",
@@ -198,25 +208,25 @@ octo_local = sn.Octopus(
             "stats-of-numeric-type"
             ,"prop-instances-per-class-in-knearestneighbours"
             ,"mean-character-cosine-similarity-from-class-examples"
-            # ,"min-editdistance-from-class-examples"
-            # ,"min-wordnet-jcn-distance-from-class-examples"
-            # ,"min-wordnet-lin-distance-from-class-examples"
+            ,"min-editdistance-from-class-examples"
+            ,"min-wordnet-jcn-distance-from-class-examples"
+            ,"min-wordnet-lin-distance-from-class-examples"
         ],
         "featureExtractorParams": [
             {
                 "name": "prop-instances-per-class-in-knearestneighbours",
                 "num-neighbours": 3
             }
-        # , {
-        #         "name": "min-editdistance-from-class-examples",
-        #         "max-comparisons-per-class": 3
-        #     }, {
-        #         "name": "min-wordnet-jcn-distance-from-class-examples",
-        #         "max-comparisons-per-class": 3
-        #     }, {
-        #         "name": "min-wordnet-lin-distance-from-class-examples",
-        #         "max-comparisons-per-class": 3
-        #     }
+        , {
+                "name": "min-editdistance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }, {
+                "name": "min-wordnet-jcn-distance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }, {
+                "name": "min-wordnet-lin-distance-from-class-examples",
+                "max-comparisons-per-class": 3
+            }
         ]
     }
 )
@@ -246,6 +256,20 @@ if octo.state.status in {Status.ERROR}:
     print("Something went wrong. Failed to train the Octopus.")
     exit()
 
+
+# =======================
+#
+# Step 7'. Matcher Predict
+#
+# =======================
+print("showing predictions for the dataset...")
+for ds in datasets:
+    print("predicting dataset: ", ds.filename)
+    pred_df = octo.matcher_predict(ds)
+    print(pred_df)
+    pred_df.to_csv(os.path.join("resources", "1", "matches", ds.filename+".matches.csv"), index=False)
+
+input("Press enter to continue...")
 # =======================
 #
 # Step 7. Predict
