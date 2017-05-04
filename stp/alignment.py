@@ -19,6 +19,7 @@ except ImportError as e:
     import sys
     sys.path.insert(0, '.')
     import serene
+from serene import Column, DataNode, ClassNode, ClassInstanceLink, ColumnLink, ObjectLink, DataLink
 
 
 def label(node):
@@ -96,6 +97,7 @@ def read_karma_graph(file_name, out_file):
             # change data nodes
             g.node[node_map[target]]["label"] = g.node[node_map[source]]["label"] + "---" + link_data["label"]
             g.node[node_map[target]]["lab"] = g.node[node_map[source]]["lab"] + "---" + link_data["label"]
+            g.node[node_map[target]]["prefix"] = g.node[node_map[source]]["prefix"]
 
     logging.info("Writing alignment graph to file {}".format(out_file))
     nx.write_graphml(g, out_file)
@@ -105,11 +107,31 @@ def read_karma_graph(file_name, out_file):
     return g
 
 
-def add_matches(alignment_graph, predicted_df):
+def construct_data_node_map(integration_graph):
     """
-    # add matches
+    Construct lookup table for node labels to node ids in the integration graph.
+    :param integration_graph:
+    :return:
+    """
+    data_node_map = defaultdict(list)
+    for n_id, n_data in integration_graph.nodes(data=True):
+        if n_data["type"] == "DataNode":
+            prefix = n_data["prefix"]
+            data_node_map[prefix + n_data["lab"]].append(n_id)
+        elif n_data["type"] == "ClassNode":
+            prefix = n_data["prefix"]
+            data_node_map[prefix + n_data["lab"]].append(n_id)
+        elif n_data["type"] == "Attribute":
+            data_node_map[n_data["label"]].append(n_id)
+    return data_node_map
+
+
+def add_matches(alignment_graph, predicted_df, column_names):
+    """
+    add matches to the alignment graph
     :param alignment_graph: networkx MultiDiGraph()
     :param predicted_df: pandas dataframe
+    :param column_names: list of column names which are present in the ssd
     :return:
     """
     logging.info("Adding match nodes to the alignment graph...")
@@ -129,6 +151,8 @@ def add_matches(alignment_graph, predicted_df):
     scores_cols = [col for col in predicted_df.columns if col.startswith("scores_")]
 
     for idx, row in predicted_df.iterrows():
+        if row["column_name"] not in column_names:
+            continue
         node_data = {
             "type": "Attribute",
             "label": row["column_name"]
@@ -143,10 +167,9 @@ def add_matches(alignment_graph, predicted_df):
             link_data = {
                 "type": "MatchLink",
                 "weight": 1.0 - row[score], # inverse number
-                "label": lab
+                "label": row["column_name"]
             }
             if lab not in available_types:
-                print("Weird label ", lab)
                 logging.warning("Weird label {} for column".format(lab, row["column_name"]))
                 continue
             for target in data_node_map[lab]:
@@ -154,33 +177,168 @@ def add_matches(alignment_graph, predicted_df):
 
         cur_id += 1
 
+    print("Integration graph read: {} nodes, {} links".format(
+        alignment_graph.number_of_nodes(), alignment_graph.number_of_edges()))
     logging.info("Integration graph read: {} nodes, {} links".format(
         alignment_graph.number_of_nodes(), alignment_graph.number_of_edges()))
 
     return alignment_graph
 
 
-def add_matches_file(alignment_graph, match_file):
+def add_class_column(ssd, data_node_map):
     """
-    # add matches
-    :param alignment_graph:
-    :param match_file:
+    Add class nodes and attributes to the converted ssd
+    :param g:
+    :param ssd:
+    :param class_nodes:
+    :param data_node_map:
     :return:
     """
-    pass
+    logging.info("Adding class nodes and attributes")
+    g = nx.MultiDiGraph()
+    ssd_node_map = {}
+    class_nodes = defaultdict(list)
+    for n_id, n_data in ssd.semantic_model._graph.nodes(data=True):
+        data = n_data["data"]
+        if isinstance(data, ClassNode):
+            uri = data.prefix + data.label
+            if uri not in class_nodes:
+                label = uri + "1"
+                lab = data.label + "1"
+                node_id = data_node_map[label]
+                if len(node_id) > 1:
+                    logging.warning("More than one node per class {}".format(label))
+                node_id = node_id[0]
+                class_nodes[uri].append(node_id)
+            else:
+                label = uri + str(len(class_nodes[uri]) + 1)
+                lab = data.label + str(len(class_nodes[uri]) + 1)
+                node_id = data_node_map[label]
+                if len(node_id) > 1:
+                    logging.warning("More than one node per class {}".format(label))
+                node_id = node_id[0]
+                class_nodes[uri].append(node_id)
+            node_data = {
+                "type": "ClassNode",
+                "label": data.label,
+                "lab": lab,
+                "prefix": data.prefix
+            }
+            ssd_node_map[n_id] = node_id
+        elif isinstance(data, Column):
+            node_id = data_node_map[data.name]
+            if len(node_id) != 1:
+                logging.warning("Column {} is not well present in th integration graph: {}".format(
+                    data.name, len(node_id)))
+            node_id = node_id[0]
+            node_data = {
+                "type": "Attribute",
+                "label": data.name,
+                "prefix": ""
+            }
+            ssd_node_map[n_id] = node_id
+        else:
+            continue
+        g.add_node(node_id, attr_dict=node_data)
+
+    return g, ssd_node_map, class_nodes
+
+
+def get_weight(source, target, label, integration_graph):
+    """
+
+    :param source:
+    :param target:
+    :param label:
+    :param integration_graph:
+    :return:
+    """
+
+    links = integration_graph.get_edge_data(source, target)
+    for l in links.values():
+        if l["label"] == label:
+            return l["weight"]
+    return 0
 
 
 def convert_ssd(ssd, integration_graph, file_name):
     """
     convert our ssd to nx object
     :param ssd:
+    :param integration_graph:
     :param file_name:
     :return:
     """
-    g = nx.MultiDiGraph()
-    ssd.semantic_model._graph.nodes(data=True)
+    data_node_map = construct_data_node_map(integration_graph)
+    logging.debug("data_node_map: {}".format(data_node_map))
 
+    g, ssd_node_map, class_nodes = add_class_column(ssd, data_node_map)
 
+    print("ssd_node_map: ")
+    for source, target, l_data in ssd.semantic_model._graph.edges(data=True):
+        data = l_data["data"]
+        if isinstance(data, ObjectLink):
+
+            link_data = {
+                "type": "ObjectPropertyLink",
+                "label": data.label,
+                "prefix": data.prefix,
+                "weight": get_weight(ssd_node_map[source], ssd_node_map[target], data.label, integration_graph)
+            }
+            g.add_edge(ssd_node_map[source], ssd_node_map[target], attr_dict=link_data)
+        elif isinstance(data, DataLink) or isinstance(data, ClassInstanceLink):
+            # we need to add the data bnode
+            class_node = g.node[ssd_node_map[source]]
+            data_node = ssd.semantic_model._graph.node[target]["data"]
+            link_label = data.label
+            full_data_label = class_node["prefix"] + class_node["lab"] + "---" + link_label
+            node_id = data_node_map[full_data_label]
+            if len(node_id) != 1:
+                logging.warning("DataNode {} is not well present in th integration graph: {}".format(
+                    full_data_label, len(node_id)))
+                print("DataNode {} is not well present in the integration graph: {}".format(
+                    full_data_label, len(node_id)))
+            node_id = node_id[0]
+            node_data = {
+                "type": "DataNode",
+                "label": class_node["label"] + "---" + link_label,
+                "lab": class_node["lab"] + "---" + link_label,
+                "prefix": class_node["prefix"]
+            }
+            g.add_node(node_id, attr_dict=node_data)
+            ssd_node_map[target] = node_id
+            logging.debug("---> Adding target {} with node {}".format(target, data_node))
+            link_data = {
+                "type": "DataPropertyLink" if isinstance(data, DataLink) else "ClassInstanceLink",
+                "label": data.label,
+                "prefix": data.prefix,
+                "weight": get_weight(ssd_node_map[source], node_id, data.label, integration_graph)
+            }
+            g.add_edge(ssd_node_map[source], node_id, attr_dict=link_data)
+        else:
+            continue
+
+    logging.debug("ssd_node_map: {}".format(ssd_node_map))
+    for source, target, l_data in ssd.semantic_model._graph.edges(data=True):
+        data = l_data["data"]
+        if isinstance(data, ColumnLink):
+            link_data = {
+                "type": "MatchLink",
+                "label": data.label,
+                "weight": get_weight(ssd_node_map[target], ssd_node_map[source], data.label, integration_graph)
+            }
+            g.add_edge(ssd_node_map[target], ssd_node_map[source], attr_dict=link_data)
+
+    # add data nodes
+    # for n_id, n_data in ssd.semantic_model._graph.nodes(data=True):
+    #     print("id={}, data={}".format(n_id, n_data))
+    #     data = n_data["data"]
+    #     # if isinstance(data, ClassNode):
+
+    print("SSD graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
+    logging.info("SSD graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
+    logging.info("Writing converted ssd graph to file {}".format(file_name))
+    nx.write_graphml(g, file_name)
 
 # write nx object to file
 
@@ -203,15 +361,38 @@ if __name__ == "__main__":
     log.setLevel(logging.DEBUG)
     log.addHandler(my_handler)
 
-    karma_graph_file = os.path.join("resources", "1", "graph.json")
+    karma_graph_file = os.path.join("resources", "test", "graph.json")
     # read alignment part
-    alignment = read_karma_graph(karma_graph_file, os.path.join("resources", "1", "alignment.graphml"))
+    alignment = read_karma_graph(karma_graph_file, os.path.join("resources", "test", "alignment.graphml"))
 
     # read matches
-    predicted_df = pd.read_csv(os.path.join("resources", "1", "s02-dma.csv.csv.matches.csv"))
+    predicted_df = pd.read_csv(os.path.join("resources", "test", "s02-dma.csv.csv.matches.csv"))
     # print(predicted_df)
 
-    integration = add_matches(alignment, predicted_df)
-    out_file = os.path.join("resources", "1", "integration.graphml")
-    logging.info("Writing alignment graph to file {}".format(out_file))
+    sn = serene.Serene(
+        host='127.0.0.1',
+        port=8080,
+    )
+    print(sn)
+
+    for ssd in sn.ssds.items:
+        if ssd.name == "s02-dma.csv":
+            break
+    print("---SSD", ssd)
+    print("Num columns: ", len(ssd.columns))
+    column_names = [c.name for c in ssd.columns]
+    print("column names: ", column_names)
+    print("predicted_df size: ", predicted_df.shape)
+
+    integration = add_matches(alignment, predicted_df, column_names)
+    out_file = os.path.join("resources", "test", "integration.graphml")
+    logging.info("Writing integration graph to file {}".format(out_file))
     nx.write_graphml(integration, out_file)
+
+    data_node_map = construct_data_node_map(integration)
+    print("Data node map: ", data_node_map)
+
+
+    out_file = os.path.join("resources", "test", ssd.name+".graphml")
+    ssd_graph = convert_ssd(ssd, integration, out_file)
+

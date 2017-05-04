@@ -18,6 +18,25 @@ import networkx as nx
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
 
+from alignment import read_karma_graph, add_matches, convert_ssd
+
+import logging
+from logging.handlers import RotatingFileHandler
+# setting up the logging
+log_file = os.path.join("resources", 'benchmark_stp.log')
+log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(module)s: %(message)s',
+                                  '%Y-%m-%d %H:%M:%S')
+my_handler = RotatingFileHandler(log_file, mode='a', maxBytes=5 * 1024 * 1024,
+                                 backupCount=5, encoding=None, delay=0)
+my_handler.setFormatter(log_formatter)
+my_handler.setLevel(logging.DEBUG)
+# logging.basicConfig(filename=log_file,
+#                     level=logging.DEBUG, filemode='w+',
+#                     format='%(asctime)s %(levelname)s %(module)s: %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
+
+log = logging.getLogger()
+log.setLevel(logging.DEBUG)
+log.addHandler(my_handler)
 
 # =======================
 #
@@ -259,91 +278,108 @@ if octo.state.status in {Status.ERROR}:
 
 # =======================
 #
-# Step 7'. Matcher Predict
+# Step 7'. Matcher Predict and construct the integration per each ssd!
 #
 # =======================
+
+align_num = "3"
+karma_graph_file = os.path.join("resources", align_num, "graph.json")
+# read alignment part
+alignment = read_karma_graph(karma_graph_file, os.path.join("resources", align_num, "alignment.graphml"))
+
 print("showing predictions for the dataset...")
-for ds in datasets:
+for i, ds in enumerate(datasets):
     print("predicting dataset: ", ds.filename)
     pred_df = octo.matcher_predict(ds)
     print(pred_df)
-    pred_df.to_csv(os.path.join("resources", "1", "matches", ds.filename+".matches.csv"), index=False)
+    pred_df.to_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"), index=False)
 
-input("Press enter to continue...")
-# =======================
+    # construct integration graph by adding matches for the columns
+    column_names = [c.name for c in ssds[i].columns]
+    integration = add_matches(alignment, pred_df, column_names)
+    out_file = os.path.join("resources", align_num, str(i)+".integration.graphml")
+    print("Writing integration graph to file {}".format(out_file))
+    nx.write_graphml(integration, out_file)
+
+    # write ground truth
+    out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
+    ssd_graph = convert_ssd(ssds[i], integration, out_file)
+
+# input("Press enter to continue...")
+# # =======================
+# #
+# # Step 7. Predict
+# #
+# # =======================
 #
-# Step 7. Predict
+# start = time.time()
+# predicted = octo.predict(datasets[test_sample[0]])
+# print("Prediction done in: {}".format(time.time() - start))
+# print(predicted)
 #
-# =======================
-
-start = time.time()
-predicted = octo.predict(datasets[test_sample[0]])
-print("Prediction done in: {}".format(time.time() - start))
-print(predicted)
-
-print()
-print("Showing ground truth...")
-# ssds[test_sample[0]] is ground truth
-ground_truth = ssds[test_sample[0]]
-ground_truth.show(title='ground truth',
-                  outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
-input("Press enter to see predicted semantic models...")
-
-print("><><><><")
-for res in predicted:
-    print(res)
-    print()
-    res.ssd.show()
-    input("Press enter to continue...")
-print("><><><><")
-
-# for p in predicted:
-#     print("Predicted candidate rank", p.score.rank)
-#     print("Score:")
-#     p.score.show()
-#     p.ssd.show()
-#     input("Press any key to continue...")
-
-# the best is number 0!
-predicted_ssd = predicted[0].ssd
-# predicted_ssd.unmapped_columns
-print()
-print("============Best recommendation=========")
-print(predicted_ssd)
-
-print("Mappings:")
-for map in predicted_ssd.mappings.items():
-    print(map)
-
-print("Unmapped columns:")
-print(predicted_ssd.unmapped_columns)
-print()
-
-print("Columns: ")
-for col in predicted_ssd.columns:
-    print("name={}, id={}".format(col.name, col.id))
-
-print()
-print(predicted_ssd.json)
-print()
-pprint(predicted_ssd.json)
-input("Press enter to continue...")
-# =======================
-#
-# Step 8. Evaluate against ground truth
-#
-# =======================
-
-# ssds[test_sample[0]] is ground truth
-ground_truth = ssds[test_sample[0]]
-comparison = sn.ssds.compare(predicted_ssd, ground_truth, False, False)
-predicted_ssd.show(title="best recommendation: \n"+str(comparison),
-                   outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
+# print()
+# print("Showing ground truth...")
+# # ssds[test_sample[0]] is ground truth
+# ground_truth = ssds[test_sample[0]]
 # ground_truth.show(title='ground truth',
 #                   outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
-print("================")
-
-input("Press enter to continue...")
-for i, pred in enumerate(predicted):
-    comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], False, False)
-    print("SsdResult({}) comparison: {}".format(i,comparison))
+# input("Press enter to see predicted semantic models...")
+#
+# print("><><><><")
+# for res in predicted:
+#     print(res)
+#     print()
+#     res.ssd.show()
+#     input("Press enter to continue...")
+# print("><><><><")
+#
+# # for p in predicted:
+# #     print("Predicted candidate rank", p.score.rank)
+# #     print("Score:")
+# #     p.score.show()
+# #     p.ssd.show()
+# #     input("Press any key to continue...")
+#
+# # the best is number 0!
+# predicted_ssd = predicted[0].ssd
+# # predicted_ssd.unmapped_columns
+# print()
+# print("============Best recommendation=========")
+# print(predicted_ssd)
+#
+# print("Mappings:")
+# for map in predicted_ssd.mappings.items():
+#     print(map)
+#
+# print("Unmapped columns:")
+# print(predicted_ssd.unmapped_columns)
+# print()
+#
+# print("Columns: ")
+# for col in predicted_ssd.columns:
+#     print("name={}, id={}".format(col.name, col.id))
+#
+# print()
+# print(predicted_ssd.json)
+# print()
+# pprint(predicted_ssd.json)
+# input("Press enter to continue...")
+# # =======================
+# #
+# # Step 8. Evaluate against ground truth
+# #
+# # =======================
+#
+# # ssds[test_sample[0]] is ground truth
+# ground_truth = ssds[test_sample[0]]
+# comparison = sn.ssds.compare(predicted_ssd, ground_truth, False, False)
+# predicted_ssd.show(title="best recommendation: \n"+str(comparison),
+#                    outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
+# # ground_truth.show(title='ground truth',
+# #                   outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
+# print("================")
+#
+# input("Press enter to continue...")
+# for i, pred in enumerate(predicted):
+#     comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], False, False)
+#     print("SsdResult({}) comparison: {}".format(i,comparison))
