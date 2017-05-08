@@ -1,433 +1,433 @@
 <?xml version='1.0' encoding='utf-8'?>
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
   <key attr.name="key" attr.type="long" for="edge" id="d8" />
-  <key attr.name="type" attr.type="string" for="edge" id="d7" />
-  <key attr.name="weight" attr.type="double" for="edge" id="d6" />
-  <key attr.name="prefix" attr.type="string" for="edge" id="d5" />
-  <key attr.name="label" attr.type="string" for="edge" id="d4" />
-  <key attr.name="type" attr.type="string" for="node" id="d3" />
-  <key attr.name="lab" attr.type="string" for="node" id="d2" />
-  <key attr.name="prefix" attr.type="string" for="node" id="d1" />
-  <key attr.name="label" attr.type="string" for="node" id="d0" />
+  <key attr.name="weight" attr.type="double" for="edge" id="d7" />
+  <key attr.name="prefix" attr.type="string" for="edge" id="d6" />
+  <key attr.name="label" attr.type="string" for="edge" id="d5" />
+  <key attr.name="type" attr.type="string" for="edge" id="d4" />
+  <key attr.name="lab" attr.type="string" for="node" id="d3" />
+  <key attr.name="prefix" attr.type="string" for="node" id="d2" />
+  <key attr.name="label" attr.type="string" for="node" id="d1" />
+  <key attr.name="type" attr.type="string" for="node" id="d0" />
   <graph edgedefault="directed">
     <node id="0">
-      <data key="d0">EuropeanaAggregation</data>
-      <data key="d1">http://www.europeana.eu/schemas/edm/</data>
-      <data key="d2">EuropeanaAggregation1</data>
-      <data key="d3">ClassNode</data>
+      <data key="d0">ClassNode</data>
+      <data key="d1">EuropeanaAggregation</data>
+      <data key="d2">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d3">EuropeanaAggregation1</data>
     </node>
     <node id="1">
-      <data key="d0">WebResource</data>
-      <data key="d1">http://www.europeana.eu/schemas/edm/</data>
-      <data key="d2">WebResource1</data>
-      <data key="d3">ClassNode</data>
+      <data key="d0">ClassNode</data>
+      <data key="d1">WebResource</data>
+      <data key="d2">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d3">WebResource1</data>
     </node>
     <node id="2">
-      <data key="d0">Person</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">Person1</data>
-      <data key="d3">ClassNode</data>
+      <data key="d0">ClassNode</data>
+      <data key="d1">Person</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">Person1</data>
     </node>
     <node id="3">
-      <data key="d0">CulturalHeritageObject</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1</data>
-      <data key="d3">ClassNode</data>
+      <data key="d0">ClassNode</data>
+      <data key="d1">CulturalHeritageObject</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1</data>
     </node>
     <node id="196">
-      <data key="d0">Classification</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">Classification</data>
+      <data key="d2" />
     </node>
     <node id="197">
-      <data key="d0">Description</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">Description</data>
+      <data key="d2" />
     </node>
     <node id="193">
-      <data key="d0">Medium</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">Medium</data>
+      <data key="d2" />
     </node>
     <node id="8">
-      <data key="d0">CulturalHeritageObject---description</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---description</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---description</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---description</data>
     </node>
     <node id="9">
-      <data key="d0">Concept</data>
-      <data key="d1">http://www.w3.org/2008/05/skos#</data>
-      <data key="d2">Concept1</data>
-      <data key="d3">ClassNode</data>
+      <data key="d0">ClassNode</data>
+      <data key="d1">Concept</data>
+      <data key="d2">http://www.w3.org/2008/05/skos#</data>
+      <data key="d3">Concept1</data>
     </node>
     <node id="10">
-      <data key="d0">Concept---prefLabel</data>
-      <data key="d1">http://www.w3.org/2008/05/skos#</data>
-      <data key="d2">Concept1---prefLabel</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">Concept---prefLabel</data>
+      <data key="d2">http://www.w3.org/2008/05/skos#</data>
+      <data key="d3">Concept1---prefLabel</data>
     </node>
     <node id="11">
-      <data key="d0">CulturalHeritageObject---medium</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---medium</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---medium</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---medium</data>
     </node>
     <node id="13">
-      <data key="d0">CulturalHeritageObject---extent</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---extent</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---extent</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---extent</data>
     </node>
     <node id="398">
-      <data key="d0">Ref</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">Ref</data>
+      <data key="d2" />
     </node>
     <node id="15">
-      <data key="d0">CulturalHeritageObject---provenance</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---provenance</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---provenance</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---provenance</data>
     </node>
     <node id="400">
-      <data key="d0">Copyright</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">Copyright</data>
+      <data key="d2" />
     </node>
     <node id="402">
-      <data key="d0">DateOfWork</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">DateOfWork</data>
+      <data key="d2" />
     </node>
     <node id="19">
-      <data key="d0">CulturalHeritageObject---created</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---created</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---created</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---created</data>
     </node>
     <node id="405">
-      <data key="d0">ArtistBornDiedDate</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
-    </node>
-    <node id="342">
-      <data key="d0">Keywords</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
-    </node>
-    <node id="407">
-      <data key="d0">SitterBornDiedDate</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
-    </node>
-    <node id="4">
-      <data key="d0">Person---nameOfThePerson</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">Person1---nameOfThePerson</data>
-      <data key="d3">DataNode</data>
-    </node>
-    <node id="26">
-      <data key="d0">Person</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">Person2</data>
-      <data key="d3">ClassNode</data>
-    </node>
-    <node id="28">
-      <data key="d0">Concept</data>
-      <data key="d1">http://www.w3.org/2008/05/skos#</data>
-      <data key="d2">Concept2</data>
-      <data key="d3">ClassNode</data>
-    </node>
-    <node id="410">
-      <data key="d0">Image</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
-    </node>
-    <node id="30">
-      <data key="d0">Concept---prefLabel</data>
-      <data key="d1">http://www.w3.org/2008/05/skos#</data>
-      <data key="d2">Concept2---prefLabel</data>
-      <data key="d3">DataNode</data>
-    </node>
-    <node id="5">
-      <data key="d0">WebResource---classLink</data>
-      <data key="d1">http://www.europeana.eu/schemas/edm/</data>
-      <data key="d2">WebResource1---classLink</data>
-      <data key="d3">DataNode</data>
-    </node>
-    <node id="289">
-      <data key="d0">CreditLine</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
-    </node>
-    <node id="16">
-      <data key="d0">CulturalHeritageObject---title</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---title</data>
-      <data key="d3">DataNode</data>
-    </node>
-    <node id="294">
-      <data key="d0">Owner</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
-    </node>
-    <node id="7">
-      <data key="d0">CulturalHeritageObject---accessionNumber</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---accessionNumber</data>
-      <data key="d3">DataNode</data>
-    </node>
-    <node id="18">
-      <data key="d0">CulturalHeritageObject---rightsHolder</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---rightsHolder</data>
-      <data key="d3">DataNode</data>
-    </node>
-    <node id="53">
-      <data key="d0">CulturalHeritageObject---rights</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">CulturalHeritageObject1---rights</data>
-      <data key="d3">DataNode</data>
-    </node>
-    <node id="45">
-      <data key="d0">Person---nameOfThePerson</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">Person2---nameOfThePerson</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">ArtistBornDiedDate</data>
+      <data key="d2" />
     </node>
     <node id="406">
-      <data key="d0">Dimension</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">Dimension</data>
+      <data key="d2" />
+    </node>
+    <node id="407">
+      <data key="d0">Attribute</data>
+      <data key="d1">SitterBornDiedDate</data>
+      <data key="d2" />
+    </node>
+    <node id="4">
+      <data key="d0">DataNode</data>
+      <data key="d1">Person---nameOfThePerson</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">Person1---nameOfThePerson</data>
+    </node>
+    <node id="26">
+      <data key="d0">ClassNode</data>
+      <data key="d1">Person</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">Person2</data>
+    </node>
+    <node id="28">
+      <data key="d0">ClassNode</data>
+      <data key="d1">Concept</data>
+      <data key="d2">http://www.w3.org/2008/05/skos#</data>
+      <data key="d3">Concept2</data>
+    </node>
+    <node id="410">
+      <data key="d0">Attribute</data>
+      <data key="d1">Image</data>
+      <data key="d2" />
+    </node>
+    <node id="30">
+      <data key="d0">DataNode</data>
+      <data key="d1">Concept---prefLabel</data>
+      <data key="d2">http://www.w3.org/2008/05/skos#</data>
+      <data key="d3">Concept2---prefLabel</data>
+    </node>
+    <node id="5">
+      <data key="d0">DataNode</data>
+      <data key="d1">WebResource---classLink</data>
+      <data key="d2">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d3">WebResource1---classLink</data>
+    </node>
+    <node id="289">
+      <data key="d0">Attribute</data>
+      <data key="d1">CreditLine</data>
+      <data key="d2" />
+    </node>
+    <node id="342">
+      <data key="d0">Attribute</data>
+      <data key="d1">Keywords</data>
+      <data key="d2" />
+    </node>
+    <node id="294">
+      <data key="d0">Attribute</data>
+      <data key="d1">Owner</data>
+      <data key="d2" />
+    </node>
+    <node id="7">
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---accessionNumber</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---accessionNumber</data>
+    </node>
+    <node id="18">
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---rightsHolder</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---rightsHolder</data>
+    </node>
+    <node id="53">
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---rights</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---rights</data>
+    </node>
+    <node id="45">
+      <data key="d0">DataNode</data>
+      <data key="d1">Person---nameOfThePerson</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">Person2---nameOfThePerson</data>
+    </node>
+    <node id="16">
+      <data key="d0">DataNode</data>
+      <data key="d1">CulturalHeritageObject---title</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">CulturalHeritageObject1---title</data>
     </node>
     <node id="191">
-      <data key="d0">Title</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">Title</data>
+      <data key="d2" />
     </node>
     <edge source="0" target="1">
-      <data key="d4">hasView</data>
-      <data key="d5">http://www.europeana.eu/schemas/edm/</data>
-      <data key="d6">0.3448275862068966</data>
-      <data key="d7">ObjectPropertyLink</data>
+      <data key="d4">ObjectPropertyLink</data>
+      <data key="d5">hasView</data>
+      <data key="d6">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d7">0.3448275862068966</data>
       <data key="d8">0</data>
     </edge>
     <edge source="0" target="3">
-      <data key="d4">aggregatedCHO</data>
-      <data key="d5">http://www.europeana.eu/schemas/edm/</data>
-      <data key="d6">0.3448275862068966</data>
-      <data key="d7">ObjectPropertyLink</data>
+      <data key="d4">ObjectPropertyLink</data>
+      <data key="d5">aggregatedCHO</data>
+      <data key="d6">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d7">0.3448275862068966</data>
       <data key="d8">0</data>
     </edge>
     <edge source="1" target="5">
-      <data key="d4">classLink</data>
-      <data key="d5">http://isi.edu/integration/karma/dev#</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">classLink</data>
+      <data key="d6">http://isi.edu/integration/karma/dev#</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="2" target="4">
-      <data key="d4">nameOfThePerson</data>
-      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">nameOfThePerson</data>
+      <data key="d6">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="2">
-      <data key="d4">creator</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">0.1724137931034483</data>
-      <data key="d7">ObjectPropertyLink</data>
+      <data key="d4">ObjectPropertyLink</data>
+      <data key="d5">creator</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">0.1724137931034483</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="7">
-      <data key="d4">accessionNumber</data>
-      <data key="d5">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">accessionNumber</data>
+      <data key="d6">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="8">
-      <data key="d4">description</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">description</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="9">
-      <data key="d4">subject</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">0.96</data>
-      <data key="d7">ObjectPropertyLink</data>
+      <data key="d4">ObjectPropertyLink</data>
+      <data key="d5">subject</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">0.96</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="11">
-      <data key="d4">medium</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">medium</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="13">
-      <data key="d4">extent</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">extent</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="15">
-      <data key="d4">provenance</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">provenance</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="16">
-      <data key="d4">title</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">title</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="18">
-      <data key="d4">rightsHolder</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">rightsHolder</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="19">
-      <data key="d4">created</data>
-      <data key="d5">http://purl.org/dc/terms/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">created</data>
+      <data key="d6">http://purl.org/dc/terms/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="53">
-      <data key="d4">rights</data>
-      <data key="d5">http://purl.org/dc/elements/1.1/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">rights</data>
+      <data key="d6">http://purl.org/dc/elements/1.1/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="26">
-      <data key="d4">sitter</data>
-      <data key="d5">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d6">0.9230769230769231</data>
-      <data key="d7">ObjectPropertyLink</data>
+      <data key="d4">ObjectPropertyLink</data>
+      <data key="d5">sitter</data>
+      <data key="d6">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d7">0.9230769230769231</data>
       <data key="d8">0</data>
     </edge>
     <edge source="3" target="28">
-      <data key="d4">hasType</data>
-      <data key="d5">http://www.europeana.eu/schemas/edm/</data>
-      <data key="d6">0.96</data>
-      <data key="d7">ObjectPropertyLink</data>
+      <data key="d4">ObjectPropertyLink</data>
+      <data key="d5">hasType</data>
+      <data key="d6">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d7">0.96</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="196" target="30">
-      <data key="d4">Classification</data>
-      <data key="d6">0.4847009551980358</data>
-      <data key="d7">MatchLink</data>
-      <data key="d8">0</data>
-    </edge>
-    <edge source="197" target="8">
-      <data key="d4">Description</data>
-      <data key="d6">0.25244760847476666</data>
-      <data key="d7">MatchLink</data>
-      <data key="d8">0</data>
-    </edge>
-    <edge source="193" target="11">
-      <data key="d4">Medium</data>
-      <data key="d6">0.21625381346706662</data>
-      <data key="d7">MatchLink</data>
+    <edge source="8" target="197">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Description</data>
+      <data key="d7">0.25244760847476666</data>
       <data key="d8">0</data>
     </edge>
     <edge source="9" target="10">
-      <data key="d4">prefLabel</data>
-      <data key="d5">http://www.w3.org/2008/05/skos#</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">prefLabel</data>
+      <data key="d6">http://www.w3.org/2008/05/skos#</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="398" target="7">
-      <data key="d4">Ref</data>
-      <data key="d6">0.24375179225388022</data>
-      <data key="d7">MatchLink</data>
+    <edge source="10" target="342">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Keywords</data>
+      <data key="d7">0.4173890234295028</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="400" target="53">
-      <data key="d4">Copyright</data>
-      <data key="d6">0.32882543991722957</data>
-      <data key="d7">MatchLink</data>
+    <edge source="11" target="193">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Medium</data>
+      <data key="d7">0.21625381346706662</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="402" target="19">
-      <data key="d4">DateOfWork</data>
-      <data key="d6">0.1839197112405282</data>
-      <data key="d7">MatchLink</data>
+    <edge source="13" target="406">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Dimension</data>
+      <data key="d7">0.05038530681564557</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="405" target="4">
-      <data key="d4">ArtistBornDiedDate</data>
-      <data key="d6">0.28492654359149494</data>
-      <data key="d7">MatchLink</data>
+    <edge source="15" target="289">
+      <data key="d4">MatchLink</data>
+      <data key="d5">CreditLine</data>
+      <data key="d7">0.17782356604817973</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="342" target="10">
-      <data key="d4">Keywords</data>
-      <data key="d6">0.4173890234295028</data>
-      <data key="d7">MatchLink</data>
+    <edge source="19" target="402">
+      <data key="d4">MatchLink</data>
+      <data key="d5">DateOfWork</data>
+      <data key="d7">0.1839197112405282</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="407" target="45">
-      <data key="d4">SitterBornDiedDate</data>
-      <data key="d6">0.6064648095390448</data>
-      <data key="d7">MatchLink</data>
+    <edge source="4" target="405">
+      <data key="d4">MatchLink</data>
+      <data key="d5">ArtistBornDiedDate</data>
+      <data key="d7">0.28492654359149494</data>
       <data key="d8">0</data>
     </edge>
     <edge source="26" target="45">
-      <data key="d4">nameOfThePerson</data>
-      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">nameOfThePerson</data>
+      <data key="d6">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="28" target="30">
-      <data key="d4">prefLabel</data>
-      <data key="d5">http://www.w3.org/2008/05/skos#</data>
-      <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">prefLabel</data>
+      <data key="d6">http://www.w3.org/2008/05/skos#</data>
+      <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="410" target="5">
-      <data key="d4">Image</data>
-      <data key="d6">0.05173720050456998</data>
-      <data key="d7">MatchLink</data>
+    <edge source="30" target="196">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Classification</data>
+      <data key="d7">0.4847009551980358</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="289" target="15">
-      <data key="d4">CreditLine</data>
-      <data key="d6">0.17782356604817973</data>
-      <data key="d7">MatchLink</data>
+    <edge source="5" target="410">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Image</data>
+      <data key="d7">0.05173720050456998</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="294" target="18">
-      <data key="d4">Owner</data>
-      <data key="d6">0.5928344325196881</data>
-      <data key="d7">MatchLink</data>
+    <edge source="7" target="398">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Ref</data>
+      <data key="d7">0.24375179225388022</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="406" target="13">
-      <data key="d4">Dimension</data>
-      <data key="d6">0.05038530681564557</data>
-      <data key="d7">MatchLink</data>
+    <edge source="18" target="294">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Owner</data>
+      <data key="d7">0.5928344325196881</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="191" target="16">
-      <data key="d4">Title</data>
-      <data key="d6">0.10166355693423967</data>
-      <data key="d7">MatchLink</data>
+    <edge source="53" target="400">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Copyright</data>
+      <data key="d7">0.32882543991722957</data>
+      <data key="d8">0</data>
+    </edge>
+    <edge source="45" target="407">
+      <data key="d4">MatchLink</data>
+      <data key="d5">SitterBornDiedDate</data>
+      <data key="d7">0.6064648095390448</data>
+      <data key="d8">0</data>
+    </edge>
+    <edge source="16" target="191">
+      <data key="d4">MatchLink</data>
+      <data key="d5">Title</data>
+      <data key="d7">0.10166355693423967</data>
       <data key="d8">0</data>
     </edge>
   </graph>

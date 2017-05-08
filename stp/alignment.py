@@ -12,6 +12,7 @@ import networkx as nx
 import json
 import pandas as pd
 from collections import defaultdict
+import pygraphviz as pgv
 
 try:
     import serene
@@ -103,6 +104,7 @@ def read_karma_graph(file_name, out_file):
     nx.write_graphml(g, out_file)
 
     logging.info("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
+    print("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
 
     return g
 
@@ -173,7 +175,7 @@ def add_matches(alignment_graph, predicted_df, column_names):
                 logging.warning("Weird label {} for column".format(lab, row["column_name"]))
                 continue
             for target in data_node_map[lab]:
-                alignment_graph.add_edge(cur_id, target, attr_dict=link_data)
+                alignment_graph.add_edge(target, cur_id, attr_dict=link_data)
 
         cur_id += 1
 
@@ -197,7 +199,8 @@ def add_class_column(ssd, data_node_map):
     logging.info("Adding class nodes and attributes")
     g = nx.MultiDiGraph()
     ssd_node_map = {}
-    class_nodes = defaultdict(list)
+    class_nodes = defaultdict(list)  # keeping track how many instances of the same class are present
+    data_nodes = defaultdict(list)  # keeping track how many instances of the same data property are present
     for n_id, n_data in ssd.semantic_model._graph.nodes(data=True):
         data = n_data["data"]
         if isinstance(data, ClassNode):
@@ -226,11 +229,8 @@ def add_class_column(ssd, data_node_map):
             }
             ssd_node_map[n_id] = node_id
         elif isinstance(data, Column):
-            node_id = data_node_map[data.name]
-            if len(node_id) != 1:
-                logging.warning("Column {} is not well present in th integration graph: {}".format(
-                    data.name, len(node_id)))
-            node_id = node_id[0]
+            node_id = data_node_map[data.name][len(data_nodes[data.name])]
+            data_nodes[data.name].append(node_id)
             node_data = {
                 "type": "Attribute",
                 "label": data.name,
@@ -275,6 +275,7 @@ def convert_ssd(ssd, integration_graph, file_name):
     g, ssd_node_map, class_nodes = add_class_column(ssd, data_node_map)
 
     print("ssd_node_map: ")
+    data_nodes = defaultdict(list)  # keeping track how many instances of the same data property are present
     for source, target, l_data in ssd.semantic_model._graph.edges(data=True):
         data = l_data["data"]
         if isinstance(data, ObjectLink):
@@ -292,13 +293,14 @@ def convert_ssd(ssd, integration_graph, file_name):
             data_node = ssd.semantic_model._graph.node[target]["data"]
             link_label = data.label
             full_data_label = class_node["prefix"] + class_node["lab"] + "---" + link_label
-            node_id = data_node_map[full_data_label]
-            if len(node_id) != 1:
-                logging.warning("DataNode {} is not well present in th integration graph: {}".format(
-                    full_data_label, len(node_id)))
-                print("DataNode {} is not well present in the integration graph: {}".format(
-                    full_data_label, len(node_id)))
-            node_id = node_id[0]
+            node_id = data_node_map[full_data_label][len(data_nodes[full_data_label])]
+            data_nodes[full_data_label].append(full_data_label)
+            # if len(node_id) != 1:
+            #     logging.warning("DataNode {} is not well present in th integration graph: {}".format(
+            #         full_data_label, len(node_id)))
+            #     print("DataNode {} is not well present in the integration graph: {}".format(
+            #         full_data_label, len(node_id)))
+            # node_id = node_id[0]
             node_data = {
                 "type": "DataNode",
                 "label": class_node["label"] + "---" + link_label,
@@ -325,9 +327,9 @@ def convert_ssd(ssd, integration_graph, file_name):
             link_data = {
                 "type": "MatchLink",
                 "label": data.label,
-                "weight": get_weight(ssd_node_map[target], ssd_node_map[source], data.label, integration_graph)
+                "weight": get_weight(ssd_node_map[source], ssd_node_map[target], data.label, integration_graph)
             }
-            g.add_edge(ssd_node_map[target], ssd_node_map[source], attr_dict=link_data)
+            g.add_edge(ssd_node_map[source], ssd_node_map[target], attr_dict=link_data)
 
     # add data nodes
     # for n_id, n_data in ssd.semantic_model._graph.nodes(data=True):
@@ -340,7 +342,69 @@ def convert_ssd(ssd, integration_graph, file_name):
     logging.info("Writing converted ssd graph to file {}".format(file_name))
     nx.write_graphml(g, file_name)
 
+    return g
+
 # write nx object to file
+
+def to_graphviz(graph, out_file=None, prog="dot"):
+    """
+    Convert networkx graph to graphviz object
+    :param g: nx graph
+    :param out_file: file name to write the dot
+    :return:
+    """
+
+    g = pgv.AGraph(directed=True,
+                   remincross='true',
+                   fontname='helvetica',
+                   overlap=False)
+    styles = {}
+    styles["DataNode"] = {"shape": "plaintext",
+                       "style": "filled",
+                       "fillcolor":"gold",
+                       "fontname": "helvetica"
+                       }
+    styles["Attribute"] = {"shape": "hexagon",
+                       "fontname": "helvetica"
+                       }
+
+    styles["ClassNode"] = {"shape": "ellipse",
+                           "style": "filled",
+                           "fillcolor":"#59d0a0",
+                           "color": "white",
+                           "fontname": "helvetica"
+                           }
+    styles["MatchLink"] = {"color": "brown", "fontcolor":"black", "fontname":"helvetice"}
+    styles["Link"] = {"color": "#59d0a0", "fontcolor": "black", "fontname":"helvetice"}
+
+    pgv_nodes = set()
+    for source, target, l_data in graph.edges(data=True):
+        if source not in pgv_nodes:
+            n = graph.node[source]
+            g.add_node(source, label=str(source)+"\n"+n["label"],
+                       **styles[n["type"]])
+            pgv_nodes.add(source)
+        if target not in pgv_nodes:
+            n = graph.node[target]
+            g.add_node(target, label=str(target)+"\n"+n["label"],
+                       **styles[graph.node[target]["type"]])
+            pgv_nodes.add(target)
+
+        edge_label = l_data["label"] + "\nw=%.3f" % l_data["weight"]
+        if l_data["type"] == "MatchLink":
+            edge_label = "w=%.3f" % l_data["weight"]
+            g.add_edge(source, target,
+                       label=edge_label, **styles["MatchLink"])
+        else:
+            g.add_edge(source, target,
+                       label=edge_label, **styles["Link"])
+
+    if out_file:
+        print("writing graph dot file ", out_file)
+        # g.layout()
+        # g.draw(out_file, prog='dot')
+        g.draw(out_file, prog=prog)
+    return g
 
 
 if __name__ == "__main__":
@@ -395,4 +459,10 @@ if __name__ == "__main__":
 
     out_file = os.path.join("resources", "test", ssd.name+".graphml")
     ssd_graph = convert_ssd(ssd, integration, out_file)
+
+    print("Graphviz ssd")
+    g = to_graphviz(ssd_graph, "ssd_graph.dot")
+    print("Graphviz integration")
+    g = to_graphviz(integration, "integration_graph.dot")
+
 

@@ -1,68 +1,68 @@
 <?xml version='1.0' encoding='utf-8'?>
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
-  <key attr.name="key" attr.type="long" for="edge" id="d8" />
-  <key attr.name="type" attr.type="string" for="edge" id="d7" />
+  <key attr.name="prefix" attr.type="string" for="edge" id="d8" />
+  <key attr.name="key" attr.type="long" for="edge" id="d7" />
   <key attr.name="weight" attr.type="double" for="edge" id="d6" />
-  <key attr.name="prefix" attr.type="string" for="edge" id="d5" />
-  <key attr.name="label" attr.type="string" for="edge" id="d4" />
-  <key attr.name="type" attr.type="string" for="node" id="d3" />
-  <key attr.name="lab" attr.type="string" for="node" id="d2" />
-  <key attr.name="prefix" attr.type="string" for="node" id="d1" />
-  <key attr.name="label" attr.type="string" for="node" id="d0" />
+  <key attr.name="label" attr.type="string" for="edge" id="d5" />
+  <key attr.name="type" attr.type="string" for="edge" id="d4" />
+  <key attr.name="lab" attr.type="string" for="node" id="d3" />
+  <key attr.name="prefix" attr.type="string" for="node" id="d2" />
+  <key attr.name="label" attr.type="string" for="node" id="d1" />
+  <key attr.name="type" attr.type="string" for="node" id="d0" />
   <graph edgedefault="directed">
     <node id="20">
-      <data key="d0">Person---biographicalInformation</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">Person1---biographicalInformation</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">Person---biographicalInformation</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">Person1---biographicalInformation</data>
     </node>
     <node id="2">
-      <data key="d0">Person</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">Person1</data>
-      <data key="d3">ClassNode</data>
+      <data key="d0">ClassNode</data>
+      <data key="d1">Person</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">Person1</data>
     </node>
     <node id="356">
-      <data key="d0">name</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">name</data>
+      <data key="d2" />
     </node>
     <node id="386">
-      <data key="d0">biography</data>
-      <data key="d1" />
-      <data key="d3">Attribute</data>
+      <data key="d0">Attribute</data>
+      <data key="d1">biography</data>
+      <data key="d2" />
     </node>
     <node id="4">
-      <data key="d0">Person---nameOfThePerson</data>
-      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d2">Person1---nameOfThePerson</data>
-      <data key="d3">DataNode</data>
+      <data key="d0">DataNode</data>
+      <data key="d1">Person---nameOfThePerson</data>
+      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d3">Person1---nameOfThePerson</data>
     </node>
+    <edge source="20" target="386">
+      <data key="d4">MatchLink</data>
+      <data key="d5">biography</data>
+      <data key="d6">0.5460078646670847</data>
+      <data key="d7">0</data>
+    </edge>
     <edge source="2" target="4">
-      <data key="d4">nameOfThePerson</data>
-      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">nameOfThePerson</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
       <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
-      <data key="d8">0</data>
+      <data key="d7">0</data>
     </edge>
     <edge source="2" target="20">
-      <data key="d4">biographicalInformation</data>
-      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d4">DataPropertyLink</data>
+      <data key="d5">biographicalInformation</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
       <data key="d6">1.0</data>
-      <data key="d7">DataPropertyLink</data>
-      <data key="d8">0</data>
+      <data key="d7">0</data>
     </edge>
-    <edge source="356" target="4">
-      <data key="d4">name</data>
+    <edge source="4" target="356">
+      <data key="d4">MatchLink</data>
+      <data key="d5">name</data>
       <data key="d6">0.5073406544527769</data>
-      <data key="d7">MatchLink</data>
-      <data key="d8">0</data>
-    </edge>
-    <edge source="386" target="20">
-      <data key="d4">biography</data>
-      <data key="d6">0.5460078646670847</data>
-      <data key="d7">MatchLink</data>
-      <data key="d8">0</data>
+      <data key="d7">0</data>
     </edge>
   </graph>
 </graphml>

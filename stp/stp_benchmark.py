@@ -14,11 +14,12 @@ import tarfile
 import tempfile
 from pprint import pprint
 import networkx as nx
+import pandas as pd
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
 
-from alignment import read_karma_graph, add_matches, convert_ssd
+from alignment import read_karma_graph, add_matches, convert_ssd, to_graphviz
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -143,6 +144,7 @@ ssd_path = "ssds/"
 #     nx.write_graphml(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".graphml"))
 
 print()
+ssds[0].show(outfile=ssds[0].name + ".ssd.dot")
 
 input("Press enter to continue...")
 
@@ -184,8 +186,8 @@ octo_local = sn.Octopus(
     model_type="randomForest",
     modeling_props={
         "compatibleProperties": True,
-        "ontologyAlignment": False,
-        "addOntologyPaths": False,
+        "ontologyAlignment": True,
+        "addOntologyPaths": True,
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
@@ -282,28 +284,35 @@ if octo.state.status in {Status.ERROR}:
 #
 # =======================
 
-align_num = "3"
-karma_graph_file = os.path.join("resources", align_num, "graph.json")
-# read alignment part
-alignment = read_karma_graph(karma_graph_file, os.path.join("resources", align_num, "alignment.graphml"))
-
-print("showing predictions for the dataset...")
-for i, ds in enumerate(datasets):
-    print("predicting dataset: ", ds.filename)
-    pred_df = octo.matcher_predict(ds)
-    print(pred_df)
-    pred_df.to_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"), index=False)
-
-    # construct integration graph by adding matches for the columns
-    column_names = [c.name for c in ssds[i].columns]
-    integration = add_matches(alignment, pred_df, column_names)
-    out_file = os.path.join("resources", align_num, str(i)+".integration.graphml")
-    print("Writing integration graph to file {}".format(out_file))
-    nx.write_graphml(integration, out_file)
-
-    # write ground truth
-    out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
-    ssd_graph = convert_ssd(ssds[i], integration, out_file)
+# align_num = "2"
+# karma_graph_file = os.path.join("resources", align_num, "graph.json")
+# # read alignment part
+# print("reading graph json")
+# alignment = read_karma_graph(karma_graph_file, os.path.join("resources", align_num, "alignment.graphml"))
+# print("graphviz alignment")
+# _ = to_graphviz(alignment, os.path.join("resources", align_num, "alignment.svg"), prog="fdp")
+#
+# print("showing predictions for the dataset...")
+# for i, ds in enumerate(datasets):
+#     # print("predicting dataset: ", ds.filename)
+#     # pred_df = octo.matcher_predict(ds)
+#     # print("prediction finished")
+#     # pred_df.to_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"), index=False)
+#
+#     # read matches
+#     pred_df = pd.read_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"))
+#
+#     # construct integration graph by adding matches for the columns
+#     column_names = [c.name for c in ssds[i].columns]
+#     integration = add_matches(alignment, pred_df, column_names)
+#     out_file = os.path.join("resources", align_num, str(i)+".integration.graphml")
+#     print("Writing integration graph to file {}".format(out_file))
+#     nx.write_graphml(integration, out_file)
+#
+#     # write ground truth
+#     out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
+#     ssd_graph = convert_ssd(ssds[i], integration, out_file)
+#     _ = to_graphviz(ssd_graph, os.path.join("resources", align_num, str(i) + ".ssd.dot"))
 
 # input("Press enter to continue...")
 # # =======================
