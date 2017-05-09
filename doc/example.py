@@ -230,7 +230,7 @@ if len(ontologies):
 # # Or if you want to check it first you can do...
 # #
 #local_ontology = serene.Ontology('tests/resources/owl/dataintegration_report_ontology.ttl')
-ontology_local = serene.Ontology(os.path.join(owl_path, 'dataintegration_report_ontology.ttl'))
+ontology_local = serene.Ontology(os.path.join(owl_path, 'paper.ttl'))
 
 #
 # local_ontology.show()
@@ -271,7 +271,7 @@ ontology_local = serene.Ontology(os.path.join(owl_path, 'dataintegration_report_
 # Have a quick look...
 #
 ontology_local.show()
-
+input("press any key to continue...")
 #
 # or output to an owl file if you want...
 ontology_local.to_turtle(os.path.join(owl_path, 'test.ttl'))

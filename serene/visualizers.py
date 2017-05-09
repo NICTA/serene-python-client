@@ -46,6 +46,7 @@ class BaseVisualizer(object):
         print()
 
         g.draw(self.outfile, prog='dot')
+        # g.draw("paper.pdf", prog='dot')
         webbrowser.open("file://{}".format(os.path.abspath(self.outfile)))
 
 
