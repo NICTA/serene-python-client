@@ -51,7 +51,7 @@ print(schema_results)
 print()
 print('Predicted results:: {} results'.format(len(predicted)))
 print()
-for prediction in predicted[:10]:
+for prediction in predicted[:3]:
     print(prediction.score)
     prediction.ssd.show()
     if STOPFORINPUT:
