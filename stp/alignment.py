@@ -128,28 +128,31 @@ def construct_data_node_map(integration_graph):
     return data_node_map
 
 
-def add_matches(alignment_graph, predicted_df, column_names):
+def add_matches(alignment_graph, predicted_df, column_names, threshold=0):
     """
     add matches to the alignment graph
     :param alignment_graph: networkx MultiDiGraph()
     :param predicted_df: pandas dataframe
     :param column_names: list of column names which are present in the ssd
+    :param threshold: discard matches with score < threshold
     :return:
     """
     logging.info("Adding match nodes to the alignment graph...")
-
+    threshold = min(max(0.0, threshold),1.0) # threshold should be in range [0,1]
+    new_graph = alignment_graph.copy()
     # lookup from data node labels to node ids
     data_node_map = defaultdict(list)
     for n_id, n_data in alignment_graph.nodes(data=True):
         if n_data["type"] == "DataNode":
             data_node_map[n_data["label"]].append(n_id)
 
+    # we add matches only for those attributes which are mapped to existing data nodes
     available_types = set(data_node_map.keys())
 
     logging.info("Node map constructed: {}".format(data_node_map))
     # print(data_node_map)
 
-    cur_id = 1 + alignment_graph.number_of_nodes() # we start nodes here from this number
+    cur_id = 1 + new_graph.number_of_nodes()  # we start nodes here from this number
     scores_cols = [col for col in predicted_df.columns if col.startswith("scores_")]
 
     for idx, row in predicted_df.iterrows():
@@ -159,32 +162,32 @@ def add_matches(alignment_graph, predicted_df, column_names):
             "type": "Attribute",
             "label": row["column_name"]
         }
-        alignment_graph.add_node(cur_id, attr_dict=node_data)
+        new_graph.add_node(cur_id, attr_dict=node_data)
         for score in scores_cols:
-            if row[score] == 0:
-                logging.info("Ignoring 0 scores")
+            if row[score] <= threshold:
+                logging.info("Ignoring <=threshold scores")
                 continue
             lab = score.split("scores_")[1]
             # TODO: make weight: 1 - ln(score)
             link_data = {
                 "type": "MatchLink",
-                "weight": 1.0 - row[score], # inverse number
+                "weight": 1.0 - row[score],  # inverse number
                 "label": row["column_name"]
             }
             if lab not in available_types:
                 logging.warning("Weird label {} for column".format(lab, row["column_name"]))
                 continue
             for target in data_node_map[lab]:
-                alignment_graph.add_edge(target, cur_id, attr_dict=link_data)
+                new_graph.add_edge(target, cur_id, attr_dict=link_data)
 
         cur_id += 1
 
     print("Integration graph read: {} nodes, {} links".format(
-        alignment_graph.number_of_nodes(), alignment_graph.number_of_edges()))
+        new_graph.number_of_nodes(), new_graph.number_of_edges()))
     logging.info("Integration graph read: {} nodes, {} links".format(
-        alignment_graph.number_of_nodes(), alignment_graph.number_of_edges()))
+        new_graph.number_of_nodes(), new_graph.number_of_edges()))
 
-    return alignment_graph
+    return new_graph
 
 
 def add_class_column(ssd, data_node_map):

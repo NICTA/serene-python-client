@@ -277,44 +277,47 @@ if octo.state.status in {Status.ERROR}:
     print("Something went wrong. Failed to train the Octopus.")
     exit()
 
-
+input("Press enter to continue...")
 # =======================
 #
 # Step 7'. Matcher Predict and construct the integration per each ssd!
 #
 # =======================
 
-# align_num = "2"
-# karma_graph_file = os.path.join("resources", align_num, "graph.json")
-# # read alignment part
-# print("reading graph json")
-# alignment = read_karma_graph(karma_graph_file, os.path.join("resources", align_num, "alignment.graphml"))
-# print("graphviz alignment")
-# _ = to_graphviz(alignment, os.path.join("resources", align_num, "alignment.svg"), prog="fdp")
-#
-# print("showing predictions for the dataset...")
-# for i, ds in enumerate(datasets):
-#     # print("predicting dataset: ", ds.filename)
-#     # pred_df = octo.matcher_predict(ds)
-#     # print("prediction finished")
-#     # pred_df.to_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"), index=False)
-#
-#     # read matches
-#     pred_df = pd.read_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"))
-#
-#     # construct integration graph by adding matches for the columns
-#     column_names = [c.name for c in ssds[i].columns]
-#     integration = add_matches(alignment, pred_df, column_names)
-#     out_file = os.path.join("resources", align_num, str(i)+".integration.graphml")
-#     print("Writing integration graph to file {}".format(out_file))
-#     nx.write_graphml(integration, out_file)
-#
-#     # write ground truth
-#     out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
-#     ssd_graph = convert_ssd(ssds[i], integration, out_file)
-#     _ = to_graphviz(ssd_graph, os.path.join("resources", align_num, str(i) + ".ssd.dot"))
+align_num = "5"
+karma_graph_file = os.path.join("resources", align_num, "graph.json")
+# read alignment part
+print("reading graph json")
+alignment = read_karma_graph(karma_graph_file, os.path.join("resources", align_num, "alignment.graphml"))
+print("graphviz alignment")
+_ = to_graphviz(alignment, os.path.join("resources", align_num, "alignment.dot"), prog="neato")
 
-# input("Press enter to continue...")
+print("showing predictions for the dataset...")
+for i, ds in enumerate(datasets):
+    print("predicting dataset: ", ds.filename)
+    pred_df = octo.matcher_predict(ds)
+    print("prediction finished")
+    pred_df.to_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"), index=False)
+
+    # read matches
+    pred_df = pd.read_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"))
+
+    # construct integration graph by adding matches for the columns
+    column_names = [c.name for c in ssds[i].columns]
+    integration = add_matches(alignment, pred_df, column_names, threshold=0.02)
+    out_file = os.path.join("resources", align_num, str(i)+".integration.graphml")
+    print("Writing integration graph to file {}".format(out_file))
+    nx.write_graphml(integration, out_file)
+
+    print("graphviz alignment")
+    _ = to_graphviz(integration, os.path.join("resources", align_num, str(i) + ".integration.dot"), prog="neato")
+
+    # write ground truth
+    out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
+    ssd_graph = convert_ssd(ssds[i], integration, out_file)
+    _ = to_graphviz(ssd_graph, os.path.join("resources", align_num, str(i) + ".ssd.dot"))
+
+input("Press enter to continue...")
 # # =======================
 # #
 # # Step 7. Predict

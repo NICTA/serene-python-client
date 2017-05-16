@@ -51,6 +51,10 @@
           rdfs:domain :Person ;
           rdfs:range :Organization .
 
+:isPartOf rdf:type owl:ObjectProperty ;
+        rdfs:domain :City ;
+        rdfs:range :Place .
+
 #################################################################
 #    Data properties
 #################################################################

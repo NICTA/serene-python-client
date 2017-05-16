@@ -154,6 +154,8 @@ class SchemaMatcher(object):
 
         assert 'unknown' in classes
 
+        classes = list(set(classes))  # make sure that classes are distinct!!!
+
         def column_parse(col):
             """Turns a column into the id"""
             if issubclass(type(col), Column):

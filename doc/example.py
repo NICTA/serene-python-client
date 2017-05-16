@@ -375,7 +375,8 @@ postal_code_ssd = (sn
                    .map(Column("city"), "City.name")
                    .map(Column("state"), "State.name")
                    .link("City", "state", "State")
-                   .link("City", "isPartOf", "Place"))
+                   .link("City", "isPartOf", "Place")
+                   )
 
 postal_code_ssd.show()
 
@@ -389,7 +390,8 @@ postal_code_ssd2 = (sn
                     .map(Column("city"), "City.name")
                     .map(Column("state"), "State.name")
                     .link("City", "state", "State")
-                    .link("City", "isPartOf", "Place"))
+                    .link("City", "isPartOf", "Place")
+                    )
 
 postal_code_ssd2.show()
 
@@ -455,10 +457,12 @@ octo_local = sn.Octopus(
             "prop-entries-with-hyphen",
             "prop-range-format",
             "is-discrete",
-            "entropy-for-discrete-values"
+            "entropy-for-discrete-values",
+            "shannon-entropy"
         ],
         "activeFeatureGroups": [
             "inferred-data-type",
+            "char-dist-features",
             "stats-of-text-length",
             "stats-of-numeric-type",
             "prop-instances-per-class-in-knearestneighbours",
@@ -513,15 +517,16 @@ if octo.state.status in {Status.ERROR}:
 #
 # =======================
 
-personal_info = sn.datasets.upload(os.path.join(data_path,'personalInfo.csv'))
+personal_info = sn.datasets.upload(os.path.join(data_path,'Employees.csv'))
 predicted = octo.predict(personal_info)
 
 print()
 print("Predicted schema matcher results::")
 print()
-schema_results = octo.matcher_predict(personal_info)
+schema_results = octo.matcher_predict(personal_info, features=True)
 print(schema_results)
-
+schema_results.to_csv("employees_features.csv", index=False)
+input("Press any key to continue...")
 
 print()
 print("Predicted results::")

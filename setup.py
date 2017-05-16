@@ -24,7 +24,7 @@ if sys.version_info < (3, 1):
     sys.exit(1)
 
 packages = [
-    'serene', 'serene.api', 'serene.elements', 'serene.matcher', 'serene.semantics', 'serene.elements.semantics'
+    'serene', 'serene.api', 'serene.elements', 'serene.matcher', 'serene.elements.semantics'
 ]
 
 install_requires = [

@@ -2,114 +2,114 @@
 <graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
   <key attr.name="key" attr.type="long" for="edge" id="d8" />
   <key attr.name="weight" attr.type="double" for="edge" id="d7" />
-  <key attr.name="prefix" attr.type="string" for="edge" id="d6" />
-  <key attr.name="label" attr.type="string" for="edge" id="d5" />
-  <key attr.name="type" attr.type="string" for="edge" id="d4" />
+  <key attr.name="type" attr.type="string" for="edge" id="d6" />
+  <key attr.name="prefix" attr.type="string" for="edge" id="d5" />
+  <key attr.name="label" attr.type="string" for="edge" id="d4" />
   <key attr.name="lab" attr.type="string" for="node" id="d3" />
-  <key attr.name="prefix" attr.type="string" for="node" id="d2" />
-  <key attr.name="label" attr.type="string" for="node" id="d1" />
-  <key attr.name="type" attr.type="string" for="node" id="d0" />
+  <key attr.name="type" attr.type="string" for="node" id="d2" />
+  <key attr.name="prefix" attr.type="string" for="node" id="d1" />
+  <key attr.name="label" attr.type="string" for="node" id="d0" />
   <graph edgedefault="directed">
     <node id="2">
-      <data key="d0">ClassNode</data>
-      <data key="d1">Person</data>
-      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d0">Person</data>
+      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d2">ClassNode</data>
       <data key="d3">Person1</data>
     </node>
     <node id="20">
-      <data key="d0">DataNode</data>
-      <data key="d1">Person---biographicalInformation</data>
-      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d0">Person---biographicalInformation</data>
+      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d2">DataNode</data>
       <data key="d3">Person1---biographicalInformation</data>
     </node>
     <node id="21">
-      <data key="d0">DataNode</data>
-      <data key="d1">Person---professionOrOccupation</data>
-      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d0">Person---professionOrOccupation</data>
+      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d2">DataNode</data>
       <data key="d3">Person1---professionOrOccupation</data>
     </node>
-    <node id="12">
-      <data key="d0">DataNode</data>
-      <data key="d1">Person---countryAssociatedWithThePerson</data>
-      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
-      <data key="d3">Person1---countryAssociatedWithThePerson</data>
-    </node>
     <node id="4">
-      <data key="d0">DataNode</data>
-      <data key="d1">Person---nameOfThePerson</data>
-      <data key="d2">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d0">Person---nameOfThePerson</data>
+      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d2">DataNode</data>
       <data key="d3">Person1---nameOfThePerson</data>
     </node>
-    <node id="187">
-      <data key="d0">Attribute</data>
-      <data key="d1">nationality</data>
-      <data key="d2" />
+    <node id="170">
+      <data key="d0">nationality</data>
+      <data key="d1" />
+      <data key="d2">Attribute</data>
     </node>
-    <node id="188">
-      <data key="d0">Attribute</data>
-      <data key="d1">artist_name</data>
-      <data key="d2" />
+    <node id="171">
+      <data key="d0">artist_name</data>
+      <data key="d1" />
+      <data key="d2">Attribute</data>
     </node>
-    <node id="189">
-      <data key="d0">Attribute</data>
-      <data key="d1">occupation</data>
-      <data key="d2" />
+    <node id="172">
+      <data key="d0">occupation</data>
+      <data key="d1" />
+      <data key="d2">Attribute</data>
     </node>
-    <node id="190">
-      <data key="d0">Attribute</data>
-      <data key="d1">long_biography</data>
-      <data key="d2" />
+    <node id="173">
+      <data key="d0">long_biography</data>
+      <data key="d1" />
+      <data key="d2">Attribute</data>
+    </node>
+    <node id="12">
+      <data key="d0">Person---countryAssociatedWithThePerson</data>
+      <data key="d1">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">Person1---countryAssociatedWithThePerson</data>
     </node>
     <edge source="2" target="4">
-      <data key="d4">DataPropertyLink</data>
-      <data key="d5">nameOfThePerson</data>
-      <data key="d6">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d4">nameOfThePerson</data>
+      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d6">DataPropertyLink</data>
       <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="2" target="20">
-      <data key="d4">DataPropertyLink</data>
-      <data key="d5">biographicalInformation</data>
-      <data key="d6">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d4">biographicalInformation</data>
+      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d6">DataPropertyLink</data>
       <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="2" target="21">
-      <data key="d4">DataPropertyLink</data>
-      <data key="d5">professionOrOccupation</data>
-      <data key="d6">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d4">professionOrOccupation</data>
+      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d6">DataPropertyLink</data>
       <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
     <edge source="2" target="12">
-      <data key="d4">DataPropertyLink</data>
-      <data key="d5">countryAssociatedWithThePerson</data>
-      <data key="d6">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d4">countryAssociatedWithThePerson</data>
+      <data key="d5">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d6">DataPropertyLink</data>
       <data key="d7">1.0</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="20" target="190">
-      <data key="d4">MatchLink</data>
-      <data key="d5">long_biography</data>
+    <edge source="20" target="173">
+      <data key="d4">long_biography</data>
+      <data key="d6">MatchLink</data>
       <data key="d7">0.6087277720744921</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="21" target="189">
-      <data key="d4">MatchLink</data>
-      <data key="d5">occupation</data>
+    <edge source="21" target="172">
+      <data key="d4">occupation</data>
+      <data key="d6">MatchLink</data>
       <data key="d7">0.7039367236815759</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="12" target="187">
-      <data key="d4">MatchLink</data>
-      <data key="d5">nationality</data>
-      <data key="d7">0.33089916694590804</data>
+    <edge source="4" target="171">
+      <data key="d4">artist_name</data>
+      <data key="d6">MatchLink</data>
+      <data key="d7">0.1632081284942617</data>
       <data key="d8">0</data>
     </edge>
-    <edge source="4" target="188">
-      <data key="d4">MatchLink</data>
-      <data key="d5">artist_name</data>
-      <data key="d7">0.1632081284942617</data>
+    <edge source="12" target="170">
+      <data key="d4">nationality</data>
+      <data key="d6">MatchLink</data>
+      <data key="d7">0.33089916694590804</data>
       <data key="d8">0</data>
     </edge>
   </graph>

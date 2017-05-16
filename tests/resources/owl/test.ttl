@@ -23,21 +23,12 @@
     rdfs:domain :Organization ;
     rdfs:range rdfs:Literal .
 
-:endDate a owl:DatatypeProperty ;
-    rdfs:domain :Event ;
-    rdfs:range xsd:dateTime .
-
 :isPartOf a owl:ObjectProperty ;
-    rdfs:domain :Place ;
+    rdfs:domain :City ;
     rdfs:range :Place .
 
 :livesIn a owl:ObjectProperty ;
     rdfs:domain :Person ;
-    rdfs:range :Place .
-
-:location a owl:ObjectProperty ;
-    rdfs:domain :Event,
-        :Organization ;
     rdfs:range :Place .
 
 :name a owl:DatatypeProperty ;
@@ -46,17 +37,9 @@
         :Place ;
     rdfs:range rdfs:Literal .
 
-:nearby a owl:ObjectProperty ;
-    rdfs:domain :Place ;
-    rdfs:range :Place .
-
 :operatesIn a owl:ObjectProperty ;
     rdfs:domain :Organization ;
-    rdfs:range :City .
-
-:organizer a owl:ObjectProperty ;
-    rdfs:domain :Event ;
-    rdfs:range :Person .
+    rdfs:range :Place .
 
 :phone a owl:DatatypeProperty ;
     rdfs:domain :Organization ;
@@ -65,10 +48,6 @@
 :postalCode a owl:DatatypeProperty ;
     rdfs:domain :Place ;
     rdfs:range rdfs:Literal .
-
-:startDate a owl:DatatypeProperty ;
-    rdfs:domain :Event ;
-    rdfs:range xsd:dateTime .
 
 :state a owl:ObjectProperty ;
     rdfs:domain :City ;
@@ -83,8 +62,6 @@
 
 :City a owl:Class ;
     rdfs:subClassOf :Place .
-
-:Event a owl:Class .
 
 :Organization a owl:Class .
 
