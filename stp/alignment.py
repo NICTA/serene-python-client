@@ -26,7 +26,6 @@ from serene import Column, DataNode, ClassNode, ClassInstanceLink, ColumnLink, O
 def label(node):
     """
     Strips off the prefix in the URI to give the label...
-
     :param node: The full URI string
     :return: (prefix, label) as (string, string)
     """
@@ -41,7 +40,6 @@ def label(node):
 def prefix(node):
     """
     Strips off the name in the URI to give the prefixlabel...
-
     :param node: The full URI string
     :return: (prefix, label) as (string, string)
     """
@@ -249,7 +247,7 @@ def add_class_column(ssd, data_node_map):
 
 def get_weight(source, target, label, integration_graph):
     """
-
+    Return the weight of the link between source and target with the specified label
     :param source:
     :param target:
     :param label:
@@ -266,7 +264,7 @@ def get_weight(source, target, label, integration_graph):
 
 def convert_ssd(ssd, integration_graph, file_name):
     """
-    convert our ssd to nx object
+    Convert our ssd to nx object
     :param ssd:
     :param integration_graph:
     :param file_name:
@@ -291,7 +289,7 @@ def convert_ssd(ssd, integration_graph, file_name):
             }
             g.add_edge(ssd_node_map[source], ssd_node_map[target], attr_dict=link_data)
         elif isinstance(data, DataLink) or isinstance(data, ClassInstanceLink):
-            # we need to add the data bnode
+            # we need to add the data node
             class_node = g.node[ssd_node_map[source]]
             data_node = ssd.semantic_model._graph.node[target]["data"]
             link_label = data.label

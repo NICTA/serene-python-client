@@ -6,22 +6,22 @@ def median(lst):
 from math import *
 
 class Graph:
-	def __init__(self,nb_nodes = 0,nb_edges = 0):
-		self.nb_nodes = nb_nodes
-		self.nb_edges = nb_edges
-		self.edges = []
-		self.inc = [[] for i in self.nodes()]
-		self.out = [[] for i in self.nodes()]
-	def nodes(self):
-		return range(0,self.nb_nodes)
-	def isNode(self, n):
-		return n >=0  and n < self.nb_nodes
-	def addEdge(self, s, d, w = 0):
-		if self.isNode(s) and self.isNode(d):
-			self.edges.append((s,d,w))
-			self.inc[d].append(s)
-			self.out[s].append(d)
-			self.nb_edges += 1
+    def __init__(self,nb_nodes = 0,nb_edges = 0):
+        self.nb_nodes = nb_nodes
+        self.nb_edges = nb_edges
+        self.edges = []
+        self.inc = [[] for i in self.nodes()]
+        self.out = [[] for i in self.nodes()]
+    def nodes(self):
+        return range(0,self.nb_nodes)
+    def isNode(self, n):
+        return n >=0  and n < self.nb_nodes
+    def addEdge(self, s, d, w = 0):
+        if self.isNode(s) and self.isNode(d):
+            self.edges.append((s,d,w))
+            self.inc[d].append(s)
+            self.out[s].append(d)
+            self.nb_edges += 1
 	def addNode(self):
 		self.nb_nodes += 1
 		self.inc.append([])
