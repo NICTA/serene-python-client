@@ -20,6 +20,9 @@ LINK_NAME = "relationship"
 # default namespace in Karma
 KARMA_DEFAULT_NS = "http://isi.edu/integration/karma/dev#"
 
+# default project namespace
+DEFAULT_NS = "http://au.csiro.data61/serene/dev#"
+
 class BaseSemantic(object):
     """
     Semantic Graph is the base object to construct Semantic objects.

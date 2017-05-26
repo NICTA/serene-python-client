@@ -19,7 +19,7 @@ import pandas as pd
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
 
-from alignment import read_karma_graph, add_matches, convert_ssd, to_graphviz
+from stp.alignment import read_karma_graph, add_matches, convert_ssd, to_graphviz
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -78,6 +78,10 @@ ontologies = []
 for path in os.listdir(owl_dir):
     f = os.path.join(owl_dir, path)
     ontologies.append(sn.ontologies.upload(f))
+
+# add Unknown class
+unknown_owl = os.path.join("unknown", "unknown_class.ttl")
+ontologies.append(sn.ontologies.upload(unknown_owl))
 
 print("*********** Ontologies from museum benchmark")
 for onto in ontologies:
@@ -196,7 +200,7 @@ octo_local = sn.Octopus(
         "coherenceWeight": 1.0,
         "sizeWeight": 0.5,
         "numSemanticTypes": 10,
-        "thingNode": False,
+        "thingNode": True,
         "nodeClosure": True,
         "propertiesDirect": True,
         "propertiesIndirect": True,

@@ -254,7 +254,6 @@ def get_weight(source, target, label, integration_graph):
     :param integration_graph:
     :return:
     """
-
     links = integration_graph.get_edge_data(source, target)
     for l in links.values():
         if l["label"] == label:
@@ -345,7 +344,6 @@ def convert_ssd(ssd, integration_graph, file_name):
 
     return g
 
-# write nx object to file
 
 def to_graphviz(graph, out_file=None, prog="dot"):
     """
