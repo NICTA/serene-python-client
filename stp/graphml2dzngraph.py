@@ -5,7 +5,7 @@ from utils import *
 
 #############################################################
 ##                                                         ##
-##  Given an alignment graph in graphml format,            ##
+##  Given an graph in graphml format,                      ##
 ##  this script will convert it into MiniZinz format (the  ##
 ##  result will be outputed in stdout).                    ##
 ##                                                         ##

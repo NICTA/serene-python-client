@@ -3,7 +3,14 @@ import os
 from math import *
 from utils import *
 
-
+#############################################################
+##                                                         ##
+##  Given an graph in graphml format,                      ##
+##  this script will convert the "attribute" part of the   ##
+##  graph (that is, all but the alignment) into a matching ##
+##  problem.                                               ##
+##                                                         ##
+#############################################################
 
 from math import *
 
