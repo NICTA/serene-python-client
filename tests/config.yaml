@@ -15,7 +15,7 @@ launch-test-server: true
 # the executable which will launch the server. If launch-test-server
 # is false then this is ignored. Note that if SERENE_TEST_SERVER_PATH is
 # defined it will override this variable...
-launch-test-server-exe: /home/natalia/IdeaProjects/serene/bin/serene-start
+launch-test-server-exe: /home/sprout/repos/serene/bin/serene-start
 
 #
 # The location of the storage directory for the test server
