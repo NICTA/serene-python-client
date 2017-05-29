@@ -6,7 +6,7 @@ Serene Python client: Data Integration Software
 """
 from .elements import Column, Mapping
 from .elements import Class, DataProperty, ObjectProperty, ObjectPropertyList
-from .elements import DataNode, ClassNode, DataLink, ObjectLink, ColumnLink, ClassInstanceLink
+from .elements import DataNode, ClassNode, DataLink, ObjectLink, ColumnLink, ClassInstanceLink, SubClassLink
 from .octopus import Octopus
 from .semantics.ontology import Ontology
 from .semantics.ssd import SSD

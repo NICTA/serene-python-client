@@ -5,7 +5,7 @@ import webbrowser
 import pygraphviz as pgv
 
 from .elements import ObjectProperty, ClassNode, DataNode, Column
-from .elements import DataLink, ColumnLink, ObjectLink, ClassInstanceLink
+from .elements import DataLink, ColumnLink, ObjectLink, ClassInstanceLink, SubClassLink
 
 
 class BaseVisualizer(object):
@@ -157,7 +157,8 @@ class SSDVisualizer(BaseVisualizer):
             ObjectLink: self._add_object_link,
             DataLink: self._add_data_link,
             ColumnLink: self._add_column,
-            ClassInstanceLink: self._add_class_link
+            ClassInstanceLink: self._add_class_link,
+            SubClassLink: self._add_object_link
         }
 
     def _filter_nodes(self, value_type):

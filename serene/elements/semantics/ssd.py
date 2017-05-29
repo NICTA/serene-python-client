@@ -14,7 +14,7 @@ from collections import defaultdict
 
 from .base import BaseSemantic
 from ..elements import DataProperty, ObjectProperty, SSDSearchable, SSDLink, ClassNode, DataNode
-from ..elements import DataLink, ObjectLink, ClassInstanceLink, ColumnLink
+from ..elements import DataLink, ObjectLink, ClassInstanceLink, ColumnLink, SubClassLink
 from ..elements import Mapping, Column, Class
 from ..dataset import DataSet
 from ..semantics.ontology import Ontology
@@ -145,12 +145,17 @@ class SSD(object):
         # add the data_node
         self._semantic_model.add_node(data_node)
 
-        # add a link between the two, with default prefix namespace...
+        # add a link between the two,
+        # with namespace from data node if it's available otherwise default prefix namespace...
+        if data_node.prefix:
+            ns = data_node.prefix
+        else:
+            ns = self.default_namespace
         self._semantic_model.add_edge(
             data_node.class_node,
             data_node,
             DataLink(data_node.label,
-                     prefix=self.default_namespace))
+                     prefix=ns))
 
         # add a link between the column and data node...
         self._semantic_model.add_edge(
@@ -407,9 +412,10 @@ class SSD(object):
             # find any match in all ontologies
             try:
                 cls = Class.search(onto.class_nodes, cls_target)
+                if cls is not None:
+                    break
             except:
                 continue
-            break
 
         return cls is not None
 
@@ -431,9 +437,10 @@ class SSD(object):
             # find any match in all ontologies
             try:
                 dn = DataProperty.search(onto.idata_nodes, target)
+                if dn is not None:
+                    break
             except:
                 continue
-            break
 
         return dn is not None
 
@@ -585,6 +592,8 @@ class SSDGraph(object):
     def degree(self, node: Searchable):
         """Returns the degree of a node in the graph"""
         key = self.find(node)
+        if key is None:
+            return 0
         return self._graph.degree(self._lookup[key])
 
     def add_node(self, node: Searchable, index=None):
@@ -957,7 +966,10 @@ class SSDReader(object):
                     self._graph.add_node(new, index=v)
 
     def _build_graph_links(self, links):
-        """Pulls out the link objects and adds them into the graph using the interface"""
+        """
+        Pulls out the link objects and adds them into the graph using the interface.
+        Here we consider ObjectPropertyLink and CompactSubClassLink.
+        """
         _logger.debug("Building links for semantic model from blob")
         for obj in links:
             index = obj['id']
@@ -968,6 +980,9 @@ class SSDReader(object):
 
             if obj['type'] == "ObjectPropertyLink":
                 item = ObjectLink(label, prefix=prefix)
+                self._graph.add_edge(src, dst, item, index=index)
+            elif obj['type'] == "SubClassLink":
+                item = SubClassLink(label, prefix=prefix)
                 self._graph.add_edge(src, dst, item, index=index)
 
     def _build_data_nodes(self, links):

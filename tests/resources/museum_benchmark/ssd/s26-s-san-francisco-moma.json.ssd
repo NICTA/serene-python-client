@@ -2,15 +2,6 @@
     "attributes": [
         {
             "columnIds": [
-                148827
-            ],
-            "id": 148827,
-            "label": "identity",
-            "name": "deathPlaceLabel",
-            "sql": "not implemented"
-        },
-        {
-            "columnIds": [
                 1867356095
             ],
             "id": 1867356095,
@@ -116,15 +107,6 @@
             "label": "identity",
             "name": "art-work.title",
             "sql": "not implemented"
-        },
-        {
-            "columnIds": [
-                147345
-            ],
-            "id": 147345,
-            "label": "identity",
-            "name": "birthPlaceLabel",
-            "sql": "not implemented"
         }
     ],
     "dateCreated": "2017-03-21T18:29:30.673",
@@ -178,14 +160,6 @@
         {
             "attribute": 272962677,
             "node": 17
-        },
-        {
-            "attribute": 147345,
-            "node": 21
-        },
-        {
-            "attribute": 148827,
-            "node": 8
         }
     ],
     "name": "s26-s-san-francisco-moma.json",
@@ -250,15 +224,6 @@
                 "type": "DataPropertyLink"
             },
             {
-                "id": 4,
-                "label": "placeOfDeath",
-                "prefix": "http://rdvocab.info/ElementsGr2/",
-                "source": 1,
-                "status": "ForcedByUser",
-                "target": 5,
-                "type": "ObjectPropertyLink"
-            },
-            {
                 "id": 13,
                 "label": "extent",
                 "prefix": "http://purl.org/dc/terms/",
@@ -275,15 +240,6 @@
                 "status": "ForcedByUser",
                 "target": 12,
                 "type": "DataPropertyLink"
-            },
-            {
-                "id": 3,
-                "label": "placeOfBirth",
-                "prefix": "http://rdvocab.info/ElementsGr2/",
-                "source": 1,
-                "status": "ForcedByUser",
-                "target": 4,
-                "type": "ObjectPropertyLink"
             },
             {
                 "id": 19,
@@ -331,15 +287,6 @@
                 "type": "ObjectPropertyLink"
             },
             {
-                "id": 20,
-                "label": "label",
-                "prefix": "http://www.w3.org/2000/01/rdf-schema#",
-                "source": 4,
-                "status": "ForcedByUser",
-                "target": 21,
-                "type": "DataPropertyLink"
-            },
-            {
                 "id": 12,
                 "label": "rightsHolder",
                 "prefix": "http://purl.org/dc/terms/",
@@ -364,15 +311,6 @@
                 "source": 1,
                 "status": "ForcedByUser",
                 "target": 16,
-                "type": "DataPropertyLink"
-            },
-            {
-                "id": 7,
-                "label": "label",
-                "prefix": "http://www.w3.org/2000/01/rdf-schema#",
-                "source": 5,
-                "status": "ForcedByUser",
-                "target": 8,
                 "type": "DataPropertyLink"
             },
             {
@@ -417,13 +355,6 @@
                 "type": "ClassNode"
             },
             {
-                "id": 4,
-                "label": "Place",
-                "prefix": "http://www.americanartcollaborative.org/ontology/",
-                "status": "Normal",
-                "type": "ClassNode"
-            },
-            {
                 "id": 12,
                 "label": "CulturalHeritageObject.accessionNumber",
                 "prefix": "",
@@ -433,13 +364,6 @@
             {
                 "id": 10,
                 "label": "WebResource.classLink",
-                "prefix": "",
-                "status": "ForcedByUser",
-                "type": "DataNode"
-            },
-            {
-                "id": 21,
-                "label": "Place.label",
                 "prefix": "",
                 "status": "ForcedByUser",
                 "type": "DataNode"
@@ -534,20 +458,6 @@
                 "prefix": "",
                 "status": "ForcedByUser",
                 "type": "DataNode"
-            },
-            {
-                "id": 8,
-                "label": "Place.label",
-                "prefix": "",
-                "status": "ForcedByUser",
-                "type": "DataNode"
-            },
-            {
-                "id": 5,
-                "label": "Place",
-                "prefix": "http://www.americanartcollaborative.org/ontology/",
-                "status": "Normal",
-                "type": "ClassNode"
             }
         ]
     }

@@ -17,6 +17,7 @@ import networkx as nx
 import pandas as pd
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
+from serene.elements import SubClassLink
 from serene.elements.semantics.base import KARMA_DEFAULT_NS
 
 from stp.alignment import read_karma_graph, add_matches, convert_ssd, to_graphviz
@@ -50,7 +51,8 @@ sn = serene.Serene(
 )
 print(sn)
 
-benchmark_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "museum_benchmark")
+# benchmark_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "museum_benchmark")
+benchmark_path = os.path.join(os.path.abspath(os.curdir), "tests", "resources", "museum_benchmark")
 print("benchmark_path: ", benchmark_path)
 
 print("========Optional cleaning=============")
@@ -78,6 +80,11 @@ ontologies = []
 for path in os.listdir(owl_dir):
     f = os.path.join(owl_dir, path)
     ontologies.append(sn.ontologies.upload(f))
+
+# add Unknown class
+# unknown_owl = os.path.join("unknown", "unknown_class.ttl")
+unknown_owl = os.path.join("stp","unknown", "unknown_class.ttl")
+ontologies.append(sn.ontologies.upload(unknown_owl))
 
 print("*********** Ontologies from museum benchmark")
 for onto in ontologies:
@@ -148,9 +155,47 @@ ssds[0].show(outfile=ssds[0].name + ".ssd.dot")
 
 input("Press enter to continue...")
 
+
 # =======================
 #
-#  Step 4: Specify training and test samples
+#  Step 5: Add unknown mappings to ssds
+#
+# ======================
+from copy import deepcopy
+
+
+def add_thing_node(original_ssd):
+    """Add Thing node to ssd and make all class nodes subclass of Thing"""
+    ssd = original_ssd
+    class_nodes = ssd.class_nodes
+    prefix = "http://www.w3.org/2000/01/rdf-schema#"
+    thing_node = ClassNode("Thing", prefix="http://www.w3.org/2002/07/owl#")
+    ssd._semantic_model.add_node(thing_node)
+    for cn in class_nodes:
+        ssd._semantic_model.add_edge(
+            cn, thing_node, SubClassLink("subClassOf", prefix=prefix))
+    return ssd
+
+new_ssds = [deepcopy(s) for s in sn.ssds.items]
+
+for s in new_ssds:
+    unmapped_cols = [col for col in s.dataset.columns if col not in s.columns]
+
+    for i, col in enumerate(unmapped_cols):
+        s._semantic_model.add_node(col, index=col.id)
+        data_node = DataNode(ClassNode("Unknown", prefix="http://au.csiro.data61/serene/dev#"), label="unknownProp",
+                             index=i,
+                             prefix="http://au.csiro.data61/serene/dev#")
+        s.map(col, data_node)
+
+    if len(unmapped_cols):
+        s = add_thing_node(s)
+
+# upload ssds with unknown mappings
+new_ssds = [sn.ssds.upload(s) for s in new_ssds]
+# =======================
+#
+#  Step 6: Specify training and test samples
 #
 # =======================
 train_sample = []
@@ -171,12 +216,12 @@ print("Indexes for testing sample: ", test_sample)
 
 # =======================
 #
-#  Step 5: Create octopus
+#  Step 7: Create octopus
 #
 # =======================
 
 octo_local = sn.Octopus(
-    ssds=[ssds[i] for i in train_sample],
+    ssds=[new_ssds[i] for i in train_sample],
     ontologies=ontologies,
     name='octopus-without-s07',
     description='Testing example for places and companies',
@@ -395,3 +440,4 @@ input("Press enter to continue...")
 # for i, pred in enumerate(predicted):
 #     comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], False, False)
 #     print("SsdResult({}) comparison: {}".format(i,comparison))
+

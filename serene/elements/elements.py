@@ -600,3 +600,15 @@ class ClassInstanceLink(DataLink):
 
     def __repr__(self):
         return "ClassLink({})".format(self.label)
+
+
+class SubClassLink(SSDLink):
+    """
+    Link between ClassNode -> ClassNode of type subclass
+    """
+    def __init__(self, label, prefix):
+        super().__init__(label, prefix)
+        self.type = "SubClassLink"
+
+    def __repr__(self):
+        return "SubClassLink({})".format(self.label)
