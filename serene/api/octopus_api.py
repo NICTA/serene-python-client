@@ -1,5 +1,6 @@
 import logging
 from urllib.parse import urljoin
+import json
 
 from .exceptions import InternalError
 from .http import HTTPObject
@@ -126,6 +127,27 @@ class OctopusAPI(HTTPObject):
             raise InternalError("Failed to get octopus ", e)
         self._handle_errors(r, "GET " + uri)
         return r.json()
+
+    def alignment(self, key):
+        """
+        Get alignmnt graph for a specific octopus in the repository at the serene server.
+
+        :param key: integer which is the key of the octopus in the repository
+
+        :return: dictionary
+        """
+        logging.debug('Sending request to the serene server to get alignment graph for the octopus %d' % key)
+        uri = urljoin(self._uri, str(key)+"/")
+        uri = urljoin(uri, "alignment")
+        try:
+            print("alignment uri: ", uri)
+            r = self.connection.get(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to get octopus ", e)
+        self._handle_errors(r, "GET " + uri)
+        # server returns a string which we load with json
+        return json.loads(r.json())
 
     def delete(self, key):
         """

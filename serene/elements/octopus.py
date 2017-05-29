@@ -273,6 +273,11 @@ class Octopus(object):
 
         return output
 
+    def get_alignment(self):
+        """Get alignment graph for octopus at position key"""
+        blob = self._session.octopus_api.alignment(self.id)
+        return blob
+
     def matcher_predict(self, dataset, scores=True, features=False):
         """
         Returns the schema matcher results for a prediction on `dataset`

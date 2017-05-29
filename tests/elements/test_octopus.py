@@ -10,7 +10,7 @@ import os
 import unittest2 as unittest
 
 from serene.elements import Column
-from serene import Octopus, Ontology, DataNode, ClassNode, ModelState, SamplingStrategy, ModelType
+from serene import Octopus, Ontology, DataNode, ClassNode, ModelState, SamplingStrategy, ModelType, Status
 from ..utils import TestWithServer
 
 
@@ -24,7 +24,9 @@ class TestOctopus(TestWithServer):
         """
         super().__init__(methodName)
 
-        with open("tests/resources/octopus/octopus-test.json") as f:
+        # print("current dir: ", os.path.abspath(os.curdir))
+        pp = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "octopus", "octopus-test.json")
+        with open(pp) as f:
             self.octo_json = json.load(f)
 
         self.datasets = None
@@ -39,7 +41,8 @@ class TestOctopus(TestWithServer):
         """
         ds = self._serene.datasets
 
-        data_path = os.path.join("tests", "resources", "data")
+        # data_path = os.path.join("tests", "resources", "data")
+        data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "data")
         business_info = ds.upload(os.path.join(data_path, 'businessInfo.csv'))
         employee_address = ds.upload(os.path.join(data_path, 'EmployeeAddressesSingleName.csv'))
         get_cities = ds.upload(os.path.join(data_path, 'getCities.csv'))
@@ -54,7 +57,7 @@ class TestOctopus(TestWithServer):
         :return:
         """
         on = self._serene.ontologies
-        owl_path = os.path.join("tests", "resources", "owl")
+        owl_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "owl")
         return on.upload(Ontology(os.path.join(owl_path, 'dataintegration_report_ontology.ttl')))
 
     def _ssds(self, datasets, ontology):
@@ -109,6 +112,7 @@ class TestOctopus(TestWithServer):
         return ssds
 
     def setUp(self):
+        print("current dir: ", os.path.abspath(os.curdir))
         self.datasets = self._datasets()
         self.ontology = self._ontology()
         self.ssds = self._ssds(self.datasets, self.ontology)
@@ -345,3 +349,19 @@ class TestOctopus(TestWithServer):
             server_octo.remove("something")
 
 
+    # def test_alignment(self):
+    #     """
+    #     Tests that the update is passing values correctly...
+    #     :return:
+    #     """
+    #
+    #     server_octo = self._octopus()
+    #     print(server_octo.train())
+    #
+    #     if server_octo.state.status in {Status.ERROR}:
+    #         print("Something went wrong. Failed to train the Octopus.")
+    #         self.fail()
+    #
+    #     print(server_octo.get_alignment())
+    #
+    #     self.fail()

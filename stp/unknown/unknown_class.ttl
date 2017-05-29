@@ -15,6 +15,6 @@
 #    Data properties
 #################################################################
 
-:unknownProp rdf:type owl:DatatypeProperty ;
+:unknown rdf:type owl:DatatypeProperty ;
            rdfs:domain :Unknown ;
            rdfs:range rdfs:Literal .

@@ -164,6 +164,25 @@ input("Press enter to continue...")
 from copy import deepcopy
 
 
+def fill_unknown(original_ssd):
+    """
+    Make all unmapped columns from the dataset as instances of unknown.
+    Then add Thing node and make all class nodes as subclass of Thing.
+    This way we ensure that ssd is connected
+    """
+    s = original_ssd  # maybe make a deep copy here?
+    unmapped_cols = [col for col in s.dataset.columns if col not in s.columns]
+    for i, col in enumerate(unmapped_cols):
+        s._semantic_model.add_node(col, index=col.id)
+        data_node = DataNode(ClassNode("Unknown", prefix="http://au.csiro.data61/serene/dev#"), label="unknown",
+                             index=i,
+                             prefix="http://au.csiro.data61/serene/dev#")
+        s.map(col, data_node)
+    if len(unmapped_cols):
+        s = add_thing_node(s)
+    return s
+
+
 def add_thing_node(original_ssd):
     """Add Thing node to ssd and make all class nodes subclass of Thing"""
     ssd = original_ssd
@@ -179,17 +198,7 @@ def add_thing_node(original_ssd):
 new_ssds = [deepcopy(s) for s in sn.ssds.items]
 
 for s in new_ssds:
-    unmapped_cols = [col for col in s.dataset.columns if col not in s.columns]
-
-    for i, col in enumerate(unmapped_cols):
-        s._semantic_model.add_node(col, index=col.id)
-        data_node = DataNode(ClassNode("Unknown", prefix="http://au.csiro.data61/serene/dev#"), label="unknownProp",
-                             index=i,
-                             prefix="http://au.csiro.data61/serene/dev#")
-        s.map(col, data_node)
-
-    if len(unmapped_cols):
-        s = add_thing_node(s)
+    s = fill_unknown(s)
 
 # upload ssds with unknown mappings
 new_ssds = [sn.ssds.upload(s) for s in new_ssds]
@@ -202,11 +211,15 @@ train_sample = []
 test_sample = []
 
 # s16 will be test
-for i, ds in enumerate(datasets):
-    if "s07" in ds.filename:
+for i, ssd in enumerate(new_ssds):
+    # if "s07" in ssd.dataset.filename:
+    #     test_sample.append(i)
+    # else:
+    #     # if "s07" in ds.filename or "s08" in ds.filename:
+    #     train_sample.append(i)
+    if i < 10:
         test_sample.append(i)
     else:
-        # if "s07" in ds.filename or "s08" in ds.filename:
         train_sample.append(i)
 
 # train_sample = train_sample[:5]
@@ -225,23 +238,23 @@ octo_local = sn.Octopus(
     ontologies=ontologies,
     name='octopus-without-s07',
     description='Testing example for places and companies',
-    resampling_strategy="NoResampling",  # optional
-    num_bags=10,  # optional
+    resampling_strategy="Bagging",  # optional
+    num_bags=50,  # optional
     bag_size=30,  # optional
     model_type="randomForest",
     modeling_props={
         "compatibleProperties": True,
-        "ontologyAlignment": True,
+        "ontologyAlignment": False,
         "addOntologyPaths": True,
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
-        "multipleSameProperty": False,
+        "multipleSameProperty": True,
         "confidenceWeight": 1.0,
         "coherenceWeight": 1.0,
         "sizeWeight": 0.5,
         "numSemanticTypes": 10,
-        "thingNode": True,
+        "thingNode": False,
         "nodeClosure": True,
         "propertiesDirect": True,
         "propertiesIndirect": True,
@@ -273,10 +286,10 @@ octo_local = sn.Octopus(
             "stats-of-text-length",
             "stats-of-numeric-type"
             ,"prop-instances-per-class-in-knearestneighbours"
-            ,"mean-character-cosine-similarity-from-class-examples"
-            ,"min-editdistance-from-class-examples"
-            ,"min-wordnet-jcn-distance-from-class-examples"
-            ,"min-wordnet-lin-distance-from-class-examples"
+            # ,"mean-character-cosine-similarity-from-class-examples"
+            # ,"min-editdistance-from-class-examples"
+            # ,"min-wordnet-jcn-distance-from-class-examples"
+            # ,"min-wordnet-lin-distance-from-class-examples"
         ],
         "featureExtractorParams": [
             {
@@ -369,38 +382,39 @@ input("Press enter to continue...")
 # #
 # # =======================
 #
-# start = time.time()
-# predicted = octo.predict(datasets[test_sample[0]])
-# print("Prediction done in: {}".format(time.time() - start))
-# print(predicted)
-#
-# print()
-# print("Showing ground truth...")
-# # ssds[test_sample[0]] is ground truth
-# ground_truth = ssds[test_sample[0]]
-# ground_truth.show(title='ground truth',
-#                   outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
-# input("Press enter to see predicted semantic models...")
-#
-# print("><><><><")
-# for res in predicted:
-#     print(res)
-#     print()
-#     res.ssd.show()
-#     input("Press enter to continue...")
-# print("><><><><")
-#
-# # for p in predicted:
-# #     print("Predicted candidate rank", p.score.rank)
-# #     print("Score:")
-# #     p.score.show()
-# #     p.ssd.show()
-# #     input("Press any key to continue...")
-#
-# # the best is number 0!
-# predicted_ssd = predicted[0].ssd
-# # predicted_ssd.unmapped_columns
-# print()
+start = time.time()
+ds = [d for d in datasets if new_ssds[test_sample[0]].dataset.filename == d.filename][0]
+predicted = octo.predict(ds)
+print("Prediction done in: {}".format(time.time() - start))
+print(predicted)
+
+print()
+print("Showing ground truth...")
+# ssds[test_sample[0]] is ground truth
+ground_truth = new_ssds[test_sample[0]]
+ground_truth.show(title='ground truth',
+                  outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
+input("Press enter to see predicted semantic models...")
+
+print("><><><><")
+for res in predicted:
+    print(res)
+    print()
+    res.ssd.show()
+    input("Press enter to continue...")
+print("><><><><")
+
+# for p in predicted:
+#     print("Predicted candidate rank", p.score.rank)
+#     print("Score:")
+#     p.score.show()
+#     p.ssd.show()
+#     input("Press any key to continue...")
+
+# the best is number 0!
+predicted_ssd = predicted[0].ssd
+# predicted_ssd.unmapped_columns
+print()
 # print("============Best recommendation=========")
 # print(predicted_ssd)
 #
@@ -421,23 +435,23 @@ input("Press enter to continue...")
 # print()
 # pprint(predicted_ssd.json)
 # input("Press enter to continue...")
-# # =======================
-# #
-# # Step 8. Evaluate against ground truth
-# #
-# # =======================
+# =======================
 #
-# # ssds[test_sample[0]] is ground truth
-# ground_truth = ssds[test_sample[0]]
-# comparison = sn.ssds.compare(predicted_ssd, ground_truth, False, False)
-# predicted_ssd.show(title="best recommendation: \n"+str(comparison),
-#                    outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
-# # ground_truth.show(title='ground truth',
-# #                   outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
-# print("================")
+# Step 8. Evaluate against ground truth
 #
-# input("Press enter to continue...")
-# for i, pred in enumerate(predicted):
-#     comparison = sn.ssds.compare(pred.ssd, ssds[test_sample[0]], False, False)
-#     print("SsdResult({}) comparison: {}".format(i,comparison))
+# =======================
+
+# ssds[test_sample[0]] is ground truth
+ground_truth = ssds[test_sample[0]]
+comparison = sn.ssds.compare(predicted_ssd, ground_truth, False, False)
+predicted_ssd.show(title="best recommendation: \n"+str(comparison),
+                   outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
+# ground_truth.show(title='ground truth',
+#                   outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
+print("================")
+
+input("Press enter to continue...")
+for i, pred in enumerate(predicted):
+    comparison = sn.ssds.compare(pred.ssd, ground_truth, False, False)
+    print("SsdResult({}) comparison: {}".format(i,comparison))
 
