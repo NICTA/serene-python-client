@@ -135,3 +135,30 @@ def convert_datetime(datetime_string, fmt="%Y-%m-%dT%H:%M:%S.%f"):
         raise InternalError("Failed converting string to datetime: " + repr(datetime_string), e)
     return converted
 
+
+def get_prefix(node):
+    """
+    Strips off the name in the URI to give the prefixlabel...
+    :param node: The full URI string
+    :return: (prefix, label) as (string, string)
+    """
+    if '#' in node:
+        name = node.split("#")[-1]
+    else:
+        # there must be no # in the prefix e.g. schema.org/
+        name = node.split("/")[-1]
+    return node[:-len(name)]
+
+
+def get_label(node):
+    """
+    Strips off the prefix in the URI to give the label...
+    :param node: The full URI string
+    :return: (prefix, label) as (string, string)
+    """
+    if '#' in node:
+        name = node.split("#")[-1]
+    else:
+        # there must be no # in the prefix e.g. schema.org/
+        name = node.split("/")[-1]
+    return name

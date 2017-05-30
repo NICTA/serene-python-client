@@ -12,7 +12,7 @@ import random
 from collections import OrderedDict
 from collections import defaultdict
 
-from .base import BaseSemantic
+from .base import BaseSemantic, DEFAULT_NS, UNKNOWN_CN, UNKNOWN_DN, ALL_CN, OBJ_PROP
 from ..elements import DataProperty, ObjectProperty, SSDSearchable, SSDLink, ClassNode, DataNode
 from ..elements import DataLink, ObjectLink, ClassInstanceLink, ColumnLink, SubClassLink
 from ..elements import Mapping, Column, Class
@@ -448,14 +448,67 @@ class SSD(object):
     def default_namespace(self):
         """
         The default namespace to add to ClassNode, DataNode and Links if missing.
+        If there are ontologies, it will return the first not empty namespace of the ontology;
+        if all ontology namespaces are empty, it will return the default namespace.
+        An error will be raised if there are no ontologies.
         :return: str
         """
         # TODO: check if it's ok to take just the first ontology from the list...
         if self._ontology and len(self._ontology):
-            return self._ontology[0].namespace
+            for onto in self._ontology:
+                if onto.namespace:
+                    return onto.namespace
+            return DEFAULT_NS
         else:
             msg = "No ontology available in SSD."
             raise Exception(msg)
+
+    def fill_unknown(self):
+        """
+        Make all unmapped columns from the dataset as instances of unknown.
+        Then add Thing/All node and make all class nodes as subclass of Thing/ connect to All.
+        This way we ensure that ssd is connected.
+        Use with caution!
+        """
+        unmapped_cols = [col for col in self.dataset.columns if col not in self.columns]
+        # TODO: check that Unknown is among ontologies
+        for i, col in enumerate(unmapped_cols):
+            self._semantic_model.add_node(col, index=col.id)
+            data_node = DataNode(ClassNode(UNKNOWN_CN, prefix=DEFAULT_NS), label=UNKNOWN_DN,
+                                 index=i,
+                                 prefix=DEFAULT_NS)
+            self.map(col, data_node)
+        if len(unmapped_cols):
+            self._add_all_node()
+        return self
+
+    def _add_all_node(self):
+        """
+        Add All node to ssd and make all class nodes connect to All.
+        Helper method for fill_unknown
+        """
+        class_nodes = self.class_nodes
+        # TODO: check that All is among ontologies
+        thing_node = ClassNode(ALL_CN, prefix=DEFAULT_NS)
+        self._semantic_model.add_node(thing_node)
+        for cn in class_nodes:
+            self._semantic_model.add_edge(
+                thing_node, cn, ObjectLink(OBJ_PROP, prefix=DEFAULT_NS))
+        return self
+
+    def _add_thing_node(self):
+        """
+        Add Thing node to ssd and make all class nodes subclass of Thing.
+        Helper method for fill_unknown
+        """
+        class_nodes = self.class_nodes
+        prefix = "http://www.w3.org/2000/01/rdf-schema#"
+        thing_node = ClassNode("Thing", prefix="http://www.w3.org/2002/07/owl#")
+        self._semantic_model.add_node(thing_node)
+        for cn in class_nodes:
+            self._semantic_model.add_edge(
+                cn, thing_node, SubClassLink("subClassOf", prefix=prefix))
+        return self
 
     def __repr__(self):
         """Output string"""
@@ -541,6 +594,116 @@ class SSD(object):
             return "SSD({}, {})".format(self._id, props)
         else:
             return "SSD(local, {})".format(props)
+
+    def evaluate(self, ground_truth, include_all=False, include_cols=True):
+        """
+        Evaluate this ssd against ground truth
+        :param ground_truth: another ssd
+        :param include_all: boolean whether to include the connector node All
+        :param include_cols: boolean wheter to include column links
+        :return:
+        """
+        logging.info("Calculating comparison metrics for ssds")
+        ssd_triples = self.get_triples(include_all=include_all, include_cols=include_cols)
+        ground_triples = ground_truth.get_triples(include_all=include_all, include_cols=include_cols)
+        comparison = {"precision": self.get_precision(ground_triples, ssd_triples),
+                      "recall": self.get_recall(ground_triples, ssd_triples),
+                      "jaccard": self.get_jaccard(ground_triples, ssd_triples)}
+        return comparison
+
+    def _node_uri(self, node_id):
+        """Get uri of the node in ssd"""
+        node = self._semantic_model._graph.node[node_id]["data"]
+        if type(node) == Column:
+            # for columns we return its name
+            return node.name
+        return node.prefix + node.label
+
+    @staticmethod
+    def _link_uri(ld):
+        """Get uri of link"""
+        if type(ld) == ColumnLink:
+            return "ColumnLink"
+        else:
+            return ld.prefix + ld.label
+
+    def get_triples(self, include_all=False, include_cols=True):
+        """
+        Get extended RDF triples from the ssd including columns
+        - include mappings to columns
+        - include All unknown
+        :param include_all: boolean whether to include the connector node All
+        :param include_cols: boolean wheter to include column links
+        """
+        # logging.info("Extracting rdf triples from ssd...")
+        logging.info("Extracting rdf triples from ssd...")
+        triples = []
+        # a triple = (uri of subject, uri of predicate, uri of object, num)
+        # num just enumerates how many times the same triple appears in the semantic model
+        triple_count = defaultdict(int)
+        links = self._semantic_model._graph.edges(data=True)
+        all_uri = DEFAULT_NS + ALL_CN
+        for l_start, l_end, ld in links:
+            pred = self._link_uri(ld["data"])
+            if not (include_cols) and pred == "ColumnLink":
+                continue
+
+            subj, obj = self._node_uri(l_start), self._node_uri(l_end)
+            if not (include_all) and (subj == all_uri or obj == all_uri):
+                continue
+            triple = (subj, pred, obj)
+            triples.append(triple + (triple_count[triple],))
+            # increase the counter for this triple
+            triple_count[triple] += 1
+
+        # logging.info("Extracted {} rdf triples from ssd.".format(len(triples)))
+        logging.info("Extracted {} extended rdf triples from ssd.".format(len(triples)))
+        triples = set(triples)
+        logging.info("Extracted {} unique rdf triples from ssd.".format(len(triples)))
+
+        return triples
+
+    @staticmethod
+    def get_precision(correct_triples, result_triples):
+        """
+        Calculate precision by comparing triples of the ground truth with the predicted result.
+        :param correct_triples: set
+        :param result_triples: set
+        :return:
+        """
+        intersection = float(len(correct_triples & result_triples))
+        result_size = len(result_triples)
+        if result_size:
+            return intersection / result_size
+        return 0.0
+
+    @staticmethod
+    def get_recall(correct_triples, result_triples):
+        """
+        Calculate recall by comparing triples of the ground truth with the predicted result.
+        :param correct_triples: set
+        :param result_triples: set
+        :return:
+        """
+        intersection = float(len(correct_triples & result_triples))
+        correct_size = len(correct_triples)
+        if correct_size:
+            return intersection / correct_size
+        return 0.0
+
+    @staticmethod
+    def get_jaccard(correct_triples, result_triples):
+        """
+        Calculate jaccard coefficient by comparing triples of the ground truth with the predicted result.
+        :param correct_triples: set
+        :param result_triples: set
+        :return:
+        """
+        intersection = float(len(correct_triples & result_triples))
+        union_size = len(correct_triples | result_triples)
+        if union_size:
+            return intersection / union_size
+        return 0.0
 
 
 class SSDGraph(object):

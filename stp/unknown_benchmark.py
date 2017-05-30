@@ -17,10 +17,11 @@ import networkx as nx
 import pandas as pd
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
-from serene.elements import SubClassLink
-from serene.elements.semantics.base import KARMA_DEFAULT_NS
+from serene.elements import SubClassLink, ObjectLink, ColumnLink
+from serene.elements.semantics.base import KARMA_DEFAULT_NS, DEFAULT_NS, ALL_CN, OBJ_PROP
 
-from stp.alignment import read_karma_graph, add_matches, convert_ssd, to_graphviz
+from stp.alignment import read_karma_graph, add_matches, convert_ssd, to_graphviz, convert_karma_graph
+from collections import defaultdict
 
 import logging
 from logging.handlers import RotatingFileHandler
@@ -107,7 +108,7 @@ if os.path.exists(os.path.join(dataset_dir, "data.tar.gz")):
     with tarfile.open(os.path.join(dataset_dir, "data.tar.gz")) as f:
         f.extractall(path=dataset_dir)
 
-input("Press enter to upload datasets and ssds...")
+# input("Press enter to upload datasets and ssds...")
 
 for ds in os.listdir(dataset_dir):
     if ds.endswith(".gz"):
@@ -163,7 +164,6 @@ input("Press enter to continue...")
 # ======================
 from copy import deepcopy
 
-
 def fill_unknown(original_ssd):
     """
     Make all unmapped columns from the dataset as instances of unknown.
@@ -179,9 +179,20 @@ def fill_unknown(original_ssd):
                              prefix="http://au.csiro.data61/serene/dev#")
         s.map(col, data_node)
     if len(unmapped_cols):
-        s = add_thing_node(s)
+        s = add_all_node(s)
     return s
 
+def add_all_node(original_ssd):
+    """Add All node to ssd and make all class nodes connect to All"""
+    ssd = original_ssd
+    class_nodes = ssd.class_nodes
+    prefix = "http://au.csiro.data61/serene/dev#"
+    thing_node = ClassNode("All", prefix=prefix)
+    ssd._semantic_model.add_node(thing_node)
+    for cn in class_nodes:
+        ssd._semantic_model.add_edge(
+            thing_node, cn, ObjectLink("connect", prefix=prefix))
+    return ssd
 
 def add_thing_node(original_ssd):
     """Add Thing node to ssd and make all class nodes subclass of Thing"""
@@ -199,6 +210,9 @@ new_ssds = [deepcopy(s) for s in sn.ssds.items]
 
 for s in new_ssds:
     s = fill_unknown(s)
+    # s.show()
+    # input("Press enter to continue...")
+
 
 # upload ssds with unknown mappings
 new_ssds = [sn.ssds.upload(s) for s in new_ssds]
@@ -217,7 +231,7 @@ for i, ssd in enumerate(new_ssds):
     # else:
     #     # if "s07" in ds.filename or "s08" in ds.filename:
     #     train_sample.append(i)
-    if i < 10:
+    if i < 15:
         test_sample.append(i)
     else:
         train_sample.append(i)
@@ -238,18 +252,18 @@ octo_local = sn.Octopus(
     ontologies=ontologies,
     name='octopus-without-s07',
     description='Testing example for places and companies',
-    resampling_strategy="Bagging",  # optional
-    num_bags=50,  # optional
-    bag_size=30,  # optional
+    resampling_strategy="NoResampling",  # optional
+    num_bags=80,  # optional
+    bag_size=50,  # optional
     model_type="randomForest",
     modeling_props={
         "compatibleProperties": True,
-        "ontologyAlignment": False,
+        "ontologyAlignment": True,
         "addOntologyPaths": True,
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
-        "multipleSameProperty": True,
+        "multipleSameProperty": False,
         "confidenceWeight": 1.0,
         "coherenceWeight": 1.0,
         "sizeWeight": 0.5,
@@ -331,10 +345,6 @@ octo.train()
 print("Done in: {}".format(time.time() - start))
 print("The final state for {} is {}".format(octo.id, octo.state))
 
-if octo.state.status in {Status.ERROR}:
-    print("Something went wrong. Failed to train the Octopus.")
-    exit()
-
 input("Press enter to continue...")
 # =======================
 #
@@ -342,13 +352,15 @@ input("Press enter to continue...")
 #
 # =======================
 
-align_num = "5"
-karma_graph_file = os.path.join("resources", align_num, "graph.json")
-# read alignment part
-print("reading graph json")
-alignment = read_karma_graph(karma_graph_file, os.path.join("resources", align_num, "alignment.graphml"))
+align_num = "test"
+# get alignment graph as nx.MultiDiGraph
+print("converting alignment graph json")
+alignment = octo.get_alignment()
+alignment_path = os.path.join("stp","resources", align_num, "alignment.graphml")
+# write alignment graph to the disk
+nx.write_graphml(alignment, alignment_path)
 print("graphviz alignment")
-_ = to_graphviz(alignment, os.path.join("resources", align_num, "alignment.dot"), prog="neato")
+_ = to_graphviz(alignment, os.path.join("stp","resources", align_num, "alignment.dot"), prog="dot")
 
 print("showing predictions for the dataset...")
 for i, ds in enumerate(datasets):
@@ -368,20 +380,21 @@ for i, ds in enumerate(datasets):
     nx.write_graphml(integration, out_file)
 
     print("graphviz alignment")
-    _ = to_graphviz(integration, os.path.join("resources", align_num, str(i) + ".integration.dot"), prog="neato")
+    to_graphviz(integration, os.path.join("resources", align_num, str(i) + ".integration.dot"), prog="neato")
 
     # write ground truth
     out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
     ssd_graph = convert_ssd(ssds[i], integration, out_file)
-    _ = to_graphviz(ssd_graph, os.path.join("resources", align_num, str(i) + ".ssd.dot"))
+    to_graphviz(ssd_graph, os.path.join("resources", align_num, str(i) + ".ssd.dot"))
 
 input("Press enter to continue...")
-# # =======================
-# #
-# # Step 7. Predict
-# #
-# # =======================
+
+# =======================
 #
+# Step 7. Predict
+#
+# =======================
+
 start = time.time()
 ds = [d for d in datasets if new_ssds[test_sample[0]].dataset.filename == d.filename][0]
 predicted = octo.predict(ds)
@@ -415,26 +428,7 @@ print("><><><><")
 predicted_ssd = predicted[0].ssd
 # predicted_ssd.unmapped_columns
 print()
-# print("============Best recommendation=========")
-# print(predicted_ssd)
-#
-# print("Mappings:")
-# for map in predicted_ssd.mappings.items():
-#     print(map)
-#
-# print("Unmapped columns:")
-# print(predicted_ssd.unmapped_columns)
-# print()
-#
-# print("Columns: ")
-# for col in predicted_ssd.columns:
-#     print("name={}, id={}".format(col.name, col.id))
-#
-# print()
-# print(predicted_ssd.json)
-# print()
-# pprint(predicted_ssd.json)
-# input("Press enter to continue...")
+
 # =======================
 #
 # Step 8. Evaluate against ground truth
@@ -454,4 +448,3 @@ input("Press enter to continue...")
 for i, pred in enumerate(predicted):
     comparison = sn.ssds.compare(pred.ssd, ground_truth, False, False)
     print("SsdResult({}) comparison: {}".format(i,comparison))
-

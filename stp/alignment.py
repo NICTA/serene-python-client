@@ -51,15 +51,33 @@ def prefix(node):
     return node[:-len(name)]
 
 
-def read_karma_graph(file_name, out_file):
+def read_karma_graph(file_name, out_file=None):
     """
     convert graph.json from Karma to nx object
     :param file_name:
+    :param out_file: Option string to write down the graph
     :return:
     """
     logging.info("Reading karma alignment graph...")
     with open(file_name) as f:
         data = json.load(f)
+
+    g = convert_karma_graph(data)
+
+    if out_file:
+        logging.info("Writing alignment graph to file {}".format(out_file))
+        nx.write_graphml(g, out_file)
+
+    return g
+
+
+def convert_karma_graph(data):
+    """
+    convert graph.json from Karma to nx object
+    :param data: json read dictionary
+    :return:
+    """
+    logging.info("Converting karma alignment graph...")
 
     nodes = data["nodes"]
     links = data["links"]
@@ -98,14 +116,31 @@ def read_karma_graph(file_name, out_file):
             g.node[node_map[target]]["lab"] = g.node[node_map[source]]["lab"] + "---" + link_data["label"]
             g.node[node_map[target]]["prefix"] = g.node[node_map[source]]["prefix"]
 
-    logging.info("Writing alignment graph to file {}".format(out_file))
-    nx.write_graphml(g, out_file)
-
     logging.info("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
     print("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
 
     return g
 
+
+def clean_alignment(alignment_graph):
+    """
+    Remove extra links for the unknown node
+    :param alignment_graph:
+    :return:
+    """
+    unknown_nodes = []
+    for n_id, nd in alignment_graph.nodes(data=True):
+        if nd["label"] == "Unknown":
+            unknown_nodes.append(n_id)
+    if len(unknown_nodes):
+        print("Cleaning unknown nodes: {}".format(len(unknown_nodes)))
+        for unknown_node in unknown_nodes:
+            links = alignment_graph.edges([unknown_node], data=True)
+            for l_start, l_end, ld in links:
+                if ld["type"] not in {'DataPropertyLink', 'SubClassLink', 'ObjectPropertyLink'}:
+                    alignment_graph.remove_edge(l_start, l_end)
+
+    return alignment_graph
 
 def construct_data_node_map(integration_graph):
     """

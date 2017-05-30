@@ -22,6 +22,10 @@ KARMA_DEFAULT_NS = "http://isi.edu/integration/karma/dev#"
 
 # default project namespace
 DEFAULT_NS = "http://au.csiro.data61/serene/dev#"
+UNKNOWN_CN = "Unknown"  # label of the class node for the unknown class
+UNKNOWN_DN = "unknown"  # label of the data node for unknown attributes
+ALL_CN = "All"  # label of the class node which connects all other classes
+OBJ_PROP = "connect"  # label of the object property which connects ALL_CN to other classes
 
 class BaseSemantic(object):
     """

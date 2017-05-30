@@ -8,10 +8,11 @@ import logging
 import time
 
 from ..matcher import ModelState, Status, ModelType, SamplingStrategy
-from ..utils import convert_datetime
+from ..utils import convert_datetime, get_label, get_prefix
 from .dataset import DataSet
 from .semantics.ontology import Ontology
 from .semantics.ssd import SSD
+import networkx as nx
 try:
     from math import inf
 except ImportError:
@@ -273,10 +274,61 @@ class Octopus(object):
 
         return output
 
+    @staticmethod
+    def convert_karma_graph(data):
+        """
+        convert graph.json from Karma to nx object
+        :param data: json read dictionary
+        :return:
+        """
+        logging.info("Converting karma alignment graph...")
+
+        nodes = data["nodes"]
+        links = data["links"]
+
+        g = nx.MultiDiGraph()
+
+        cur_id = 0
+        node_map = {}
+        for node in nodes:
+            # filling in the nodes
+            node_map[node["id"]] = cur_id
+            node_data = {
+                "type": "ClassNode" if node["type"] == "InternalNode" else "DataNode",
+                "label": get_label(node["label"]["uri"]) if node["type"] == "InternalNode" else "",
+                "lab": get_label(node["id"]) if node["type"] == "InternalNode" else "",
+                "prefix": get_prefix(node["label"]["uri"]) if node["type"] == "InternalNode" else ""
+            }
+            g.add_node(cur_id, attr_dict=node_data)
+            cur_id += 1
+
+        cur_id = 0
+        for link in links:
+            # filling in the links
+            source, uri, target = link["id"].split("---")
+            link_data = {
+                "type": link["type"],
+                "weight": link["weight"],
+                "label": get_label(uri),
+                "prefix": get_prefix(uri)
+            }
+            g.add_edge(node_map[source], node_map[target], attr_dict=link_data)
+            cur_id += 1
+            if link["type"] in ["DataPropertyLink", "ClassInstanceLink"]:
+                # change data nodes
+                g.node[node_map[target]]["label"] = g.node[node_map[source]]["label"] + "---" + link_data["label"]
+                g.node[node_map[target]]["lab"] = g.node[node_map[source]]["lab"] + "---" + link_data["label"]
+                g.node[node_map[target]]["prefix"] = g.node[node_map[source]]["prefix"]
+
+        logging.info("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
+        print("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
+
+        return g
+
     def get_alignment(self):
-        """Get alignment graph for octopus at position key"""
+        """Get alignment graph for octopus at position key and convert it to networkx MultiDiGraph!"""
         blob = self._session.octopus_api.alignment(self.id)
-        return blob
+        return self.convert_karma_graph(blob)
 
     def matcher_predict(self, dataset, scores=True, features=False):
         """

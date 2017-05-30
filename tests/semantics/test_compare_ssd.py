@@ -131,6 +131,39 @@ class TestEvaluateSSD(TestWithServer):
         self.assertEqual(res['recall'], 1)
         self.assertEqual(res['jaccard'], 1)
 
+    def test_ssd_evaluate_tricky_cities(self):
+        """
+        Here the ssd has two class nodes of the same type.
+        We use the evaluate method of ssd and not from the server.
+        :return:
+        """
+        self._datasets.upload(self._cities_file)
+        on = self._ontologies.upload(self._test_owl)
+
+        dataset = self._datasets.items[0]
+        assert (issubclass(type(dataset), DataSet))
+
+        ontology = self._ontologies.items[0]
+
+        new_json = dataset.bind_ssd(self._tricky_cities_ssd,
+                                    [ontology],
+                                    str(ontology._prefixes['']))
+
+        empty_ssd = SSD(dataset, on)
+        ssd = empty_ssd.update(new_json, self._datasets, self._ontologies)
+
+        self.assertEqual(len(ssd.class_nodes), 2)
+        self.assertEqual(len(ssd.data_nodes), 2)
+        self.assertEqual(len(ssd.mappings), 2)
+        self.assertEqual(len(ssd.object_links), 1)     # these are only object properties
+
+        res = ssd.evaluate(ssd)
+        print(res)
+
+        self.assertEqual(res['precision'], 1)
+        self.assertEqual(res['recall'], 1)
+        self.assertEqual(res['jaccard'], 1)
+
     def test_evaluate_country_names(self):
         """
         Tests evaluation for country_names
