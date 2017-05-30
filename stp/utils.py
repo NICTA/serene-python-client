@@ -21,6 +21,7 @@ def weight_conversion(v):
     fac = 10000 if v < 100 else 100
     return v*fac
 
+
 def find_tags(graphml_root):
     """Get the name of the key that will indicate the type of a node (attr, data, class nodes...)
     Same for the weight of an edge."""
@@ -38,7 +39,6 @@ def find_tags(graphml_root):
     return (type_label.attrib['id'],weight_label.attrib['id'])
 
 
-
 class Graph:
     def __init__(self,nb_nodes = 0,nb_edges = 0):
         self.nb_nodes = nb_nodes
@@ -48,16 +48,20 @@ class Graph:
         self.out = [[] for i in self.nodes()]
         self.node_types = {}
         self.node_names = []
+
     def nodes(self):
         return range(0,self.nb_nodes)
+
     def isNode(self, n):
         return n >=0  and n < self.nb_nodes
+
     def addEdge(self, s, d, w = 0):
         if self.isNode(s) and self.isNode(d):
             self.edges.append((s,d,w))
             self.inc[d].append(len(self.edges)-1)
             self.out[s].append(len(self.edges)-1)
             self.nb_edges += 1
+
     def remEdge(self,e):
         s = self.edges[e][0]
         d = self.edges[e][1]
@@ -70,40 +74,49 @@ class Graph:
             self.inc[n] = map(lambda x: x if x < e else x - 1 ,self.inc[n])
             self.out[n] = map(lambda x: x if x < e else x - 1 ,self.out[n])
         self.nb_edges -= 1
+
     def otherNode(self, edge, node):
         if node != self.edges[edge][0] and node != self.edges[edge][1]:
-            raise RuntimeError("requestion other node"+str(node)+
-                        " of the wrong edge "+str(edge)+
-                        " "+str(self.edges[edge]))
+            raise RuntimeError("requestion other node"+str(node) +
+                               " of the wrong edge "+str(edge) +
+                               " "+str(self.edges[edge]))
         return self.edges[edge][1] if self.edges[edge][0] == node else self.edges[edge][0]
+
     def addNode(self,name = "None"):
         self.nb_nodes += 1
         self.inc.append([])
         self.out.append([])
         self.node_names.append(name)
+
     def inDeg(self,n):
         return len(self.inc[n])
+
     def outDeg(self,n):
         return len(self.out[n])
+
     def deg(self, n):
         return self.inDeg(n) + self.outDeg(n)
+
     def averageDeg(self):
         s = 0.0
         for i in self.nodes():
             s += self.deg(i)
         return s/float(self.nb_nodes)
+
     def maxDeg(self):
         max_deg = 0
         for i in self.nodes():
             if self.deg(i) > max_deg:
                 max_deg = self.deg(i)
         return max_deg
+
     def minDeg(self):
         min_deg = self.nb_nodes
         for i in self.nodes():
             if self.deg(i) < min_deg:
                 min_deg = self.deg(i)
         return min_deg
+
     def dijkstra(self, source):
         sp = [-1 for i in self.nodes()]
         q = Q.PriorityQueue()
@@ -118,6 +131,7 @@ class Graph:
                     sp[o] = sp[s] + w                    
                     q.put(o)
         return sp
+
     def simplify(self):
         apsp = []
         for n in self.nodes():
@@ -129,6 +143,7 @@ class Graph:
                 self.remEdge(i)
             else:
                 i += 1
+
     def __str__(self):
         res = ""
         res += "nb_nodes = " + str(self.nb_nodes) +"\n"
@@ -137,6 +152,7 @@ class Graph:
         res += "inc = " + str(self.inc) +"\n"
         res += "out = " + str(self.out) +"\n"
         return res
+
     def to_dzn(self):
         res = ""
         res += "nbV = "+str(self.nb_nodes) +";\n"
@@ -174,6 +190,7 @@ class Graph:
             res+= str(e[2])+ (',' if i < len(self.edges) - 1 else '')
         res+= "];"
         return res
+
     def to_dot(self):
         res = "graph {\n"
         for i in range(0,self.nb_edges):
@@ -188,7 +205,7 @@ class Graph:
         (type_label,weight_label) = map(str,find_tags(graphml_root))
         g = Graph()
 
-        dic    = {}  #Conversion from node ID in the file to internal node IDs
+        dic = {}  #  Conversion from node ID in the file to internal node IDs
         valid_types = ['ClassNode','DataNode','Attribute']
         for t in valid_types:
             if not t in g.node_types:
