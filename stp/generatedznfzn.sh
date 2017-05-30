@@ -18,12 +18,12 @@ fi
 
 
 echo "Generating alignment.dzn"
-python graphml2nice.py $1/alignment.graphml > $1/alignment.dzn 
+python graphml2dzngraph.py $1/alignment.graphml -s > $1/alignment.dzn 
 for i in $1/*integration.graphml
 do
 	f=${i##*/}
 	echo "Generating" $1/${f%.*}.dzn
-	python graphml2matching.py $i > $1/${f%.*}.dzn
+	python graphml2matching.py $i -s > $1/${f%.*}.dzn
 done
 
 read -p "Generate fzn's? [Y/n] " -n 1 -r
