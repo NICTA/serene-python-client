@@ -155,6 +155,10 @@ print("First we upload some datasets...")
 data_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "data")
 owl_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "owl")
 
+data_path = os.path.join(os.curdir, "tests", "resources", "data")
+owl_path = os.path.join(os.curdir, "tests", "resources", "owl")
+
+
 business_info = sn.datasets.upload(os.path.join(data_path, 'businessInfo.csv'))
 employee_address = sn.datasets.upload(os.path.join(data_path, 'EmployeeAddresses.csv'))
 get_cities = sn.datasets.upload(os.path.join(data_path, 'getCities.csv'))
