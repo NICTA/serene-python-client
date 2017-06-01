@@ -9,6 +9,8 @@ from .api.session import Session
 from .elements import Octopus, SSD
 from .endpoints import DataSetEndpoint, OntologyEndpoint, SSDEndpoint, OctopusEndpoint, ModelEndpoint
 
+import json
+
 # logging functions...
 _logger = logging.getLogger()
 _logger.setLevel(logging.WARN)
@@ -73,6 +75,17 @@ class Serene(object):
         IDs when talking to/from the server.
         """
         return SSD(dataset, ontology, name)
+
+    def read_ssd(self, filename):
+        """
+        Read ssd from a file
+        :param filename: name of the file where ssd is stored
+        """
+        with open(filename) as f:
+            ssd = SSD().update(json.load(f), self._datasets, self._ontologies)
+        ssd._id = None
+        ssd._stored = False
+        return ssd
 
     @staticmethod
     def Octopus(ssds,
