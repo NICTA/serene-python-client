@@ -206,10 +206,10 @@ def add_thing_node(original_ssd):
             cn, thing_node, SubClassLink("subClassOf", prefix=prefix))
     return ssd
 
-new_ssds = [deepcopy(s) for s in sn.ssds.items]
+new_ssds = [deepcopy(s) for s in ssds]
 
 for s in new_ssds:
-    s = fill_unknown(s)
+    s = s.fill_unknown()
     # s.show()
     # input("Press enter to continue...")
 
@@ -263,12 +263,12 @@ octo_local = sn.Octopus(
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
-        "multipleSameProperty": False,
+        "multipleSameProperty": True,
         "confidenceWeight": 1.0,
         "coherenceWeight": 1.0,
         "sizeWeight": 0.5,
         "numSemanticTypes": 10,
-        "thingNode": False,
+        "thingNode": True,
         "nodeClosure": True,
         "propertiesDirect": True,
         "propertiesIndirect": True,
@@ -299,7 +299,7 @@ octo_local = sn.Octopus(
             "inferred-data-type",
             "stats-of-text-length",
             "stats-of-numeric-type"
-            ,"prop-instances-per-class-in-knearestneighbours"
+            # ,"prop-instances-per-class-in-knearestneighbours"
             # ,"mean-character-cosine-similarity-from-class-examples"
             # ,"min-editdistance-from-class-examples"
             # ,"min-wordnet-jcn-distance-from-class-examples"
@@ -445,6 +445,12 @@ predicted_ssd.show(title="best recommendation: \n"+str(comparison),
 print("================")
 
 input("Press enter to continue...")
+print("Comparing using Karma evaluation approach")
 for i, pred in enumerate(predicted):
     comparison = sn.ssds.compare(pred.ssd, ground_truth, False, False)
+    print("SsdResult({}) comparison: {}".format(i,comparison))
+
+print("Comparing using ssd evaluation approach")
+for i, pred in enumerate(predicted):
+    comparison = pred.ssd.evaluate(ground_truth, include_all=False, include_cols=True)
     print("SsdResult({}) comparison: {}".format(i,comparison))

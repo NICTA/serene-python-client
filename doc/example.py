@@ -425,12 +425,12 @@ octo_local = sn.Octopus(
     model_type="randomForest",
     modeling_props={
         "compatibleProperties": True,
-        "ontologyAlignment": True,
-        "addOntologyPaths": True,
+        "ontologyAlignment": False,
+        "addOntologyPaths": False,
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
-        "multipleSameProperty": True,
+        "multipleSameProperty": False,
         "confidenceWeight": 1.0,
         "coherenceWeight": 1.0,
         "sizeWeight": 0.5,
@@ -465,11 +465,11 @@ octo_local = sn.Octopus(
             "char-dist-features",
             "stats-of-text-length",
             "stats-of-numeric-type",
-            "prop-instances-per-class-in-knearestneighbours",
-            "mean-character-cosine-similarity-from-class-examples",
-            "min-editdistance-from-class-examples",
-            "min-wordnet-jcn-distance-from-class-examples",
-            "min-wordnet-lin-distance-from-class-examples"
+            # "prop-instances-per-class-in-knearestneighbours",
+            # "mean-character-cosine-similarity-from-class-examples",
+            # "min-editdistance-from-class-examples",
+            # "min-wordnet-jcn-distance-from-class-examples",
+            # "min-wordnet-lin-distance-from-class-examples"
         ],
         "featureExtractorParams": [
             {
@@ -509,7 +509,7 @@ print("The final state for {} is {}".format(octo.id, octo.state))
 
 if octo.state.status in {Status.ERROR}:
     print("Something went wrong. Failed to train the Octopus.")
-    exit()
+    # exit()
 
 # =======================
 #
