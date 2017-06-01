@@ -1,0 +1,357 @@
+dataset,column,label
+s01-cb.csv,Attribution,artist_name
+s01-cb.csv,Alpha Sort,artist_name
+s01-cb.csv,Begin Date,artist_birth_date
+s01-cb.csv,End Date,artist_death_date
+s01-cb.csv,Title,artwork_title
+s01-cb.csv,Dated,artwork_creation_dates
+s01-cb.csv,Artwork Begin Date,artwork_begin_date
+s01-cb.csv,Medium,artwork_technique
+s01-cb.csv,Dimensions,artwork_dimensions
+s02-dma.csv,Object Title,artwork_title
+s02-dma.csv,Object Work Type,artwork_classification
+s02-dma.csv,Artist Name,artist_name
+s02-dma.csv,Artist Birth Date,artist_birth_date
+s02-dma.csv,Artist Death Date,artist_death_date
+s02-dma.csv,Artist Nationality,artist_nationality
+s02-dma.csv,Object Earliest Date,artwork_begin_date
+s02-dma.csv,Object Latest Date,artwork_end_date
+s02-dma.csv,Object Rights,artwork_rights
+s02-dma.csv,Object Facet Label 1,artwork_technique
+s02-dma.csv,Measurement Height,artwork_height
+s02-dma.csv,Measurement Width,artwork_width
+s02-dma.csv,Measurement Depth,artwork_depth
+s02-dma.csv,Measurement Units,artwork_dimension_unit
+s02-dma.csv,dimensions,artwork_dimensions
+s03-ima-artists.csv,$.title,artwork_title
+s03-ima-artists.csv,name,artist_name
+s03-ima-artists.csv,nationality,artist_nationality
+s03-ima-artists.csv,birthDeath,artist_birth_date
+s04-ima-artworks.csv,$.title,artwork_title
+s04-ima-artworks.csv,sourceURL,artwork_source_url
+s04-ima-artworks.csv,imageURL,artwork_image_url
+s04-ima-artworks.csv,artist,artist_name
+s04-ima-artworks.csv,nationality,artist_nationality
+s04-ima-artworks.csv,birthDeath,artist_birth_death_dates
+s04-ima-artworks.csv,materials,artwork_technique
+s04-ima-artworks.csv,dimensions,artwork_dimensions
+s04-ima-artworks.csv,creditLine,artwork_credit
+s04-ima-artworks.csv,relatedArtworks.relatedArtworksURL,related_artwork_url
+s04-ima-artworks.csv,relatedArtworks.relatedArtworksTitle,related_artwork_title
+s04-ima-artworks.csv,creationDate,artwork_begin_date
+s04-ima-artworks.csv,galleryLabel,artwork_description
+s04-ima-artworks.csv,provenance,artwork_provenance
+s04-ima-artworks.csv,keywords.keyword,artwork_keyword
+s04-ima-artworks.csv,learnMore,artwork_description
+s04-ima-artworks.csv,accessionNumber,artwork_accession_number
+s05-met.csv,image,artwork_image_url
+s05-met.csv,Date,artwork_creation_dates
+s05-met.csv,Geography,artwork_geography
+s05-met.csv,Culture,artwork_culture
+s05-met.csv,Medium,artwork_technique
+s05-met.csv,Dimensions,artwork_dimensions
+s05-met.csv,Classification,artwork_classification
+s05-met.csv,Credit Line,artwork_credit
+s05-met.csv,Accession Number,artwork_accession_number
+s05-met.csv,Who,artist_name
+s05-met.csv,When,artwork_creation_dates
+s05-met.csv,In the Museum,artwork_museum
+s05-met.csv,Description,artwork_description
+s05-met.csv,What,artwork_technique
+s05-met.csv,Where,artwork_place
+s05-met.csv,Heilbrunn Timeline of Art History,artwork_heilbrunn_timeline
+s05-met.csv,Provenance,artwork_provenance
+s06-npg.csv,Title,artwork_title
+s06-npg.csv,Artist,artist_name
+s06-npg.csv,CopyAfter,artwork_copy_after
+s06-npg.csv,Copyright,artwork_copyright
+s06-npg.csv,Classification,artwork_classification
+s06-npg.csv,Medium,artwork_technique
+s06-npg.csv,Dimension,artwork_dimensions
+s06-npg.csv,Owner,artwork_museum
+s06-npg.csv,AquisitionDate,artwork_aquisition_date
+s06-npg.csv,Image,artwork_image_url
+s06-npg.csv,Description,artwork_description_url
+s06-npg.csv,DateOfWork,artwork_creation_dates
+s06-npg.csv,CreditLine,artwork_credit
+s06-npg.csv,Ref,artwork_accession_number
+s06-npg.csv,ArtistBornDiedDate,artist_birth_death_dates
+s06-npg.csv,CopyAfterDate,artwork_copy_after_date
+s06-npg.csv,Sitter,artwork_sitter_name
+s06-npg.csv,SitterBornDiedDate,artwork_sitter_birth_death_dates
+s06-npg.csv,Keywords,artwork_keyword
+s07-s-13.csv,origin,artwork_provenance
+s07-s-13.csv,credit_line,artwork_credit
+s07-s-13.csv,birth_and_death_years,artist_birth_death_dates
+s07-s-13.csv,audio_url,artwork_audio_url
+s07-s-13.csv,nationality,artist_nationality
+s07-s-13.csv,tags,artwork_keyword
+s07-s-13.csv,Label_on_page,artwork_description
+s07-s-13.csv,category,artwork_category
+s07-s-13.csv,dates,artwork_creation_dates
+s07-s-13.csv,name,artist_name
+s07-s-13.csv,title,artwork_title
+s07-s-13.csv,technique,artwork_technique
+s07-s-13.csv,ac_id,artwork_accession_number
+s07-s-13.csv,image_url,artwork_image_url
+s07-s-13.csv,dimension,artwork_dimensions
+s08-s-17-edited.csv,$.year,artwork_creation_dates
+s08-s-17-edited.csv,TITLE,artwork_title
+s08-s-17-edited.csv,AUTHOR,artist_name
+s08-s-17-edited.csv,DESCRIPTION,artwork_description
+s08-s-17-edited.csv,IMAGE.IMAGESRC,artwork_image_url
+s08-s-17-edited.csv,IMAGE.CAPTION,artwork_description
+s08-s-17-edited.csv,VIDEO,artwork_video_url
+s09-s-18-artists.csv,name,artist_name
+s09-s-18-artists.csv,biography,artist_biography
+s09-s-18-artists.csv,birth_death_date,artist_birth_death_dates
+s11-s-19-artists.csv,artist_name,artist_name
+s11-s-19-artists.csv,nationality,artist_nationality
+s11-s-19-artists.csv,birth_data_and_place,artist_birth
+s11-s-19-artists.csv,long_biography,artist_biography
+s11-s-19-artists.csv,occupation,artist_occupation
+s12-s-19-artworks.csv,technique,artwork_technique
+s12-s-19-artworks.csv,nationality,artist_nationality
+s12-s-19-artworks.csv,access_id,artwork_accession_number
+s12-s-19-artworks.csv,description,artwork_description
+s12-s-19-artworks.csv,date_made,artwork_creation_dates
+s12-s-19-artworks.csv,artist_name,artist_name
+s12-s-19-artworks.csv,dimensions,artwork_dimensions
+s12-s-19-artworks.csv,img_url,artwork_image_url
+s12-s-19-artworks.csv,title,artwork_title
+s13-s-art-institute-of-chicago.csv,Linktodata,artwork_description_url
+s13-s-art-institute-of-chicago.csv,Artistname,artist_name
+s13-s-art-institute-of-chicago.csv,Nationality,artist_nationality
+s13-s-art-institute-of-chicago.csv,Birthdeathyear,artist_birth_death_dates
+s13-s-art-institute-of-chicago.csv,Titleofartwork,artwork_title
+s13-s-art-institute-of-chicago.csv,Typeofartwork,artwork_technique
+s13-s-art-institute-of-chicago.csv,Dimensions,artwork_dimensions
+s13-s-art-institute-of-chicago.csv,Credit,artwork_credit
+s13-s-art-institute-of-chicago.csv,Accessionid,artwork_accession_number
+s13-s-art-institute-of-chicago.csv,ImageURL,artwork_image_url
+s14-s-california-african-american.csv,technique,artwork_technique
+s14-s-california-african-american.csv,provenance,artwork_provenance
+s14-s-california-african-american.csv,title,artwork_title
+s14-s-california-african-american.csv,imageUrl,artwork_image_url
+s14-s-california-african-american.csv,dimensions,artwork_dimensions
+s14-s-california-african-american.csv,enthnicity,artist_nationality
+s14-s-california-african-american.csv,artist,artist_name
+s14-s-california-african-american.csv,accessionId,artwork_accession_number
+s14-s-california-african-american.csv,type,artwork_classification
+s14-s-california-african-american.csv,additionalInfo,artwork_description
+s14-s-california-african-american.csv,url,artwork_description_url
+s14-s-california-african-american.csv,activeAt,artist_active_region
+s15-s-detroit-institute-of-art.csv,imageURL,artwork_image_url
+s15-s-detroit-institute-of-art.csv,title,artwork_title
+s15-s-detroit-institute-of-art.csv,name,artist_name
+s15-s-detroit-institute-of-art.csv,nationality,artist_nationality
+s15-s-detroit-institute-of-art.csv,birth,artist_birth_date
+s15-s-detroit-institute-of-art.csv,death,artist_death_date
+s15-s-detroit-institute-of-art.csv,date,artwork_creation_dates
+s15-s-detroit-institute-of-art.csv,medium,artwork_technique
+s15-s-detroit-institute-of-art.csv,dimensions,artwork_dimensions
+s15-s-detroit-institute-of-art.csv,department,artwork_category
+s15-s-detroit-institute-of-art.csv,classification,artwork_classification
+s15-s-detroit-institute-of-art.csv,credit,artwork_credit
+s15-s-detroit-institute-of-art.csv,provenance,artwork_provenance
+s15-s-detroit-institute-of-art.csv,accession,artwork_accession_number
+s15-s-detroit-institute-of-art.csv,keywords,artwork_keyword
+s16-s-hammer.csv,$.name,artwork_collection
+s16-s-hammer.csv,item.artist,artist_name
+s16-s-hammer.csv,item.title,artwork_title
+s16-s-hammer.csv,item.year,artwork_creation_dates
+s16-s-hammer.csv,item.description,artwork_description
+s16-s-hammer.csv,item.image,artwork_image_url
+s17-s-houston-museum-of-fine-arts.csv,dimensions,artwork_dimensions
+s17-s-houston-museum-of-fine-arts.csv,title,artwork_title
+s17-s-houston-museum-of-fine-arts.csv,photo,artwork_image_url
+s17-s-houston-museum-of-fine-arts.csv,technique,artwork_technique
+s17-s-houston-museum-of-fine-arts.csv,credittext,artwork_credit
+s17-s-houston-museum-of-fine-arts.csv,artyear,artwork_creation_dates
+s17-s-houston-museum-of-fine-arts.csv,link,artwork_description_url
+s17-s-houston-museum-of-fine-arts.csv,artdesc,artwork_description
+s17-s-houston-museum-of-fine-arts.csv,artistyear,artist_birth_death_dates
+s17-s-houston-museum-of-fine-arts.csv,nationality,artist_nationality
+s17-s-houston-museum-of-fine-arts.csv,artist,artist_name
+s17-s-houston-museum-of-fine-arts.csv,photocredits,artwork_credit
+s18-s-indianapolis-artists.csv,$.title,artwork_title
+s18-s-indianapolis-artists.csv,name,artist_name
+s18-s-indianapolis-artists.csv,nationality,artist_nationality
+s18-s-indianapolis-artists.csv,birthDeath,artist_birth_death_dates
+s19-s-indianapolis-artworks.csv,$.title,artwork_title
+s19-s-indianapolis-artworks.csv,sourceURL,artwork_source_url
+s19-s-indianapolis-artworks.csv,imageURL,artwork_image_url
+s19-s-indianapolis-artworks.csv,artist,artist_name
+s19-s-indianapolis-artworks.csv,nationality,artist_nationality
+s19-s-indianapolis-artworks.csv,birthDeath,artist_birth_death_dates
+s19-s-indianapolis-artworks.csv,materials,artwork_technique
+s19-s-indianapolis-artworks.csv,dimensions,artwork_dimensions
+s19-s-indianapolis-artworks.csv,creditLine,artwork_credit
+s19-s-indianapolis-artworks.csv,accessionNumber,artwork_accession_number
+s19-s-indianapolis-artworks.csv,relatedArtworks.relatedArtworksURL,related_artwork_url
+s19-s-indianapolis-artworks.csv,relatedArtworks.relatedArtworksTitle,related_artwork_title
+s19-s-indianapolis-artworks.csv,creationDate,artwork_creation_dates
+s19-s-indianapolis-artworks.csv,galleryLabel,artwork_description
+s19-s-indianapolis-artworks.csv,provenance,artwork_provenance
+s19-s-indianapolis-artworks.csv,keywords.keyword,artwork_keyword
+s19-s-indianapolis-artworks.csv,learnMore,artwork_description
+s20-s-lacma.csv,Artist_Name,artist_name
+s20-s-lacma.csv,Artist_Birth_and_Death_Details,artist_birth_death
+s20-s-lacma.csv,Artwork_Title_and_Dates,artwork_title_date
+s20-s-lacma.csv,Artwork_Details,artwork_description
+s20-s-lacma.csv,Artwork_in_Focus,artwork_description
+s20-s-lacma.csv,About_the_Era,artwork_description
+s20-s-lacma.csv,Clothing_and_Furniture_of_this_Era,artwork_description
+s20-s-lacma.csv,Provenance,artwork_provenance
+s20-s-lacma.csv,Image_URL,artwork_image_url
+s21-s-met.csv,artWork.artworkTitle,artwork_title
+s21-s-met.csv,artWork.artistName,artist_name
+s21-s-met.csv,artWork.nationality,artist_nationality
+s21-s-met.csv,artWork.birthPlace,artist_birth_place
+s21-s-met.csv,artWork.birthDate,artist_birth_date
+s21-s-met.csv,artWork.deathDate,artist_death_date
+s21-s-met.csv,artWork.deathPlace,artist_death_place
+s21-s-met.csv,artWork.dateOfStartOfCreation,artwork_begin_date
+s21-s-met.csv,artWork.dateOfEndOfCreation,artwork_end_date
+s21-s-met.csv,artWork.medium,artwork_museum
+s21-s-met.csv,artWork.dimensions,artwork_dimensions
+s21-s-met.csv,artWork.classification,artwork_classification
+s21-s-met.csv,artWork.creditLine,artwork_credit
+s21-s-met.csv,artWork.accessionNumber,artwork_accession_number
+s21-s-met.csv,artWork.provenance,artwork_provenance
+s21-s-met.csv,artWork.relatedArtWork.artworkTitle,related_artwork_title
+s21-s-met.csv,artWork.relatedArtWork.artistName,related_artwork_artist_name
+s21-s-met.csv,artWork.relatedArtWork.nationality,related_artwork_artist_nationality
+s21-s-met.csv,artWork.relatedArtWork.birthPlace,related_artwork_artist_birth_place
+s21-s-met.csv,artWork.relatedArtWork.birthDate,related_artwork_artist_birth_place
+s21-s-met.csv,artWork.relatedArtWork.deathDate,related_artwork_artist_death_date
+s21-s-met.csv,artWork.relatedArtWork.deathPlace,related_artwork_artist_death_place
+s21-s-met.csv,artWork.relatedArtWork.dateOfStartOfCreation,related_artwork_begin_date
+s21-s-met.csv,artWork.relatedArtWork.dateOfEndOfCreation,related_artwork_end_date
+s21-s-met.csv,artWork.relatedArtWork.medium,related_artwork_technique
+s21-s-met.csv,artWork.relatedArtWork.dimensions,related_artwork_dimensions
+s21-s-met.csv,artWork.relatedArtWork.classification,related_artwork_classification
+s21-s-met.csv,artWork.relatedArtWork.creditLine,related_artwork_credit
+s21-s-met.csv,artWork.relatedArtWork.accessionNumber,related_artwork_accessionNumber
+s21-s-met.csv,artWork.relatedArtWork.provenance,related_artwork_provenance
+s22-s-moca.csv,$.name,artist_name
+s22-s-moca.csv,Artist_Name,artist_name
+s22-s-moca.csv,Artwork_Name_and_Year,artwork_title_date
+s22-s-moca.csv,Process,artwork_technique
+s22-s-moca.csv,Dimensions,artwork_dimensions
+s22-s-moca.csv,Provenance,artwork_provenance
+s22-s-moca.csv,Assension_Number,artwork_accession_number
+s22-s-moca.csv,image,artwork_image_url
+s23-s-national-portrait-gallery.csv,Title,artwork_title
+s23-s-national-portrait-gallery.csv,Artist,artist_name
+s23-s-national-portrait-gallery.csv,CopyAfter,artwork_copy_after
+s23-s-national-portrait-gallery.csv,Copyright,artwork_copyright
+s23-s-national-portrait-gallery.csv,Classification,artwork_classification
+s23-s-national-portrait-gallery.csv,Medium,artwork_technique
+s23-s-national-portrait-gallery.csv,Dimension,artwork_dimensions
+s23-s-national-portrait-gallery.csv,Owner,artwork_museum
+s23-s-national-portrait-gallery.csv,AquisitionDate,artwork_aquisition_date
+s23-s-national-portrait-gallery.csv,Image,artwork_image_url
+s23-s-national-portrait-gallery.csv,Description,artwork_description
+s23-s-national-portrait-gallery.csv,DateOfWork,artwork_creation_dates
+s23-s-national-portrait-gallery.csv,CreditLine,artwork_credit
+s23-s-national-portrait-gallery.csv,Ref,artwork_accession_number
+s23-s-national-portrait-gallery.csv,ArtistBornDiedDate,artist_birth_death_dates
+s23-s-national-portrait-gallery.csv,CopyAfterDate,artwork_copy_after_date
+s23-s-national-portrait-gallery.csv,Sitter,artwork_sitter_name
+s23-s-national-portrait-gallery.csv,SitterBornDiedDate,artwork_sitter_birth_death_dates
+s23-s-national-portrait-gallery.csv,Keywords,artwork_keyword
+s24-s-norton-simon.csv,access,artwork_accession_number
+s24-s-norton-simon.csv,dim,artwork_dimensions
+s24-s-norton-simon.csv,artist_period,artist_birth_death_dates
+s24-s-norton-simon.csv,made,artwork_creation_dates
+s24-s-norton-simon.csv,prov,artwork_provenance
+s24-s-norton-simon.csv,title,artwork_title
+s24-s-norton-simon.csv,nationality,artist_nationality
+s24-s-norton-simon.csv,artist,artist_name
+s24-s-norton-simon.csv,image_url,artwork_image_url
+s25-s-oakland-museum-paintings.csv,BirthDeathDate,artist_birth_death_dates
+s25-s-oakland-museum-paintings.csv,Subtype_of_Art,artwork_technique
+s25-s-oakland-museum-paintings.csv,Type_of_Art,artwork_classification
+s25-s-oakland-museum-paintings.csv,Title,artwork_title
+s25-s-oakland-museum-paintings.csv,Date_made,artwork_creation_dates
+s25-s-oakland-museum-paintings.csv,Signed,artwork_signed
+s25-s-oakland-museum-paintings.csv,Accessories,artwork_accessories
+s25-s-oakland-museum-paintings.csv,Credit,artwork_credit
+s25-s-oakland-museum-paintings.csv,ArtistName,artist_name
+s25-s-oakland-museum-paintings.csv,Keywords,artwork_keyword
+s25-s-oakland-museum-paintings.csv,Inscription,artwork_inscription
+s25-s-oakland-museum-paintings.csv,Accession_id,artwork_accession_number
+s25-s-oakland-museum-paintings.csv,Pic_URL,artwork_image_url
+s25-s-oakland-museum-paintings.csv,Dimensions,artwork_dimensions
+s26-s-san-francisco-moma.csv,art-work.birthYear,artist_birth_date
+s26-s-san-francisco-moma.csv,art-work.accession-id,artwork_accession_number
+s26-s-san-francisco-moma.csv,art-work.image-URL,artwork_image_url
+s26-s-san-francisco-moma.csv,art-work.collection,artwork_collection
+s26-s-san-francisco-moma.csv,art-work.copyright,artwork_copyright
+s26-s-san-francisco-moma.csv,art-work.type,artwork_classification
+s26-s-san-francisco-moma.csv,art-work.url,artwork_description_url
+s26-s-san-francisco-moma.csv,art-work.title,artwork_title
+s26-s-san-francisco-moma.csv,art-work.nationality,artist_nationality
+s26-s-san-francisco-moma.csv,art-work.when-acquired,artwork_aquisition_date
+s26-s-san-francisco-moma.csv,art-work.dimensions,artwork_dimensions
+s26-s-san-francisco-moma.csv,art-work.birthPlaceCity,artist_birth_place_city
+s26-s-san-francisco-moma.csv,art-work.artistName,artist_name
+s26-s-san-francisco-moma.csv,art-work.credit,artwork_credit
+s26-s-san-francisco-moma.csv,art-work.birthPlaceState,artist_birth_place_state
+s26-s-san-francisco-moma.csv,art-work.keywords,artwork_keyword
+s26-s-san-francisco-moma.csv,art-work.deathPlaceState,artist_death_place_state
+s26-s-san-francisco-moma.csv,art-work.deathYear,artist_death_date
+s26-s-san-francisco-moma.csv,art-work.deathPlaceCity,artist_death_place_city
+s27-s-the-huntington.csv,Artwork_Title,artwork_title
+s27-s-the-huntington.csv,date,artwork_creation_dates
+s27-s-the-huntington.csv,medium,artwork_technique
+s27-s-the-huntington.csv,credit_line,artwork_credit
+s27-s-the-huntington.csv,object_no,artwork_accession_number
+s27-s-the-huntington.csv,description,artwork_description
+s27-s-the-huntington.csv,image_url,artwork_image_url
+s27-s-the-huntington.csv,artist.name,artist_name
+s27-s-the-huntington.csv,artist.nationality,artist_nationality
+s27-s-the-huntington.csv,artist.birth_date,artist_birth_date
+s27-s-the-huntington.csv,artist.death_date,artist_death_date
+s27-s-the-huntington.csv,dimensions.dimensions_inch,artwork_dimensions
+s27-s-the-huntington.csv,dimensions.dimensions_cm,artwork_dimensions
+s27-s-the-huntington.csv,dimensions.frame_dimensions.frame_dimensions_inch,artwork_frame_dimensions
+s27-s-the-huntington.csv,dimensions.frame_dimensions.frame_dimensions_cm,artwork_frame_dimensions
+s28-wildlife-art.csv,ID Number,artwork_accession_number
+s28-wildlife-art.csv,Category,artwork_category
+s28-wildlife-art.csv,Title,artwork_title
+s28-wildlife-art.csv,Maker,artist_name
+s28-wildlife-art.csv,Maker Bio,artist_biography
+s28-wildlife-art.csv,Collector,artwork_collector
+s28-wildlife-art.csv,Date Collected,artwork_collected_date
+s28-wildlife-art.csv,Place Made,artwork_place
+s28-wildlife-art.csv,Century,artwork_century
+s28-wildlife-art.csv,Materials,artwork_technique
+s28-wildlife-art.csv,Measurements,artwork_dimensions
+s28-wildlife-art.csv,Description,artwork_description
+s28-wildlife-art.csv,Credit Line,artwork_credit
+s28-wildlife-art.csv,Home Location,artwork_home_location
+s28-wildlife-art.csv,Legal Status,artwork_legal_status
+s28-wildlife-art.csv,Legal Status Date,artwork_legal_status_date
+s28-wildlife-art.csv,Owner,artwork_museum
+s28-wildlife-art.csv,Loan Allowed,artwork_loan_allowed
+s28-wildlife-art.csv,How Acquired?,artwork_how_acquired
+s28-wildlife-art.csv,Date Acquired,artwork_aquisition_date
+s28-wildlife-art.csv,Acqstn Reason,artwork_aquisition_reason
+s28-wildlife-art.csv,Acqstn Terms,artwork_aquisition_terms
+s28-wildlife-art.csv,Acqstn Note,artwork_aquisition_note
+s28-wildlife-art.csv,Acqstn Sources,artwork_aquisition_sources
+s29-gilcrease.csv,Object Number,artwork_accession_number
+s29-gilcrease.csv,Department,artwork_category
+s29-gilcrease.csv,Classification,artwork_classification
+s29-gilcrease.csv,Culture,artwork_culture
+s29-gilcrease.csv,Period,artwork_period
+s29-gilcrease.csv,Attribution,artist_name
+s29-gilcrease.csv,Alpha Sort,artist_name
+s29-gilcrease.csv,Title,artwork_title
+s29-gilcrease.csv,Dated,artwork_creation_dates
+s29-gilcrease.csv,Begin Date,artwork_begin_date
+s29-gilcrease.csv,Medium,artwork_technique
+s29-gilcrease.csv,Dimensions,artwork_dimensions
+s29-gilcrease.csv,Description,artwork_description
