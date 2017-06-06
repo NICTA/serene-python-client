@@ -6,7 +6,7 @@
 %% Requires: 
 %%           steiner_tree.mzn decomposition or a solver
 %%              with a propagator for it (e.g. Chuffed)
-%%           MiniZinc complier (tested on 2.1.4) 
+%%           MiniZinc compiler (tested on 2.1.4)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -90,5 +90,5 @@ output ["digraph {\n"]++
 [ "  "++if fix(heads[e]) in cnodes then "\(heads[e]-1) -> \(tails[e]-1)" else "\(tails[e]-1) -> \(heads[e]-1)" endif ++" [label=\"w=\(ws[e]/10000)\"];\n" | e in edges  where fix(es[e])] ++ 
 [ "  \(attribute_names[a]) [shape=hexagon];\n" | a in atts] ++
 [ "  \(match[a]-1) -> \(attribute_names[a]) [label=\"w=\(match_costs[a,fix(match[a])]/10000)\"];\n" | a in atts]++
-["}\nobj = \(obj)\nwm = \(wm)\nw =\(w)"];
+["  graph [label=\"\nobj = \(obj)\nwm = \(wm)\nw =\(w)\"]}"];
 

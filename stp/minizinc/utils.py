@@ -40,7 +40,7 @@ def find_tags(graphml_root):
 
 
 class Graph:
-    def __init__(self,nb_nodes = 0,nb_edges = 0):
+    def __init__(self, nb_nodes = 0, nb_edges = 0):
         self.nb_nodes = nb_nodes
         self.nb_edges = nb_edges
         self.edges = []
@@ -124,8 +124,8 @@ class Graph:
         sp[source] = 0
         while not q.empty():
             s = q.get()
-            for e in self.out[s]+self.inc[s]:
-                x,y,w = self.edges[e]
+            for edge in self.out[s]+self.inc[s]:
+                x,y,w = self.edges[edge]
                 o = x if y == s else y
                 if sp[o] == -1 or sp[s] + w < sp[o]:
                     sp[o] = sp[s] + w                    
@@ -138,8 +138,10 @@ class Graph:
             apsp.append(self.dijkstra(n))
         i = 0
         while i < self.nb_edges:
-            s,d,w = self.edges[i]
-            if apsp >= 0 and apsp[s][d] < w:
+            s, d, w = self.edges[i]
+            # FIXME: comparing a list to an integer?
+            # if apsp >= 0 and apsp[s][d] < w:
+            if apsp and apsp[s][d] < w:
                 self.remEdge(i)
             else:
                 i += 1
@@ -155,22 +157,22 @@ class Graph:
 
     def to_dzn(self):
         res = ""
-        res += "nbV = "+str(self.nb_nodes) +";\n"
-        res += "nbE = "+str(self.nb_edges) +";\n"
+        res += "nbV = "+str(self.nb_nodes) + ";\n"
+        res += "nbE = "+str(self.nb_edges) + ";\n"
         res += "tails = ["
         for i in range(0,self.nb_edges):
             e = self.edges[i]
             res += str(e[0] + 1)
             if i < self.nb_edges -1:
                 res += ","
-        res +="];\n"
+        res += "];\n"
         res += "heads = ["
         for i in range(0,self.nb_edges):
             e = self.edges[i]
             res += str(e[1] + 1)
             if i < self.nb_edges -1:
                 res += ","
-        res +="];\n"
+        res += "];\n"
         res += "adjacent = [|"
         for n in self.nodes():
             for i in range(0,self.nb_edges):
@@ -183,12 +185,12 @@ class Graph:
                     res += ","
                 else:
                     res += "|"
-        res +="];\n"
+        res += "];\n"
         res += "ws = ["
         for i in range(0,len(self.edges)):
             e = self.edges[i]
-            res+= str(e[2])+ (',' if i < len(self.edges) - 1 else '')
-        res+= "];"
+            res += str(e[2])+ (',' if i < len(self.edges) - 1 else '')
+        res += "];"
         return res
 
     def to_dot(self):
@@ -200,18 +202,18 @@ class Graph:
         return res
 
     @staticmethod
-    def from_graphml(content, simplify_graph = False):
+    def from_graphml(content, simplify_graph=False):
         graphml_root = ET.fromstring(content)
-        (type_label,weight_label) = map(str,find_tags(graphml_root))
+        (type_label, weight_label) = map(str, find_tags(graphml_root))
         g = Graph()
 
         dic = {}  #  Conversion from node ID in the file to internal node IDs
-        valid_types = ['ClassNode','DataNode','Attribute']
+        valid_types = ['ClassNode', 'DataNode', 'Attribute']
         for t in valid_types:
             if not t in g.node_types:
                 g.node_types[t] = []
-        def assign(g,n,t):
-            if not t in valid_types:
+        def assign(g, n, t):
+            if t not in valid_types:
                 raise RuntimeError("Unknown node type")
             g.node_types[t].append(n)
         for n in graphml_root.findall(".//"+nsfy("node")):
@@ -222,8 +224,7 @@ class Graph:
             if len(node_type) != 1:
                 raise RuntimeError("Wrong format in node tag:\n\tNo type indication")
             node_type = node_type[0].text
-            assign(g,dic[node_id],node_type)
-    
+            assign(g, dic[node_id], node_type)
 
         for e in graphml_root.findall(".//"+nsfy("edge")):
             s = int(e.attrib["source"])

@@ -1,7 +1,7 @@
 import sys
 import os
 from math import *
-from .utils import *
+from utils import *
 
 #############################################################
 ##                                                         ##
@@ -32,19 +32,20 @@ content = ""
 with open(sys.argv[1]) as f:
     content = f.read()
 
-g = Graph.from_graphml(content,simplify_graph)
+g = Graph.from_graphml(content, simplify_graph)
 
 attributes = g.node_types['Attribute']
-print("nbA =",len(attributes),";")
+print("nbA =", len(attributes), ";")
 
 max_val = 0
 min_att = min(attributes)
 doms = []
 for i,n in enumerate(attributes):
-    d = map(lambda x: x+1,[g.otherNode(e,n) for e in g.inc[n]])
+    # in python3 we need to explicitly get list
+    d = list(map(lambda x: x+1,[g.otherNode(e,n) for e in g.inc[n]]))
     max_val = max(max_val,max(d))
     doms.append(d)
-print("attribute_domains =",list2D2dznsetlist(doms))
+print("attribute_domains =", list2D2dznsetlist(list(doms)))
 
 
 mc = [[0 for j in range(0,max_val+1)] for i in attributes]
@@ -65,11 +66,11 @@ mcs = "match_costs_sorted = [|"
 for i, r in enumerate(mc):
     s = r[1:]
     x = sorted(range(len(s)), key=lambda k: s[k])
-    x = map(lambda x: x+1, x)
+    x = list(map(lambda x: x+1, x))
     c = str(x).replace("[","").replace("]","|") + ("];" if i == len(mc) - 1 else "\n")
     mcs += c
 print(mcs)
 
-att_names = "attribute_names = " + list2dznlist([int(g.node_names[n]) for n in attributes])
-print(att_names)
+# att_names =
+print("attribute_names = ", list2dznlist([int(g.node_names[n]) for n in attributes]))
 

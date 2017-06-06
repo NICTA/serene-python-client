@@ -25,3 +25,6 @@ stp/resources/test
 stp/resources/*.log
 stp/ssds/
 stp/resources/*.tar.gz
+stp/minizinc/chuffed_20170525/
+stp/resources/storage/*
+stp/resources/museum_stp_benchmark/

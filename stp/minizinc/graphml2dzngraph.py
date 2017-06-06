@@ -1,7 +1,7 @@
 import sys
 import os
 from math import *
-from .utils import *
+from utils import *
 
 #############################################################
 ##                                                         ##
@@ -30,10 +30,11 @@ content = ""
 with open(sys.argv[1]) as f:
     content = f.read()
 
-g = Graph.from_graphml(content,simplify_graph)
+g = Graph.from_graphml(content, simplify_graph)
 
 incr = lambda x: x+1
 print(g.to_dzn())
-print("cnodes = "+list2dznset(map(incr,[int(g.node_names[n]) for n in g.node_types['ClassNode']])))
-print("dnodes = "+list2dznset(map(incr,[int(g.node_names[n]) for n in g.node_types['DataNode']])))
-print("anodes = "+list2dznset(map(incr,[int(g.node_names[n]) for n in g.node_types['Attribute']])))
+# in python3 we need to get lists explicitly instead of iterators/generators
+print("cnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['ClassNode']]))))
+print("dnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['DataNode']]))))
+print("anodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['Attribute']]))))

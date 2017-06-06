@@ -1,7 +1,9 @@
 #!/bin/bash
 
-CHUFFED_PATH=/home/diegod1/WORK/phd-side-projects/chuffed/branches/chuffed-ddg/chuffed
-MZN2FZN_EXEC=~/bin/minizinc-2.1.4/bin/mzn2fzn
+#CHUFFED_PATH=/home/diegod1/WORK/phd-side-projects/chuffed/branches/chuffed-ddg/chuffed
+#MZN2FZN_EXEC=~/bin/minizinc-2.1.4/bin/mzn2fzn
+CHUFFED_PATH=/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed_20170525
+MZN2FZN_EXEC=/home/natalia/Installs/MiniZincIDE-2.1.4-bundle-linux-x86_64/mzn2fzn
 
 echo "Converting all graphs to dzn."
 PASSED=$1

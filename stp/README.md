@@ -25,3 +25,12 @@ Files with extensions ".dot" can be viewed by installing [xdot](http://github.co
 ```apt-get install xdot```.
 It might be the case that [Graphviz](http://www.graphviz.org/Download.php) needs o be installed additionally.
 [Gephi](http://gephi.org/) can be used to visualize graphs (including format graphml), however, it cannot visualize muti-links, instead Gephi will merge them and sum up the weights.
+
+# Prerequisites
+
+1. Install chuffed
+    - boost
+    - lemon
+    - chuffed
+2. Install MiniZinc
+3. Provide correct paths in ``generatedznfzn.sh``

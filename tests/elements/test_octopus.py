@@ -351,7 +351,7 @@ class TestOctopus(TestWithServer):
 
     # def test_alignment(self):
     #     """
-    #     Tests that the update is passing values correctly...
+    #     Tests that the server returns the alignment for the trained octopus
     #     :return:
     #     """
     #

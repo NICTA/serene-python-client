@@ -93,7 +93,7 @@ class SSD(object):
         """
         Create the object from json directly
 
-        :param blob:
+        :param blob: this is supposed to be dictionary parsed from json
         :param dataset_endpoint:
         :param ontology_endpoint:
         :return:
@@ -600,7 +600,7 @@ class SSD(object):
         Evaluate this ssd against ground truth
         :param ground_truth: another ssd
         :param include_all: boolean whether to include the connector node All
-        :param include_cols: boolean wheter to include column links
+        :param include_cols: boolean whether to include column links
         :return:
         """
         logging.info("Calculating comparison metrics for ssds")
