@@ -14,6 +14,7 @@ import json
 from pygraphviz import AGraph
 from serene import SSD
 
+
 class IntegrationGraph(object):
     """
     Integration graph to map a relaitonal data source onto an ontology using a CP solver

@@ -293,26 +293,26 @@ input("Press enter to continue...")
 # Step 7. Schema mapping using CP solver
 #
 # =======================
-# ssds = sn.ssds.items
-# octo = sn.octopii.items[0]
-# datasets = sn.datasets.items
-#
-# import stp.integration as integ
-# from importlib import reload
-#
-# dataset = datasets[test_sample[0]]
-# ssd = [s for s in ssds if s.name+".csv" == dataset.filename][0]
-# column_names = [c.name for c in ssd.columns]
-# print("Chosen dataset: ", dataset)
-#
-# reload(integ)
-# integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
-#                                match_threshold=0.05, simplify_graph=True)
-# # fff = integrat._generate_oznfzn(column_names)
-#
-# solution = integrat.solve(column_names, dot_file="{}.cpsol.dot".format(dataset.id))
-#
-# print(solution)
+ssds = sn.ssds.items
+octo = sn.octopii.items[0]
+datasets = sn.datasets.items
+
+import stp.integration as integ
+from importlib import reload
+
+dataset = [ds for ds in datasets if ds.id == 460826978][0]
+ssd = [s for s in ssds if s.name+".csv" == dataset.filename][0]
+column_names = [c.name for c in ssd.columns]
+print("Chosen dataset: ", dataset)
+
+reload(integ)
+integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
+                               match_threshold=0.0, simplify_graph=True)
+# fff = integrat._generate_oznfzn(column_names)
+
+solution = integrat.solve(column_names, dot_file="{}.cpsol.dot".format(dataset.id))
+
+print(solution)
 # =======================
 #
 # Step 7'. Matcher Predict and construct the integration per each ssd!

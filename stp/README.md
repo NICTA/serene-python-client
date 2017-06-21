@@ -1,7 +1,9 @@
 # Benchmark for STP
 
-Folder "resources" contains instances for the problem.
+This submodule contains benchmark for the Steiner Tree Problem (STP) formulated for the problem of rel2onto schema mapping.
+The solution follows roughly the ideas outlined in the [report](https://github.com/NICTA/serene-papers/tree/master/rel2onto_cp).
 
+Folder `resources` contains instances for the problem.
 Different approaches were used to construct the alignment graph as well as to identify matches, that's why there are numbered folders which correspond to each particular initialization.
 Each numbered folder contains only one alignment graph and one set of matches, but there are several instances of the integration graph (each instance corresponds to a different dataset).
 
@@ -33,4 +35,4 @@ It might be the case that [Graphviz](http://www.graphviz.org/Download.php) needs
     - lemon
     - chuffed
 2. Install MiniZinc
-3. Provide correct paths in ``generatedznfzn.sh``
+3. Provide correct paths in the configuration file `config.yaml`
