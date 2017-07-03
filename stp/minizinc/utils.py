@@ -139,9 +139,7 @@ class Graph:
         i = 0
         while i < self.nb_edges:
             s, d, w = self.edges[i]
-            # FIXME: comparing a list to an integer?
-            # if apsp >= 0 and apsp[s][d] < w:
-            if apsp and apsp[s][d] < w:
+            if apsp[s][d] >= 0 and apsp[s][d] < w:
                 self.remEdge(i)
             else:
                 i += 1
