@@ -13,6 +13,7 @@ import json
 import pandas as pd
 from collections import defaultdict
 import pygraphviz as pgv
+from copy import deepcopy
 
 try:
     import serene
@@ -20,7 +21,8 @@ except ImportError as e:
     import sys
     sys.path.insert(0, '.')
     import serene
-from serene import Column, DataNode, ClassNode, ClassInstanceLink, ColumnLink, ObjectLink, DataLink
+from serene import Column, DataNode, ClassNode, ClassInstanceLink, ColumnLink, ObjectLink, DataLink,\
+    ALL_CN, DEFAULT_NS, UNKNOWN_CN
 
 
 def label(node):
@@ -237,6 +239,10 @@ def add_class_column(ssd, data_node_map):
     ssd_node_map = {}
     class_nodes = defaultdict(list)  # keeping track how many instances of the same class are present
     data_nodes = defaultdict(list)  # keeping track how many instances of the same data property are present
+
+    # maximum id for nodes which is currently in the lookup table
+    max_node_id = max(max(v) for v in data_node_map.values())
+
     for n_id, n_data in ssd.semantic_model._graph.nodes(data=True):
         data = n_data["data"]
         if isinstance(data, ClassNode):
@@ -253,9 +259,17 @@ def add_class_column(ssd, data_node_map):
                 label = uri + str(len(class_nodes[uri]) + 1)
                 lab = data.label + str(len(class_nodes[uri]) + 1)
                 node_id = data_node_map[label]
-                if len(node_id) > 1:
-                    logging.warning("More than one node per class {}".format(label))
-                node_id = node_id[0]
+                if len(node_id) < 1:
+                    logging.warning("Label is absent in the integration graph {}".format(label))
+                    print("Label is absent in the integration graph {}".format(label))
+                    node_id = max_node_id + 1
+                    max_node_id = node_id
+                    data_node_map[label].append(node_id)
+                else:
+                    if len(node_id) > 1:
+                        logging.warning("More than one node per class {}".format(label))
+                    node_id = node_id[0]
+
                 class_nodes[uri].append(node_id)
             node_data = {
                 "type": "ClassNode",
@@ -290,18 +304,50 @@ def get_weight(source, target, label, integration_graph):
     :return:
     """
     links = integration_graph.get_edge_data(source, target)
-    for l in links.values():
-        if l["label"] == label:
-            return l["weight"]
-    return 0
+    if links:
+        for l in links.values():
+            if l["label"] == label:
+                return l["weight"]
+        return 0
+    # link is not in the integration graph!
+    return -1
 
+
+def process_unknown(ssd, semantic_types):
+    """
+
+    :param ssd:
+    :param semantic_types:
+    :return:
+    """
+    mod_ssd = deepcopy(ssd)
+    logging.info("Modifying ssd by mapping semantic types which are absent in the train set to unknown")
+
+    # semantic types present in the ssd
+    ssd_labels = set(d.full_label for d in ssd.data_nodes)
+    # semantic types which are not available in the train set
+    absent_labels = ssd_labels.difference(set(semantic_types))
+    # get those data nodes which are not in the semantic types
+    absent_dn = [dn for dn in ssd.data_nodes if dn.full_label in absent_labels]
+
+    # remove these data nodes
+    logging.info("Removing {} data nodes".format(len(absent_dn)))
+    for dn in absent_dn:
+        mod_ssd.remove(dn)
+
+    # map unmapped columns to the unknown class!
+    mod_ssd.fill_unknown()
+
+    # TODO: clean ssd: remove class nodes which have no data nodes or outgoing links!
+
+    return mod_ssd
 
 def convert_ssd(ssd, integration_graph, file_name):
     """
-    Convert our ssd to nx object
-    :param ssd:
-    :param integration_graph:
-    :param file_name:
+    Convert our ssd to nx object re-using ids from the integration graph whenever possible
+    :param ssd: SSD instance
+    :param integration_graph: nx MultiDigraph
+    :param file_name: name of the file to write the converted ssd
     :return:
     """
     data_node_map = construct_data_node_map(integration_graph)
@@ -309,12 +355,14 @@ def convert_ssd(ssd, integration_graph, file_name):
 
     g, ssd_node_map, class_nodes = add_class_column(ssd, data_node_map)
 
+    # maximum id for nodes which is currently in the lookup table
+    max_node_id = max(max(v) for v in data_node_map.values())
+
     print("ssd_node_map: ")
     data_nodes = defaultdict(list)  # keeping track how many instances of the same data property are present
     for source, target, l_data in ssd.semantic_model._graph.edges(data=True):
         data = l_data["data"]
         if isinstance(data, ObjectLink):
-
             link_data = {
                 "type": "ObjectPropertyLink",
                 "label": data.label,
@@ -328,14 +376,16 @@ def convert_ssd(ssd, integration_graph, file_name):
             data_node = ssd.semantic_model._graph.node[target]["data"]
             link_label = data.label
             full_data_label = class_node["prefix"] + class_node["lab"] + "---" + link_label
-            node_id = data_node_map[full_data_label][len(data_nodes[full_data_label])]
-            data_nodes[full_data_label].append(full_data_label)
-            # if len(node_id) != 1:
-            #     logging.warning("DataNode {} is not well present in th integration graph: {}".format(
-            #         full_data_label, len(node_id)))
-            #     print("DataNode {} is not well present in the integration graph: {}".format(
-            #         full_data_label, len(node_id)))
-            # node_id = node_id[0]
+            if full_data_label in data_node_map and\
+                            len(data_node_map[full_data_label]) > len(data_nodes[full_data_label]):
+                node_id = data_node_map[full_data_label][len(data_nodes[full_data_label])]
+            else:
+                logging.warning("Label {} is not present in the integration graph.".format(full_data_label))
+                node_id = max_node_id + 1
+                max_node_id = node_id
+                data_node_map[full_data_label].append(node_id)
+            data_nodes[full_data_label].append(node_id)
+
             node_data = {
                 "type": "DataNode",
                 "label": class_node["label"] + "---" + link_label,
@@ -366,11 +416,20 @@ def convert_ssd(ssd, integration_graph, file_name):
             }
             g.add_edge(ssd_node_map[source], ssd_node_map[target], attr_dict=link_data)
 
-    # add data nodes
-    # for n_id, n_data in ssd.semantic_model._graph.nodes(data=True):
-    #     print("id={}, data={}".format(n_id, n_data))
-    #     data = n_data["data"]
-    #     # if isinstance(data, ClassNode):
+    # clean ssd: leave only 2 links for All
+    all_id = [n for (n, n_data) in g.nodes(data=True) if
+              n_data["type"] == "ClassNode" and n_data["label"] == ALL_CN]
+    unknown_id = [n for (n, n_data) in g.nodes(data=True) if
+              n_data["type"] == "ClassNode" and n_data["label"] == UNKNOWN_CN]
+    if len(all_id) and len(unknown_id):
+        all_id, unknown_id = all_id[0], unknown_id[0]
+        all_neigh = [(s, t, ld["weight"]) for (s, t, ld) in g.out_edges([all_id], data=True) if t != unknown_id]
+        min_weight = min(ld for (s, t, ld) in all_neigh)
+        keep = min(t for (s, t, ld) in all_neigh if ld == min_weight)
+        logging.info("Removing extra connect links: {}".format(len(all_neigh)-1))
+        for s, t, ld in all_neigh:
+            if t != keep:
+                g.remove_edge(s, t)
 
     print("SSD graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
     logging.info("SSD graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))

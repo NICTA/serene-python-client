@@ -17,7 +17,7 @@ from serene import SSD
 
 class IntegrationGraph(object):
     """
-    Integration graph to map a relaitonal data source onto an ontology using a CP solver
+    Integration graph to map a relational data source onto an ontology using a CP solver
     """
     def __init__(self, octopus, dataset, match_threshold=0.0, simplify_graph=False):
         """
@@ -253,7 +253,6 @@ class IntegrationGraph(object):
                   "-O {}.ozn".format(self.mzn2fzn_exec, self.chuffed_path, self.model_mzn,
                                                     alignment_path, match_path, base_path, base_path)
 
-
         print("Executing command: {}".format(command))
         # output = subprocess.check_call(args)
         output = subprocess.call(command, shell=True)
@@ -412,6 +411,5 @@ class IntegrationGraph(object):
             print(e)
             logging.error("Chuffed failed: {}".format(e))
             return
-
 
         return self._process_solution(output, dot_file)

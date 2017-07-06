@@ -15,18 +15,20 @@ import tempfile
 from pprint import pprint
 import networkx as nx
 import pandas as pd
+import json
 
 from serene import SSD, Status, DataProperty, Mapping, ObjectProperty, Column, Class, DataNode, ClassNode
 from serene.elements import SubClassLink, ObjectLink, ColumnLink
-from serene.elements.semantics.base import KARMA_DEFAULT_NS, DEFAULT_NS, ALL_CN, OBJ_PROP
+from serene.elements.semantics.base import KARMA_DEFAULT_NS, DEFAULT_NS, ALL_CN, OBJ_PROP, UNKNOWN_CN, UNKNOWN_DN
 
 from stp.alignment import read_karma_graph, add_matches, convert_ssd, to_graphviz, convert_karma_graph
 from collections import defaultdict
 
 import logging
 from logging.handlers import RotatingFileHandler
+project_path = "/home/natalia/PycharmProjects/serene-python-client"
 # setting up the logging
-log_file = os.path.join("resources", 'benchmark_stp.log')
+log_file = os.path.join(project_path, "stp", "resources", 'benchmark_stp.log')
 log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(module)s: %(message)s',
                                   '%Y-%m-%d %H:%M:%S')
 my_handler = RotatingFileHandler(log_file, mode='a', maxBytes=5 * 1024 * 1024,
@@ -52,8 +54,7 @@ sn = serene.Serene(
 )
 print(sn)
 
-# benchmark_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests", "resources", "museum_benchmark")
-benchmark_path = os.path.join(os.path.abspath(os.curdir), "tests", "resources", "museum_benchmark")
+benchmark_path = os.path.join(project_path, "tests", "resources", "museum_benchmark")
 print("benchmark_path: ", benchmark_path)
 
 print("========Optional cleaning=============")
@@ -171,12 +172,15 @@ def fill_unknown(original_ssd):
     This way we ensure that ssd is connected
     """
     s = original_ssd  # maybe make a deep copy here?
-    unmapped_cols = [col for col in s.dataset.columns if col not in s.columns]
+    unmapped_cols = set([col for col in s.dataset.columns if col not in s.columns]).union(s.unmapped_columns)
+    # number of unknown data nodes so far
+    unknown_idx = len([d for d in s.data_nodes if d.full_label == UNKNOWN_CN + "." + UNKNOWN_DN])
+    print("unmapped_cols: ", unmapped_cols)
     for i, col in enumerate(unmapped_cols):
         s._semantic_model.add_node(col, index=col.id)
-        data_node = DataNode(ClassNode("Unknown", prefix="http://au.csiro.data61/serene/dev#"), label="unknown",
-                             index=i,
-                             prefix="http://au.csiro.data61/serene/dev#")
+        data_node = DataNode(ClassNode(UNKNOWN_CN, prefix=DEFAULT_NS), label=UNKNOWN_DN,
+                             index=i + unknown_idx,
+                             prefix=DEFAULT_NS)
         s.map(col, data_node)
     if len(unmapped_cols):
         s = add_all_node(s)
@@ -187,11 +191,12 @@ def add_all_node(original_ssd):
     ssd = original_ssd
     class_nodes = ssd.class_nodes
     prefix = "http://au.csiro.data61/serene/dev#"
-    thing_node = ClassNode("All", prefix=prefix)
+    thing_node = ClassNode(ALL_CN, prefix=prefix)
     ssd._semantic_model.add_node(thing_node)
     for cn in class_nodes:
-        ssd._semantic_model.add_edge(
-            thing_node, cn, ObjectLink("connect", prefix=prefix))
+        if cn != thing_node:
+            ssd._semantic_model.add_edge(
+                thing_node, cn, ObjectLink("connect", prefix=prefix))
     return ssd
 
 def add_thing_node(original_ssd):
@@ -209,7 +214,7 @@ def add_thing_node(original_ssd):
 new_ssds = [deepcopy(s) for s in sn.ssds.items]
 
 for s in new_ssds:
-    s = fill_unknown(s)
+    s = s.fill_unknown()
     # s.show()
     # input("Press enter to continue...")
 
@@ -250,7 +255,7 @@ print("Indexes for testing sample: ", test_sample)
 octo_local = sn.Octopus(
     ssds=[new_ssds[i] for i in train_sample],
     ontologies=ontologies,
-    name='octopus-without-s07',
+    name='octopus-unknown',
     description='Testing example for places and companies',
     resampling_strategy="NoResampling",  # optional
     num_bags=80,  # optional
@@ -259,7 +264,7 @@ octo_local = sn.Octopus(
     modeling_props={
         "compatibleProperties": True,
         "ontologyAlignment": True,
-        "addOntologyPaths": True,
+        "addOntologyPaths": False,
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
@@ -346,105 +351,156 @@ print("Done in: {}".format(time.time() - start))
 print("The final state for {} is {}".format(octo.id, octo.state))
 
 input("Press enter to continue...")
+
 # =======================
 #
-# Step 7'. Matcher Predict and construct the integration per each ssd!
+# Step 7. Generate benchmark for CP solver
 #
 # =======================
 
-align_num = "test"
-# get alignment graph as nx.MultiDiGraph
-print("converting alignment graph json")
-alignment = octo.get_alignment()
-alignment_path = os.path.join("stp","resources", align_num, "alignment.graphml")
-# write alignment graph to the disk
-nx.write_graphml(alignment, alignment_path)
-print("graphviz alignment")
-_ = to_graphviz(alignment, os.path.join("stp","resources", align_num, "alignment.dot"), prog="dot")
+import stp.integration as integ
+from stp.alignment import convert_ssd, to_graphviz, process_unknown
+from importlib import reload
 
-print("showing predictions for the dataset...")
-for i, ds in enumerate(datasets):
-    print("predicting dataset: ", ds.filename)
-    pred_df = octo.matcher_predict(ds)
-    print("prediction finished")
-    pred_df.to_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"), index=False)
+import stp.alignment as al
 
-    # read matches
-    pred_df = pd.read_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"))
+reload(integ)
+reload(al)
 
-    # construct integration graph by adding matches for the columns
-    column_names = [c.name for c in ssds[i].columns]
-    integration = add_matches(alignment, pred_df, column_names, threshold=0.02)
-    out_file = os.path.join("resources", align_num, str(i)+".integration.graphml")
-    print("Writing integration graph to file {}".format(out_file))
-    nx.write_graphml(integration, out_file)
+print("Starting generation")
 
-    print("graphviz alignment")
-    to_graphviz(integration, os.path.join("resources", align_num, str(i) + ".integration.dot"), prog="neato")
+print("Getting labels in the training set")
+train_labels = []
+for i in train_sample:
+    train_labels += [d.full_label for d in new_ssds[i].data_nodes]
+train_labels = set(train_labels)
+
+
+folder = os.path.join(project_path, "stp", "resources", "unknown")
+for dataset in datasets:
+    ssd = [s for s in new_ssds if s.name+".csv" == dataset.filename][0]
+    # we tell here the correct columns
+    column_names = [c.name for c in ssd.columns]
+    print("Chosen dataset: ", dataset)
+    print("Chosen SSD id: ", ssd.id)
+
+    # we should do prediction outside of solvers so that solvers use the cached results!
+    print("Doing schema matcher part")
+    df = octo.matcher_predict(dataset)
+
+    # cp solver approach
+    print("---> Converting")
+    integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
+                                      match_threshold=0.05, simplify_graph=True)
+
+    # write alignment graph
+    align_path = os.path.join(folder, "{}.alignment".format(ssd.id))
+    nx.write_graphml(integrat.graph, align_path+".graphml")
+    to_graphviz(integrat.graph, out_file=align_path+".dot", prog="dot")
+    print("---> alignment written")
+
+    # write integration graph
+    integration_graph = integrat._add_matches(column_names)
+    integration_path = os.path.join(folder, "{}.integration".format(ssd.id))
+    nx.write_graphml(integration_graph, integration_path + ".graphml")
+    to_graphviz(integration_graph, out_file=integration_path + ".dot", prog="dot")
+    print("---> integration written")
 
     # write ground truth
-    out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
-    ssd_graph = convert_ssd(ssds[i], integration, out_file)
-    to_graphviz(ssd_graph, os.path.join("resources", align_num, str(i) + ".ssd.dot"))
+    ssd_path = os.path.join(folder, "{}.ssd".format(ssd.id))
+    unknown_ssd = al.process_unknown(ssd, train_labels)
+    ssd_nx = al.convert_ssd(unknown_ssd, integration_graph, ssd_path + ".graphml")
+    to_graphviz(ssd_nx, out_file=ssd_path + ".dot", prog="dot")
+    print("---> ssd written")
 
-input("Press enter to continue...")
 
-# =======================
-#
-# Step 7. Predict
-#
-# =======================
+print("Finished generation")
 
-start = time.time()
-ds = [d for d in datasets if new_ssds[test_sample[0]].dataset.filename == d.filename][0]
-predicted = octo.predict(ds)
-print("Prediction done in: {}".format(time.time() - start))
-print(predicted)
-
-print()
-print("Showing ground truth...")
-# ssds[test_sample[0]] is ground truth
-ground_truth = new_ssds[test_sample[0]]
-ground_truth.show(title='ground truth',
-                  outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
-input("Press enter to see predicted semantic models...")
-
-print("><><><><")
-for res in predicted:
-    print(res)
-    print()
-    res.ssd.show()
-    input("Press enter to continue...")
-print("><><><><")
-
-# for p in predicted:
-#     print("Predicted candidate rank", p.score.rank)
-#     print("Score:")
-#     p.score.show()
-#     p.ssd.show()
-#     input("Press any key to continue...")
-
-# the best is number 0!
-predicted_ssd = predicted[0].ssd
-# predicted_ssd.unmapped_columns
-print()
 
 # =======================
 #
-# Step 8. Evaluate against ground truth
+# Step 8. Use CP solver and compare!
 #
 # =======================
 
-# ssds[test_sample[0]] is ground truth
-ground_truth = ssds[test_sample[0]]
-comparison = sn.ssds.compare(predicted_ssd, ground_truth, False, False)
-predicted_ssd.show(title="best recommendation: \n"+str(comparison),
-                   outfile=os.path.join(tempfile.gettempdir(), 'best_recommendation.png'))
-# ground_truth.show(title='ground truth',
-#                   outfile=os.path.join(tempfile.gettempdir(), 'ground_truth.png'))
-print("================")
+import stp.integration as integ
+from stp.alignment import convert_ssd, to_graphviz, process_unknown
+from importlib import reload
 
-input("Press enter to continue...")
-for i, pred in enumerate(predicted):
-    comparison = sn.ssds.compare(pred.ssd, ground_truth, False, False)
-    print("SsdResult({}) comparison: {}".format(i,comparison))
+import stp.alignment as al
+
+reload(integ)
+reload(al)
+
+print("Getting labels in the training set")
+train_labels = []
+for i in train_sample:
+    train_labels += [d.full_label for d in new_ssds[i].data_nodes]
+train_labels = set(train_labels)
+
+print("Starting benchmark")
+benchmark_results = [["octopus", "dataset", "method", "status",
+                      "jaccard", "precision", "recall",
+                      "karma_jaccard", "karma_precision", "karma_recall",
+                      "time"]]
+
+folder = os.path.join(project_path, "stp", "resources", "unknown_run")
+for dataset in datasets:
+    ssd = [s for s in new_ssds if s.name+".csv" == dataset.filename][0]
+    # we tell here the correct columns
+    column_names = [c.name for c in ssd.columns]
+    print("Chosen dataset: ", dataset)
+    print("Chosen SSD id: ", ssd.id)
+
+    # we should do prediction outside of solvers so that solvers use the cached results!
+    print("Doing schema matcher part")
+    df = octo.matcher_predict(dataset)
+
+    cor_ssd = al.process_unknown(ssd, train_labels)
+
+    # cp solver approach
+    print("---> trying chuffed")
+    try:
+        integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
+                                          match_threshold=0.05, simplify_graph=True)
+        start = time.time()
+        solution = integrat.solve(column_names)
+        runtime = time.time() - start
+        print(solution)
+        # convert solution to SSD
+        cp_ssd = SSD().update(json.loads(solution), sn.datasets, sn.ontologies)
+        eval = cp_ssd.evaluate(cor_ssd, False, True)
+        comparison = sn.ssds.compare(cp_ssd, cor_ssd, False, False)
+        res = [octo.id, dataset.id, "chuffed", "success",
+               eval["jaccard"], eval["precision"], eval["recall"],
+               comparison["jaccard"], comparison["precision"], comparison["recall"],
+               runtime]
+    except Exception as e:
+        print("CP solver failed to find solution: {}".format(e))
+        res = [octo.id, dataset.id, "chuffed", "fail", 0, 0, 0, 0, 0, 0, 0]
+    benchmark_results.append(res)
+
+    # karma approach
+    print("---> trying karma")
+    try:
+        start = time.time()
+        karma_ssd = octo.predict(dataset)[0].ssd
+        runtime = time.time() - start
+        eval = karma_ssd.evaluate(cor_ssd, False, True)
+        comparison = sn.ssds.compare(karma_ssd, cor_ssd, False, False)
+        res = [octo.id, dataset.id, "karma", "success",
+               eval["jaccard"], eval["precision"], eval["recall"],
+               comparison["jaccard"], comparison["precision"], comparison["recall"],
+               runtime]
+    except Exception as e:
+        print("Karma failed to find solution: {}".format(e))
+        res = [octo.id, dataset.id, "karma", "fail", 0, 0, 0, 0, 0, 0, 0]
+    benchmark_results.append(res)
+
+
+print("Finished benchmark")
+import csv
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_results.csv")
+with open(result_csv, "w+") as f:
+    csvf = csv.writer(f)
+    csvf.writerows(benchmark_results)

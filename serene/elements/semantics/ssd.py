@@ -470,12 +470,14 @@ class SSD(object):
         This way we ensure that ssd is connected.
         Use with caution!
         """
-        unmapped_cols = [col for col in self.dataset.columns if col not in self.columns]
+        unmapped_cols = set([col for col in self.dataset.columns if col not in self.columns] + self.unmapped_columns)
+        unknown_idx = len([d for d in self.data_nodes if d.full_label == UNKNOWN_CN + "." + UNKNOWN_DN])
+        _logger.info("Mapping {} unknown columns for ssd {}".format(len(unmapped_cols), self._id))
         # TODO: check that Unknown is among ontologies
         for i, col in enumerate(unmapped_cols):
             self._semantic_model.add_node(col, index=col.id)
             data_node = DataNode(ClassNode(UNKNOWN_CN, prefix=DEFAULT_NS), label=UNKNOWN_DN,
-                                 index=i,
+                                 index=i + unknown_idx,
                                  prefix=DEFAULT_NS)
             self.map(col, data_node)
         if len(unmapped_cols):
@@ -492,8 +494,9 @@ class SSD(object):
         thing_node = ClassNode(ALL_CN, prefix=DEFAULT_NS)
         self._semantic_model.add_node(thing_node)
         for cn in class_nodes:
-            self._semantic_model.add_edge(
-                thing_node, cn, ObjectLink(OBJ_PROP, prefix=DEFAULT_NS))
+            if cn != thing_node:
+                self._semantic_model.add_edge(
+                    thing_node, cn, ObjectLink(OBJ_PROP, prefix=DEFAULT_NS))
         return self
 
     def _add_thing_node(self):

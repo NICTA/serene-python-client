@@ -24,10 +24,15 @@ from serene.elements.semantics.base import KARMA_DEFAULT_NS
 #
 # from stp.integration import IntegrationGraph
 
+project_path = "/home/natalia/PycharmProjects/serene-python-client"
+benchmark_path = os.path.join(project_path, "tests", "resources", "museum_benchmark")
+# benchmark_path = os.path.join(os.path.abspath(os.curdir), "tests", "resources", "museum_benchmark")
+print("benchmark_path: ", benchmark_path)
+
 import logging
 from logging.handlers import RotatingFileHandler
 # setting up the logging
-log_file = os.path.join("resources", 'benchmark_stp.log')
+log_file = os.path.join(project_path, "stp", "resources", 'benchmark_stp.log')
 log_formatter = logging.Formatter('%(asctime)s %(levelname)s %(module)s: %(message)s',
                                   '%Y-%m-%d %H:%M:%S')
 my_handler = RotatingFileHandler(log_file, mode='a', maxBytes=5 * 1024 * 1024,
@@ -52,11 +57,6 @@ sn = serene.Serene(
     port=8080,
 )
 print(sn)
-
-project_path = "/home/natalia/PycharmProjects/serene-python-client"
-benchmark_path = os.path.join(project_path, "tests", "resources", "museum_benchmark")
-# benchmark_path = os.path.join(os.path.abspath(os.curdir), "tests", "resources", "museum_benchmark")
-print("benchmark_path: ", benchmark_path)
 
 print("========Optional cleaning=============")
 # Removes all server elements
@@ -313,50 +313,64 @@ integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
 solution = integrat.solve(column_names, dot_file="{}.cpsol.dot".format(dataset.id))
 
 print(solution)
-# =======================
-#
-# Step 7'. Matcher Predict and construct the integration per each ssd!
-#
-# =======================
-#
-# align_num = "2"
-# karma_graph_file = os.path.join("resources", align_num, "graph.json")
-# # read alignment part
-# print("reading graph json")
-# alignment = read_karma_graph(karma_graph_file, os.path.join("resources", align_num, "alignment.graphml"))
-# print("graphviz alignment")
-# _ = to_graphviz(alignment, os.path.join("resources", align_num, "alignment.dot"), prog="neato")
-#
-# print("showing predictions for the dataset...")
-# for i, ds in enumerate(datasets):
-#     print("predicting dataset: ", ds.filename)
-#     pred_df = octo.matcher_predict(ds)
-#     print("prediction finished")
-#     pred_df.to_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"), index=False)
-#
-#     # read matches
-#     pred_df = pd.read_csv(os.path.join("resources", align_num, "matches", ds.filename+".matches.csv"))
-#
-#     # construct integration graph by adding matches for the columns
-#     column_names = [c.name for c in ssds[i].columns]
-#     integration = add_matches(alignment, pred_df, column_names, threshold=0.02)
-#     out_file = os.path.join("resources", align_num, str(i)+".integration.graphml")
-#     print("Writing integration graph to file {}".format(out_file))
-#     nx.write_graphml(integration, out_file)
-#
-#     print("graphviz alignment")
-#     _ = to_graphviz(integration, os.path.join("resources", align_num, str(i) + ".integration.dot"), prog="neato")
-#
-#     # write ground truth
-#     out_file = os.path.join("resources", align_num, str(i) + ".ssd.graphml")
-#     ssd_graph = convert_ssd(ssds[i], integration, out_file)
-#     _ = to_graphviz(ssd_graph, os.path.join("resources", align_num, str(i) + ".ssd.dot"))
-#
-# input("Press enter to continue...")
+
 
 # =======================
 #
-# Step XXX. Compare chuffed and karma solutions!!!
+# Step 8. Generate benchmark for CP solver
+#
+# =======================
+
+import stp.integration as integ
+from stp.alignment import convert_ssd, to_graphviz
+from importlib import reload
+
+reload(integ)
+
+print("Starting generation")
+
+folder = os.path.join(project_path, "stp", "resources", "half2")
+for dataset in datasets:
+    ssd = [s for s in ssds if s.name+".csv" == dataset.filename][0]
+    # we tell here the correct columns
+    column_names = [c.name for c in ssd.columns]
+    print("Chosen dataset: ", dataset)
+    print("Chosen SSD id: ", ssd.id)
+
+    # we should do prediction outside of solvers so that solvers use the cached results!
+    print("Doing schema matcher part")
+    df = octo.matcher_predict(dataset)
+
+    # cp solver approach
+    print("---> Converting")
+    integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
+                                      match_threshold=0.05, simplify_graph=True)
+
+    # write alignment graph
+    align_path = os.path.join(folder, "{}.alignment".format(ssd.id))
+    nx.write_graphml(integrat.graph, align_path+".graphml")
+    # to_graphviz(integrat.graph, out_file=align_path+".dot", prog="dot")
+    print("---> alignment written")
+
+    # write integration graph
+    integration_graph = integrat._add_matches(column_names)
+    integration_path = os.path.join(folder, "{}.integration".format(ssd.id))
+    nx.write_graphml(integration_graph, integration_path + ".graphml")
+    # to_graphviz(integration_graph, out_file=integration_path + ".dot", prog="dot")
+    print("---> integration written")
+
+    # write ground truth
+    ssd_path = os.path.join(folder, "{}.ssd".format(ssd.id))
+    ssd_nx = convert_ssd(ssd, integration_graph, ssd_path + ".graphml")
+    to_graphviz(ssd_nx, out_file=ssd_path + ".dot", prog="dot")
+    print("---> ssd written")
+
+
+print("Finished generation")
+
+# =======================
+#
+# Step 9. Compare chuffed and karma solutions!!!
 #
 # =======================
 
