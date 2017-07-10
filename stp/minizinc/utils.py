@@ -36,10 +36,55 @@ def find_tags(graphml_root):
         raise RuntimeError("Wrong format in graphml:\n\t: Too many or no key indicating"
         " weight of edges")
     weight_label = weight_label[0]
-    return (type_label.attrib['id'],weight_label.attrib['id'])
+
+    label_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='label'][@for='node']")
+    if len(label_label) != 1:
+        raise RuntimeError("Wrong format in graphml:\n\t: Too many or no key indicating"
+        " label of nodes")
+    label_label = label_label[0]
+
+    return (type_label.attrib['id'],weight_label.attrib['id'],label_label.attrib['id'])
 
 
 class Graph:
+    class UnknownInfo:
+        valid_unknown = {"All" : "ClassNode",
+                         "Unknown" : "ClassNode", 
+                         "Unknown---unknown": "DataNode"}
+        def __init__(self):
+            self.all_node = -1
+            self.class_node = -1
+            self.data_nodes = []
+        def hasAllNode(self):
+            return self.all_node != -1
+        def hasClassNode(self):
+            return self.class_node != -1
+        def hasDataNodes(self):
+            return self.data_nodes != []
+        def __str__(self):
+            res = "["
+            res += str(self.all_node)+","
+            res += str(self.class_node)+ ("," if len(self.data_nodes) else "")
+            for i,x in enumerate(self.data_nodes):
+                res += str(x) + ("" if i == len(self.data_nodes) - 1 else ",")
+            res += "];"
+            return res
+        def as_list(self):
+            return [self.all_node,self.class_node]+self.data_nodes
+        def add(self,node_id,node_label):
+            if node_label == "All":
+                if self.hasAllNode():
+                    raise RuntimeError("Multiple nodes marked \"All\"")
+                self.all_node = node_id
+            elif node_label == "Unknown":
+                if self.hasClassNode():
+                    raise RuntimeError("Multiple nodes marked \"Unknown\"")
+                self.class_node = node_id
+            elif node_label == "Unknown---unknown":
+                if node_id in self.data_nodes:
+                    raise RuntimeError("Node "+str(node_id)+" added to unknwon data "
+                                       "nodes multiple times")
+                self.data_nodes.append(node_id)
     def __init__(self, nb_nodes = 0, nb_edges = 0):
         self.nb_nodes = nb_nodes
         self.nb_edges = nb_edges
@@ -48,6 +93,7 @@ class Graph:
         self.out = [[] for i in self.nodes()]
         self.node_types = {}
         self.node_names = []
+        self.unk_info = Graph.UnknownInfo()
 
     def nodes(self):
         return range(0,self.nb_nodes)
@@ -202,11 +248,12 @@ class Graph:
     @staticmethod
     def from_graphml(content, simplify_graph=False):
         graphml_root = ET.fromstring(content)
-        (type_label, weight_label) = map(str, find_tags(graphml_root))
+        (type_label, weight_label,label_label) = map(str, find_tags(graphml_root))
         g = Graph()
 
         dic = {}  #  Conversion from node ID in the file to internal node IDs
         valid_types = ['ClassNode', 'DataNode', 'Attribute']
+
         for t in valid_types:
             if not t in g.node_types:
                 g.node_types[t] = []
@@ -214,6 +261,14 @@ class Graph:
             if t not in valid_types:
                 raise RuntimeError("Unknown node type")
             g.node_types[t].append(n)
+        def save_unknown(g,n,t,l):
+            if t not in valid_types:
+                raise RuntimeError("Unknown node type")
+            if l not in Graph.UnknownInfo.valid_unknown:
+                return
+            if Graph.UnknownInfo.valid_unknown[l] != t:
+                raise RuntimeError("Error matching unknown node to a type")
+            g.unk_info.add(n,l)
         for n in graphml_root.findall(".//"+nsfy("node")):
             node_id = int(n.attrib['id'])        
             g.addNode(str(node_id))
@@ -223,6 +278,11 @@ class Graph:
                 raise RuntimeError("Wrong format in node tag:\n\tNo type indication")
             node_type = node_type[0].text
             assign(g, dic[node_id], node_type)
+            node_label = n.findall(".//"+nsfy("data")+"[@key='"+label_label+"']")
+            if len(node_label) != 1:
+                raise RuntimeError("Wrong format in node tag:\n\tNo label indication")
+            node_label = node_label[0].text
+            save_unknown(g,dic[node_id],node_type,node_label)
 
         for e in graphml_root.findall(".//"+nsfy("edge")):
             s = int(e.attrib["source"])

@@ -38,3 +38,6 @@ print(g.to_dzn())
 print("cnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['ClassNode']]))))
 print("dnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['DataNode']]))))
 print("anodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['Attribute']]))))
+
+print("nb_unknown_nodes = "+str(len(g.unk_info.data_nodes))+";")
+print("all_unk_nodes = "+list2dznlist(list(map(incr,g.unk_info.as_list()))))

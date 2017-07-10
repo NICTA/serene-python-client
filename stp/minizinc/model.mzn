@@ -31,6 +31,13 @@ array[1..2,edges] of int: endpairs = array2d(1..2,edges,tails++heads);
 array [edges] of int: ws;               % Weights of edges in alignment graph
 var int: w;                             % Weight of the solution corresponding to the alignment part
 
+int: nb_unknown_nodes;
+set of int: unknowns = 3..2+nb_unknown_nodes;
+array [1..2+nb_unknown_nodes] of int: all_unk_nodes;
+int: node_all = all_unk_nodes[1];
+int: node_unk = all_unk_nodes[2];
+
+
 constraint steiner_tree(vs,es,adjacent,endpairs,w,ws);
 %constraint tree(vs,es,adjacent,endpairs);
 constraint w = sum(i in edges)(bool2int(es[i])*ws[i]);
@@ -61,8 +68,20 @@ constraint alldifferent(match);                                       % Exact ma
 
 %%% If there is no match to a data node, you should not have that datanode in the tree
 constraint forall (d in dnodes) (exists(a in atts)(match[a] == d) <-> vs[d]);
-constraint forall (d in dnodes) (vs[d] <-> sum(e in edges where adjacent[d,e])(es[e]) == 1); %Only 2 edges per data node
-
+%Only 2 edges per data node (for unknown nodes, there is only one edge to ClassNode "Unknown" anyway)
+constraint forall (d in dnodes) (vs[d] <-> sum(e in edges where adjacent[d,e])(es[e]) == 1); 
+constraint 
+	if nb_unknown_nodes > 0 
+	then
+	%If ClassNode "Unknown" is used, ClassNode "All" is used as well
+	vs[node_unk] <-> vs[node_all]
+	%ClassNode "Unknown" must be connected to classNode "All"
+	/\ vs[node_unk] <-> sum(e in edges where adjacent[node_unk,e] /\ adjacent[node_all,e])(es[e]) == 1
+	%ClassNode "All" has degree 2
+	/\ vs[node_all] <-> sum(e in edges where adjacent[node_all,e])(es[e]) == 2
+	else
+	true
+	endif;
 
 array[atts,int] of int: match_costs;
 var int: wm;
