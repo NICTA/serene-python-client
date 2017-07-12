@@ -54,12 +54,16 @@ constraint forall(att in anodes) (vs[att] == true); % Attribute nodes (normally 
 %constraint forall(i in index_set(dnodes)) (vs[dnodes[i]] <-> (sum (a in edges where adjacent[dnodes[i],a]) (bool2int(es[a]))) == 2);
 %constraint forall(i in index_set(dnodes)) (not(vs[dnodes[i]]) <-> (sum (a in edges where adjacent[dnodes[i],a]) (bool2int(es[a]))) == 0);
 
+set of int: extended_nodes = 1..nbV+nbA;
+array[extended_nodes] of var bool: extended_vs;
+constraint forall(n in nodes) (extended_vs[n] = vs[n]);
+
 %Matching problem:
 array [atts] of var int: match;                                       % Match between Attributes and Data nodes
 array [atts] of int: attribute_names;                                 % Just for printing
 %int: dummy = 0;
-constraint forall (a in atts) (match[a] in attribute_domains[a]);     % Must match someone in the domain (i.e. someone there is an edge to)
-constraint forall (a in atts) (vs[match[a]]);                         % The data node matched MUST be in the subgraph of the alignment
+constraint forall (a in atts) (match[a] in (attribute_domains[a] union {attribute_names[a]}));     % Must match someone in the domain (i.e. someone there is an edge to)
+constraint forall (a in atts) (extended_vs[match[a]]);                         % The data node matched MUST be in the subgraph of the alignment
 
 %include "alldifferent_except_0.mzn"; %ADD DUMMY TO THE DOMAINS!!!
 %constraint alldifferent_except_0(match);
@@ -84,8 +88,11 @@ constraint
 	endif;
 
 array[atts,int] of int: match_costs;
+array[atts,int] of int: extended_match_costs = array2d(atts,min(index_set_2of2(match_costs))..max([attribute_names[a] | a in atts]),
+	[ if b <= max(index_set_2of2(match_costs)) then match_costs[a,b] else 0 endif | 
+	    a in atts, b in min(index_set_2of2(match_costs))..max([attribute_names[a] | a in atts])]);
 var int: wm;
-constraint wm = sum(a in atts) (match_costs[a,match[a]]);
+constraint wm = sum(a in atts) (extended_match_costs[a,match[a]]);
 var int: obj = w + wm;
 
 
@@ -99,9 +106,11 @@ ann: naive_e = int_search(es,input_order,indomain_min,complete);
 ann: kruskal  = int_search([es[sorted_edges[e]] | e in edges],input_order,indomain_max,complete);
 ann: kruskal2 = int_search([es[sorted_edges[nbE + 1 - e]] | e in edges],input_order,indomain_min,complete);
 
+ann: assume(array[int] of var bool, bool);
+
 solve 
 %::int_search(match, input_order, indomain_min, complete)
-::seq_search([cheap_matches]++[kruskal2])
+::seq_search([assume([match[a] != attribute_names[a] | a in atts],true)]++[cheap_matches]++[kruskal2])
 minimize w + wm;
 
 output ["digraph {\n"]++
