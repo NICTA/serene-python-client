@@ -61,6 +61,8 @@ class Graph:
             return self.class_node != -1
         def hasDataNodes(self):
             return self.data_nodes != []
+        def count(self):
+            return len(self.data_nodes)
         def __str__(self):
             res = "["
             res += str(self.all_node)+","
@@ -269,6 +271,13 @@ class Graph:
             if Graph.UnknownInfo.valid_unknown[l] != t:
                 raise RuntimeError("Error matching unknown node to a type")
             g.unk_info.add(n,l)
+
+        #all_nodes = graphml_root.findall(".//"+nsfy("node")+"/"+nsfy("data")+"[@key='"+type_label+"']")
+        #nb_att = 0
+        #for node in all_nodes:
+        #    if node.text == "Attribute":
+        #        nb_att += 1
+
         for n in graphml_root.findall(".//"+nsfy("node")):
             node_id = int(n.attrib['id'])        
             g.addNode(str(node_id))
@@ -278,6 +287,7 @@ class Graph:
                 raise RuntimeError("Wrong format in node tag:\n\tNo type indication")
             node_type = node_type[0].text
             assign(g, dic[node_id], node_type)
+
             node_label = n.findall(".//"+nsfy("data")+"[@key='"+label_label+"']")
             if len(node_label) != 1:
                 raise RuntimeError("Wrong format in node tag:\n\tNo label indication")
