@@ -138,26 +138,6 @@ for ds in os.listdir(dataset_dir):
     os.remove(ds_f)
 
 
-if len(datasets) != len(ssds):
-    print("Something went wrong. Failed to read all datasets and ssds.")
-    exit()
-
-input("Press enter to continue...")
-print("*********** Datasets and semantic source descriptions from museum benchmark")
-ssd_path = "ssds/"
-# for i, ds in enumerate(datasets):
-#     print(i, ": dataset=", ds, "; ssd=", ssds[i])
-#     # nx.write_edgelist(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".edgelist"))
-#     # nx.write_adjlist(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".adjlist"))
-#     # nx.write_multiline_adjlist(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".madjlist"))
-#     nx.write_graphml(ssds[i].semantic_model._graph, os.path.join(ssd_path, ssds[i].name + ".graphml"))
-
-print()
-ssds[0].show(outfile=ssds[0].name + ".ssd.dot")
-
-input("Press enter to continue...")
-
-
 # =======================
 #
 #  Step 5: Add unknown mappings to ssds
@@ -211,6 +191,8 @@ def add_thing_node(original_ssd):
             cn, thing_node, SubClassLink("subClassOf", prefix=prefix))
     return ssd
 
+
+
 new_ssds = [deepcopy(s) for s in sn.ssds.items]
 
 for s in new_ssds:
@@ -218,9 +200,23 @@ for s in new_ssds:
     # s.show()
     # input("Press enter to continue...")
 
+for s in new_ssds:
+    f = [d for d in s.data_nodes if d.full_label == UNKNOWN_CN + "." + UNKNOWN_DN]
+    if len(f)<2:
+        print(s)
+        print(f)
+        print()
+
 
 # upload ssds with unknown mappings
 new_ssds = [sn.ssds.upload(s) for s in new_ssds]
+
+for s in new_ssds:
+    f = [d for d in s.data_nodes if d.full_label == UNKNOWN_CN + "." + UNKNOWN_DN]
+    if len(f)<2:
+        print(s)
+        print(f)
+        print()
 # =======================
 #
 #  Step 6: Specify training and test samples
@@ -245,6 +241,15 @@ for i, ssd in enumerate(new_ssds):
 
 print("Indexes for training sample: ", train_sample)
 print("Indexes for testing sample: ", test_sample)
+
+print("Original ssds in train")
+train_orig_ssd = []
+for i in train_sample:
+    s = [ssd for ssd in ssds if ssd.name == new_ssds[i].name]
+    print("ssd: ", s[0].id, ", name: ", s[0].name, len(s))
+    train_orig_ssd.append(s[0].id)
+
+print(sorted(train_orig_ssd))
 
 # =======================
 #
@@ -376,7 +381,7 @@ for i in train_sample:
 train_labels = set(train_labels)
 
 
-folder = os.path.join(project_path, "stp", "resources", "unknown")
+folder = os.path.join(project_path, "stp", "resources", "unknown_thresh01")
 for dataset in datasets:
     ssd = [s for s in new_ssds if s.name+".csv" == dataset.filename][0]
     # we tell here the correct columns
@@ -391,7 +396,7 @@ for dataset in datasets:
     # cp solver approach
     print("---> Converting")
     integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
-                                      match_threshold=0.05, simplify_graph=True)
+                                      match_threshold=0.01, simplify_graph=True)
 
     # write alignment graph
     align_path = os.path.join(folder, "{}.alignment".format(ssd.id))
@@ -416,6 +421,76 @@ for dataset in datasets:
 
 print("Finished generation")
 
+print()
+print("Original Ssds")
+for dataset in datasets:
+    ssd = [s for s in ssds if s.name+".csv" == dataset.filename][0]
+    print(ssd.id)
+
+
+# =======================
+#
+# Step 8. Process graph patterns
+#
+# =======================
+
+octo = sn.octopii.items[0]
+
+
+alignment, _, _ = octo.get_alignment()
+align_edges = alignment.edges(data=True, keys=True)
+uri_lookup = dict()
+
+for (_, _, key, data) in align_edges:
+    uri_lookup[data["alignId"]] = key
+
+
+embeds_path = project_path + "/stp/resources/museum_spt_pattern_bench/museum2_embeds_normal"
+graph_j = os.path.join(embeds_path, "graphs.json")
+edges_j = os.path.join(embeds_path, "edges.json")
+
+patterns = []
+
+print("---- processing edge lines!!!")
+edge_lines = dict()
+with open(edges_j) as fj:
+    for line in fj:
+        proc = json.loads(line)
+        if proc["data"]["alignId"] in uri_lookup:
+            edge_lines[proc["id"]] = uri_lookup[proc["data"]["alignId"]]
+        else:
+            print("Missing alignId: ", proc["data"]["alignId"])
+
+
+print()
+print("---- processing graph lines!!!")
+graph_lines = []
+with open(graph_j) as fj:
+    for line in fj:
+        proc = json.loads(line)
+        el = proc['data']['__variable_mapping'].replace("}", "").replace("{", "").split(",")
+        edges = []
+        for e in el:
+            pos = e.strip().split("=")
+            if pos[0].startswith("__e"):
+                if pos[1] in edge_lines:
+                    edges.append(edge_lines[pos[1]])
+                else:
+                    print("     missing edge id: ", pos[1])
+
+        graph_lines.append([proc['id'],
+                            proc['data']['support'],
+                            len(edges),
+                            sorted(edges)])
+
+graph_lines.sort(key=lambda x: x[3])
+
+import csv
+embeds_path = project_path + "/stp/resources/museum_spt_pattern_bench/museum2_embeds_normal_merged.csv"
+with open(embeds_path, "w+") as f:
+    csv_writer = csv.writer(f)
+    csv_writer.writerow(["patter", "support", "num_edges", "edge_keys"])
+    csv_writer.writerows(graph_lines)
 
 # =======================
 #
@@ -439,7 +514,7 @@ for i in train_sample:
 train_labels = set(train_labels)
 
 print("Starting benchmark")
-benchmark_results = [["octopus", "dataset", "method", "status",
+benchmark_results = [["octopus", "dataset", "ssd", "method", "status",
                       "jaccard", "precision", "recall",
                       "karma_jaccard", "karma_precision", "karma_recall",
                       "time"]]
@@ -463,22 +538,26 @@ for dataset in datasets:
     try:
         integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
                                           match_threshold=0.05, simplify_graph=True)
-        start = time.time()
         solution = integrat.solve(column_names)
         runtime = time.time() - start
-        print(solution)
-        # convert solution to SSD
-        cp_ssd = SSD().update(json.loads(solution), sn.datasets, sn.ontologies)
-        eval = cp_ssd.evaluate(cor_ssd, False, True)
-        comparison = sn.ssds.compare(cp_ssd, cor_ssd, False, False)
-        res = [octo.id, dataset.id, "chuffed", "success",
-               eval["jaccard"], eval["precision"], eval["recall"],
-               comparison["jaccard"], comparison["precision"], comparison["recall"],
-               runtime]
+        # print(solution)
+        if len(solution) < 1:
+            logging.error("Chuffed found no solutions for ssd {}".format(ssd.id))
+            raise Exception("Chuffed found no solutions!")
+        for idx, sol in enumerate(solution):
+            # convert solution to SSD
+            cp_ssd = SSD().update(json.loads(sol), sn._datasets, sn._ontologies)
+            eval = cp_ssd.evaluate(cor_ssd, False, True)
+            comparison = sn.ssds.compare(cp_ssd, cor_ssd, False, False)
+            res = [octo.id, dataset.id, ssd.id, "chuffed", idx, "success",
+                   eval["jaccard"], eval["precision"], eval["recall"],
+                   comparison["jaccard"], comparison["precision"], comparison["recall"],
+                   runtime]
+            benchmark_results.append(res)
     except Exception as e:
         print("CP solver failed to find solution: {}".format(e))
-        res = [octo.id, dataset.id, "chuffed", "fail", 0, 0, 0, 0, 0, 0, 0]
-    benchmark_results.append(res)
+        res = [octo.id, dataset.id, ssd.id, "chuffed", 0, "fail", 0, 0, 0, 0, 0, 0, time.time() - start]
+        benchmark_results.append(res)
 
     # karma approach
     print("---> trying karma")
@@ -488,19 +567,19 @@ for dataset in datasets:
         runtime = time.time() - start
         eval = karma_ssd.evaluate(cor_ssd, False, True)
         comparison = sn.ssds.compare(karma_ssd, cor_ssd, False, False)
-        res = [octo.id, dataset.id, "karma", "success",
+        res = [octo.id, dataset.id, ssd.id, "karma", 0, "success",
                eval["jaccard"], eval["precision"], eval["recall"],
                comparison["jaccard"], comparison["precision"], comparison["recall"],
                runtime]
     except Exception as e:
         print("Karma failed to find solution: {}".format(e))
-        res = [octo.id, dataset.id, "karma", "fail", 0, 0, 0, 0, 0, 0, 0]
+        res = [octo.id, dataset.id, ssd.id, "karma", 0, "fail", 0, 0, 0, 0, 0, 0, 0]
     benchmark_results.append(res)
 
 
 print("Finished benchmark")
 import csv
-result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_results.csv")
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_results_tl20.csv")
 with open(result_csv, "w+") as f:
     csvf = csv.writer(f)
     csvf.writerows(benchmark_results)

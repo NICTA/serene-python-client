@@ -470,8 +470,17 @@ class SSD(object):
         This way we ensure that ssd is connected.
         Use with caution!
         """
-        unmapped_cols = set([col for col in self.dataset.columns if col not in self.columns] + self.unmapped_columns)
-        unknown_idx = len([d for d in self.data_nodes if d.full_label == UNKNOWN_CN + "." + UNKNOWN_DN])
+        # get all unmapped columns including those which are missing in ssd but are present in ds
+        unmapped_cols = set([col for col in self.dataset.columns if col not in self.columns])\
+            .union(self.unmapped_columns)
+        # get the list of unknown data nodes
+        unknown = [d for d in self.data_nodes if d.full_label == UNKNOWN_CN + "." + UNKNOWN_DN]
+        # change index to 0 on unknown data nodes which have None -- we need this to be able to add more data nodes
+        for dn in unknown:
+            if dn._index is None:
+                dn._index = 0
+        # get the number of already available unknown data nodes
+        unknown_idx = len(unknown)
         _logger.info("Mapping {} unknown columns for ssd {}".format(len(unmapped_cols), self._id))
         # TODO: check that Unknown is among ontologies
         for i, col in enumerate(unmapped_cols):
@@ -636,7 +645,7 @@ class SSD(object):
         - include mappings to columns
         - include All unknown
         :param include_all: boolean whether to include the connector node All
-        :param include_cols: boolean wheter to include column links
+        :param include_cols: boolean whether to include column links
         """
         # logging.info("Extracting rdf triples from ssd...")
         logging.info("Extracting rdf triples from ssd...")
