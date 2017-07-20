@@ -31,6 +31,13 @@ array[1..2,edges] of int: endpairs = array2d(1..2,edges,tails++heads);
 array [edges] of int: ws;               % Weights of edges in alignment graph
 var int: w;                             % Weight of the solution corresponding to the alignment part
 
+int: nb_unknown_nodes;
+set of int: unknowns = 3..2+nb_unknown_nodes;
+array [1..2+nb_unknown_nodes] of int: all_unk_nodes;
+int: node_all = all_unk_nodes[1];
+int: node_unk = all_unk_nodes[2];
+
+
 constraint steiner_tree(vs,es,adjacent,endpairs,w,ws);
 %constraint tree(vs,es,adjacent,endpairs);
 constraint w = sum(i in edges)(bool2int(es[i])*ws[i]);
@@ -47,12 +54,16 @@ constraint forall(att in anodes) (vs[att] == true); % Attribute nodes (normally 
 %constraint forall(i in index_set(dnodes)) (vs[dnodes[i]] <-> (sum (a in edges where adjacent[dnodes[i],a]) (bool2int(es[a]))) == 2);
 %constraint forall(i in index_set(dnodes)) (not(vs[dnodes[i]]) <-> (sum (a in edges where adjacent[dnodes[i],a]) (bool2int(es[a]))) == 0);
 
+set of int: extended_nodes = 1..nbV+nbA;
+array[extended_nodes] of var bool: extended_vs;
+constraint forall(n in nodes) (extended_vs[n] = vs[n]);
+
 %Matching problem:
 array [atts] of var int: match;                                       % Match between Attributes and Data nodes
 array [atts] of int: attribute_names;                                 % Just for printing
 %int: dummy = 0;
-constraint forall (a in atts) (match[a] in attribute_domains[a]);     % Must match someone in the domain (i.e. someone there is an edge to)
-constraint forall (a in atts) (vs[match[a]]);                         % The data node matched MUST be in the subgraph of the alignment
+constraint forall (a in atts) (match[a] in (attribute_domains[a] union {attribute_names[a]}));     % Must match someone in the domain (i.e. someone there is an edge to)
+constraint forall (a in atts) (extended_vs[match[a]]);                         % The data node matched MUST be in the subgraph of the alignment
 
 %include "alldifferent_except_0.mzn"; %ADD DUMMY TO THE DOMAINS!!!
 %constraint alldifferent_except_0(match);
@@ -61,12 +72,27 @@ constraint alldifferent(match);                                       % Exact ma
 
 %%% If there is no match to a data node, you should not have that datanode in the tree
 constraint forall (d in dnodes) (exists(a in atts)(match[a] == d) <-> vs[d]);
-constraint forall (d in dnodes) (vs[d] <-> sum(e in edges where adjacent[d,e])(es[e]) == 1); %Only 2 edges per data node
-
+%Only 2 edges per data node (for unknown nodes, there is only one edge to ClassNode "Unknown" anyway)
+constraint forall (d in dnodes) (vs[d] <-> sum(e in edges where adjacent[d,e])(es[e]) == 1); 
+constraint 
+	if nb_unknown_nodes > 0 
+	then
+	%If ClassNode "Unknown" is used, ClassNode "All" is used as well
+	vs[node_unk] <-> vs[node_all]
+	%ClassNode "Unknown" must be connected to classNode "All"
+	/\ vs[node_unk] <-> sum(e in edges where adjacent[node_unk,e] /\ adjacent[node_all,e])(es[e]) == 1
+	%ClassNode "All" has degree 2
+	/\ vs[node_all] <-> sum(e in edges where adjacent[node_all,e])(es[e]) == 2
+	else
+	true
+	endif;
 
 array[atts,int] of int: match_costs;
+array[atts,int] of int: extended_match_costs = array2d(atts,min(index_set_2of2(match_costs))..max([attribute_names[a] | a in atts]),
+	[ if b <= max(index_set_2of2(match_costs)) then match_costs[a,b] else 0 endif | 
+	    a in atts, b in min(index_set_2of2(match_costs))..max([attribute_names[a] | a in atts])]);
 var int: wm;
-constraint wm = sum(a in atts) (match_costs[a,match[a]]);
+constraint wm = sum(a in atts) (extended_match_costs[a,match[a]]);
 var int: obj = w + wm;
 
 
@@ -80,15 +106,17 @@ ann: naive_e = int_search(es,input_order,indomain_min,complete);
 ann: kruskal  = int_search([es[sorted_edges[e]] | e in edges],input_order,indomain_max,complete);
 ann: kruskal2 = int_search([es[sorted_edges[nbE + 1 - e]] | e in edges],input_order,indomain_min,complete);
 
+ann: assume(array[int] of var bool, bool);
+
 solve 
 %::int_search(match, input_order, indomain_min, complete)
-::seq_search([cheap_matches]++[kruskal2])
+::seq_search([assume([match[a] != attribute_names[a] | a in atts],true)]++[cheap_matches]++[kruskal2])
 minimize w + wm;
 
 output ["digraph {\n"]++
 [ "  \(n-1)"++ (if n in cnodes then "[fillcolor=\"#59d0a0\",style=filled];" else if n in dnodes then "[fillcolor=gold,style=filled];" else "" endif endif)++"\n" | n in nodes  where fix(vs[n])] ++ 
 [ "  "++if fix(heads[e]) in cnodes then "\(heads[e]-1) -> \(tails[e]-1)" else "\(tails[e]-1) -> \(heads[e]-1)" endif ++" [label=\"w=\(ws[e]/10000)\"];\n" | e in edges  where fix(es[e])] ++ 
 [ "  \(attribute_names[a]) [shape=hexagon];\n" | a in atts] ++
-[ "  \(match[a]-1) -> \(attribute_names[a]) [label=\"w=\(match_costs[a,fix(match[a])]/10000)\"];\n" | a in atts]++
+[ "  "++if fix(match[a] != attribute_names[a]) then "\(match[a]-1) -> \(attribute_names[a]) [label=\"w=\(match_costs[a,fix(match[a])]/10000)\"];\n" else "\(match[a]) -> \(match[a]) [label=\"Imposible match\"];\n" endif | a in atts]++
 ["  graph [label=\"\nobj = \(obj)\nwm = \(wm)\nw =\(w)\"]}"];
 
