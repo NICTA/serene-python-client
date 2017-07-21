@@ -1,7 +1,7 @@
 import sys
 import os
 from math import *
-from utils import *
+from .utils import *
 
 #############################################################
 ##                                                         ##

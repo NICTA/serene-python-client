@@ -47,32 +47,41 @@ def find_tags(graphml_root):
 
 
 class Graph:
+
     class UnknownInfo:
-        valid_unknown = {"All" : "ClassNode",
-                         "Unknown" : "ClassNode", 
+        valid_unknown = {"All": "ClassNode",
+                         "Unknown": "ClassNode",
                          "Unknown---unknown": "DataNode"}
+
         def __init__(self):
             self.all_node = -1
             self.class_node = -1
             self.data_nodes = []
+
         def hasAllNode(self):
             return self.all_node != -1
+
         def hasClassNode(self):
             return self.class_node != -1
+
         def hasDataNodes(self):
             return self.data_nodes != []
+
         def count(self):
             return len(self.data_nodes)
+
         def __str__(self):
             res = "["
-            res += str(self.all_node)+","
-            res += str(self.class_node)+ ("," if len(self.data_nodes) else "")
+            res += str(self.all_node) + ","
+            res += str(self.class_node) + ("," if len(self.data_nodes) else "")
             for i,x in enumerate(self.data_nodes):
                 res += str(x) + ("" if i == len(self.data_nodes) - 1 else ",")
             res += "];"
             return res
+
         def as_list(self):
-            return [self.all_node,self.class_node]+self.data_nodes
+            return [self.all_node, self.class_node] + self.data_nodes
+
         def add(self,node_id,node_label):
             if node_label == "All":
                 if self.hasAllNode():
@@ -87,7 +96,8 @@ class Graph:
                     raise RuntimeError("Node "+str(node_id)+" added to unknwon data "
                                        "nodes multiple times")
                 self.data_nodes.append(node_id)
-    def __init__(self, nb_nodes = 0, nb_edges = 0):
+
+    def __init__(self, nb_nodes=0, nb_edges=0):
         self.nb_nodes = nb_nodes
         self.nb_edges = nb_edges
         self.edges = []
@@ -101,16 +111,16 @@ class Graph:
         return range(0,self.nb_nodes)
 
     def isNode(self, n):
-        return n >=0  and n < self.nb_nodes
+        return self.nb_nodes > n >= 0
 
-    def addEdge(self, s, d, w = 0):
+    def addEdge(self, s, d, w=0):
         if self.isNode(s) and self.isNode(d):
             self.edges.append((s,d,w))
             self.inc[d].append(len(self.edges)-1)
             self.out[s].append(len(self.edges)-1)
             self.nb_edges += 1
 
-    def remEdge(self,e):
+    def remEdge(self, e):
         s = self.edges[e][0]
         d = self.edges[e][1]
         del self.edges[e]

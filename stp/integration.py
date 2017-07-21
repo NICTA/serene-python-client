@@ -155,9 +155,13 @@ class IntegrationGraph(object):
             cnodes = "cnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['ClassNode']])))
             dnodes = "dnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['DataNode']])))
             anodes = "anodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['Attribute']])))
+            unknown = "nb_unknown_nodes = " + str(len(g.unk_info.data_nodes)) + ";"
+            all_unk = "all_unk_nodes = " + list2dznlist(list(map(incr, g.unk_info.as_list())))
             f.write("{}\n".format(cnodes))
             f.write("{}\n".format(dnodes))
             f.write("{}\n".format(anodes))
+            f.write("{}\n".format(unknown))
+            f.write("{}\n".format(all_unk))
 
         return alignment_path
 
@@ -278,32 +282,39 @@ class IntegrationGraph(object):
         :param weight:
         :return:
         """
+        # making sure that nothing is done to the graph
+        copy_graph = self.graph.copy()
+
         def find_weight(links):
+            logging.debug(" finding weight {} among links {}".format(weight, links))
             if len(links) == 1:
-                return links[0]
-            else:
+                return links.popitem()[1]
+            elif len(links) > 1:
                 # we need to find the link with weight
                 # we take the first match!
-                for key, l in links.items():
-                    if abs(l["weight"] - weight) < 0.001:
-                        return l
+                for key, val in links.items():
+                    if abs(val["weight"] - weight) < 0.001:
+                        return val
+            else:
+                logging.error("No info for the link")
+                raise Exception("No info for the link")
 
-        if start not in self.graph and end not in self.graph:
+        if start not in copy_graph and end not in copy_graph:
             logging.error("Start and end nodes not in the integration graph.")
             print("Start and end nodes not in the integration graph.")
             return None
-        if end not in self.graph[start]:
-            if start not in self.graph[end]:
+        if end not in copy_graph[start]:
+            if start not in copy_graph[end]:
                 logging.error("Link cannot be found in the integration graph.")
                 print("Link cannot be found in the integration graph.")
                 return None
             else:
-                link = find_weight(self.graph[end][start])
+                link = find_weight(copy_graph[end][start])
                 link["source"] = end
                 link["target"] = start
 
         else:
-            link = find_weight(self.graph[start][end])
+            link = find_weight(copy_graph[start][end])
             link["source"] = start
             link["target"] = end
 
@@ -317,6 +328,9 @@ class IntegrationGraph(object):
         :param dot_file: optional file name to write the solution to the system to a dot file
         :return:
         """
+        # for some unknown reason stuff disappears from the graph
+        copy_graph = self.graph.copy()
+        logging.debug("Converting digraph {} to ssd".format(digraph))
         ag = AGraph(digraph)
         if dot_file:
             ag.write(dot_file)  # write the dot file to the system
@@ -335,31 +349,50 @@ class IntegrationGraph(object):
         # }
 
         attributes = [int(n) for n in ag.iternodes() if n.attr["shape"] == "hexagon"]
+        logging.debug("Attributes obtained: {}".format(attributes))
         sm_nodes = [int(n) for n in ag.iternodes() if n.attr["shape"] != "hexagon"]
+        logging.debug("Nodes for the semantic model obtained: {}".format(sm_nodes))
+
         for ind, ed in enumerate(ag.edges_iter()):
+            logging.debug("   working on edge {}: {}".format(ind, ed))
             start = int(ed[0])
             end = int(ed[1])
             if start not in attributes and end not in attributes:
                 # add a link to the semantic model
                 weight = float(ed.attr["label"].replace("w=", ""))
+                logging.debug("     sm link: start={}, end={}, weight={}".format(start, end, weight))
                 link = self._find_link(start, end, weight)
+                logging.debug("     sm link found")
                 link["id"] = ind
                 ssd_request["semanticModel"]["links"].append(link)
+                logging.debug("     adding link: {}".format(link))
             else:
                 # add a mapping
+                logging.debug("     adding mapping: start={}, end={}".format(start, end))
                 if start in attributes:
-                    column_id = self.graph.node[start]["columnId"]
+                    column_id = copy_graph.node[start]["columnId"]
                     ssd_request["mappings"].append({"attribute": column_id, "node": end})
+                    logging.debug("     adding mapping: column={}, end={}".format(column_id, end))
                 elif end in attributes:
-                    column_id = self.graph.node[end]["columnId"]
+                    column_id = copy_graph.node[end]["columnId"]
                     ssd_request["mappings"].append({"attribute": column_id, "node": start})
+                    logging.debug("     adding mapping: column={}, start={}".format(column_id, start))
+                else:
+                    logging.error("Something wrong with the edge: {}".format(ed))
+
+        logging.debug("Links have been added")
 
         for n in sm_nodes:
             # add nodes to the semantic model
-            node = self.graph.node[n]
+            node = copy_graph.node[n]
             node["status"] = "Predicted"
             node["id"] = n
             ssd_request["semanticModel"]["nodes"].append(node)
+
+        logging.debug("Conversion finished")
+
+        # getting the graph to its original state
+        # self.graph = copy_graph
 
         return ssd_request
 
@@ -377,6 +410,7 @@ class IntegrationGraph(object):
         # process output from byte to string
         output = output.decode("ascii")
         pat = re.compile("digraph \{.+?\}", re.DOTALL)
+        logging.debug("Chuffed output: {}".format(output))
 
         try:
             # get graphviz digraph
@@ -392,8 +426,8 @@ class IntegrationGraph(object):
             return result
 
         except Exception as e:
-            print("Conversion of chuffed solution failed {}".format(e.args[0]))
-            logging.error("Conversion of chuffed solution failed {}".format(e.args[0]))
+            print("Conversion of chuffed solution failed: {}".format(str(e)))
+            logging.error("Conversion of chuffed solution failed: {}".format(str(e)))
             return
 
     def solve(self, column_names=None, dot_file=None):

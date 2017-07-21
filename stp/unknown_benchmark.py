@@ -514,7 +514,7 @@ for i in train_sample:
 train_labels = set(train_labels)
 
 print("Starting benchmark")
-benchmark_results = [["octopus", "dataset", "ssd", "method", "status",
+benchmark_results = [["octopus", "dataset", "ssd", "method", "solution", "status",
                       "jaccard", "precision", "recall",
                       "karma_jaccard", "karma_precision", "karma_recall",
                       "time"]]
@@ -537,7 +537,7 @@ for dataset in datasets:
     print("---> trying chuffed")
     try:
         integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
-                                          match_threshold=0.05, simplify_graph=True)
+                                          match_threshold=0.01, simplify_graph=True)
         solution = integrat.solve(column_names)
         runtime = time.time() - start
         # print(solution)
@@ -579,7 +579,7 @@ for dataset in datasets:
 
 print("Finished benchmark")
 import csv
-result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_results_tl20.csv")
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_results_new.csv")
 with open(result_csv, "w+") as f:
     csvf = csv.writer(f)
     csvf.writerows(benchmark_results)
