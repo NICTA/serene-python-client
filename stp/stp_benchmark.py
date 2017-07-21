@@ -196,7 +196,7 @@ octo_local = sn.Octopus(
     modeling_props={
         "compatibleProperties": True,
         "ontologyAlignment": True,
-        "addOntologyPaths": True,
+        "addOntologyPaths": False,
         "mappingBranchingFactor": 50,
         "numCandidateMappings": 10,
         "topkSteinerTrees": 50,
@@ -380,7 +380,7 @@ from importlib import reload
 reload(integ)
 
 print("Starting benchmark")
-benchmark_results = [["octopus", "dataset", "method", "status",
+benchmark_results = [["octopus", "dataset", "ssd", "method", "solution", "status",
                       "jaccard", "precision", "recall",
                       "karma_jaccard", "karma_precision", "karma_recall",
                       "time"]]
@@ -396,46 +396,50 @@ for dataset in datasets:
 
     # cp solver approach
     print("---> trying chuffed")
+    start = time.time()
     try:
         integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
                                           match_threshold=0.05, simplify_graph=True)
-        start = time.time()
         solution = integrat.solve(column_names)
         runtime = time.time() - start
-        print(solution)
-        # convert solution to SSD
-        cp_ssd = SSD().update(json.loads(solution), sn._datasets, sn._ontologies)
-        eval = cp_ssd.evaluate(ssd, False, True)
-        comparison = sn.ssds.compare(cp_ssd, ssd, False, False)
-        res = [octo.id, dataset.id, "chuffed", "success",
-               eval["jaccard"], eval["precision"], eval["recall"],
-               comparison["jaccard"], comparison["precision"], comparison["recall"],
-               runtime]
+        # print(solution)
+        if len(solution) < 1:
+            raise Exception("Chuffed found no solutions!")
+        for idx, sol in enumerate(solution):
+            # convert solution to SSD
+            cp_ssd = SSD().update(json.loads(sol), sn._datasets, sn._ontologies)
+            eval = cp_ssd.evaluate(ssd, False, True)
+            comparison = sn.ssds.compare(cp_ssd, ssd, False, False)
+            res = [octo.id, dataset.id, ssd.id, "chuffed", idx, "success",
+                   eval["jaccard"], eval["precision"], eval["recall"],
+                   comparison["jaccard"], comparison["precision"], comparison["recall"],
+                   runtime]
+            benchmark_results.append(res)
     except Exception as e:
         print("CP solver failed to find solution: {}".format(e))
-        res = [octo.id, dataset.id, "chuffed", "fail", 0, 0, 0, 0, 0, 0, 0]
-    benchmark_results.append(res)
+        res = [octo.id, dataset.id, ssd.id, "chuffed", 0, "fail", 0, 0, 0, 0, 0, 0, time.time() - start]
+        benchmark_results.append(res)
 
     # karma approach
     print("---> trying karma")
+    start = time.time()
     try:
-        start = time.time()
         karma_ssd = octo.predict(dataset)[0].ssd
         runtime = time.time() - start
         eval = karma_ssd.evaluate(ssd, False, True)
         comparison = sn.ssds.compare(karma_ssd, ssd, False, False)
-        res = [octo.id, dataset.id, "karma", "success",
+        res = [octo.id, dataset.id, ssd.id, "karma", 0, "success",
                eval["jaccard"], eval["precision"], eval["recall"],
                comparison["jaccard"], comparison["precision"], comparison["recall"],
                runtime]
     except Exception as e:
         print("Karma failed to find solution: {}".format(e))
-        res = [octo.id, dataset.id, "karma", "fail", 0, 0, 0, 0, 0, 0, 0]
+        res = [octo.id, dataset.id, ssd.id, "karma", 0, "fail", 0, 0, 0, 0, 0, 0, time.time() - start]
     benchmark_results.append(res)
 
 print("Finished benchmark")
 import csv
-result_csv = os.path.join(project_path, "stp", "resources", "benchmark_results.csv")
+result_csv = os.path.join(project_path, "stp", "resources", "benchmark_results_tl20.csv")
 with open(result_csv, "w+") as f:
     csvf = csv.writer(f)
     csvf.writerows(benchmark_results)

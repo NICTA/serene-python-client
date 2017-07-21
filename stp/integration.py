@@ -1,5 +1,9 @@
 """
-License...
+Copyright (C) 2017 Data61 CSIRO
+Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+
+Implementation of the class to map a relational data source onto an ontology using a CP solver,
+in particular CHUFFED solver for constraint programming
 """
 
 import logging
@@ -30,28 +34,29 @@ class IntegrationGraph(object):
         """
         logging.info("Initializing integration graph for the dataset {} using octopus {}".format(
             dataset.id, octopus.id))
-        self.path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "stp")
-        self.octopus = octopus
-        self.dataset = dataset
-        self.match_threshold = match_threshold  # discard matches with confidence score < threshold
-        self.simplify_graph = simplify_graph
+        self._path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "stp")
+        self._octopus = octopus
+        self._dataset = dataset
+        self._match_threshold = match_threshold  # discard matches with confidence score < threshold
+        self._simplify_graph = simplify_graph
 
-        self.graph = octopus.get_alignment()  # the integration graph contains the alignment graph at the beginning
-        self.chuffed_path, self.mzn2fzn_exec, self.model_mzn, self.solns2out_exec, self.timeout = \
+        # the integration graph contains the alignment graph at the beginning
+        self.graph, self._node_map, self._link_map = octopus.get_alignment()
+        self._chuffed_path, self._mzn2fzn_exec, self._model_mzn, self._solns2out_exec, self._timeout = \
             self._read_config()
 
     def _read_config(self):
         logging.info("Reading configuration parameters for the integration graph")
 
-        with open(os.path.join(self.path, 'config.yaml'), 'r') as stream:
+        with open(os.path.join(self._path, 'config.yaml'), 'r') as stream:
             config = yaml.load(stream)
 
         return config["chuffed-path"], config["mzn2fzn-exec"], \
                config["model-path"], config["solns2out-exec"], config["timeout"]
 
     def __str__(self):
-        return "<IntegrationGraph({}, {}, match_threshold={}, simplify={})>".format(self.octopus, self.dataset,
-                                                                                    self.match_threshold, self.simplify_graph)
+        return "<IntegrationGraph({}, {}, match_threshold={}, simplify={})>".format(self._octopus, self._dataset,
+                                                                                    self._match_threshold, self._simplify_graph)
 
     def __repr__(self):
         return self.__str__()
@@ -66,14 +71,14 @@ class IntegrationGraph(object):
         """
         logging.info("Prediction for the dataset using octopus...")
         print("Prediction for the dataset using octopus...")
-        predicted_df = self.octopus.matcher_predict(self.dataset)
+        predicted_df = self._octopus.matcher_predict(self._dataset)
         # TODO: handle unknowns somehow...
         if column_names is None:
-            column_names = [c.name for c in self.dataset.columns]
+            column_names = [c.name for c in self._dataset.columns]
 
         logging.info("Adding match nodes to the alignment graph...")
 
-        threshold = min(max(0.0, self.match_threshold), 1.0)  # threshold should be in range [0,1]
+        threshold = min(max(0.0, self._match_threshold), 1.0)  # threshold should be in range [0,1]
         new_graph = self.graph.copy()
         # lookup from data node labels to node ids
         data_node_map = defaultdict(list)
@@ -87,6 +92,7 @@ class IntegrationGraph(object):
         logging.info("Node map constructed: {}".format(data_node_map))
 
         cur_id = 1 + new_graph.number_of_nodes()  # we start nodes here from this number
+        link_id = 1 + new_graph.number_of_edges()  # we start links here from this number
         scores_cols = [col for col in predicted_df.columns if col.startswith("scores_")]
 
         for idx, row in predicted_df.iterrows():
@@ -113,7 +119,8 @@ class IntegrationGraph(object):
                     logging.warning("Weird label {} for column".format(lab, row["column_name"]))
                     continue
                 for target in data_node_map[lab]:
-                    new_graph.add_edge(target, cur_id, attr_dict=link_data)
+                    new_graph.add_edge(target, cur_id, key=link_id, attr_dict=link_data)
+                    link_id += 1
 
             cur_id += 1
 
@@ -129,7 +136,7 @@ class IntegrationGraph(object):
         Convert the alignment graph into MiniZinc format
         :return: File name where the alignment graph is stored
         """
-        alignment_path = os.path.join(self.path, "resources", "storage", "{}.alignment.graphml".format(self.octopus.id))
+        alignment_path = os.path.join(self._path, "resources", "storage", "{}.alignment.graphml".format(self._octopus.id))
         # write alignment graph to the disk
         nx.write_graphml(self.graph, alignment_path)
 
@@ -137,9 +144,9 @@ class IntegrationGraph(object):
         content = ""
         with open(alignment_path) as f:
             content = f.read()
-        g = Graph.from_graphml(content, self.simplify_graph)
+        g = Graph.from_graphml(content, self._simplify_graph)
 
-        alignment_path = os.path.join(self.path, "resources", "storage", "{}.alignment.dzn".format(self.octopus.id))
+        alignment_path = os.path.join(self._path, "resources", "storage", "{}.alignment.dzn".format(self._octopus.id))
         logging.info("Writing the alignment graph to dzn: {}".format(alignment_path))
         incr = lambda x: x + 1
         with open(alignment_path, "w+") as f:
@@ -148,9 +155,13 @@ class IntegrationGraph(object):
             cnodes = "cnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['ClassNode']])))
             dnodes = "dnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['DataNode']])))
             anodes = "anodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['Attribute']])))
+            unknown = "nb_unknown_nodes = " + str(len(g.unk_info.data_nodes)) + ";"
+            all_unk = "all_unk_nodes = " + list2dznlist(list(map(incr, g.unk_info.as_list())))
             f.write("{}\n".format(cnodes))
             f.write("{}\n".format(dnodes))
             f.write("{}\n".format(anodes))
+            f.write("{}\n".format(unknown))
+            f.write("{}\n".format(all_unk))
 
         return alignment_path
 
@@ -164,8 +175,8 @@ class IntegrationGraph(object):
         """
         integration_graph = self._add_matches(column_names)
         self.graph = integration_graph
-        integration_path = os.path.join(self.path, "resources", "storage", "{}.integration.graphml".format(
-            self.dataset.id))
+        integration_path = os.path.join(self._path, "resources", "storage", "{}.integration.graphml".format(
+            self._dataset.id))
         nx.write_graphml(integration_graph, integration_path)
 
         logging.info("Converting matching problem to dzn...")
@@ -173,7 +184,7 @@ class IntegrationGraph(object):
         with open(integration_path) as f:
             content = f.read()
 
-        g = Graph.from_graphml(content, self.simplify_graph)
+        g = Graph.from_graphml(content, self._simplify_graph)
 
         attributes = g.node_types['Attribute']
 
@@ -186,8 +197,8 @@ class IntegrationGraph(object):
             max_val = max(max_val, max(d))
             doms.append(d)
 
-        matching_path = os.path.join(self.path, "resources", "storage", "{}.integration.dzn".format(
-            self.dataset.id))
+        matching_path = os.path.join(self._path, "resources", "storage", "{}.integration.dzn".format(
+            self._dataset.id))
         with open(matching_path, "w+") as f:
             f.write("nbA = {};\n".format(len(attributes)))
             f.write("attribute_domains ={}\n".format(list2D2dznsetlist(list(doms))))
@@ -232,13 +243,13 @@ class IntegrationGraph(object):
         """
         print("Generating .ozn and .fzn")
 
-        base_path = os.path.join(self.path, "resources", "storage", "{}.integration".format(
-            self.dataset.id))
+        base_path = os.path.join(self._path, "resources", "storage", "{}.integration".format(
+            self._dataset.id))
         # alignment graph should be converted first before matches are added
         alignment_path = self._alignment2dzn()
         match_path = self._matches2dzn(column_names)
         logging.info("Obtaining fzn and dzn files...".format(
-            self.dataset.id, self.octopus.id))
+            self._dataset.id, self._octopus.id))
 
         # args = ["" for _ in range(7)]
         # args[0] = "{}".format(self.mzn2fzn_exec)
@@ -250,8 +261,8 @@ class IntegrationGraph(object):
         # args[6] = "-O {}.ozn".format(base_path)  # output files
 
         command = "{} -I {}/globals/ {} {} {} -o {}.fzn " \
-                  "-O {}.ozn".format(self.mzn2fzn_exec, self.chuffed_path, self.model_mzn,
-                                                    alignment_path, match_path, base_path, base_path)
+                  "-O {}.ozn".format(self._mzn2fzn_exec, self._chuffed_path, self._model_mzn,
+                                     alignment_path, match_path, base_path, base_path)
 
         print("Executing command: {}".format(command))
         # output = subprocess.check_call(args)
@@ -271,32 +282,39 @@ class IntegrationGraph(object):
         :param weight:
         :return:
         """
+        # making sure that nothing is done to the graph
+        copy_graph = self.graph.copy()
+
         def find_weight(links):
+            logging.debug(" finding weight {} among links {}".format(weight, links))
             if len(links) == 1:
-                return links[0]
-            else:
+                return links.popitem()[1]
+            elif len(links) > 1:
                 # we need to find the link with weight
                 # we take the first match!
-                for key, l in links.items():
-                    if abs(l["weight"] - weight) < 0.001:
-                        return l
+                for key, val in links.items():
+                    if abs(val["weight"] - weight) < 0.001:
+                        return val
+            else:
+                logging.error("No info for the link")
+                raise Exception("No info for the link")
 
-        if start not in self.graph and end not in self.graph:
+        if start not in copy_graph and end not in copy_graph:
             logging.error("Start and end nodes not in the integration graph.")
             print("Start and end nodes not in the integration graph.")
             return None
-        if end not in self.graph[start]:
-            if start not in self.graph[end]:
+        if end not in copy_graph[start]:
+            if start not in copy_graph[end]:
                 logging.error("Link cannot be found in the integration graph.")
                 print("Link cannot be found in the integration graph.")
                 return None
             else:
-                link = find_weight(self.graph[end][start])
+                link = find_weight(copy_graph[end][start])
                 link["source"] = end
                 link["target"] = start
 
         else:
-            link = find_weight(self.graph[start][end])
+            link = find_weight(copy_graph[start][end])
             link["source"] = start
             link["target"] = end
 
@@ -310,13 +328,16 @@ class IntegrationGraph(object):
         :param dot_file: optional file name to write the solution to the system to a dot file
         :return:
         """
+        # for some unknown reason stuff disappears from the graph
+        copy_graph = self.graph.copy()
+        logging.debug("Converting digraph {} to ssd".format(digraph))
         ag = AGraph(digraph)
         if dot_file:
             ag.write(dot_file)  # write the dot file to the system
         # convert to SsdRequest: name, ontologies, semanticModel, mappings
         ssd_request = {
-            "ontologies": [onto.id for onto in self.octopus.ontologies],
-            "name": self.dataset.filename,
+            "ontologies": [onto.id for onto in self._octopus.ontologies],
+            "name": self._dataset.filename,
             "mappings": [],
             "semanticModel": {"nodes": [], "links": []}
         }
@@ -328,31 +349,50 @@ class IntegrationGraph(object):
         # }
 
         attributes = [int(n) for n in ag.iternodes() if n.attr["shape"] == "hexagon"]
+        logging.debug("Attributes obtained: {}".format(attributes))
         sm_nodes = [int(n) for n in ag.iternodes() if n.attr["shape"] != "hexagon"]
-        for ind, e in enumerate(ag.edges_iter()):
-            start = int(e[0])
-            end = int(e[1])
+        logging.debug("Nodes for the semantic model obtained: {}".format(sm_nodes))
+
+        for ind, ed in enumerate(ag.edges_iter()):
+            logging.debug("   working on edge {}: {}".format(ind, ed))
+            start = int(ed[0])
+            end = int(ed[1])
             if start not in attributes and end not in attributes:
                 # add a link to the semantic model
-                weight = float(e.attr["label"].replace("w=", ""))
+                weight = float(ed.attr["label"].replace("w=", ""))
+                logging.debug("     sm link: start={}, end={}, weight={}".format(start, end, weight))
                 link = self._find_link(start, end, weight)
+                logging.debug("     sm link found")
                 link["id"] = ind
                 ssd_request["semanticModel"]["links"].append(link)
+                logging.debug("     adding link: {}".format(link))
             else:
                 # add a mapping
+                logging.debug("     adding mapping: start={}, end={}".format(start, end))
                 if start in attributes:
-                    column_id = self.graph.node[start]["columnId"]
+                    column_id = copy_graph.node[start]["columnId"]
                     ssd_request["mappings"].append({"attribute": column_id, "node": end})
+                    logging.debug("     adding mapping: column={}, end={}".format(column_id, end))
                 elif end in attributes:
-                    column_id = self.graph.node[end]["columnId"]
+                    column_id = copy_graph.node[end]["columnId"]
                     ssd_request["mappings"].append({"attribute": column_id, "node": start})
+                    logging.debug("     adding mapping: column={}, start={}".format(column_id, start))
+                else:
+                    logging.error("Something wrong with the edge: {}".format(ed))
+
+        logging.debug("Links have been added")
 
         for n in sm_nodes:
             # add nodes to the semantic model
-            node = self.graph.node[n]
+            node = copy_graph.node[n]
             node["status"] = "Predicted"
             node["id"] = n
             ssd_request["semanticModel"]["nodes"].append(node)
+
+        logging.debug("Conversion finished")
+
+        # getting the graph to its original state
+        # self.graph = copy_graph
 
         return ssd_request
 
@@ -363,25 +403,31 @@ class IntegrationGraph(object):
         To obtain SSD object: SSD().update(json.loads(ssd_request), sn._datasets, sn._ontologies)
         :param output: byte stuff returned by calling Chuffed solver via subprocess
         :param dot_file: optional file name to write the solution to the system to a dot file
-        :return: Json for SsdRequest
+        :return: List of Json for SsdRequest
         """
         print("Converting Chuffed solution to ssd request")
         logging.info("Converting Chuffed solution to ssd request")
         # process output from byte to string
         output = output.decode("ascii")
         pat = re.compile("digraph \{.+?\}", re.DOTALL)
+        logging.debug("Chuffed output: {}".format(output))
 
         try:
             # get graphviz digraph
             # we take the last one since it's supposed to be the most optimal found so far
-            digraph = pat.findall(output)[-1]
-            ssd_request = self._digraph_to_ssd(digraph)
-            # to return json:
-            return json.dumps(ssd_request)
+            # logging.debug("Chuffed output: ", output)
+            # digraph = pat.findall(output)[-1]
+            # ssd_request = self._digraph_to_ssd(digraph, dot_file)
+            # # to return json:
+            # return json.dumps(ssd_request)
+
+            result = [json.dumps(self._digraph_to_ssd(digraph, dot_file)) for digraph in pat.findall(output)]
+
+            return result
 
         except Exception as e:
-            print("Conversion of chuffed solution failed {}".format(e.args[0]))
-            logging.error("Conversion of chuffed solution failed {}".format(e.args[0]))
+            print("Conversion of chuffed solution failed: {}".format(str(e)))
+            logging.error("Conversion of chuffed solution failed: {}".format(str(e)))
             return
 
     def solve(self, column_names=None, dot_file=None):
@@ -389,27 +435,27 @@ class IntegrationGraph(object):
         :param column_names: list of column names which should be present in the solution;
                 if None, all columns will be taken
         :param dot_file: optional file name to write the dot file to the system
-        :return:
+        :return: List of Json for SsdRequest
         """
         print("Solving the integration problem with Chuffed...")
         logging.info("Solving the integration problem with Chuffed...")
         base_path = self._generate_oznfzn(column_names)
 
         logging.info("Solving the problem for dataset {} using octopus {}".format(
-            self.dataset.id, self.octopus.id))
+            self._dataset.id, self._octopus.id))
         command = "{}/fzn_chuffed -verbosity=2 -time_out={} -lazy=true " \
-                  "-steinerlp=true {}.fzn | {} {}.ozn".format(self.chuffed_path,
-                                                              self.timeout,
+                  "-steinerlp=true {}.fzn | {} {}.ozn".format(self._chuffed_path,
+                                                              self._timeout,
                                                               base_path,
-                                                              self.solns2out_exec,
+                                                              self._solns2out_exec,
                                                               base_path)
         print("Executing command {}".format(command))
         logging.info("Executing command {}".format(command))
         try:
             output = subprocess.check_output(command, shell=True)
-        except Exception as e:
-            print(e)
-            logging.error("Chuffed failed: {}".format(e))
+        except Exception as esc:
+            print(esc)
+            logging.error("Chuffed failed: {}".format(esc))
             return
 
         return self._process_solution(output, dot_file)

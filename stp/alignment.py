@@ -315,7 +315,8 @@ def get_weight(source, target, label, integration_graph):
 
 def process_unknown(ssd, semantic_types):
     """
-
+    Modify provided ssd in such way that semantic types which were absent in the training set are mapped
+    to unknown.
     :param ssd:
     :param semantic_types:
     :return:

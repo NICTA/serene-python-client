@@ -279,8 +279,9 @@ class Octopus(object):
         """
         convert graph.json from Karma to nx object
         :param data: json read dictionary
-        :return:
+        :return: nx MultiDigraph for the alignment graph, also 2 lookup tables for node ids and link ids
         """
+
         logging.info("Converting karma alignment graph...")
 
         nodes = data["nodes"]
@@ -290,6 +291,7 @@ class Octopus(object):
 
         cur_id = 0
         node_map = {}
+        link_map = {}
         for node in nodes:
             # filling in the nodes
             node_map[node["id"]] = cur_id
@@ -305,14 +307,16 @@ class Octopus(object):
         cur_id = 0
         for link in links:
             # filling in the links
+            link_map[link["id"]] = cur_id
             source, uri, target = link["id"].split("---")
             link_data = {
+                "alignId": link["id"],
                 "type": link["type"],
                 "weight": link["weight"],
                 "label": get_label(uri),
                 "prefix": get_prefix(uri)
             }
-            g.add_edge(node_map[source], node_map[target], attr_dict=link_data)
+            g.add_edge(node_map[source], node_map[target], key=cur_id, attr_dict=link_data)
             cur_id += 1
             if link["type"] in ["DataPropertyLink", "ClassInstanceLink"]:
                 # change data nodes
@@ -323,7 +327,7 @@ class Octopus(object):
         logging.info("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
         print("Karma alignment graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
 
-        return g
+        return g, node_map, link_map
 
     def get_alignment(self):
         """Get alignment graph for octopus at position key and convert it to networkx MultiDiGraph!"""
