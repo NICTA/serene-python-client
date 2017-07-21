@@ -29,21 +29,28 @@ def find_tags(graphml_root):
     if len(type_label) != 1:
         raise RuntimeError("Wrong format in graphml:\n\tToo many or no key indicating"
         " type of nodes")
-    type_label = type_label[0]
+    type_label = type_label[0].attrib['id']
 
     weight_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='weight'][@for='edge']")
     if len(weight_label) != 1:
         raise RuntimeError("Wrong format in graphml:\n\t: Too many or no key indicating"
         " weight of edges")
-    weight_label = weight_label[0]
+    weight_label = weight_label[0].attrib['id']
 
     label_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='label'][@for='node']")
     if len(label_label) != 1:
         raise RuntimeError("Wrong format in graphml:\n\t: Too many or no key indicating"
         " label of nodes")
-    label_label = label_label[0]
+    label_label = label_label[0].attrib['id']
 
-    return (type_label.attrib['id'],weight_label.attrib['id'],label_label.attrib['id'])
+    edgekey_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='key'][@for='edge']")
+    if len(edgekey_label) != 1:
+        edgekey_label = None
+        print("WARNING: No key for edges is provided in graphml, so no patterns will be supported")
+    else:
+        edgekey_label = edgekey_label[0].attrib['id']
+
+    return (type_label,weight_label,label_label,edgekey_label)
 
 
 class Graph:
@@ -91,6 +98,7 @@ class Graph:
         self.nb_nodes = nb_nodes
         self.nb_edges = nb_edges
         self.edges = []
+        self.edge_ids = {}
         self.inc = [[] for i in self.nodes()]
         self.out = [[] for i in self.nodes()]
         self.node_types = {}
@@ -103,12 +111,16 @@ class Graph:
     def isNode(self, n):
         return n >=0  and n < self.nb_nodes
 
-    def addEdge(self, s, d, w = 0):
+    def addEdge(self, s, d, w = 0, ident = None):
         if self.isNode(s) and self.isNode(d):
             self.edges.append((s,d,w))
             self.inc[d].append(len(self.edges)-1)
             self.out[s].append(len(self.edges)-1)
             self.nb_edges += 1
+            if ident == None:
+                self.edge_ids[self.nb_edges - 1] = self.nb_edges - 1
+            else:
+                self.edge_ids[ident] = self.nb_edges - 1
 
     def remEdge(self,e):
         s = self.edges[e][0]
@@ -122,6 +134,7 @@ class Graph:
             self.inc[n] = map(lambda x: x if x < e else x - 1 ,self.inc[n])
             self.out[n] = map(lambda x: x if x < e else x - 1 ,self.out[n])
         self.nb_edges -= 1
+        del self.edge_ids[e]
 
     def otherNode(self, edge, node):
         if node != self.edges[edge][0] and node != self.edges[edge][1]:
@@ -250,7 +263,7 @@ class Graph:
     @staticmethod
     def from_graphml(content, simplify_graph=False):
         graphml_root = ET.fromstring(content)
-        (type_label, weight_label,label_label) = map(str, find_tags(graphml_root))
+        (type_label, weight_label,label_label,edgekey_label) = map(str, find_tags(graphml_root))
         g = Graph()
 
         dic = {}  #  Conversion from node ID in the file to internal node IDs
@@ -309,7 +322,13 @@ class Graph:
                 raise RuntimeError("Wrong format in edge tag:\n\tNo weight indication")
             edge_weight = float(edge_weight[0].text)
             edge_weight = int(weight_conversion(edge_weight))
-            g.addEdge(s,d,edge_weight)
+            edge_id = None
+            if edgekey_label != None:
+                edge_id = e.findall(".//"+nsfy("data")+"[@key='"+edgekey_label+"']")
+                if len(edge_id) != 1:
+                    raise RuntimeError("Wrong format in edge tag:\n\tNo ID indication")
+                edge_id = edge_id[0].text
+            g.addEdge(s,d,edge_weight,edge_id)
 
         if simplify_graph:
             g.simplify()

@@ -29,7 +29,7 @@ array [edges] of nodes: heads;          % endpoint 1 of each edge (The graph is 
 array [edges] of nodes: tails;          % endpoint 2 of each edge
 array[1..2,edges] of int: endpairs = array2d(1..2,edges,tails++heads);
 array [edges] of int: ws;               % Weights of edges in alignment graph
-var int: w;                             % Weight of the solution corresponding to the alignment part
+var 0..sum(ws): w;                             % Weight of the solution corresponding to the alignment part
 
 int: nb_unknown_nodes;
 set of int: unknowns = 3..2+nb_unknown_nodes;
@@ -87,13 +87,30 @@ constraint
 	true
 	endif;
 
+
+
+
+%%Patterns
+int: nb_patterns;
+set of int: PATTS = 1..nb_patterns;
+array[PATTS] of int: patterns_w;
+array[PATTS] of set of int: patterns;
+array[PATTS] of var bool: c_p;
+constraint forall (p in PATTS) ((sum (e in patterns[p]) (es[e]) == card(patterns[p])) <-> c_p[p]);
+var 0..sum(patterns_w): wp;
+constraint if nb_patterns = 0 then wp = 0 else wp = sum(p in PATTS) (c_p[p] * patterns_w[p]) endif;
+
+
+
+
+
 array[atts,int] of int: match_costs;
 array[atts,int] of int: extended_match_costs = array2d(atts,min(index_set_2of2(match_costs))..max([attribute_names[a] | a in atts]),
 	[ if b <= max(index_set_2of2(match_costs)) then match_costs[a,b] else 0 endif | 
 	    a in atts, b in min(index_set_2of2(match_costs))..max([attribute_names[a] | a in atts])]);
-var int: wm;
+var 0..sum(a in atts)(sum(n in index_set_2of2(match_costs))(match_costs[a,n])): wm;
 constraint wm = sum(a in atts) (extended_match_costs[a,match[a]]);
-var int: obj = w + wm;
+var int: obj = w + wm - wp;
 
 
 %For the startegy
@@ -111,12 +128,12 @@ ann: assume(array[int] of var bool, bool);
 solve 
 %::int_search(match, input_order, indomain_min, complete)
 ::seq_search([assume([match[a] != attribute_names[a] | a in atts],true)]++[cheap_matches]++[kruskal2])
-minimize w + wm;
+minimize obj;
 
 output ["digraph {\n"]++
 [ "  \(n-1)"++ (if n in cnodes then "[fillcolor=\"#59d0a0\",style=filled];" else if n in dnodes then "[fillcolor=gold,style=filled];" else "" endif endif)++"\n" | n in nodes  where fix(vs[n])] ++ 
 [ "  "++if fix(heads[e]) in cnodes then "\(heads[e]-1) -> \(tails[e]-1)" else "\(tails[e]-1) -> \(heads[e]-1)" endif ++" [label=\"w=\(ws[e]/10000)\"];\n" | e in edges  where fix(es[e])] ++ 
 [ "  \(attribute_names[a]) [shape=hexagon];\n" | a in atts] ++
 [ "  "++if fix(match[a] != attribute_names[a]) then "\(match[a]-1) -> \(attribute_names[a]) [label=\"w=\(match_costs[a,fix(match[a])]/10000)\"];\n" else "\(match[a]) -> \(match[a]) [label=\"Imposible match\"];\n" endif | a in atts]++
-["  graph [label=\"\nobj = \(obj)\nwm = \(wm)\nw =\(w)\"]}"];
+["  graph [label=\"\nobj = \(obj)\nwm = \(wm)\nwp = \(wp)\nw = \(w)\"]}"];
 
