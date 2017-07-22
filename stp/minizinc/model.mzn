@@ -64,6 +64,7 @@ array [atts] of int: attribute_names;                                 % Just for
 %int: dummy = 0;
 constraint forall (a in atts) (match[a] in (attribute_domains[a] union {attribute_names[a]}));     % Must match someone in the domain (i.e. someone there is an edge to)
 constraint forall (a in atts) (extended_vs[match[a]]);                         % The data node matched MUST be in the subgraph of the alignment
+constraint forall (a in atts) (match[a] != attribute_names[a] <-> extended_vs[attribute_names[a]] = false);
 
 %include "alldifferent_except_0.mzn"; %ADD DUMMY TO THE DOMAINS!!!
 %constraint alldifferent_except_0(match);

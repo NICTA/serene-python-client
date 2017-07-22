@@ -99,6 +99,7 @@ class Graph:
         self.nb_edges = nb_edges
         self.edges = []
         self.edge_ids = {}
+        self.edge_ids_inv = {}
         self.inc = [[] for i in self.nodes()]
         self.out = [[] for i in self.nodes()]
         self.node_types = {}
@@ -119,8 +120,10 @@ class Graph:
             self.nb_edges += 1
             if ident == None:
                 self.edge_ids[self.nb_edges - 1] = self.nb_edges - 1
+                self.edge_ids_inv[self.nb_edges - 1] = self.nb_edges - 1
             else:
                 self.edge_ids[ident] = self.nb_edges - 1
+                self.edge_ids_inv[self.nb_edges - 1] = ident
 
     def remEdge(self,e):
         s = self.edges[e][0]
@@ -134,7 +137,9 @@ class Graph:
             self.inc[n] = map(lambda x: x if x < e else x - 1 ,self.inc[n])
             self.out[n] = map(lambda x: x if x < e else x - 1 ,self.out[n])
         self.nb_edges -= 1
-        del self.edge_ids[e]
+        if (e in self.edge_ids_inv) and (self.edge_ids_inv[e] in self.edge_ids):
+            del self.edge_ids[self.edge_ids_inv[e]]
+            del self.edge_ids_inv[e]
 
     def otherNode(self, edge, node):
         if node != self.edges[edge][0] and node != self.edges[edge][1]:
