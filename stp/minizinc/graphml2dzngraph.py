@@ -15,7 +15,7 @@ from utils import *
 simplify_graph = False #Remove edges that are heavier than some path between its endpoints.
 parse_patterns = False
 ##Check arguments
-if len(sys.argv) < 2 or len(sys.argv) > 3:
+if len(sys.argv) < 2 or len(sys.argv) > 4:
     raise RuntimeError("Wrong number of arguments\n\t"
     "Usage: "+os.path.basename(__file__)+" alignment.graphml [-s]\n"
     "\t flag -s indicates to implement simplification of the graph")
