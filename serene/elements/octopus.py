@@ -13,6 +13,10 @@ from .dataset import DataSet
 from .semantics.ontology import Ontology
 from .semantics.ssd import SSD
 import networkx as nx
+import json
+import csv
+import os
+
 try:
     from math import inf
 except ImportError:
@@ -204,6 +208,17 @@ class Octopus(object):
             msg = "Only SSD or Ontologies can be removed from the Octopus"
             raise ValueError(msg)
 
+    def _state(self):
+        """Query the server for the model state"""
+        json = self._session.octopus_api.item(self.id)
+        octo = self.update(json,
+                           self._session,
+                           self._dataset_endpoint,
+                           self._model_endpoint,
+                           self._ontology_endpoint,
+                           self._ssd_endpoint)
+        return octo.state
+
     def train(self):
         """
         Send the training request to the API.
@@ -220,20 +235,10 @@ class Octopus(object):
 
         self._session.octopus_api.train(self.id)  # launch training
 
-        def state():
-            """Query the server for the model state"""
-            json = self._session.octopus_api.item(self.id)
-            octo = self.update(json,
-                               self._session,
-                               self._dataset_endpoint,
-                               self._model_endpoint,
-                               self._ontology_endpoint,
-                               self._ssd_endpoint)
-            return octo.state
 
         def is_finished():
             """Check if training is finished"""
-            return state().status in {Status.COMPLETE, Status.ERROR}
+            return self._state().status in {Status.COMPLETE, Status.ERROR}
 
         print("Training model {}...".format(self.id))
         iter = 0
@@ -244,7 +249,81 @@ class Octopus(object):
 
         print("Training complete for {}".format(self.id))
         logging.info("Training complete for {}.".format(self.id))
-        return state().status == Status.COMPLETE
+        return self._state().status == Status.COMPLETE
+
+    def get_patterns(self, path):
+        """
+        Send the request to the API to perform pattern mining and pattern embeddings.
+        Then a new csv is composed from the obtained files.
+
+        Args:
+            path
+
+        Returns: string -- path of the csv file with patterns
+
+        """
+        if not self._stored or self._session is None:
+            msg = "Octopus {} is not stored on the server. Upload using <Serene>.octopii.upload()".format(self.id)
+            raise Exception(msg)
+
+        if self._state().status != Status.COMPLETE:
+            msg = "Octopus {} is not trained. Use octopus.train()".format(self.id)
+            raise Exception(msg)
+
+        embeds_path = self._session.octopus_api.patterns(self.id)  # launch training
+        logging.info("Embeddings found for {}.".format(self.id))
+
+        graph_j = os.path.join(embeds_path, "graphs.json")
+        edges_j = os.path.join(embeds_path, "edges.json")
+
+        patterns = []
+
+        alignment, _, _ = self.get_alignment()
+        align_edges = alignment.edges(data=True, keys=True)
+        uri_lookup = dict()
+
+        for (_, _, key, data) in align_edges:
+            uri_lookup[data["alignId"]] = key
+
+        logging.info("---- processing edge lines!!!")
+        edge_lines = dict()
+        with open(edges_j) as fj:
+            for line in fj:
+                proc = json.loads(line)
+                if proc["data"]["alignId"] in uri_lookup:
+                    edge_lines[proc["id"]] = uri_lookup[proc["data"]["alignId"]]
+                else:
+                    logging.warning("Missing alignId: ", proc["data"]["alignId"])
+
+        logging.info("---- processing graph lines!!!")
+        graph_lines = []
+        with open(graph_j) as fj:
+            for line in fj:
+                proc = json.loads(line)
+                el = proc['data']['__variable_mapping'].replace("}", "").replace("{", "").split(",")
+                edges = []
+                for e in el:
+                    pos = e.strip().split("=")
+                    if pos[0].startswith("__e"):
+                        if pos[1] in edge_lines:
+                            edges.append(edge_lines[pos[1]])
+                        else:
+                            logging.warning("     missing edge id: ", pos[1])
+
+                graph_lines.append([proc['id'],
+                                    proc['data']['support'],
+                                    len(edges),
+                                    sorted(edges)])
+
+        graph_lines.sort(key=lambda x: x[3])
+
+        with open(path, "w+") as f:
+            csv_writer = csv.writer(f)
+            csv_writer.writerow(["pattern", "support", "num_edges", "edge_keys"])
+            csv_writer.writerows(graph_lines)
+
+        logging.info("Patterns have been written to csv {}.".format(path))
+        return path
 
     def predict(self, dataset):
         """

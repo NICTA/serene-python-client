@@ -1,7 +1,7 @@
 import sys
 import os
 from math import *
-from utils import *
+from .utils import *
 
 #############################################################
 ##                                                         ##
@@ -24,9 +24,9 @@ if not os.path.isfile(graphml_file):
     raise RuntimeError("Wrong argument:\n\t"+graphml_file+" is not a file")
     
 if (len(sys.argv) == 3) and sys.argv[2] == '-s':
-    simplify_graph = True;
+    simplify_graph = True
 if (len(sys.argv) == 4) and sys.argv[3] == '-s':
-    simplify_graph = True;
+    simplify_graph = True
 if (len(sys.argv) == 3 and sys.argv[2] != '-s') or len(sys.argv) == 4:
     parse_patterns = True
 content = ""

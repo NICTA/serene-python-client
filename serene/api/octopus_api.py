@@ -212,6 +212,56 @@ class OctopusAPI(HTTPObject):
 
         return r.json()
 
+    def patterns(self, key):
+        """
+        Post request to mine frequent patterns for the octopus and find embeddings for those patterns in the
+        alignment graph of the octopus. Octopus should be trained.
+
+        Args:
+            key: integer which is the key of the octopus in the repository
+
+        Returns: string which is the path to the folder with pattern embeddings
+
+        """
+        logging.debug('Sending request to the Serene server to perform '
+                      'pattern mining for the octopus {}'.format(key))
+        uri = urljoin(self._uri, self.join_urls(str(key), "patterns"))
+
+        try:
+            r = self.connection.post(uri)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to mine patterns for octopus ", e)
+
+        self._handle_errors(r, "POST " + uri)
+
+        return r.json()
+
+    def predict_ssd(self, key, ssd_json):
+        """
+        Post request to perform prediction based on the octopus for the ssd which might be incomplete.
+
+        Args:
+            key: integer which is the key of the octopus in the repository
+            ssd_json: json of ssd for which prediction will be done
+
+        Returns: JSON object with predicted semantic models and associated scores in there
+
+        """
+        logging.debug('Sending request to the Serene server to perform '
+                      'a prediction based on the octopus {} for the ssd'.format(key))
+        uri = urljoin(self._uri, self.join_urls(str(key), "ssd-predict"))
+
+        try:
+            r = self.connection.post(uri, data=ssd_json)
+        except Exception as e:
+            logging.error(e)
+            raise InternalError("Failed to predict octopus for ssd ", e)
+
+        self._handle_errors(r, "POST " + uri)
+
+        return r.json()
+
     def keys(self):
         """
         List ids of all models in the Model repository at the Schema Matcher server.
