@@ -16,20 +16,21 @@ import subprocess
 import re
 import json
 from pygraphviz import AGraph
-from serene import SSD
+from serene.elements.semantics.base import KARMA_DEFAULT_NS, DEFAULT_NS, ALL_CN, OBJ_PROP, UNKNOWN_CN, UNKNOWN_DN
 
 
 class IntegrationGraph(object):
     """
     Integration graph to map a relational data source onto an ontology using a CP solver
     """
-    def __init__(self, octopus, dataset, match_threshold=0.0, simplify_graph=False):
+    def __init__(self, octopus, dataset, match_threshold=0.0, simplify_graph=False, patterns=None):
         """
         Octopus should be trained.
         :param octopus: Octopus object which is used to integrate the new data source
         :param dataset: Dataset object for which integration is performed
         :param match_threshold: threshold on match links
         :param simplify_graph: Remove edges that are heavier than some path between its endpoints
+        :param patterns: csv file with patterns, None if there will be no patterns
         :return:
         """
         logging.info("Initializing integration graph for the dataset {} using octopus {}".format(
@@ -39,11 +40,62 @@ class IntegrationGraph(object):
         self._dataset = dataset
         self._match_threshold = match_threshold  # discard matches with confidence score < threshold
         self._simplify_graph = simplify_graph
+        self._patterns = patterns
 
         # the integration graph contains the alignment graph at the beginning
-        self.graph, self._node_map, self._link_map = octopus.get_alignment()
+        self.graph, self._node_map, self._link_map = self._get_initial_alignment()
         self._chuffed_path, self._mzn2fzn_exec, self._model_mzn, self._solns2out_exec, self._timeout = \
             self._read_config()
+
+    def _get_initial_alignment(self):
+        """
+        Get initial alignment based on the octopus.
+        Depending on the dataset, we do some further changes
+        :return:
+        """
+
+        graph, node_map, link_map = self._octopus.get_alignment()
+
+        # modify the number of unknown data nodes in the alignment graph depending on the number of attributes
+        num_attrs = len(self._dataset.columns)
+
+        unknown_dn = [n_id for (n_id, n_data) in graph.nodes(data=True) if n_data["type"] == "DataNode" and
+                      n_data["label"] == UNKNOWN_CN + "---" + UNKNOWN_DN]
+
+        unknown_cn = [n_id for (n_id, n_data) in graph.nodes(data=True) if n_data["type"] == "ClassNode" and
+                      n_data["label"] == UNKNOWN_CN]
+        if len(unknown_cn) > 1:
+            logging.error("Alignment graph has more than one unknown class node. This is wrong")
+            raise Exception("Alignment graph has more than one unknown class node. This is wrong")
+        if len(unknown_cn) < 1:
+            logging.info("There is no unknown class node."
+                         "No manipulation to the original alignment graph will be done.")
+            return graph, node_map, link_map
+
+        if num_attrs > len(unknown_dn):
+            # add more unknown data nodes
+            max_id = max(n for n in graph.nodes()) + 1
+            unknown_cn = unknown_cn[0]
+            max_edge = max(k for (source, target, k) in graph.edges(data=False, keys=True)) + 1
+
+            unknown_data = {'lab': 'Unknown1---unknown', 'label': UNKNOWN_CN + "---" + UNKNOWN_DN,
+                            'prefix': DEFAULT_NS,
+                            'type': 'DataNode'}
+            for i in range(num_attrs - len(unknown_dn)):
+                graph.add_node(max_id + i, attr_dict=unknown_data)
+                unknown_edata = {'alignId': DEFAULT_NS + UNKNOWN_CN + "1---" +
+                                            DEFAULT_NS + UNKNOWN_DN + "---attr" + str(i),
+                                 'label': UNKNOWN_DN,
+                                 'prefix': DEFAULT_NS,
+                                 'type': 'DataPropertyLink',
+                                 'weight': 2.0}
+                graph.add_edge(unknown_cn, max_id+i, key=max_edge+i, attr_dict=unknown_edata)
+
+        elif num_attrs < len(unknown_dn):
+            # remove extra unknown data nodes
+            [graph.remove_node(n_id) for n_id in unknown_dn[num_attrs:]]
+
+        return graph, node_map, link_map
 
     def _read_config(self):
         logging.info("Reading configuration parameters for the integration graph")
@@ -55,8 +107,12 @@ class IntegrationGraph(object):
                config["model-path"], config["solns2out-exec"], config["timeout"]
 
     def __str__(self):
-        return "<IntegrationGraph({}, {}, match_threshold={}, simplify={})>".format(self._octopus, self._dataset,
-                                                                                    self._match_threshold, self._simplify_graph)
+        return "<IntegrationGraph({}, {}, " \
+               "match_threshold={}, simplify={}, patterns={})>".format(self._octopus,
+                                                                       self._dataset,
+                                                                       self._match_threshold,
+                                                                       self._simplify_graph,
+                                                                       self._patterns)
 
     def __repr__(self):
         return self.__str__()
@@ -72,7 +128,6 @@ class IntegrationGraph(object):
         logging.info("Prediction for the dataset using octopus...")
         print("Prediction for the dataset using octopus...")
         predicted_df = self._octopus.matcher_predict(self._dataset)
-        # TODO: handle unknowns somehow...
         if column_names is None:
             column_names = [c.name for c in self._dataset.columns]
 
@@ -136,15 +191,32 @@ class IntegrationGraph(object):
         Convert the alignment graph into MiniZinc format
         :return: File name where the alignment graph is stored
         """
-        alignment_path = os.path.join(self._path, "resources", "storage", "{}.alignment.graphml".format(self._octopus.id))
+        alignment_path = os.path.join(
+            self._path, "resources", "storage", "{}.alignment.graphml".format(self._octopus.id))
         # write alignment graph to the disk
         nx.write_graphml(self.graph, alignment_path)
 
         logging.info("Unnecessary conversion of the alignment graph:")
-        content = ""
         with open(alignment_path) as f:
             content = f.read()
         g = Graph.from_graphml(content, self._simplify_graph)
+
+        logging.info("Processing patterns")
+        patterns = []
+        patterns_w = []
+        if self._patterns:
+            with open(self._patterns) as f:
+                content = f.readlines()
+            for i in range(1, len(content)):
+                l = content[i].strip().replace(' ', '').replace('"', '').replace('[', '').replace(']', '')
+                l = l.split(',')
+                # pattern,support,num_edges,edge_keys
+                w = int(weight_conversion(float(l[1])))
+                edgs = map(lambda x: g.edge_ids[x] if x in g.edge_ids else None, l[3:len(l)])
+                edgs = [e for e in edgs if e is not None]
+                if len(edgs) > 0:
+                    patterns_w.append(w)
+                    patterns.append(edgs)
 
         alignment_path = os.path.join(self._path, "resources", "storage", "{}.alignment.dzn".format(self._octopus.id))
         logging.info("Writing the alignment graph to dzn: {}".format(alignment_path))
@@ -157,11 +229,19 @@ class IntegrationGraph(object):
             anodes = "anodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['Attribute']])))
             unknown = "nb_unknown_nodes = " + str(len(g.unk_info.data_nodes)) + ";"
             all_unk = "all_unk_nodes = " + list2dznlist(list(map(incr, g.unk_info.as_list())))
+
+            nb_pats = "nb_patterns = " + str(len(patterns)) + ";"
+            pats_w = "patterns_w = " + str(patterns_w) + ";"
+            pats = "patterns = " + list2D2dznsetlist(patterns)
+
             f.write("{}\n".format(cnodes))
             f.write("{}\n".format(dnodes))
             f.write("{}\n".format(anodes))
             f.write("{}\n".format(unknown))
             f.write("{}\n".format(all_unk))
+            f.write("{}\n".format(nb_pats))
+            f.write("{}\n".format(pats_w))
+            f.write("{}\n".format(pats))
 
         return alignment_path
 
@@ -180,7 +260,6 @@ class IntegrationGraph(object):
         nx.write_graphml(integration_graph, integration_path)
 
         logging.info("Converting matching problem to dzn...")
-        content = ""
         with open(integration_path) as f:
             content = f.read()
 
@@ -204,7 +283,7 @@ class IntegrationGraph(object):
             f.write("attribute_domains ={}\n".format(list2D2dznsetlist(list(doms))))
             # print("attribute_domains =", list2D2dznsetlist(list(doms)))
 
-            mc = [[0 for j in range(0, max_val + 1)] for i in attributes]
+            mc = [[0 for _ in range(0, max_val + 1)] for i in attributes]
             for i in range(0, len(g.edges)):
                 e = g.edges[i]
                 if e[0] in attributes:

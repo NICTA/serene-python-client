@@ -145,54 +145,6 @@ for ds in os.listdir(dataset_dir):
 # ======================
 from copy import deepcopy
 
-def fill_unknown(original_ssd):
-    """
-    Make all unmapped columns from the dataset as instances of unknown.
-    Then add Thing node and make all class nodes as subclass of Thing.
-    This way we ensure that ssd is connected
-    """
-    s = original_ssd  # maybe make a deep copy here?
-    unmapped_cols = set([col for col in s.dataset.columns if col not in s.columns]).union(s.unmapped_columns)
-    # number of unknown data nodes so far
-    unknown_idx = len([d for d in s.data_nodes if d.full_label == UNKNOWN_CN + "." + UNKNOWN_DN])
-    print("unmapped_cols: ", unmapped_cols)
-    for i, col in enumerate(unmapped_cols):
-        s._semantic_model.add_node(col, index=col.id)
-        data_node = DataNode(ClassNode(UNKNOWN_CN, prefix=DEFAULT_NS), label=UNKNOWN_DN,
-                             index=i + unknown_idx,
-                             prefix=DEFAULT_NS)
-        s.map(col, data_node)
-    if len(unmapped_cols):
-        s = add_all_node(s)
-    return s
-
-def add_all_node(original_ssd):
-    """Add All node to ssd and make all class nodes connect to All"""
-    ssd = original_ssd
-    class_nodes = ssd.class_nodes
-    prefix = "http://au.csiro.data61/serene/dev#"
-    thing_node = ClassNode(ALL_CN, prefix=prefix)
-    ssd._semantic_model.add_node(thing_node)
-    for cn in class_nodes:
-        if cn != thing_node:
-            ssd._semantic_model.add_edge(
-                thing_node, cn, ObjectLink("connect", prefix=prefix))
-    return ssd
-
-def add_thing_node(original_ssd):
-    """Add Thing node to ssd and make all class nodes subclass of Thing"""
-    ssd = original_ssd
-    class_nodes = ssd.class_nodes
-    prefix = "http://www.w3.org/2000/01/rdf-schema#"
-    thing_node = ClassNode("Thing", prefix="http://www.w3.org/2002/07/owl#")
-    ssd._semantic_model.add_node(thing_node)
-    for cn in class_nodes:
-        ssd._semantic_model.add_edge(
-            cn, thing_node, SubClassLink("subClassOf", prefix=prefix))
-    return ssd
-
-
-
 new_ssds = [deepcopy(s) for s in sn.ssds.items]
 
 for s in new_ssds:
@@ -217,6 +169,17 @@ for s in new_ssds:
         print(s)
         print(f)
         print()
+
+
+# =======================
+#
+#  Leave-one-out experiments
+#
+# =======================
+
+for i, ssd in enumerate(new_ssds):
+
+
 # =======================
 #
 #  Step 6: Specify training and test samples
@@ -232,7 +195,7 @@ for i, ssd in enumerate(new_ssds):
     # else:
     #     # if "s07" in ds.filename or "s08" in ds.filename:
     #     train_sample.append(i)
-    if i < 15:
+    if i < 14:
         test_sample.append(i)
     else:
         train_sample.append(i)

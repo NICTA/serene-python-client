@@ -208,7 +208,7 @@ class Octopus(object):
             msg = "Only SSD or Ontologies can be removed from the Octopus"
             raise ValueError(msg)
 
-    def _state(self):
+    def _get_state(self):
         """Query the server for the model state"""
         json = self._session.octopus_api.item(self.id)
         octo = self.update(json,
@@ -238,7 +238,7 @@ class Octopus(object):
 
         def is_finished():
             """Check if training is finished"""
-            return self._state().status in {Status.COMPLETE, Status.ERROR}
+            return self._get_state().status in {Status.COMPLETE, Status.ERROR}
 
         print("Training model {}...".format(self.id))
         iter = 0
@@ -249,7 +249,7 @@ class Octopus(object):
 
         print("Training complete for {}".format(self.id))
         logging.info("Training complete for {}.".format(self.id))
-        return self._state().status == Status.COMPLETE
+        return self._get_state().status == Status.COMPLETE
 
     def get_patterns(self, path):
         """
@@ -266,7 +266,7 @@ class Octopus(object):
             msg = "Octopus {} is not stored on the server. Upload using <Serene>.octopii.upload()".format(self.id)
             raise Exception(msg)
 
-        if self._state().status != Status.COMPLETE:
+        if self._get_state().status != Status.COMPLETE:
             msg = "Octopus {} is not trained. Use octopus.train()".format(self.id)
             raise Exception(msg)
 

@@ -42,8 +42,8 @@ min_att = min(attributes)
 doms = []
 for i,n in enumerate(attributes):
     # in python3 we need to explicitly get list
-    d = list(map(lambda x: x+1,[g.otherNode(e,n) for e in g.inc[n]]))
-    max_val = max(max_val,max(d))
+    d = list(map(lambda x: x+1, [g.otherNode(e,n) for e in g.inc[n]]))
+    max_val = max(max_val, max(d))
     doms.append(d)
 print("attribute_domains =", list2D2dznsetlist(list(doms)))
 
