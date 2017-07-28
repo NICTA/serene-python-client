@@ -126,9 +126,15 @@ ann: kruskal2 = int_search([es[sorted_edges[nbE + 1 - e]] | e in edges],input_or
 
 ann: assume(array[int] of var bool, bool);
 
+ann: cheap_edges_fill_pattern;
+ann: custom(ann, array[int] of int, array[int] of var bool);
+array[int] of ann: cefp = 
+	if nb_patterns == 0 then [] 
+	else [custom(cheap_edges_fill_pattern,[nbE]++[nb_patterns]++ws++[ card(patterns[p]) | p in PATTS]++patterns_w++array1d([ e | p in PATTS, e in patterns[p]]),es)] endif;
+ 
 solve 
 %::int_search(match, input_order, indomain_min, complete)
-::seq_search([assume([match[a] != attribute_names[a] | a in atts],true)]++[cheap_matches]++[kruskal2])
+::seq_search([assume([match[a] != attribute_names[a] | a in atts],true)]++[cheap_matches]++cefp++[kruskal2])
 minimize obj;
 
 output ["digraph {\n"]++
