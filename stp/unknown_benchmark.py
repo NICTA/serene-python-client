@@ -177,8 +177,234 @@ for s in new_ssds:
 #
 # =======================
 
-for i, ssd in enumerate(new_ssds):
+def create_octopus(ssd_range, sample):
+    octo_local = sn.Octopus(
+        ssds=[ssd_range[i] for i in sample],
+        ontologies=ontologies,
+        name='octopus-unknown',
+        description='Testing example for places and companies',
+        resampling_strategy="NoResampling",  # optional
+        num_bags=80,  # optional
+        bag_size=50,  # optional
+        model_type="randomForest",
+        modeling_props={
+            "compatibleProperties": True,
+            "ontologyAlignment": True,
+            "addOntologyPaths": False,
+            "mappingBranchingFactor": 50,
+            "numCandidateMappings": 10,
+            "topkSteinerTrees": 50,
+            "multipleSameProperty": False,
+            "confidenceWeight": 1.0,
+            "coherenceWeight": 1.0,
+            "sizeWeight": 0.5,
+            "numSemanticTypes": 10,
+            "thingNode": False,
+            "nodeClosure": True,
+            "propertiesDirect": True,
+            "propertiesIndirect": True,
+            "propertiesSubclass": True,
+            "propertiesWithOnlyDomain": True,
+            "propertiesWithOnlyRange": True,
+            "propertiesWithoutDomainRange": False,
+            "unknownThreshold": 0.05
+        },
+        feature_config={
+            "activeFeatures": [
+                "num-unique-vals",
+                "prop-unique-vals",
+                "prop-missing-vals",
+                "ratio-alpha-chars",
+                "prop-numerical-chars",
+                "prop-whitespace-chars",
+                "prop-entries-with-at-sign",
+                "prop-entries-with-hyphen",
+                "prop-range-format",
+                "is-discrete",
+                "entropy-for-discrete-values",
+                "shannon-entropy"
+            ]
+            ,
+            "activeFeatureGroups": [
+                "char-dist-features",
+                "inferred-data-type",
+                "stats-of-text-length",
+                "stats-of-numeric-type"
+                , "prop-instances-per-class-in-knearestneighbours"
+                # ,"mean-character-cosine-similarity-from-class-examples"
+                # ,"min-editdistance-from-class-examples"
+                # ,"min-wordnet-jcn-distance-from-class-examples"
+                # ,"min-wordnet-lin-distance-from-class-examples"
+            ],
+            "featureExtractorParams": [
+                {
+                    "name": "prop-instances-per-class-in-knearestneighbours",
+                    "num-neighbours": 3
+                }
+                , {
+                    "name": "min-editdistance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-jcn-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-lin-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }
+            ]
+        }
+    )
 
+    # add this to the endpoint...
+    print("Now we upload to the server")
+    octo = sn.octopii.upload(octo_local)
+
+    start = time.time()
+    print()
+    print("Next we can train the Octopus")
+    print("The initial state for {} is {}".format(octo.id, octo.state))
+    print("Training...")
+    octo.train()
+    print("Done in: {}".format(time.time() - start))
+    print("The final state for {} is {}".format(octo.id, octo.state))
+
+    return octo
+
+
+import stp.integration as integ
+from stp.alignment import convert_ssd, to_graphviz, process_unknown
+from importlib import reload
+import csv
+import stp.alignment as al
+
+reload(integ)
+reload(al)
+
+
+def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
+               train_flag=False, chuffed_path=None, simplify=True):
+    res = []
+    try:
+        integrat = integ.IntegrationGraph(octopus=ch_octopus, dataset=ch_dataset,
+                                          match_threshold=0.01, simplify_graph=simplify)
+        start = time.time()
+        if chuffed_path:
+            integrat._chuffed_path = chuffed_path  # change chuffed solver version
+        solution = integrat.solve(ch_column_names)
+        runtime = time.time() - start
+        # print(solution)
+        if len(solution) < 1:
+            logging.error("Chuffed found no solutions for ssd {}".format(ssd.id))
+            raise Exception("Chuffed found no solutions!")
+        for idx, sol in enumerate(solution):
+            # convert solution to SSD
+            cp_ssd = SSD().update(json.loads(sol), sn._datasets, sn._ontologies)
+            eval = cp_ssd.evaluate(ch_ssd, False, True)
+
+            try:
+                comparison = sn.ssds.compare(cp_ssd, ch_ssd, False, False)
+            except:
+                comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+
+            res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", idx, "success",
+                   eval["jaccard"], eval["precision"], eval["recall"],
+                   comparison["jaccard"], comparison["precision"], comparison["recall"],
+                   train_flag, runtime, chuffed_path]]
+    except Exception as e:
+        print("CP solver failed to find solution: {}".format(e))
+        res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", "fail", 0, 0, 0, 0, 0, 0,
+               train_flag, time.time() - start, chuffed_path]]
+    return res
+
+
+def do_karma(k_octopus, k_dataset, k_ssd, orig_ssd,
+             train_flag=False):
+    try:
+        start = time.time()
+        karma_ssd = k_octopus.predict(k_dataset)[0].ssd
+        runtime = time.time() - start
+        eval = karma_ssd.evaluate(k_ssd, False, True)
+
+        try:
+            comparison = sn.ssds.compare(karma_ssd, k_ssd, False, False)
+        except:
+            comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+
+        return [[k_octopus.id, k_dataset.id, orig_ssd.name, orig_ssd.id, "karma", 0, "success",
+               eval["jaccard"], eval["precision"], eval["recall"],
+               comparison["jaccard"], comparison["precision"], comparison["recall"],
+               train_flag, runtime, ""]]
+    except Exception as e:
+        print("Karma failed to find solution: {}".format(e))
+        return [[k_octopus.id, k_dataset.id, orig_ssd.name, orig_ssd.id, "karma", 0, "fail", 0, 0, 0, 0, 0, 0,
+                train_flag, 0, ""]]
+
+
+folder = os.path.join(project_path, "stp", "resources", "unknown_run")
+chuffed_paths = ["/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170718",
+                 "/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170722",
+                 "/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728"]
+
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_results_new.csv")
+with open(result_csv, "w+") as f:
+    csvf = csv.writer(f)
+    csvf.writerow(["octopus", "dataset", "name", "ssd", "method", "solution", "status",
+                              "jaccard", "precision", "recall",
+                              "karma_jaccard", "karma_precision", "karma_recall",
+                              "train_flag", "time", "chuffed_path"])  # header
+
+    sample_range = list(range(len(new_ssds)))
+    benchmark_results = [["octopus", "dataset", "name", "ssd", "method", "solution", "status",
+                          "jaccard", "precision", "recall",
+                          "karma_jaccard", "karma_precision", "karma_recall",
+                          "train_flag", "time", "chuffed_path"]]
+
+    print("Starting benchmark")
+
+    for cur_id, _ in enumerate(new_ssds):
+        print()
+        print("--> {} Leave one out".format(cur_id))
+        # specify train sample
+        train_sample = sample_range[:cur_id] + sample_range[cur_id+1:]
+        octo = create_octopus(new_ssds, train_sample)
+        print("Uploaded octopus:", octo)
+
+        print("Getting labels in the training set")
+        train_labels = []
+        for i in train_sample:
+            train_labels += [d.full_label for d in new_ssds[i].data_nodes]
+        train_labels = set(train_labels)
+
+        for i, ssd in enumerate(new_ssds):
+            dataset = [ds for ds in datasets if ds.filename == ssd.name+".csv"][0]
+            # we tell here the correct columns
+            column_names = [c.name for c in ssd.columns]
+            print("Chosen dataset: ", dataset)
+            print("Chosen SSD id: ", ssd.id)
+
+            # we should do prediction outside of solvers so that solvers use the cached results!
+            print("Doing schema matcher part")
+            df = octo.matcher_predict(dataset)
+
+            cor_ssd = al.process_unknown(ssd, train_labels)
+
+            # cp solver approach
+            for chuffed in chuffed_paths:
+                print("---> trying chuffed {}".format(chuffed))
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=(i in train_sample),
+                                 chuffed_path=chuffed, simplify=True)
+                benchmark_results += res
+                csvf.writerows(res)
+
+            # karma approach
+            print("---> trying karma")
+            res = do_karma(octo, dataset, cor_ssd, ssd, train_flag=(i in train_sample))
+            benchmark_results += res
+            csvf.writerows(res)
+
+print("Benchmark finished!")
+print(benchmark_results)
 
 # =======================
 #
