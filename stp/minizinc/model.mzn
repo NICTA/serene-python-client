@@ -137,10 +137,11 @@ solve
 ::seq_search([assume([match[a] != attribute_names[a] | a in atts],true)]++[cheap_matches]++cefp++[kruskal2])
 minimize obj;
 
+float: time = 0.0;
 output ["digraph {\n"]++
 [ "  \(n-1)"++ (if n in cnodes then "[fillcolor=\"#59d0a0\",style=filled];" else if n in dnodes then "[fillcolor=gold,style=filled];" else "" endif endif)++"\n" | n in nodes  where fix(vs[n])] ++ 
 [ "  "++if fix(heads[e]) in cnodes then "\(heads[e]-1) -> \(tails[e]-1)" else "\(tails[e]-1) -> \(heads[e]-1)" endif ++" [label=\"w=\(ws[e]/10000)\"];\n" | e in edges  where fix(es[e])] ++ 
 [ "  \(attribute_names[a]) [shape=hexagon];\n" | a in atts] ++
 [ "  "++if fix(match[a] != attribute_names[a]) then "\(match[a]-1) -> \(attribute_names[a]) [label=\"w=\(match_costs[a,fix(match[a])]/10000)\"];\n" else "\(match[a]) -> \(match[a]) [label=\"Imposible match\"];\n" endif | a in atts]++
-["  graph [label=\"\nobj = \(obj)\nwm = \(wm)\nwp = \(wp)\nw = \(w)\"]}"];
+["  graph [label=\"\nobj = \(obj)\nwm = \(wm)\nwp = \(wp)\nw = \(w)\ntime = \(time)\"]}"];
 
