@@ -279,6 +279,7 @@ import stp.alignment as al
 
 reload(integ)
 reload(al)
+reload(serene)
 
 
 def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,

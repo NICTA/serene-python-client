@@ -58,6 +58,7 @@ setup(
     package_data={},
     license="Apache 2.0",
     keywords="semantic modelling client serene",
+    include_package_data=True,
     classifiers=[
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.6',
