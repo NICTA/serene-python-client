@@ -284,11 +284,11 @@ reload(al)
 def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
                train_flag=False, chuffed_path=None, simplify=True, patterns=None):
     res = []
+    start = time.time()
     try:
         integrat = integ.IntegrationGraph(octopus=ch_octopus, dataset=ch_dataset,
                                           match_threshold=0.01, simplify_graph=simplify,
                                           patterns=patterns)
-        start = time.time()
         if chuffed_path:
             integrat._chuffed_path = chuffed_path  # change chuffed solver version
         solution = integrat.solve(ch_column_names)
@@ -320,8 +320,8 @@ def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
 
 def do_karma(k_octopus, k_dataset, k_ssd, orig_ssd,
              train_flag=False):
+    start = time.time()
     try:
-        start = time.time()
         karma_ssd = k_octopus.predict(k_dataset)[0].ssd
         runtime = time.time() - start
         eval = karma_ssd.evaluate(k_ssd, False, True)
@@ -338,7 +338,7 @@ def do_karma(k_octopus, k_dataset, k_ssd, orig_ssd,
     except Exception as e:
         print("Karma failed to find solution: {}".format(e))
         return [[k_octopus.id, k_dataset.id, orig_ssd.name, orig_ssd.id, "karma", 0, "fail", 0, 0, 0, 0, 0, 0,
-                train_flag, 0, ""]]
+                train_flag, time.time() - start , ""]]
 
 
 folder = os.path.join(project_path, "stp", "resources", "unknown_run")
