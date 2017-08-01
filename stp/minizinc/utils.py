@@ -140,6 +140,13 @@ class Graph:
         if (e in self.edge_ids_inv) and (self.edge_ids_inv[e] in self.edge_ids):
             del self.edge_ids[self.edge_ids_inv[e]]
             del self.edge_ids_inv[e]
+        for k,v in self.edge_ids.items():
+            if v > e:
+                self.edge_ids[k] = v - 1
+                self.edge_ids_inv[v - 1] = k
+                #biggest key of edge_ids_inv is left there, which isn't very elegant. 
+                #should probably rewrite it
+        
 
     def otherNode(self, edge, node):
         if node != self.edges[edge][0] and node != self.edges[edge][1]:
