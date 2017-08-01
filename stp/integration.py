@@ -75,6 +75,7 @@ class IntegrationGraph(object):
             return graph, node_map, link_map
 
         if num_attrs > len(unknown_dn):
+            logging.info("Adding more unknown data nodes...")
             # add more unknown data nodes
             max_id = max(n for n in graph.nodes()) + 1
             unknown_cn = unknown_cn[0]
@@ -93,9 +94,10 @@ class IntegrationGraph(object):
                                  'weight': 2.0}
                 graph.add_edge(unknown_cn, max_id+i, key=max_edge+i, attr_dict=unknown_edata)
 
-        elif num_attrs < len(unknown_dn):
-            # remove extra unknown data nodes
-            [graph.remove_node(n_id) for n_id in unknown_dn[num_attrs:]]
+        # elif num_attrs < len(unknown_dn):
+        #     # remove extra unknown data nodes
+        #     logging.info("Removing extra unknown data nodes...")
+        #     [graph.remove_node(n_id) for n_id in unknown_dn[num_attrs:]]
 
         return graph, node_map, link_map
 
@@ -301,11 +303,10 @@ class IntegrationGraph(object):
             logging.info("  attribute domains written")
 
             mc = [[0 for j in range(0, max_val + 1)] for i in attributes]
-            logging.info("   initial mc: {}".format(mc))
-            logging.info("")
+            logging.info("   max_val: {}, size mc: {}, min_att: {}".format(max_val, len(attributes), min_att))
             for i in range(len(g.edges)):
                 e = g.edges[i]
-                logging.info("====> edge: {}".format(e))
+                # logging.info("====> edge: {}".format(e))
                 if e[0] in attributes:
                     mc[e[0] - min_att][1 + e[1]] = e[2]
                 elif e[1] in attributes:
@@ -327,7 +328,7 @@ class IntegrationGraph(object):
                 x = list(map(lambda x: x + 1, x))
                 c = str(x).replace("[", "").replace("]", "|") + ("];" if i == len(mc) - 1 else "\n")
                 mcs += c
-                logging.info("  mcs sorted constructed")
+            logging.info("  mcs sorted constructed")
             f.write("{}\n".format(mcs))
 
             # print("attribute_names = ", list2dznlist([int(g.node_names[n]) for n in attributes]))

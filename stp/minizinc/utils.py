@@ -2,6 +2,7 @@ from math import *
 import queue as Q
 import xml.etree.ElementTree as ET
 from functools import reduce
+import logging
 
 nsfy = lambda x : '{http://graphml.graphdrawing.org/xmlns}'+x #to be able to read namespace tags
 
@@ -27,18 +28,24 @@ def find_tags(graphml_root):
     Same for the weight of an edge."""
     type_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='type'][@for='node']")
     if len(type_label) != 1:
+        logging.error("Wrong format in graphml:\n\tToo many or no key indicating"
+        " type of nodes")
         raise RuntimeError("Wrong format in graphml:\n\tToo many or no key indicating"
         " type of nodes")
     type_label = type_label[0].attrib['id']
 
     weight_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='weight'][@for='edge']")
     if len(weight_label) != 1:
+        logging.error("Wrong format in graphml:\n\t: Too many or no key indicating"
+        " weight of edges")
         raise RuntimeError("Wrong format in graphml:\n\t: Too many or no key indicating"
         " weight of edges")
     weight_label = weight_label[0].attrib['id']
 
     label_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='label'][@for='node']")
     if len(label_label) != 1:
+        logging.error("Wrong format in graphml:\n\t: Too many or no key indicating"
+        " label of nodes")
         raise RuntimeError("Wrong format in graphml:\n\t: Too many or no key indicating"
         " label of nodes")
     label_label = label_label[0].attrib['id']
@@ -46,30 +53,37 @@ def find_tags(graphml_root):
     edgekey_label = graphml_root.findall(".//"+nsfy("key")+"[@attr.name='key'][@for='edge']")
     if len(edgekey_label) != 1:
         edgekey_label = None
+        logging.warning("WARNING: No key for edges is provided in graphml, so no patterns will be supported")
         print("WARNING: No key for edges is provided in graphml, so no patterns will be supported")
     else:
         edgekey_label = edgekey_label[0].attrib['id']
 
-    return (type_label,weight_label,label_label,edgekey_label)
+    return (type_label, weight_label, label_label, edgekey_label)
 
 
 class Graph:
     class UnknownInfo:
-        valid_unknown = {"All" : "ClassNode",
-                         "Unknown" : "ClassNode", 
+        valid_unknown = {"All": "ClassNode",
+                         "Unknown": "ClassNode",
                          "Unknown---unknown": "DataNode"}
+
         def __init__(self):
             self.all_node = -1
             self.class_node = -1
             self.data_nodes = []
+
         def hasAllNode(self):
             return self.all_node != -1
+
         def hasClassNode(self):
             return self.class_node != -1
+
         def hasDataNodes(self):
             return self.data_nodes != []
+
         def count(self):
             return len(self.data_nodes)
+
         def __str__(self):
             res = "["
             res += str(self.all_node)+","
@@ -78,23 +92,30 @@ class Graph:
                 res += str(x) + ("" if i == len(self.data_nodes) - 1 else ",")
             res += "];"
             return res
+
         def as_list(self):
-            return [self.all_node,self.class_node]+self.data_nodes
+            return [self.all_node, self.class_node] + self.data_nodes
+
         def add(self,node_id,node_label):
             if node_label == "All":
                 if self.hasAllNode():
+                    logging.error("Multiple nodes marked \"All\"")
                     raise RuntimeError("Multiple nodes marked \"All\"")
                 self.all_node = node_id
             elif node_label == "Unknown":
                 if self.hasClassNode():
+                    logging.error("Multiple nodes marked \"Unknown\"")
                     raise RuntimeError("Multiple nodes marked \"Unknown\"")
                 self.class_node = node_id
             elif node_label == "Unknown---unknown":
                 if node_id in self.data_nodes:
+                    logging.error("Node "+str(node_id)+" added to unknwon data "
+                                       "nodes multiple times")
                     raise RuntimeError("Node "+str(node_id)+" added to unknwon data "
                                        "nodes multiple times")
                 self.data_nodes.append(node_id)
-    def __init__(self, nb_nodes = 0, nb_edges = 0):
+
+    def __init__(self, nb_nodes=0, nb_edges=0):
         self.nb_nodes = nb_nodes
         self.nb_edges = nb_edges
         self.edges = []
@@ -110,14 +131,15 @@ class Graph:
         return range(0,self.nb_nodes)
 
     def isNode(self, n):
-        return n >=0  and n < self.nb_nodes
+        return self.nb_nodes > n >=0
 
-    def addEdge(self, s, d, w = 0, ident = None):
+    def addEdge(self, s, d, w=0, ident=None):
         if self.isNode(s) and self.isNode(d):
-            self.edges.append((s,d,w))
+            self.edges.append((s, d, w))
             self.inc[d].append(len(self.edges)-1)
             self.out[s].append(len(self.edges)-1)
             self.nb_edges += 1
+
             if ident == None:
                 self.edge_ids[self.nb_edges - 1] = self.nb_edges - 1
                 self.edge_ids_inv[self.nb_edges - 1] = self.nb_edges - 1
@@ -150,6 +172,9 @@ class Graph:
 
     def otherNode(self, edge, node):
         if node != self.edges[edge][0] and node != self.edges[edge][1]:
+            logging.error("requestion other node"+str(node) +
+                               " of the wrong edge "+str(edge) +
+                               " "+str(self.edges[edge]))
             raise RuntimeError("requestion other node"+str(node) +
                                " of the wrong edge "+str(edge) +
                                " "+str(self.edges[edge]))
@@ -275,7 +300,7 @@ class Graph:
     @staticmethod
     def from_graphml(content, simplify_graph=False):
         graphml_root = ET.fromstring(content)
-        (type_label, weight_label,label_label,edgekey_label) = map(str, find_tags(graphml_root))
+        (type_label, weight_label, label_label, edgekey_label) = map(str, find_tags(graphml_root))
         g = Graph()
 
         dic = {}  #  Conversion from node ID in the file to internal node IDs
@@ -284,16 +309,21 @@ class Graph:
         for t in valid_types:
             if not t in g.node_types:
                 g.node_types[t] = []
+
         def assign(g, n, t):
             if t not in valid_types:
+                logging.error("Unknown node type")
                 raise RuntimeError("Unknown node type")
             g.node_types[t].append(n)
+
         def save_unknown(g,n,t,l):
             if t not in valid_types:
+                logging.error("Unknown node type")
                 raise RuntimeError("Unknown node type")
             if l not in Graph.UnknownInfo.valid_unknown:
                 return
             if Graph.UnknownInfo.valid_unknown[l] != t:
+                logging.error("Error matching unknown node to a type")
                 raise RuntimeError("Error matching unknown node to a type")
             g.unk_info.add(n,l)
 
@@ -309,12 +339,14 @@ class Graph:
             dic[node_id] = g.nb_nodes - 1
             node_type = n.findall(".//"+nsfy("data")+"[@key='"+type_label+"']")
             if len(node_type) != 1:
+                logging.error("Wrong format in node tag:\n\tNo type indication")
                 raise RuntimeError("Wrong format in node tag:\n\tNo type indication")
             node_type = node_type[0].text
             assign(g, dic[node_id], node_type)
 
             node_label = n.findall(".//"+nsfy("data")+"[@key='"+label_label+"']")
             if len(node_label) != 1:
+                logging.error("Wrong format in node tag:\n\tNo label indication")
                 raise RuntimeError("Wrong format in node tag:\n\tNo label indication")
             node_label = node_label[0].text
             save_unknown(g,dic[node_id],node_type,node_label)
@@ -323,14 +355,17 @@ class Graph:
             s = int(e.attrib["source"])
             d = int(e.attrib["target"])
             if not d in dic or not s in dic:
+                logging.error("Ignoring edge ("+str(s)+","+str(d)+") because those nodes don't exist")
                 sys.stderr.write("Ignoring edge ("+str(s)+","+str(d)+") because those nodes don't exist")
                 continue
             s = dic[s]
             d = dic[d]
             if not g.isNode(d) or not g.isNode(s):
+                logging.error("Internal state error: not finding valid nodes.")
                 raise RuntimeError("Internal state error: not finding valid nodes.")
             edge_weight = e.findall(".//"+nsfy("data")+"[@key='"+weight_label+"']")
             if len(edge_weight) != 1:
+                logging.error("Wrong format in edge tag:\n\tNo weight indication")
                 raise RuntimeError("Wrong format in edge tag:\n\tNo weight indication")
             edge_weight = float(edge_weight[0].text)
             edge_weight = int(weight_conversion(edge_weight))

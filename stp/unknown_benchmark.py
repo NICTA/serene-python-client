@@ -300,6 +300,7 @@ def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
             raise Exception("Chuffed found no solutions!")
         for idx, sol in enumerate(solution):
             # convert solution to SSD
+            logging.info("Converted solution: {}".format(json.loads(sol)))
             cp_ssd = SSD().update(json.loads(sol), sn._datasets, sn._ontologies)
             eval = cp_ssd.evaluate(ch_ssd, False, True)
 
@@ -311,11 +312,11 @@ def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
             res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", idx, "success",
                    eval["jaccard"], eval["precision"], eval["recall"],
                    comparison["jaccard"], comparison["precision"], comparison["recall"],
-                   train_flag, runtime, chuffed_path]]
+                   train_flag, runtime, chuffed_path, simplify]]
     except Exception as e:
         print("CP solver failed to find solution: {}".format(e))
         res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", 0, "fail", 0, 0, 0, 0, 0, 0,
-               train_flag, time.time() - start, chuffed_path]]
+               train_flag, time.time() - start, chuffed_path, simplify]]
     return res
 
 
@@ -335,17 +336,95 @@ def do_karma(k_octopus, k_dataset, k_ssd, orig_ssd,
         return [[k_octopus.id, k_dataset.id, orig_ssd.name, orig_ssd.id, "karma", 0, "success",
                eval["jaccard"], eval["precision"], eval["recall"],
                comparison["jaccard"], comparison["precision"], comparison["recall"],
-               train_flag, runtime, ""]]
+               train_flag, runtime, "", None]]
     except Exception as e:
         print("Karma failed to find solution: {}".format(e))
         return [[k_octopus.id, k_dataset.id, orig_ssd.name, orig_ssd.id, "karma", 0, "fail", 0, 0, 0, 0, 0, 0,
-                train_flag, time.time() - start , ""]]
+                train_flag, time.time() - start, "", None]]
 
 
 folder = os.path.join(project_path, "stp", "resources", "unknown_run")
 chuffed_paths = ["/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170718",
                  "/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170722",
                  "/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728"]
+
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_loo.csv")
+with open(result_csv, "w+") as f:
+    csvf = csv.writer(f)
+    csvf.writerow(["octopus", "dataset", "name", "ssd", "method", "solution", "status",
+                              "jaccard", "precision", "recall",
+                              "karma_jaccard", "karma_precision", "karma_recall",
+                              "train_flag", "time", "chuffed_path"])  # header
+
+    sample_range = list(range(len(new_ssds)))
+    benchmark_results = [["octopus", "dataset", "name", "ssd", "method", "solution", "status",
+                          "jaccard", "precision", "recall",
+                          "karma_jaccard", "karma_precision", "karma_recall",
+                          "train_flag", "time", "chuffed_path", "simplify"]]
+
+    print("Starting benchmark")
+
+    for cur_id, ssd in enumerate(new_ssds):
+        print()
+        print("--> {} Leave one out".format(cur_id))
+        # specify train sample
+        train_sample = sample_range[:cur_id] + sample_range[cur_id+1:]
+        octo = create_octopus(new_ssds, train_sample)
+        octo_csv = os.path.join(project_path, "stp", "resources", "storage",
+                                "patterns.{}.csv".format(octo.id))
+        octo_patterns = octo.get_patterns(octo_csv)
+        print("Uploaded octopus:", octo)
+
+        print("Getting labels in the training set")
+        train_labels = []
+        for i in train_sample:
+            train_labels += [d.full_label for d in new_ssds[i].data_nodes]
+        train_labels = set(train_labels)
+
+        dataset = [ds for ds in datasets if ds.filename == ssd.name+".csv"][0]
+        # we tell here the correct columns
+        column_names = [c.name for c in ssd.columns]
+        print("Chosen dataset: ", dataset)
+        print("Chosen SSD id: ", ssd.id)
+
+        # we should do prediction outside of solvers so that solvers use the cached results!
+        print("Doing schema matcher part")
+        df = octo.matcher_predict(dataset)
+
+        cor_ssd = al.process_unknown(ssd, train_labels)
+
+        # cp solver approach
+        for idx, chuffed in enumerate(chuffed_paths):
+            print("---> trying chuffed {}".format(chuffed))
+            if idx != 2:
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=(i in train_sample),
+                                 chuffed_path=chuffed, simplify=True, patterns=None)
+            else:
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=(i in train_sample),
+                                 chuffed_path=chuffed, simplify=False, patterns=octo_patterns)
+
+
+            benchmark_results += res
+            csvf.writerows(res)
+
+        # karma approach
+        print("---> trying karma")
+        res = do_karma(octo, dataset, cor_ssd, ssd, train_flag=(i in train_sample))
+        benchmark_results += res
+        csvf.writerows(res)
+        f.flush()
+
+print("Benchmark finished!")
+print(benchmark_results)
+
+
+# =======================
+#
+#  Full leave - one - out
+#
+# =======================
 
 result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_results_new.csv")
 with open(result_csv, "w+") as f:

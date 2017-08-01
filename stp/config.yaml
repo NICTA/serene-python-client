@@ -17,4 +17,4 @@ mzn2fzn-exec: /home/natalia/Installs/MiniZincIDE-2.1.4-bundle-linux-x86_64/mzn2f
 solns2out-exec: /home/natalia/Installs/MiniZincIDE-2.1.4-bundle-linux-x86_64/solns2out
 
 # Timeout for the solver
-timeout: 20
+timeout: 10
