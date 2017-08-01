@@ -227,6 +227,7 @@ class IntegrationGraph(object):
         self._graph_node_map = dict([(n, int(g.node_names[n])) for n in g.node_types['ClassNode']] +\
                                [(n, int(g.node_names[n])) for n in g.node_types['DataNode']] +\
                                [(n, int(g.node_names[n])) for n in g.node_types['Attribute']])
+        logging.info("      graph_node_map: {}".format(self._graph_node_map))
 
         with open(alignment_path, "w+") as f:
             f.write("{}\n".format(g.to_dzn()))
@@ -276,6 +277,9 @@ class IntegrationGraph(object):
         logging.info("  graph constructed")
 
         attributes = g.node_types['Attribute']
+        # update lookup dictionary
+        for n in attributes:
+            self._graph_node_map[int(g.node_names[n])] = int(g.node_names[n])
 
         max_val = 0
         min_att = min(attributes)
