@@ -257,7 +257,7 @@ class Octopus(object):
         Then a new csv is composed from the obtained files.
 
         Args:
-            path
+            path: file name where to write the csv file with patterns
 
         Returns: string -- path of the csv file with patterns
 

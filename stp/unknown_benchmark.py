@@ -282,11 +282,12 @@ reload(al)
 
 
 def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
-               train_flag=False, chuffed_path=None, simplify=True):
+               train_flag=False, chuffed_path=None, simplify=True, patterns=None):
     res = []
     try:
         integrat = integ.IntegrationGraph(octopus=ch_octopus, dataset=ch_dataset,
-                                          match_threshold=0.01, simplify_graph=simplify)
+                                          match_threshold=0.01, simplify_graph=simplify,
+                                          patterns=patterns)
         start = time.time()
         if chuffed_path:
             integrat._chuffed_path = chuffed_path  # change chuffed solver version
@@ -312,7 +313,7 @@ def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
                    train_flag, runtime, chuffed_path]]
     except Exception as e:
         print("CP solver failed to find solution: {}".format(e))
-        res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", "fail", 0, 0, 0, 0, 0, 0,
+        res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", 0, "fail", 0, 0, 0, 0, 0, 0,
                train_flag, time.time() - start, chuffed_path]]
     return res
 
@@ -367,6 +368,9 @@ with open(result_csv, "w+") as f:
         # specify train sample
         train_sample = sample_range[:cur_id] + sample_range[cur_id+1:]
         octo = create_octopus(new_ssds, train_sample)
+        octo_csv = os.path.join(project_path, "stp", "resources", "storage",
+                                "patterns.{}.csv".format(octo.id))
+        octo_patterns = octo.get_patterns(octo_csv)
         print("Uploaded octopus:", octo)
 
         print("Getting labels in the training set")
@@ -393,7 +397,8 @@ with open(result_csv, "w+") as f:
                 print("---> trying chuffed {}".format(chuffed))
                 res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
                                  train_flag=(i in train_sample),
-                                 chuffed_path=chuffed, simplify=True)
+                                 chuffed_path=chuffed, simplify=True, patterns=octo_patterns)
+
                 benchmark_results += res
                 csvf.writerows(res)
 
@@ -402,6 +407,7 @@ with open(result_csv, "w+") as f:
             res = do_karma(octo, dataset, cor_ssd, ssd, train_flag=(i in train_sample))
             benchmark_results += res
             csvf.writerows(res)
+            f.flush()
 
 print("Benchmark finished!")
 print(benchmark_results)

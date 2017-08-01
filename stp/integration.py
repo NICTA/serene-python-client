@@ -47,6 +47,8 @@ class IntegrationGraph(object):
         self._chuffed_path, self._mzn2fzn_exec, self._model_mzn, self._solns2out_exec, self._timeout = \
             self._read_config()
 
+        self._graph_node_map = {}
+
     def _get_initial_alignment(self):
         """
         Get initial alignment based on the octopus.
@@ -221,12 +223,17 @@ class IntegrationGraph(object):
         alignment_path = os.path.join(self._path, "resources", "storage", "{}.alignment.dzn".format(self._octopus.id))
         logging.info("Writing the alignment graph to dzn: {}".format(alignment_path))
         incr = lambda x: x + 1
+
+        self._graph_node_map = dict([(n, int(g.node_names[n])) for n in g.node_types['ClassNode']] +\
+                               [(n, int(g.node_names[n])) for n in g.node_types['DataNode']] +\
+                               [(n, int(g.node_names[n])) for n in g.node_types['Attribute']])
+
         with open(alignment_path, "w+") as f:
             f.write("{}\n".format(g.to_dzn()))
             # in python3 we need to get lists explicitly instead of iterators/generators
-            cnodes = "cnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['ClassNode']])))
-            dnodes = "dnodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['DataNode']])))
-            anodes = "anodes = " + list2dznset(list(map(incr, [int(g.node_names[n]) for n in g.node_types['Attribute']])))
+            cnodes = "cnodes = " + list2dznset(list(map(incr, [n for n in g.node_types['ClassNode']])))
+            dnodes = "dnodes = " + list2dznset(list(map(incr, [n for n in g.node_types['DataNode']])))
+            anodes = "anodes = " + list2dznset(list(map(incr, [n for n in g.node_types['Attribute']])))
             unknown = "nb_unknown_nodes = " + str(len(g.unk_info.data_nodes)) + ";"
             all_unk = "all_unk_nodes = " + list2dznlist(list(map(incr, g.unk_info.as_list())))
 
@@ -426,11 +433,16 @@ class IntegrationGraph(object):
         if dot_file:
             ag.write(dot_file)  # write the dot file to the system
         # convert to SsdRequest: name, ontologies, semanticModel, mappings
+        if "time" in ag.graph_attr:
+            t = ag.graph_attr["time"]
+        else:
+            t = None
         ssd_request = {
             "ontologies": [onto.id for onto in self._octopus.ontologies],
             "name": self._dataset.filename,
             "mappings": [],
-            "semanticModel": {"nodes": [], "links": []}
+            "semanticModel": {"nodes": [], "links": []},
+            "time": t
         }
 
         # mappings: [{"attribute": column_id, "node": data_node_id}]
@@ -439,15 +451,15 @@ class IntegrationGraph(object):
         #   "links": [{ "id": , "label": "", "prefix": "", "source": , "status": "", "target": , "type": ""}]
         # }
 
-        attributes = [int(n) for n in ag.iternodes() if n.attr["shape"] == "hexagon"]
+        attributes = [self._graph_node_map[int(n)] for n in ag.iternodes() if n.attr["shape"] == "hexagon"]
         logging.debug("Attributes obtained: {}".format(attributes))
-        sm_nodes = [int(n) for n in ag.iternodes() if n.attr["shape"] != "hexagon"]
+        sm_nodes = [self._graph_node_map[int(n)] for n in ag.iternodes() if n.attr["shape"] != "hexagon"]
         logging.debug("Nodes for the semantic model obtained: {}".format(sm_nodes))
 
         for ind, ed in enumerate(ag.edges_iter()):
             logging.debug("   working on edge {}: {}".format(ind, ed))
-            start = int(ed[0])
-            end = int(ed[1])
+            start = self._graph_node_map[int(ed[0])]
+            end = self._graph_node_map[int(ed[1])]
             if start not in attributes and end not in attributes:
                 # add a link to the semantic model
                 weight = float(ed.attr["label"].replace("w=", ""))
@@ -512,6 +524,7 @@ class IntegrationGraph(object):
             # # to return json:
             # return json.dumps(ssd_request)
 
+            # TODO: make time as a separate element in tuple
             result = [json.dumps(self._digraph_to_ssd(digraph, dot_file)) for digraph in pat.findall(output)]
 
             return result
