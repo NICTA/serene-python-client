@@ -1,0 +1,1975 @@
+<?xml version='1.0' encoding='utf-8'?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://graphml.graphdrawing.org/xmlns http://graphml.graphdrawing.org/xmlns/1.0/graphml.xsd">
+  <key attr.name="key" attr.type="long" for="edge" id="d9" />
+  <key attr.name="prefix" attr.type="string" for="edge" id="d8" />
+  <key attr.name="type" attr.type="string" for="edge" id="d7" />
+  <key attr.name="label" attr.type="string" for="edge" id="d6" />
+  <key attr.name="weight" attr.type="double" for="edge" id="d5" />
+  <key attr.name="alignId" attr.type="string" for="edge" id="d4" />
+  <key attr.name="prefix" attr.type="string" for="node" id="d3" />
+  <key attr.name="type" attr.type="string" for="node" id="d2" />
+  <key attr.name="label" attr.type="string" for="node" id="d1" />
+  <key attr.name="lab" attr.type="string" for="node" id="d0" />
+  <graph edgedefault="directed">
+    <node id="0">
+      <data key="d0">All1</data>
+      <data key="d1">All</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="1">
+      <data key="d0">EuropeanaAggregation1</data>
+      <data key="d1">EuropeanaAggregation</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.europeana.eu/schemas/edm/</data>
+    </node>
+    <node id="2">
+      <data key="d0">Unknown1</data>
+      <data key="d1">Unknown</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="3">
+      <data key="d0">WebResource1</data>
+      <data key="d1">WebResource</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.europeana.eu/schemas/edm/</data>
+    </node>
+    <node id="4">
+      <data key="d0">Person1</data>
+      <data key="d1">Person</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="5">
+      <data key="d0">Document1</data>
+      <data key="d1">Document</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://xmlns.com/foaf/0.1/</data>
+    </node>
+    <node id="6">
+      <data key="d0">CulturalHeritageObject1</data>
+      <data key="d1">CulturalHeritageObject</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="7">
+      <data key="d0">Concept1</data>
+      <data key="d1">Concept</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.w3.org/2008/05/skos#</data>
+    </node>
+    <node id="8">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="9">
+      <data key="d0">WebResource1---classLink</data>
+      <data key="d1">WebResource---classLink</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.europeana.eu/schemas/edm/</data>
+    </node>
+    <node id="10">
+      <data key="d0">CulturalHeritageObject1---extent</data>
+      <data key="d1">CulturalHeritageObject---extent</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="11">
+      <data key="d0">CulturalHeritageObject1---title</data>
+      <data key="d1">CulturalHeritageObject---title</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="12">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="13">
+      <data key="d0">Person1---countryAssociatedWithThePerson</data>
+      <data key="d1">Person---countryAssociatedWithThePerson</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="14">
+      <data key="d0">CulturalHeritageObject1---rightsHolder</data>
+      <data key="d1">CulturalHeritageObject---rightsHolder</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="15">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="16">
+      <data key="d0">Person1---dateOfDeath</data>
+      <data key="d1">Person---dateOfDeath</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="17">
+      <data key="d0">CulturalHeritageObject1---accessionNumber</data>
+      <data key="d1">CulturalHeritageObject---accessionNumber</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="18">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="19">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="20">
+      <data key="d0">Document1---classLink</data>
+      <data key="d1">Document---classLink</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://xmlns.com/foaf/0.1/</data>
+    </node>
+    <node id="21">
+      <data key="d0">Person1---dateOfBirth</data>
+      <data key="d1">Person---dateOfBirth</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="22">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="23">
+      <data key="d0">CulturalHeritageObject1---provenance</data>
+      <data key="d1">CulturalHeritageObject---provenance</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="24">
+      <data key="d0">Person1---nameOfThePerson</data>
+      <data key="d1">Person---nameOfThePerson</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="25">
+      <data key="d0">Concept1---prefLabel</data>
+      <data key="d1">Concept---prefLabel</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.w3.org/2008/05/skos#</data>
+    </node>
+    <node id="26">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="27">
+      <data key="d0">Place1</data>
+      <data key="d1">Place</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="28">
+      <data key="d0">CulturalHeritageObject2</data>
+      <data key="d1">CulturalHeritageObject</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="29">
+      <data key="d0">Concept2</data>
+      <data key="d1">Concept</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.w3.org/2008/05/skos#</data>
+    </node>
+    <node id="30">
+      <data key="d0">Concept2---prefLabel</data>
+      <data key="d1">Concept---prefLabel</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.w3.org/2008/05/skos#</data>
+    </node>
+    <node id="31">
+      <data key="d0">CulturalHeritageObject1---medium</data>
+      <data key="d1">CulturalHeritageObject---medium</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="32">
+      <data key="d0">CulturalHeritageObject2---objectId</data>
+      <data key="d1">CulturalHeritageObject---objectId</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="33">
+      <data key="d0">CulturalHeritageObject1---provenance</data>
+      <data key="d1">CulturalHeritageObject---provenance</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="34">
+      <data key="d0">Place1---label</data>
+      <data key="d1">Place---label</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="35">
+      <data key="d0">CulturalHeritageObject1---description</data>
+      <data key="d1">CulturalHeritageObject---description</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="36">
+      <data key="d0">CulturalHeritageObject1---created</data>
+      <data key="d1">CulturalHeritageObject---created</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="37">
+      <data key="d0">CulturalHeritageObject1---objectId</data>
+      <data key="d1">CulturalHeritageObject---objectId</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="38">
+      <data key="d0">Document2</data>
+      <data key="d1">Document</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://xmlns.com/foaf/0.1/</data>
+    </node>
+    <node id="39">
+      <data key="d0">Document2---classLink</data>
+      <data key="d1">Document---classLink</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://xmlns.com/foaf/0.1/</data>
+    </node>
+    <node id="40">
+      <data key="d0">CulturalHeritageObject2---title</data>
+      <data key="d1">CulturalHeritageObject---title</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="41">
+      <data key="d0">Person1---biographicalInformation</data>
+      <data key="d1">Person---biographicalInformation</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="42">
+      <data key="d0">Person2</data>
+      <data key="d1">Person</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="43">
+      <data key="d0">CulturalHeritageObject1---rights</data>
+      <data key="d1">CulturalHeritageObject---rights</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="44">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="45">
+      <data key="d0">WebResource2</data>
+      <data key="d1">WebResource</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.europeana.eu/schemas/edm/</data>
+    </node>
+    <node id="46">
+      <data key="d0">WebResource2---classLink</data>
+      <data key="d1">WebResource---classLink</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.europeana.eu/schemas/edm/</data>
+    </node>
+    <node id="47">
+      <data key="d0">Person2---nameOfThePerson</data>
+      <data key="d1">Person---nameOfThePerson</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="48">
+      <data key="d0">Person1---professionOrOccupation</data>
+      <data key="d1">Person---professionOrOccupation</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="49">
+      <data key="d0">Place2</data>
+      <data key="d1">Place</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="50">
+      <data key="d0">Place3</data>
+      <data key="d1">Place</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="51">
+      <data key="d0">Place4</data>
+      <data key="d1">Place</data>
+      <data key="d2">ClassNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="52">
+      <data key="d0">Person2---countryAssociatedWithThePerson</data>
+      <data key="d1">Person---countryAssociatedWithThePerson</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="53">
+      <data key="d0">CulturalHeritageObject2---provenance</data>
+      <data key="d1">CulturalHeritageObject---provenance</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="54">
+      <data key="d0">CulturalHeritageObject2---created</data>
+      <data key="d1">CulturalHeritageObject---created</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="55">
+      <data key="d0">CulturalHeritageObject2---provenance</data>
+      <data key="d1">CulturalHeritageObject---provenance</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="56">
+      <data key="d0">CulturalHeritageObject2---medium</data>
+      <data key="d1">CulturalHeritageObject---medium</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="57">
+      <data key="d0">Person2---dateOfBirth</data>
+      <data key="d1">Person---dateOfBirth</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="58">
+      <data key="d0">CulturalHeritageObject2---accessionNumber</data>
+      <data key="d1">CulturalHeritageObject---accessionNumber</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="59">
+      <data key="d0">Person2---dateOfDeath</data>
+      <data key="d1">Person---dateOfDeath</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="60">
+      <data key="d0">Place3---label</data>
+      <data key="d1">Place---label</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="61">
+      <data key="d0">CulturalHeritageObject2---extent</data>
+      <data key="d1">CulturalHeritageObject---extent</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="62">
+      <data key="d0">Place4---label</data>
+      <data key="d1">Place---label</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="63">
+      <data key="d0">Place2---label</data>
+      <data key="d1">Place---label</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://www.americanartcollaborative.org/ontology/</data>
+    </node>
+    <node id="64">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="65">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="66">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="67">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="68">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="69">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="70">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="71">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="72">
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d1">Unknown---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="73">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="74">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="75">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="76">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="77">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="78">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="79">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="80">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="81">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="82">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="83">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="84">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="85">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="86">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="87">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="88">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="89">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="90">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="91">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="92">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="93">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="94">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="95">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="96">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="97">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="98">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="99">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="100">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="101">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="102">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="103">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="104">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="105">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="106">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="107">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="108">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="109">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="110">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <node id="111">
+      <data key="d1">Unknown---unknown</data>
+      <data key="d0">Unknown1---unknown</data>
+      <data key="d2">DataNode</data>
+      <data key="d3">http://au.csiro.data61/serene/dev#</data>
+    </node>
+    <edge source="0" target="1">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.europeana.eu/schemas/edm/EuropeanaAggregation1</data>
+      <data key="d5">0.3214285714285714</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">4</data>
+    </edge>
+    <edge source="0" target="2">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://au.csiro.data61/serene/dev#Unknown1</data>
+      <data key="d5">0.06896551724137934</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">7</data>
+    </edge>
+    <edge source="0" target="3">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.europeana.eu/schemas/edm/WebResource1</data>
+      <data key="d5">0.3214285714285714</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">5</data>
+    </edge>
+    <edge source="0" target="4">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/Person1</data>
+      <data key="d5">0.06896551724137934</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">2</data>
+    </edge>
+    <edge source="0" target="5">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://xmlns.com/foaf/0.1/Document1</data>
+      <data key="d5">0.75</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">8</data>
+    </edge>
+    <edge source="0" target="6">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1</data>
+      <data key="d5">0.1724137931034483</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">3</data>
+    </edge>
+    <edge source="0" target="7">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.w3.org/2008/05/skos#Concept1</data>
+      <data key="d5">0.5172413793103448</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">6</data>
+    </edge>
+    <edge source="0" target="42">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/Person2</data>
+      <data key="d5">0.88</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">62</data>
+    </edge>
+    <edge source="0" target="45">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.europeana.eu/schemas/edm/WebResource2</data>
+      <data key="d5">0.8888888888888888</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">71</data>
+    </edge>
+    <edge source="0" target="27">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/Place1</data>
+      <data key="d5">0.92</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">35</data>
+    </edge>
+    <edge source="0" target="49">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/Place2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">77</data>
+    </edge>
+    <edge source="0" target="50">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/Place3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">78</data>
+    </edge>
+    <edge source="0" target="51">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/Place4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">76</data>
+    </edge>
+    <edge source="0" target="38">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://xmlns.com/foaf/0.1/Document2</data>
+      <data key="d5">0.8666666666666667</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">57</data>
+    </edge>
+    <edge source="0" target="28">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2</data>
+      <data key="d5">0.84</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">36</data>
+    </edge>
+    <edge source="0" target="29">
+      <data key="d4">http://au.csiro.data61/serene/dev#All1---http://au.csiro.data61/serene/dev#connect---http://www.w3.org/2008/05/skos#Concept2</data>
+      <data key="d5">0.7692307692307692</data>
+      <data key="d6">connect</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">34</data>
+    </edge>
+    <edge source="1" target="3">
+      <data key="d4">http://www.europeana.eu/schemas/edm/EuropeanaAggregation1---http://www.europeana.eu/schemas/edm/hasView---http://www.europeana.eu/schemas/edm/WebResource1</data>
+      <data key="d5">0.2857142857142857</data>
+      <data key="d6">hasView</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">1</data>
+    </edge>
+    <edge source="1" target="28">
+      <data key="d4">http://www.europeana.eu/schemas/edm/EuropeanaAggregation1---http://www.europeana.eu/schemas/edm/aggregatedCHO---http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">aggregatedCHO</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">45</data>
+    </edge>
+    <edge source="1" target="45">
+      <data key="d4">http://www.europeana.eu/schemas/edm/EuropeanaAggregation1---http://www.europeana.eu/schemas/edm/hasView---http://www.europeana.eu/schemas/edm/WebResource2</data>
+      <data key="d5">0.8888888888888888</data>
+      <data key="d6">hasView</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">72</data>
+    </edge>
+    <edge source="1" target="6">
+      <data key="d4">http://www.europeana.eu/schemas/edm/EuropeanaAggregation1---http://www.europeana.eu/schemas/edm/aggregatedCHO---http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1</data>
+      <data key="d5">0.2857142857142857</data>
+      <data key="d6">aggregatedCHO</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">0</data>
+    </edge>
+    <edge source="2" target="8">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---6145B190-A09E-AEB6-4EBA-86AF459F5D3D</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">20</data>
+    </edge>
+    <edge source="2" target="12">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---9DB8A342-AD19-C2A4-D7A4-865FEBF2FD05</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">23</data>
+    </edge>
+    <edge source="2" target="15">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---2EC595EB-8230-F512-AAFF-B45B4E5009AA</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">18</data>
+    </edge>
+    <edge source="2" target="18">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---90653744-E751-306D-5927-F51F0CE17A93</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">24</data>
+    </edge>
+    <edge source="2" target="19">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---27EEB4B1-C1E1-E59F-6D82-76A50044B41B</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">22</data>
+    </edge>
+    <edge source="2" target="22">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---F8856FF3-54CA-B462-139A-EF9423D5178C</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">21</data>
+    </edge>
+    <edge source="2" target="26">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---AC07EF60-66F3-922C-5718-BE4336D4E2C8</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">19</data>
+    </edge>
+    <edge source="2" target="44">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---0B8F5F4E-88B7-9563-CE96-F4357922119D</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">70</data>
+    </edge>
+    <edge source="2" target="64">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---581D1228-A16E-D3C5-054E-305500C94960</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">121</data>
+    </edge>
+    <edge source="2" target="65">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---0633667D-AC69-8275-CE8C-9E80D2F7359D</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">119</data>
+    </edge>
+    <edge source="2" target="66">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---4FDD47E9-1792-AE42-77B1-D35726BD0226</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">115</data>
+    </edge>
+    <edge source="2" target="67">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---C739C5B2-B537-4AF4-80AA-A3A7DE83788D</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">118</data>
+    </edge>
+    <edge source="2" target="68">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---D05493A1-4F36-9F90-A471-8202988DA58D</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">114</data>
+    </edge>
+    <edge source="2" target="69">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---36B2E687-467D-2BAF-D076-07E5A23183F3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">113</data>
+    </edge>
+    <edge source="2" target="70">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---A6D17A49-4C01-D026-97E1-E8D762BD5D56</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">116</data>
+    </edge>
+    <edge source="2" target="71">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---9A55E310-9A67-E431-BA2D-5CBAF746C2EF</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">117</data>
+    </edge>
+    <edge source="2" target="72">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---E2B609EE-1AE1-C57E-AD72-CA9E9264B12E</data>
+      <data key="d5">1.0</data>
+      <data key="d6">unknown</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d9">120</data>
+    </edge>
+    <edge source="2" target="73">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr0</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">122</data>
+    </edge>
+    <edge source="2" target="74">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr1</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">123</data>
+    </edge>
+    <edge source="2" target="75">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr2</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">124</data>
+    </edge>
+    <edge source="2" target="76">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr3</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">125</data>
+    </edge>
+    <edge source="2" target="77">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr4</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">126</data>
+    </edge>
+    <edge source="2" target="78">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr5</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">127</data>
+    </edge>
+    <edge source="2" target="79">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr6</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">128</data>
+    </edge>
+    <edge source="2" target="80">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr7</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">129</data>
+    </edge>
+    <edge source="2" target="81">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr8</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">130</data>
+    </edge>
+    <edge source="2" target="82">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr9</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">131</data>
+    </edge>
+    <edge source="2" target="83">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr10</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">132</data>
+    </edge>
+    <edge source="2" target="84">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr11</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">133</data>
+    </edge>
+    <edge source="2" target="85">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr12</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">134</data>
+    </edge>
+    <edge source="2" target="86">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr13</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">135</data>
+    </edge>
+    <edge source="2" target="87">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr14</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">136</data>
+    </edge>
+    <edge source="2" target="88">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr15</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">137</data>
+    </edge>
+    <edge source="2" target="89">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr16</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">138</data>
+    </edge>
+    <edge source="2" target="90">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr17</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">139</data>
+    </edge>
+    <edge source="2" target="91">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr18</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">140</data>
+    </edge>
+    <edge source="2" target="92">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr19</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">141</data>
+    </edge>
+    <edge source="2" target="93">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr20</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">142</data>
+    </edge>
+    <edge source="2" target="94">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr21</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">143</data>
+    </edge>
+    <edge source="2" target="95">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr22</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">144</data>
+    </edge>
+    <edge source="2" target="96">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr23</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">145</data>
+    </edge>
+    <edge source="2" target="97">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr24</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">146</data>
+    </edge>
+    <edge source="2" target="98">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr25</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">147</data>
+    </edge>
+    <edge source="2" target="99">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr26</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">148</data>
+    </edge>
+    <edge source="2" target="100">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr27</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">149</data>
+    </edge>
+    <edge source="2" target="101">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr28</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">150</data>
+    </edge>
+    <edge source="2" target="102">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr29</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">151</data>
+    </edge>
+    <edge source="2" target="103">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr30</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">152</data>
+    </edge>
+    <edge source="2" target="104">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr31</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">153</data>
+    </edge>
+    <edge source="2" target="105">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr32</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">154</data>
+    </edge>
+    <edge source="2" target="106">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr33</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">155</data>
+    </edge>
+    <edge source="2" target="107">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr34</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">156</data>
+    </edge>
+    <edge source="2" target="108">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr35</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">157</data>
+    </edge>
+    <edge source="2" target="109">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr36</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">158</data>
+    </edge>
+    <edge source="2" target="110">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr37</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">159</data>
+    </edge>
+    <edge source="2" target="111">
+      <data key="d4">http://au.csiro.data61/serene/dev#Unknown1---http://au.csiro.data61/serene/dev#unknown---attr38</data>
+      <data key="d6">unknown</data>
+      <data key="d8">http://au.csiro.data61/serene/dev#</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d5">2.0</data>
+      <data key="d9">160</data>
+    </edge>
+    <edge source="3" target="9">
+      <data key="d4">http://www.europeana.eu/schemas/edm/WebResource1---http://isi.edu/integration/karma/dev#classLink---EB28A809-9498-0EFC-BD88-053511562B53</data>
+      <data key="d5">1.0</data>
+      <data key="d6">classLink</data>
+      <data key="d7">ClassInstanceLink</data>
+      <data key="d8">http://isi.edu/integration/karma/dev#</data>
+      <data key="d9">30</data>
+    </edge>
+    <edge source="4" target="16">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/dateOfDeath---79DCD5FB-22D4-214A-3FEF-72182D852CDC</data>
+      <data key="d5">1.0</data>
+      <data key="d6">dateOfDeath</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">27</data>
+    </edge>
+    <edge source="4" target="48">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/professionOrOccupation---84906C4B-4D01-F0A8-494E-700BA2F33A6B</data>
+      <data key="d5">1.0</data>
+      <data key="d6">professionOrOccupation</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">75</data>
+    </edge>
+    <edge source="4" target="50">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">109</data>
+    </edge>
+    <edge source="4" target="50">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">103</data>
+    </edge>
+    <edge source="4" target="51">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">93</data>
+    </edge>
+    <edge source="4" target="51">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">102</data>
+    </edge>
+    <edge source="4" target="21">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/dateOfBirth---1C0A5377-CFEB-7787-DB40-885A082B1DCC</data>
+      <data key="d5">1.0</data>
+      <data key="d6">dateOfBirth</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">28</data>
+    </edge>
+    <edge source="4" target="49">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">107</data>
+    </edge>
+    <edge source="4" target="49">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">101</data>
+    </edge>
+    <edge source="4" target="24">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/nameOfThePerson---8DB2A102-613E-6F5B-799D-5F1B454CC5D1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">nameOfThePerson</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">29</data>
+    </edge>
+    <edge source="4" target="41">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/biographicalInformation---42BD9FCE-C476-DD56-F500-ED9535DFD986</data>
+      <data key="d5">1.0</data>
+      <data key="d6">biographicalInformation</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">61</data>
+    </edge>
+    <edge source="4" target="27">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">108</data>
+    </edge>
+    <edge source="4" target="27">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">92</data>
+    </edge>
+    <edge source="4" target="13">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person1---http://rdvocab.info/ElementsGr2/countryAssociatedWithThePerson---0BF9BCFD-2498-C9B5-C7F0-5D5161F19330</data>
+      <data key="d5">1.0</data>
+      <data key="d6">countryAssociatedWithThePerson</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">26</data>
+    </edge>
+    <edge source="5" target="20">
+      <data key="d4">http://xmlns.com/foaf/0.1/Document1---http://isi.edu/integration/karma/dev#classLink---751B5664-B02F-ABE6-24E2-6416F00724A4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">classLink</data>
+      <data key="d7">ClassInstanceLink</data>
+      <data key="d8">http://isi.edu/integration/karma/dev#</data>
+      <data key="d9">25</data>
+    </edge>
+    <edge source="6" target="4">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/sitter---http://www.americanartcollaborative.org/ontology/Person1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">sitter</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">67</data>
+    </edge>
+    <edge source="6" target="4">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/creator---http://www.americanartcollaborative.org/ontology/Person1</data>
+      <data key="d5">0.1724137931034483</data>
+      <data key="d6">creator</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">15</data>
+    </edge>
+    <edge source="6" target="5">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://xmlns.com/foaf/0.1/page---http://xmlns.com/foaf/0.1/Document1</data>
+      <data key="d5">0.85</data>
+      <data key="d6">page</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://xmlns.com/foaf/0.1/</data>
+      <data key="d9">16</data>
+    </edge>
+    <edge source="6" target="7">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/subject---http://www.w3.org/2008/05/skos#Concept1</data>
+      <data key="d5">0.9375</data>
+      <data key="d6">subject</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">52</data>
+    </edge>
+    <edge source="6" target="7">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.europeana.eu/schemas/edm/hasType---http://www.w3.org/2008/05/skos#Concept1</data>
+      <data key="d5">0.6206896551724138</data>
+      <data key="d6">hasType</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">14</data>
+    </edge>
+    <edge source="6" target="10">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/extent---63628107-58F5-E309-EE97-D4D8B0AC02ED</data>
+      <data key="d5">1.0</data>
+      <data key="d6">extent</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">10</data>
+    </edge>
+    <edge source="6" target="11">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/title---5326BACE-73E7-B866-DA82-FEDFA3B8666B</data>
+      <data key="d5">1.0</data>
+      <data key="d6">title</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">11</data>
+    </edge>
+    <edge source="6" target="14">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/rightsHolder---6E73064C-9388-40A8-FDCC-DF08BAAC89AD</data>
+      <data key="d5">1.0</data>
+      <data key="d6">rightsHolder</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">9</data>
+    </edge>
+    <edge source="6" target="17">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/accessionNumber---8639CAC0-A77D-31B0-E5C8-557EAD65D311</data>
+      <data key="d5">1.0</data>
+      <data key="d6">accessionNumber</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">13</data>
+    </edge>
+    <edge source="6" target="23">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/provenance---247D20E9-DF46-B5BC-56F0-650C45BC43E8</data>
+      <data key="d5">1.0</data>
+      <data key="d6">provenance</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">12</data>
+    </edge>
+    <edge source="6" target="27">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">39</data>
+    </edge>
+    <edge source="6" target="28">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.europeana.eu/schemas/edm/isRelatedTo---http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2</data>
+      <data key="d5">0.84</data>
+      <data key="d6">isRelatedTo</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">37</data>
+    </edge>
+    <edge source="6" target="29">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.europeana.eu/schemas/edm/hasType---http://www.w3.org/2008/05/skos#Concept2</data>
+      <data key="d5">0.9375</data>
+      <data key="d6">hasType</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">46</data>
+    </edge>
+    <edge source="6" target="29">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/subject---http://www.w3.org/2008/05/skos#Concept2</data>
+      <data key="d5">0.8461538461538461</data>
+      <data key="d6">subject</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">38</data>
+    </edge>
+    <edge source="6" target="31">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/medium---C1956EEB-3B76-AE79-D086-6D15FFC80CFD</data>
+      <data key="d5">1.0</data>
+      <data key="d6">medium</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">40</data>
+    </edge>
+    <edge source="6" target="33">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/provenance---937F552F-F6F7-ADF6-9972-A15BDFAEDDC6</data>
+      <data key="d5">1.0</data>
+      <data key="d6">provenance</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">43</data>
+    </edge>
+    <edge source="6" target="35">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/description---4CD410FF-0509-09C8-A606-0F5696351DE2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">description</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">44</data>
+    </edge>
+    <edge source="6" target="36">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/created---DC2F5233-3A92-91C4-1AEF-DCBE88D74009</data>
+      <data key="d5">1.0</data>
+      <data key="d6">created</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">41</data>
+    </edge>
+    <edge source="6" target="37">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/objectId---28F4B662-EC6E-72DD-3F30-57AAF9CFDFD7</data>
+      <data key="d5">1.0</data>
+      <data key="d6">objectId</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">42</data>
+    </edge>
+    <edge source="6" target="38">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://xmlns.com/foaf/0.1/page---http://xmlns.com/foaf/0.1/Document2</data>
+      <data key="d5">0.8666666666666667</data>
+      <data key="d6">page</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://xmlns.com/foaf/0.1/</data>
+      <data key="d9">59</data>
+    </edge>
+    <edge source="6" target="42">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/terms/creator---http://www.americanartcollaborative.org/ontology/Person2</data>
+      <data key="d5">0.96</data>
+      <data key="d6">creator</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">65</data>
+    </edge>
+    <edge source="6" target="42">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/sitter---http://www.americanartcollaborative.org/ontology/Person2</data>
+      <data key="d5">0.875</data>
+      <data key="d6">sitter</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">63</data>
+    </edge>
+    <edge source="6" target="43">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://purl.org/dc/elements/1.1/rights---2163937C-878D-D3A7-F0AD-C6A8E5E1DD7C</data>
+      <data key="d5">1.0</data>
+      <data key="d6">rights</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/elements/1.1/</data>
+      <data key="d9">64</data>
+    </edge>
+    <edge source="6" target="49">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">95</data>
+    </edge>
+    <edge source="6" target="50">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">97</data>
+    </edge>
+    <edge source="6" target="51">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">96</data>
+    </edge>
+    <edge source="7" target="25">
+      <data key="d4">http://www.w3.org/2008/05/skos#Concept1---http://www.w3.org/2008/05/skos#prefLabel---E2824461-368C-03F9-039E-F6616F4E7E1B</data>
+      <data key="d5">1.0</data>
+      <data key="d6">prefLabel</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.w3.org/2008/05/skos#</data>
+      <data key="d9">17</data>
+    </edge>
+    <edge source="27" target="34">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Place1---http://www.w3.org/2000/01/rdf-schema#label---DE1BF23F-DAD6-24FC-71ED-DE9D3EBD405D</data>
+      <data key="d5">1.0</data>
+      <data key="d6">label</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.w3.org/2000/01/rdf-schema#</data>
+      <data key="d9">32</data>
+    </edge>
+    <edge source="28" target="32">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/objectId---826204ED-7997-F2F4-5EB8-0B48A4661314</data>
+      <data key="d5">1.0</data>
+      <data key="d6">objectId</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">33</data>
+    </edge>
+    <edge source="28" target="27">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">55</data>
+    </edge>
+    <edge source="28" target="4">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/creator---http://www.americanartcollaborative.org/ontology/Person1</data>
+      <data key="d5">0.96</data>
+      <data key="d6">creator</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">49</data>
+    </edge>
+    <edge source="28" target="4">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/sitter---http://www.americanartcollaborative.org/ontology/Person1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">sitter</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">68</data>
+    </edge>
+    <edge source="28" target="5">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://xmlns.com/foaf/0.1/page---http://xmlns.com/foaf/0.1/Document1</data>
+      <data key="d5">0.9333333333333333</data>
+      <data key="d6">page</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://xmlns.com/foaf/0.1/</data>
+      <data key="d9">50</data>
+    </edge>
+    <edge source="28" target="6">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.europeana.eu/schemas/edm/isRelatedTo---http://www.americanartcollaborative.org/ontology/CulturalHeritageObject1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">isRelatedTo</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">51</data>
+    </edge>
+    <edge source="28" target="7">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/subject---http://www.w3.org/2008/05/skos#Concept1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">subject</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">53</data>
+    </edge>
+    <edge source="28" target="7">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.europeana.eu/schemas/edm/hasType---http://www.w3.org/2008/05/skos#Concept1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">hasType</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">47</data>
+    </edge>
+    <edge source="28" target="40">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/title---C0A2AE6F-26D5-DC14-B360-B86E3281C388</data>
+      <data key="d5">1.0</data>
+      <data key="d6">title</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">58</data>
+    </edge>
+    <edge source="28" target="42">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/creator---http://www.americanartcollaborative.org/ontology/Person2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">creator</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">66</data>
+    </edge>
+    <edge source="28" target="42">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/sitter---http://www.americanartcollaborative.org/ontology/Person2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">sitter</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">69</data>
+    </edge>
+    <edge source="28" target="61">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/extent---116E60D6-AEFB-F85E-DB90-CDC90F3F36DA</data>
+      <data key="d5">1.0</data>
+      <data key="d6">extent</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">80</data>
+    </edge>
+    <edge source="28" target="49">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">98</data>
+    </edge>
+    <edge source="28" target="50">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">100</data>
+    </edge>
+    <edge source="28" target="51">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/associatedPlace---http://www.americanartcollaborative.org/ontology/Place4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">associatedPlace</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">99</data>
+    </edge>
+    <edge source="28" target="53">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/provenance---EA4F8E7B-F136-D075-6018-B3B36900787C</data>
+      <data key="d5">1.0</data>
+      <data key="d6">provenance</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">81</data>
+    </edge>
+    <edge source="28" target="54">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/created---DD2FB22F-16F0-9D71-78BB-BA1E6BECB274</data>
+      <data key="d5">1.0</data>
+      <data key="d6">created</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">83</data>
+    </edge>
+    <edge source="28" target="55">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/provenance---1C733B42-6804-9F90-96B4-29AF9F1BD569</data>
+      <data key="d5">1.0</data>
+      <data key="d6">provenance</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">84</data>
+    </edge>
+    <edge source="28" target="56">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/medium---2D92A5E4-0F1E-82A1-BCBE-801FB0FB3DC1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">medium</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">82</data>
+    </edge>
+    <edge source="28" target="58">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.americanartcollaborative.org/ontology/accessionNumber---5AF9F450-7A60-34D7-9868-5A0319441063</data>
+      <data key="d5">1.0</data>
+      <data key="d6">accessionNumber</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.americanartcollaborative.org/ontology/</data>
+      <data key="d9">79</data>
+    </edge>
+    <edge source="28" target="38">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://xmlns.com/foaf/0.1/page---http://xmlns.com/foaf/0.1/Document2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">page</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://xmlns.com/foaf/0.1/</data>
+      <data key="d9">60</data>
+    </edge>
+    <edge source="28" target="29">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://www.europeana.eu/schemas/edm/hasType---http://www.w3.org/2008/05/skos#Concept2</data>
+      <data key="d5">0.96</data>
+      <data key="d6">hasType</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://www.europeana.eu/schemas/edm/</data>
+      <data key="d9">48</data>
+    </edge>
+    <edge source="28" target="29">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/CulturalHeritageObject2---http://purl.org/dc/terms/subject---http://www.w3.org/2008/05/skos#Concept2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">subject</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://purl.org/dc/terms/</data>
+      <data key="d9">54</data>
+    </edge>
+    <edge source="29" target="30">
+      <data key="d4">http://www.w3.org/2008/05/skos#Concept2---http://www.w3.org/2008/05/skos#prefLabel---548F4984-DE80-5401-B312-83A0837C5A39</data>
+      <data key="d5">1.0</data>
+      <data key="d6">prefLabel</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.w3.org/2008/05/skos#</data>
+      <data key="d9">31</data>
+    </edge>
+    <edge source="38" target="39">
+      <data key="d4">http://xmlns.com/foaf/0.1/Document2---http://isi.edu/integration/karma/dev#classLink---02D2AD70-0FAC-F20E-86EC-3323417CD76C</data>
+      <data key="d5">1.0</data>
+      <data key="d6">classLink</data>
+      <data key="d7">ClassInstanceLink</data>
+      <data key="d8">http://isi.edu/integration/karma/dev#</data>
+      <data key="d9">56</data>
+    </edge>
+    <edge source="42" target="49">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">85</data>
+    </edge>
+    <edge source="42" target="49">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place2</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">110</data>
+    </edge>
+    <edge source="42" target="50">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">106</data>
+    </edge>
+    <edge source="42" target="50">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place3</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">86</data>
+    </edge>
+    <edge source="42" target="27">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">104</data>
+    </edge>
+    <edge source="42" target="27">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">111</data>
+    </edge>
+    <edge source="42" target="52">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/countryAssociatedWithThePerson---2C1AB107-7115-75F8-C5FE-95B55E9C5E42</data>
+      <data key="d5">1.0</data>
+      <data key="d6">countryAssociatedWithThePerson</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">87</data>
+    </edge>
+    <edge source="42" target="51">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfBirth---http://www.americanartcollaborative.org/ontology/Place4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfBirth</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">112</data>
+    </edge>
+    <edge source="42" target="51">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/placeOfDeath---http://www.americanartcollaborative.org/ontology/Place4</data>
+      <data key="d5">1.0</data>
+      <data key="d6">placeOfDeath</data>
+      <data key="d7">ObjectPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">105</data>
+    </edge>
+    <edge source="42" target="57">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/dateOfBirth---8C95A97F-3DC4-7D86-E4AA-081E494285C0</data>
+      <data key="d5">1.0</data>
+      <data key="d6">dateOfBirth</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">88</data>
+    </edge>
+    <edge source="42" target="59">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/dateOfDeath---97247ABC-EBC6-ADA2-D976-1AD98E4FA922</data>
+      <data key="d5">1.0</data>
+      <data key="d6">dateOfDeath</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">89</data>
+    </edge>
+    <edge source="42" target="47">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Person2---http://rdvocab.info/ElementsGr2/nameOfThePerson---AA2FB5AE-305C-FB7B-C041-C47573B43377</data>
+      <data key="d5">1.0</data>
+      <data key="d6">nameOfThePerson</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://rdvocab.info/ElementsGr2/</data>
+      <data key="d9">74</data>
+    </edge>
+    <edge source="45" target="46">
+      <data key="d4">http://www.europeana.eu/schemas/edm/WebResource2---http://isi.edu/integration/karma/dev#classLink---9860719E-F8BB-A57D-CFE8-0D6A309D0001</data>
+      <data key="d5">1.0</data>
+      <data key="d6">classLink</data>
+      <data key="d7">ClassInstanceLink</data>
+      <data key="d8">http://isi.edu/integration/karma/dev#</data>
+      <data key="d9">73</data>
+    </edge>
+    <edge source="49" target="63">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Place2---http://www.w3.org/2000/01/rdf-schema#label---3E7D91C4-8451-FCC4-D8FC-597691CF15E1</data>
+      <data key="d5">1.0</data>
+      <data key="d6">label</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.w3.org/2000/01/rdf-schema#</data>
+      <data key="d9">90</data>
+    </edge>
+    <edge source="50" target="60">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Place3---http://www.w3.org/2000/01/rdf-schema#label---1EA17EEA-1D42-58DB-C2A5-16EEEC7E2B24</data>
+      <data key="d5">1.0</data>
+      <data key="d6">label</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.w3.org/2000/01/rdf-schema#</data>
+      <data key="d9">94</data>
+    </edge>
+    <edge source="51" target="62">
+      <data key="d4">http://www.americanartcollaborative.org/ontology/Place4---http://www.w3.org/2000/01/rdf-schema#label---77F0ECC2-295E-2903-4352-EF91B8FE7038</data>
+      <data key="d5">1.0</data>
+      <data key="d6">label</data>
+      <data key="d7">DataPropertyLink</data>
+      <data key="d8">http://www.w3.org/2000/01/rdf-schema#</data>
+      <data key="d9">91</data>
+    </edge>
+  </graph>
+</graphml>
