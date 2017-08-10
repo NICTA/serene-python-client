@@ -1,0 +1,654 @@
+\def\year{2018}\relax
+%File: formatting-instruction.tex
+\documentclass[letterpaper]{article} %DO NOT CHANGE THIS
+\usepackage{aaai18}  %Required
+\usepackage{times}  %Required
+\usepackage{helvet}  %Required
+\usepackage{courier}  %Required
+\usepackage{url}  %Required
+\usepackage{graphicx}  %Required
+\frenchspacing  %Required
+\setlength{\pdfpagewidth}{8.5in}  %Required
+\setlength{\pdfpageheight}{11in}  %Required
+\usepackage{spverbatim}
+\usepackage{fancyvrb}
+
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{amsmath,amsthm,stmaryrd}
+\usepackage{algpseudocode}
+\usepackage{algorithm}
+\algrenewcommand\algorithmiccomment[2][\footnotesize]{{#1\hfill\(\triangleright\)
+ #2}} %\normalsize
+\usepackage{amssymb}
+\usepackage{textcomp}
+
+\usepackage{tikz}
+\usetikzlibrary{shadows.blur}
+\usetikzlibrary{shapes.symbols}
+\usetikzlibrary{arrows,shapes,decorations.pathmorphing}
+\usetikzlibrary{positioning}
+\usetikzlibrary{decorations.text}
+\usetikzlibrary{decorations.pathmorphing}
+\tikzstyle{class}=[draw,ellipse,align=center,fill=green!25]
+\tikzstyle{data}=[draw,rectangle,align=center,black!70]
+\tikzstyle{hasaA} = [>=stealth',draw,dashed,-,black!70]
+\tikzstyle{hasaC} = [>=stealth',draw,thick,-, black]
+\tikzstyle{isa} = [>=latex,draw,double,black!90,double distance=1mm]
+
+\newcommand{\authornote}[3]{
+  {\fbox{\sc 
+  #1}:$\blacktriangleright$\textcolor{#2}{\small{#3}}$\blacktriangleleft$}%
+}
+\newcommand{\pds}[1]{\authornote{PDS}{purple}{#1}}
+\newcommand{\pjs}[1]{\authornote{PJS}{red}{#1}}
+\newcommand{\gkg}[1]{\authornote{GKG}{brown}{#1}}
+\newcommand{\ddg}[1]{\authornote{DDG}{blue}{#1}}
+\newcommand{\npd}[1]{\authornote{NPD}{orange}{#1}}
+
+\newcommand{\minizinc}{\textsc{MiniZinc}}
+\newcommand{\chuffed}{\textsc{Chuffed}}
+\newcommand{\relonto}{\textsc{Rel2Onto}}
+
+\newcommand{\etal}{\textit{et al.}}
+
+\newcommand{\code}[1]{\texttt{#1}}
+
+%PDF Info Is Required:
+
+%  \pdfinfo{
+%/Title (2018 Formatting Instructions for Authors Using LaTeX)
+%/Author (AAAI Press Staff)}
+\setcounter{secnumdepth}{0}  
+ \begin{document}
+% The file aaai.sty is the style file for AAAI Press 
+% proceedings, working notes, and technical reports.
+%
+\title{Using Machine Learning and Constraint Programming to Solve the 
+Relational-To-Ontology Mapping Problem}
+\author{}
+\maketitle
+\begin{abstract}
+The problem of integrating heterogeneous data sources in an ontology is of high 
+relevance in the database field. Several techniques exist to approach this 
+problem. Nonetheless, side constraints on the data integration cannot be easily 
+integrated with these tools and thus the results may be inconsistent. We 
+present a new approach that combines Machine Learning and 
+Constraint Programming techniques, by modelling the data integration problem as 
+a Steiner Tree Problem in a weighted graph. We show that through this approach 
+we can achieve better precision, recall and speed compared to state-of-the-art 
+approaches. We provide a comprehensive set of experiments supporting our 
+findings.
+\end{abstract}
+
+\section{Introduction}
+The problem of integrating heterogeneous data sources is a long standing issue 
+in the database research field and is of high relevance in many real-world 
+domains.
+A common approach to tackle this problem is to design a global model and to
+construct source descriptions which specify mappings between the sources and
+the global model \cite{doan2012principles}.
+
+In our case, we would like this global model to account
+not only for structural properties of the original data sources, but also to 
+include the semantics which is usually implicitly present in the sources. In 
+other words, we want to build a semantic model which describes the data sources 
+in terms of concepts and relationships defined by an ontology. We can view this
+semantic model as a graph with ontology classes as the nodes and ontology
+properties as the links between the nodes \cite{Taheriyan2013}. Henceforth, we 
+focus on a specific data integration problem: automatically mapping relational 
+data sources onto a user provided ontology.
+
+In this paper we use Machine Learning techniques (ML) to learn mapping rules 
+from already mapped instances. To this end we formulate the 
+Relational-To-Ontology Mapping Problem (\relonto{})
+as a Minimum Cost Steiner Tree Problem (STP) with side constraints.
+This problem is formulated for an \emph{integration graph} which includes the 
+attributes from the new source as well as ontology classes and properties. We
+apply machine learning techniques to assign costs to the links in the 
+constructed integration graph.
+
+The contributions of this work are:
+\begin{itemize}
+	\item \ddg{TODO}
+\end{itemize}
+
+Section bla  presents bla bla... \ddg{TODO}
+
+\section{Previous Work}
+\ddg{rewrite, add more}
+One of the standard approaches to solve the relational-to-ontology (\relonto{})
+mapping problem is to apply Knowledge Representation and Reasoning (KR)
+techniques. The main idea of this approach is to exploit constraints specified 
+within relational schemata and ontologies. Several mapping generation
+tools based on this approach already exist, for example, BootOX, MIRROR,
+COMA++ \cite{pinkel2016rodi}. The issue is though that constraints may be 
+inconsistent or absent completely \ddg{Why?}. We suggest to use ML techniques 
+to overcome this hurdle.
+
+\cite{taheriyan2016learning} \ddg{Isn't this really similar??}
+
+\section{Motivating Example}
+\ddg{TODO}
+
+\section{Problem Statement}
+We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
+
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+	\node[class] (pe) at (0,0)  {Person};
+	\node[class] (co) at (0,-3) {Organisation};
+	\node[class] (ev) at (3.5,1) {Event};
+	\node[class] (pl) at (5,-1) {Place};
+	\node[class] (ci) at (3,-3) {City};
+	\node[class] (st) at (5,-3) {State};
+	
+		
+	\path[hasaC,->] (pe) edge [bend left= -30] 
+	node [midway, above, sloped] {worksFor} (co) ;
+	\path[hasaC,->] (co) edge [bend left= -30] 
+	node [midway, above, sloped] {ceo} (pe) ;
+	
+	\path[hasaC,->] (co) edge [] 
+	node [midway, above, sloped] {location} (pl) ;
+	
+	\path[hasaC,->] (pe) edge [bend left = -20] 
+	node [midway, above, sloped] {bornIn} (pl) ;
+	\path[hasaC,->] (pe) edge [bend left = 0] 
+	node [midway, above, sloped] {livesIn} (pl) ;
+	
+	\path[hasaC,->] (ev) edge [bend left = -20] 
+	node [midway, above, sloped] {organizer} (pe) ;
+	\path[hasaC,->] (ev) edge [bend left = 0] 
+	node [midway, above, sloped] {location} (pl) ;
+	
+	
+	\path[hasaC,->] (pl) edge [out=20,in=0,looseness=8] 
+	node [midway, above, sloped] {nearby} (pl) ;
+	\path[hasaC,->] (pl) edge [out=45,in=65,looseness=8] 
+	node [midway, above, sloped] {partOf} (pl) ;
+	
+	\path[hasaC,->] (ci) edge  []
+	node [midway, above, sloped] {state} (st) ;
+	
+	\path[isa,->] (ci) -- node [] {} (pl) ;
+	\path[isa,->] (st) -- node [] {} (pl) ;
+	
+
+	\path[draw,hasaA,->] (pe) edge [bend left = 10] 
+	node [midway, above, sloped] {name} (-0.5,2);
+	\path[draw,hasaA,->] (pe) edge [bend left = 0] 
+	node [midway, below, sloped] {birthDate} (0,2);	
+	
+	\path[draw,hasaA,->] (co) edge [bend left = 0] 
+	node [midway, below, sloped] {name} (-1,-5);
+	\path[draw,hasaA,->] (co) edge [bend left = 0] 
+	node [midway, above, sloped] {phone} (0,-5);
+	\path[draw,hasaA,->] (co) edge [bend left = 0] 
+	node [midway, above, sloped] {email} (1,-5);
+	
+	\path[draw,hasaA,->] (ev) edge [bend left = 0] 
+	node [midway, below, sloped] {startDate} (2.5,3.2);
+	\path[draw,hasaA,->] (ev) edge [bend left = 0] 
+	node [midway, above, sloped] {endDate} (3.5,3.2);
+	\path[draw,hasaA,->] (ev) edge [bend left = 0] 
+	node [midway, below, sloped] {title} (4.5,3.2);
+	
+	\path[draw,hasaA,->] (pl) edge [bend left = 0] 
+	node [midway, above, sloped] {name} (6.5,-1.8);
+	\path[draw,hasaA,->] (pl) edge [bend left = 0] 
+	node [midway, above, sloped] {postalCode} (6,-3);	
+	
+
+
+
+\end{tikzpicture}
+\caption{Example of ontology
+(`\tikz{ \node[class] () at (0,0)  {};}' are Classes, `\tikz{ \path[hasaC,->] 
+(0,1) -- (3ex,1);}' means ``has a Class property'', 
+`\tikz{ \path[hasaA,->] (0,1) -- (3ex,1);}' means ``has a data property'' and 
+`\tikz{ \path[isa,->] (0,1) -- (3ex,1);}' means ``is a'' ).
+}
+\label{FIG:onto}
+\end{figure}
+
+
+
+
+An ontology $\mathcal{O}$ is a specification of classes of objects and their 
+data properties and relationships between them. An example of an ontology is 
+given 
+in Fig. \ref{FIG:onto}. A Class in an ontology can have \emph{data properties} 
+or 
+\emph{class properties}. For example an ``Organisation'' has a ``Person'' 
+(which is a class with its own properties), and it has a ``name'' (which 
+is a data property). Also, a Class can be a subclass of another Class. For 
+example ``Cities'', ``Countries'' or ``States'' are all ``Places''. A subclass 
+inherits all the properties of the parent class.
+
+A \emph{semantic model} $m$ is a directed graph with two types of nodes: 
+\emph{class nodes} and \emph{data nodes}. We denote them as $\mathcal{C}_m$ and 
+$\mathcal{D}_m$ respectively. We define $\mathcal{N}_m = \mathcal{C}_m \cup 
+\mathcal{D}_m$. $ \mathcal{C}_m$ corresponds to classes in the ontology 
+$\mathcal{O}$. $\mathcal{D}_m$ corresponds to data 
+properties in the ontology. The edges in the semantic model correspond to 
+relationships in the ontology, as shown if Figures \ref{FIG:onto} and 
+\ref{FIG:sem}.
+
+
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+\begin{scope}
+	\node[class] (pe) at (0,0)  {\small Person};
+	\node[class] (co) at (6,0) {\small Org.};
+	\node[class] (ci) at (2.5,0) {\small City};
+	\node[class] (st) at (4.5,0) {\small State};
+	
+	\node[data] (pen) at (-1,-1) {\scriptsize Person.name};
+	\node[data] (peb) at (1,-1) {\scriptsize Person.birthDate};
+	\node[data] (cin) at (3,-1) {\scriptsize City.name};
+	\node[data] (stn) at (4.5,-1) {\scriptsize State.name};
+	\node[data] (con) at (6,-1) {\scriptsize Org.name};
+	
+		
+	\path[hasaC,->] (pe) edge [bend left= 20] 
+	node [midway, above, sloped] {worksFor} (co) ;
+	
+	
+	\path[hasaC,->] (pe) edge [bend left = 0] 
+	node [midway, above, sloped] {bornIn} (ci) ;
+	
+	
+	\path[hasaC,->] (ci) edge  []
+	node [midway, above, sloped] {state} (st) ;
+
+	
+
+	\path[draw,hasaA,->] (pe) -- (pen);
+	\path[draw,hasaA,->] (pe) -- (peb);	
+	
+	\path[draw,hasaA,->] (co) -- (con);
+	
+	\path[draw,hasaA,->] (ci) -- (cin);
+	
+	\path[draw,hasaA,->] (st) -- (stn);
+\end{scope}
+\begin{scope}[yshift=-60]
+	\node[class] (pl) at (-1,0)  {\small City};
+	\node[class] (pe) at (3,0)  {\small Person};
+	\node[class] (co) at (1,0) {\small Org.};
+	\node[class] (ev) at (6,0) {\small Event};
+	
+	\node[data] (pen) at (2.5,-1) {\scriptsize Person.name};
+	\node[data] (evs) at (4.2,-1) {\scriptsize Event.startDate};
+	\node[data] (eve) at (6,-1) {\scriptsize Event endDate};
+	\node[data] (con) at (1,-1) {\scriptsize Org.name};
+	\node[data] (pln) at (-1,-1) {\scriptsize City.name};
+	
+		
+	\path[hasaC,->] (co) edge [bend left= 0] 
+	node [midway, above, sloped] {ceo} (pe) ;
+	
+	
+	\path[hasaC,->] (ev) edge [bend left = 0] 
+	node [midway, above, sloped] {organizer} (pe) ;
+	
+	\path[hasaC,->] (co) edge [bend left = -10] 
+	node [midway, above, sloped] {location} (pl) ;
+
+
+
+	\path[draw,hasaA,->] (pl) -- (pln);	
+
+	\path[draw,hasaA,->] (pe) -- (pen);
+	
+	\path[draw,hasaA,->] (co) -- (con);
+	
+	\path[draw,hasaA,->] (ev) -- (evs);
+	\path[draw,hasaA,->] (ev) -- (eve);
+	
+\end{scope}
+\end{tikzpicture}
+\caption{Examples of two semantic models.}
+\label{FIG:sem}
+\end{figure}
+
+
+
+
+A \emph{source} $s$ is a $n$-ary relation with a set of attributes 
+$\mathcal{A}_s = 
+(a_1,...,a_n)$.
+
+An \emph{attribute mapping} function $\phi : \mathcal{A}_s \mapsto 
+\mathcal{D}_m$ is a function which
+maps the attributes of the source $s$ into the nodes of the semantic model $m$. 
+It can be a partial mapping, meaning that only some of the attributes
+are connected to the nodes of $m$.
+
+A \emph{source description} is a triple $\delta = (s, m, \phi)$ where $s$ is a 
+source, 
+$m$ is a semantic
+model, and $\phi$ is an attribute mapping.
+
+Our problem can be stated now the following way. We have an ontology 
+$\mathcal{O}$ and a set of source descriptions $S_T = \{(s_1, m_1, \phi_1),..., 
+(s_l, m_l, \phi_l)\}$.
+Given a new source $s^\star$, we want to build a semantic model $m^\star$ and 
+an attribute mapping function $\phi^\star$ such that 
+$\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source 
+description. We
+use the term appropriate since there might be many such triples which are
+well-formed source descriptions, but only one or a few will capture the intended
+meaning of the source. Our goal is to automatically build $\delta^\star$ such 
+that it minimizes the \emph{graph edit distance} (GED) from the semantic model 
+$m^\star$ to the semantic model $m^\dag$ that the user considers correct.
+
+The GED is a measure of similarity between two graphs defined as follows for 
+two graphs $g_1$ and $g_2$: $GED(g_1,g_2) = min_{(e_1 ,...,e_k)\in P} 
+\sum_{i=1}^{k}c(e_i)$ where $P$ denotes the set of edit paths transforming 
+$g_1$ into (a graph
+isomorphic to) $g_2$ and $c(e) \geq 0$ is the cost of each graph edit operation 
+$e$. Graph edit operations include among others node insertion, edge deletion, 
+etc. \cite{gao2010survey}. In practice, we use some approximation measures of 
+the graph edit distance. \ddg{which approx?}
+
+\section{ML for Training on Source Descriptions \ddg{Better title than this 
+please...}}
+
+
+\subsection{Semantic Labeling}
+The semantic types $\mathcal{L_O} = \{l_1, l_2, ..., l_p\}$ of an ontology 
+correspond to all pairs $(c,d)$, where $c$ is a Class in $\mathcal{O}$, and $d$ 
+is a data property of that class (including inherited properties). 
+For example, from the ontology in Fig. \ref{FIG:onto}, we would get types such 
+as 
+(City,name) and (State,name).
+
+The first step to model the semantics of a new source $s^\star$ is to recognize 
+the semantic types present in the source. 
+We call this step \emph{semantic labeling}, which involves giving a confidence 
+value to a match occurring between an attribute from $s^\star$ and type $l \in 
+\mathcal{L_O}$. \ddg{CHECK!}
+
+We formulate the problem of semantic labeling as a multi-class classification
+problem. The known source descriptions $S_T$ provide us the training sample. We
+compute a feature vector for each source \ddg{Which features?} attribute and 
+associate the known
+semantic type with the corresponding feature vector. We train random forest
+on this sample. Then we use the learnt model to classify attributes in the new
+source.
+
+In such way, we learn the mapping $\psi : \mathcal{A_s} \times \mathcal{L_O} 
+\mapsto [0, 1]$,
+where $\psi(a_i,l_j)$ indicates the confidence of the attribute $a_i$ to be 
+mapped to the semantic type $l_j$.
+
+\ddg{IMPORTANT: Do we keep all of them, or only the top $k$ with most 
+confidence? If so, 
+what is $k$?}
+
+
+
+\subsection{Alignment Graph}
+
+To provide an integrated view over the known sources descriptions $S_T$, we 
+need to align their semantic models as well as all considered semantic 
+types. This is achieved by constructing an \emph{alignment graph}. 
+
+The alignment graph is a directed weighted graph $\mathcal{G_O} = 
+(\mathcal{V_O},\mathcal{E_O})$ built on top 
+of the known semantic models and expanded using the semantic types 
+$\mathcal{L_O}$ and the domain ontology $\mathcal{O}$. Similar to a semantic 
+model, $\mathcal{G_O}$ contains both class and data nodes. The links correspond 
+to properties in  $\mathcal{O}$ and are weighted \cite{taheriyan2016learning}.
+
+The algorithm we used to construct $\mathcal{G_O}$ is the same as Taheriyan 
+\etal{} and is described in detail in the cited paper 
+\cite{taheriyan2016learning}.
+Briefly, the algorithm has three parts:
+\begin{enumerate}
+\item Adding the known semantic models.
+\item Adding the semantic types learned for the target source. \ddg{TODO: see 
+Important note above}
+\item Expanding the graph using the domain ontology $\mathcal{O}$.
+\end{enumerate}
+
+Note how the alignment graph contains data nodes that correspond to at least 
+some of the semantic types. For instance, it could contain two nodes 
+$City.name$ and $State.name$ rather than just one node $name$ connected to two 
+nodes $City$ and $State$. We say these nodes are \emph{induced} into the 
+alignment graph by the semantic types, we note them $\mathcal{D_{G_O}}$ and we 
+call them \emph{data nodes} of the alignment graph.
+
+The graph is weighted by a function $w_\mathcal{O} : \mathcal{E_O} \mapsto 
+\mathbb{R}$ in 
+such a way that links which are present in
+the known semantic models have lower weights than those 
+which are inferred from the ontology. As we will see int he next section, this 
+makes links present in semantic models more attractive. \ddg{How exactly are 
+they weighted?}
+
+An example alignment graph is illustrated in Fig. \ddg{todo}. Black links 
+correspond to the links which are supported by the known semantic models. Blue
+links are inferred from the ontology $\mathcal{O}$ and can be assigned the 
+maximum weight $w_max$ \ddg{where does this weight come from?} .
+
+\subsection{Frequent Subgraph Pattern Mining}
+
+\ddg{TODO}
+
+
+\section{Steiner Tree Formulation}
+
+The Steiner Tree Problem (STP) is defined the following way. Given a graph $G =
+(V, E)$ and a subset of its nodes $T \subseteq V$ , called \emph{terminals}, a 
+Steiner Tree $G_s = (V_s, E_s )$ is a tree such that $T \subseteq V_s \subseteq 
+V$ and $E_s \subseteq E$. In other words, $G_s$ spans all the nodes in $T$ and 
+may include additional nodes from $V$, in particular to ensure the 
+connectedness of the constructed tree.
+
+To formulate the \relonto{} schema mapping problem as a STP for a new source 
+$s^\star$, we construct the 
+\emph{integration graph} $\mathcal{I}_\mathcal{O}^{s^\star} = 
+(\mathcal{V}_\mathcal{O}^{s^\star},\mathcal{E}_\mathcal{O}^{s^\star})$, with 
+nodes $\mathcal{V}_\mathcal{O}^{s^\star} = \mathcal{V_O} \cup 
+\mathcal{A}_{s^\star}$, 
+edges $\mathcal{E}_\mathcal{O}^{s^\star}$.
+
+The set of edges $\mathcal{E}_\mathcal{O}^{s^\star}$ is constructed by using 
+all the edges in the alignment 
+graph, and edges connecting each attributes of $s^\star$ to the nodes 
+$\mathcal{D_{G_O}}$ of the 
+alignment graph \emph{induced} by the semantic labels. We call this last set 
+of edges $\mathcal{M}_\mathcal{O}^{s^\star}$ (for ``matches''). Thus, 
+$\mathcal{E}_\mathcal{O}^{s^\star} = 
+\mathcal{E_O} \cup \mathcal{M}_\mathcal{O}^{s^\star}$.
+
+We associate a weighting function  $w_\mathcal{I} : E \mapsto \mathbb{R}^+$ to 
+the integration graph. For an edge $e \in \mathcal{E_O}$, $w_\mathcal{I}(e) = 
+w_\mathcal{O}(e)$. For an edge $e 
+\in \mathcal{M}_\mathcal{O}^{s^\star}$ connecting attribute $a_i$ to the node 
+$l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
+ln(\psi(a_i,l_i))$. \ddg{CHECK!}
+
+An example of integration graph can be found in Fig. \ddg{TODO}.
+
+Note that, although the alignment graph is directed, the semantic models are 
+not necessarily rooted directed trees, therefore the directions of the edges is 
+ignored for the STP model (and are all treated as undirected edges). 
+
+\section{Modeling as a Constraint Optimization Problem}
+
+\subsection{Definitions}
+A Constraint Satisfaction Problem (CSP) is a tuple $P = (\boldsymbol{v},D,C)$ 
+where $\boldsymbol{v}$ is a 
+set of \emph{variables}, $D$ is a set of unary constraints over 
+$\boldsymbol{v}$ specifying 
+the \emph{domain} of these variables, $C$ is a set of $n$-ary 
+\emph{constraints} over variables $\boldsymbol{v}$.
+A valuation $\theta(\boldsymbol{v})$ is a mapping from the set of variables to 
+values in $D$. If there exist a valuation $\theta^\star$ such that all 
+variables map 
+to exactly one value, and all the constraints in $D\cup C$ are satisfied by the 
+valuation, then $\theta^\star$ is a \emph{solution} to $P$.
+
+A Constraint Optimization Problem (COP) is a CSP with an additional 
+\emph{objective function} $o : \boldsymbol{v} \mapsto \mathbb{R}$ and a 
+\emph{sign} which is either \verb|minimize| or \verb|maximize|. 
+
+A typical example of COP is the Traveling Salesman Problem, where we need to 
+find a route that visits all cities in a region exactly one and is of minimal 
+length.
+
+\subsection{Constraint Programming}
+Constraint Programming (CP) allows the user to model a CSP or COP and give it 
+to a 
+solver that will find a solution to the CSP, or will report unsatisfiability if 
+no such valuation exists. In the case of COPs, the solver will try to optimize 
+the objective function and prove optimality as well.
+
+Briefly, the way a CP solver works is by assigning a value to each variable of 
+$\boldsymbol{v}$ from $D$ in turn. At each iteration it will check whether any 
+constraint in $C$ is violated, in which case it will backtrack to change it's 
+last decision. The choice of the order of the variables to be assigned, and the 
+choice of the value to be assigned to each variable is called the \emph{search 
+strategy}.
+
+Since only using a backtracking algorithm would have a prohibitive cost, CP 
+uses a combination of search and \emph{propagation}. The latter is achieved by 
+\emph{propagating} the last decision made via specialized algorithms called 
+\emph{propagators}. A propagator is a function $p : (v, D_v) \mapsto D_v'$ that 
+takes a subset of the variables of the problem $v \subseteq \boldsymbol{v}$ and 
+the domain of those variables $D_v$ and returns a new domain for thus variables 
+such that $D_v' \sqsubseteq D$. That is, a propagator removes values form the 
+domains of variables (when possible). For a propagator to be correct, it must 
+not remove a value of the domain of a variable if such value could participate 
+in a solution given the decisions already made.
+
+Global constraints are higher order constraints that enforce a complicated 
+constraint over a set ov variables. Typical examples of this is enforcing that 
+a set of variables take different values, or that they describe a path a in a 
+graph. Although it is possible to express these constraints with a conjunction 
+of simple constraints, it is often the case that specific algorithms for these 
+constraints perform substantially better than a decomposition approach (e.g. 
+\cite{regin1994filtering}). A wide 
+list of these global constraints can be found in \cite{beldiceanu2012global}.
+
+\subsubsection{Example} Consider the toy problem $P$ over variables $a$ and $b$ 
+such that $a \in \{2,3,4\}$, $b \in \{1,2,3\}$. Let $C = \{a + 2b \leq 4, a 
+\neq b\}$ the constraints to be satisfied. If the search step decides that $a = 
+2$, then (i) $a \neq b \Rightarrow b \in \{1,3\}$ and (ii) $a + 2b \leq 4  
+\Rightarrow b \in \{1\}$. Thus we automatically know that $b = 1$ without never 
+trying any other of its original possible values.
+
+
+\subsection{Modeling \relonto{} in CP}
+In order to model this problem we used the \minizinc{} language, and the 
+\chuffed{} solver because it has a global constraint implemented for Steiner 
+Tree Problems \cite{deuna2016steiner}. 
+
+We need to build a subgraph $T^\star= (V^\star, E^\star)$ 
+that is a subset of the integration graph 
+$\mathcal{I}_\mathcal{O}^{s^\star}$ for the new source $s^\star$. The tree will 
+be used to build the source description $\delta^\star = (s^\star, m^\star, 
+\phi^\star)$. 
+In particular, $(\mathcal{V_O} \cap V^\star,\mathcal{E_O} \cap E^\star)$ 
+corresponds to the semantic model, and 
+$(\mathcal{A}_{s^\star},\mathcal{M}_\mathcal{O}^{s^\star} \cap E^\star)$ 
+corresponds to 
+the attribute mapping function.
+
+The solution $T^\star$ must satisfy the following constraints:
+\begin{enumerate}
+	\item $T^\star$ must be a tree (connected acyclic graph).
+	\item $\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$.
+	\item $\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$.
+	\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
+	\{0,2\}$
+	\item $\forall n \in \mathcal{D_{G_O}} \cap V^\star, 
+	degree(a) = 2$
+\end{enumerate}
+
+Because attributes must be connected to exactly one node of the alignment 
+graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$ 
+then the part of the problem between attribute nodes and the alignment graph is 
+actually a matching problem. Each attribute must match exactly to one node of 
+$\mathcal{D_{G_O}}$. 
+
+Because there are global constraints in CP specialized in matching 
+\cite{regin1994filtering}, we split the problem into two parts: (i) the 
+\verb|steiner_tree| global constraint will only deal with the part of the 
+integration graph that corresponds to the alignment graph, and the 
+\verb|alldifferent| global constraint will deal with he matching part of the 
+problem.
+
+We use the following variables to represent the tree $T^\star$: Boolean 
+variables $c_n,\forall n \in 
+\mathcal{V_O}$, $c_e, \forall e \in	\mathcal{E_O}$ and an array of variables 
+$match$ indexed by the set of attributes of $s^\star$. The combination of these 
+sets fo variables define the value of $T^\star$: $c_n = \mathit{true}$ means 
+that $n \in V^\star$, $c_e = \mathit{true}$ means that $e \in E^\star$ and 
+$match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in 
+\mathcal{D_{G_O}}$) means that the edge $(a,d) \in 
+\mathcal{M}_\mathcal{O}^{s^\star}$ is part of $E^\star$.
+
+
+\begin{flalign}
+	& \text{Minimize~~} w_{STP} + w_{ADIFF}
+	%\sum_{e \in \mathcal{E}_\mathcal{O}}c_e * 
+	%w_\mathcal{I}(e) + \sum_{e \in \mathcal{M}_\mathcal{O}^{s^\star}} c_e * 
+    %		w_\mathcal{I}(e)
+	\label{EQ:obj}&&\\
+	&\text{such that~~}  \nonumber&& \\
+	& \textit{steiner\_tree}(\{c_n| n \in \mathcal{V_O}\},\{c_e| e \in 
+	\mathcal{E_O}\},\mathcal{G_O},w_\mathcal{O},w_{STP})  \label{EQ:stp} &&\\
+	&\forall d \in \mathcal{D_{G_O}}, degree(d) \leq 1 \label{EQ:deg1}&&\\
+	&\forall d \in \mathcal{D_{G_O}}, c_d \Leftrightarrow degree(d) = 1 
+	\label{EQ:deg2}&&\\
+	&\forall a \in \mathcal{A}_{s^\star}, match[a] \in \{ d | (a,d)\in 
+	\mathcal{M}_\mathcal{O}^{s^\star} \} \label{EQ:matchdom}&&\\
+	& \textit{alldifferent}(match) \label{EQ:alld}&& \\
+	& \forall a \in \mathcal{A}_{s^\star}, c_{match[a]} = \mathit{true} 
+	\label{EQ:map}&&\\
+	& w_{ADIFF} = \sum_{(a,d) \in \mathcal{M}_\mathcal{O}^{s^\star}} 
+	w_\mathcal{I}(~(a,d)~) * \llbracket match[a] = d\rrbracket 
+	\label{EQ:matchcost}
+\end{flalign}
+
+Eq. \ref{EQ:obj} is the objective function, we are trying to minimize the cost 
+of $T^\star$. Eq. \ref{EQ:stp} enforces that the solution $T^\star$ is indeed a 
+tree defined by the $c_n$ and $c_e$ variables, subgraph of the alignment graph 
+and of total weight $w_{STP}$. Equations \ref{EQ:deg1} and \ref{EQ:deg2} ensure 
+that if a data node of the alignment graph is selected, then at most one edge 
+reaches it (from the side of the alignment graph) and otherwise it is 
+disconnected. Eq. \ref{EQ:matchdom} ensures that the domain of each variable in 
+the array $match$ corresponds to a subset of data nodes of the alignment graph 
+for which there is an edge connecting to the attribute at hand. Eq. 
+\ref{EQ:alld} ensure that each attribute is mapped to exactly one data node of 
+the alignment graph. Equations \ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
+the matching part of the problem is a bijection. Eq. \ref{EQ:map} ensures that 
+if a data node of the alignment graph has been mapped to some attribute, then 
+that data node must be in the solution tree, and vice-versa. Eq. 
+\ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
+
+
+\section{Results}
+
+\subsection{Experimental Setup}
+\ddg{TODO}
+
+\subsection{Experimental Results}
+\ddg{TODO}
+
+\section{Conclusions}
+\ddg{TODO} 
+
+
+\bibliographystyle{aaai}
+\bibliography{main}
+\end{document}
