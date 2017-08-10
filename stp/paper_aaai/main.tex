@@ -32,7 +32,9 @@
 \usetikzlibrary{decorations.pathmorphing}
 \tikzstyle{class}=[draw,ellipse,align=center,fill=green!25]
 \tikzstyle{data}=[draw,rectangle,align=center,black!70]
-\tikzstyle{hasaA} = [>=stealth',draw,dashed,-,black!70]
+\tikzstyle{hasaA} = 
+[>=o,draw,densely dashed,-,black!70,decoration={snake,segment 
+length=10,amplitude=1.5,post length=4}]
 \tikzstyle{hasaC} = [>=stealth',draw,thick,-, black]
 \tikzstyle{isa} = [>=latex,draw,double,black!90,double distance=1mm]
 
@@ -177,28 +179,28 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 	\path[isa,->] (st) -- node [] {} (pl) ;
 	
 
-	\path[draw,hasaA,->] (pe) edge [bend left = 10] 
+	\path[draw,hasaA,->] (pe) edge [decorate,bend left = 10] 
 	node [midway, above, sloped] {name} (-0.5,2);
-	\path[draw,hasaA,->] (pe) edge [bend left = 0] 
+	\path[draw,hasaA,->] (pe) edge [decorate,bend left = 0] 
 	node [midway, below, sloped] {birthDate} (0,2);	
 	
-	\path[draw,hasaA,->] (co) edge [bend left = 0] 
+	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
 	node [midway, below, sloped] {name} (-1,-5);
-	\path[draw,hasaA,->] (co) edge [bend left = 0] 
+	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {phone} (0,-5);
-	\path[draw,hasaA,->] (co) edge [bend left = 0] 
+	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {email} (1,-5);
 	
-	\path[draw,hasaA,->] (ev) edge [bend left = 0] 
+	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
 	node [midway, below, sloped] {startDate} (2.5,3.2);
-	\path[draw,hasaA,->] (ev) edge [bend left = 0] 
+	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {endDate} (3.5,3.2);
-	\path[draw,hasaA,->] (ev) edge [bend left = 0] 
+	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
 	node [midway, below, sloped] {title} (4.5,3.2);
 	
-	\path[draw,hasaA,->] (pl) edge [bend left = 0] 
+	\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {name} (6.5,-1.8);
-	\path[draw,hasaA,->] (pl) edge [bend left = 0] 
+	\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {postalCode} (6,-3);	
 	
 
@@ -208,7 +210,8 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 \caption{Example of ontology
 (`\tikz{ \node[class] () at (0,0)  {};}' are Classes, `\tikz{ \path[hasaC,->] 
 (0,1) -- (3ex,1);}' means ``has a Class property'', 
-`\tikz{ \path[hasaA,->] (0,1) -- (3ex,1);}' means ``has a data property'' and 
+`\tikz{ \path[hasaA] (0,1) edge[decorate] (3ex,1);}' means ``has a data 
+property'' and 
 `\tikz{ \path[isa,->] (0,1) -- (3ex,1);}' means ``is a'' ).
 }
 \label{FIG:onto}
