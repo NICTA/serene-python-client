@@ -33,7 +33,7 @@
 \tikzstyle{class}=[draw,ellipse,align=center,fill=green!25]
 \tikzstyle{data}=[draw,rectangle,align=center,black!70]
 \tikzstyle{hasaA} = 
-[>=o,draw,densely dashed,-,black!70,decoration={snake,segment 
+[draw,densely dashed,-,black!70,decoration={snake,segment 
 length=10,amplitude=1.5,post length=4}]
 \tikzstyle{hasaC} = [>=stealth',draw,thick,-, black]
 \tikzstyle{isa} = [>=latex,draw,double,black!90,double distance=1mm]
@@ -61,7 +61,7 @@ length=10,amplitude=1.5,post length=4}]
 %  \pdfinfo{
 %/Title (2018 Formatting Instructions for Authors Using LaTeX)
 %/Author (AAAI Press Staff)}
-\setcounter{secnumdepth}{0}  
+\setcounter{secnumdepth}{2}  
  \begin{document}
 % The file aaai.sty is the style file for AAAI Press 
 % proceedings, working notes, and technical reports.
@@ -98,17 +98,23 @@ other words, we want to build a semantic model which describes the data sources
 in terms of concepts and relationships defined by an ontology. We can view this
 semantic model as a graph with ontology classes as the nodes and ontology
 properties as the links between the nodes \cite{Taheriyan2013}. Henceforth, we 
-focus on a specific data integration problem: automatically mapping relational 
-data sources onto a user provided ontology.
+focus on a specific data integration problem: automatically mapping a new 
+relational data source onto a user provided ontology.
 
 In this paper we use Machine Learning techniques (ML) to learn mapping rules 
 from already mapped instances. To this end we formulate the 
 Relational-To-Ontology Mapping Problem (\relonto{})
-as a Minimum Cost Steiner Tree Problem (STP) with side constraints.
-This problem is formulated for an \emph{integration graph} which includes the 
-attributes from the new source as well as ontology classes and properties. We
-apply machine learning techniques to assign costs to the links in the 
-constructed integration graph.
+as a Minimum Cost Steiner Tree Problem (STP) with side constraints 
+\cite{deuna2016steiner}.
+
+Firstly, we build an \emph{integration graph} which includes the 
+attributes from the new source as well as ontology classes and properties. 
+Secondly, we apply machine learning techniques to 
+assign costs to its edges. 
+Lastly, we use Constraint Programming to 
+find a minimum cost Steiner Tree in the graph. The goal is to assign the costs 
+on the edges in such a way that the resulting Steiner Tree is a valid semantic 
+model for the new source. 
 
 The contributions of this work are:
 \begin{itemize}
@@ -210,7 +216,9 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 \caption{Example of ontology
 (`\tikz{ \node[class] () at (0,0)  {};}' are Classes, `\tikz{ \path[hasaC,->] 
 (0,1) -- (3ex,1);}' means ``has a Class property'', 
-`\tikz{ \path[hasaA] (0,1) edge[decorate] (3ex,1);}' means ``has a data 
+`\tikz{ \path[hasaA,decoration={post length=0}] (0,0) edge[decorate] (3ex,0);}' 
+means ``has 
+a data 
 property'' and 
 `\tikz{ \path[isa,->] (0,1) -- (3ex,1);}' means ``is a'' ).
 }
@@ -360,7 +368,8 @@ $e$. Graph edit operations include among others node insertion, edge deletion,
 etc. \cite{gao2010survey}. In practice, we use some approximation measures of 
 the graph edit distance. \ddg{which approx?}
 
-\section{ML for Training on Source Descriptions \ddg{Better title than this 
+\section{ML for Training on Source Descriptions \label{SEC:ML}\ddg{Better title 
+than this 
 please...}}
 
 
@@ -443,17 +452,59 @@ maximum weight $w_max$ \ddg{where does this weight come from?} .
 
 \subsection{Frequent Subgraph Pattern Mining}
 
-\ddg{TODO}
+As an extension to the problem, we consider using pattern mining techniques in 
+order to identify patterns in the training set of semantic model that repeat 
+themselves often. The hope is that with such information we can encourage the 
+semantic model $m^\star$ for the new source to use groups of edges that 
+appeared often together in training semantic models.
 
+In our context, we define a \emph{pattern} is a graph $P$ that is undirected 
+and simple (no multiple edges between two nodes, nor self-loops).
+
+Let $G = (V_G,E_G,\lambda_G)$ and $P = (V_P,E_P, \lambda_P)$ be two graphs 
+where $\lambda_P$ is a \emph{labeling function} that maps nodes/edges of $G$ 
+into a set of labels (e.g. natural numbers) $\mathbb{N}$ (similarly for 
+$\lambda_P$).
+An \emph{embedding} of $P$ into $G$ is an injective function $f : V_G \mapsto 
+V_P$ such that for all $x,y \in V_P$:
+\begin{enumerate}
+	\item $\{x,y\} \in E_P \implies \{f(x),f{y}\} \in E_G$.
+	\item $\lambda_P(x) = \lambda_G(f(x))$
+	\item $\lambda_P(\{x,y\}) = \lambda_G(\{f(x),f(y)\})$
+\end{enumerate} 
+That is, if an edge exists in $P$, it must also exist in $G$ (but not 
+vice-versa); and the labelling functions of both graphs must match after 
+applying the embedding function.
+
+Our goal is to take a set of graphs (the semantic models from the training set 
+$S_T$) and find patterns that appear often across that set of graphs. This is 
+known as the Frequent Subgraph Mining (FSM), which contains the subgraph 
+isomorphism, known to be NP-complete. 
+There exists a range of tools that can achieve this task using Transactional 
+Frequent Graph Pattern Mining
+\cite{petermann2017dimspan,yan2002gspan}. We chose to use DIMSpan 
+\cite{petermann2017dimspan}. \ddg{CHECK! How do they solve an NP-complete 
+problem??}
+
+This tool provides us with a list of patterns that are frequent, as well as 
+their support. The \emph{support} of a pattern is a measure of frequency. Thus 
+the higher the support, the more often the pattern appears. This typically 
+means that big patterns have low support.
+
+ 
 
 \section{Steiner Tree Formulation}
 
-The Steiner Tree Problem (STP) is defined the following way. Given a graph $G =
+Given a graph $G =
 (V, E)$ and a subset of its nodes $T \subseteq V$ , called \emph{terminals}, a 
 Steiner Tree $G_s = (V_s, E_s )$ is a tree such that $T \subseteq V_s \subseteq 
 V$ and $E_s \subseteq E$. In other words, $G_s$ spans all the nodes in $T$ and 
 may include additional nodes from $V$, in particular to ensure the 
-connectedness of the constructed tree.
+connectedness of the constructed tree. The Steiner Tree Problem 
+(STP) is stated as follows: given $G$ and a weight function $w_f : E 
+\longmapsto \mathbb{R}$, find the Steiner Tree that minimizes the sum of the 
+weights of the edges in $E_s$ given by $w_f$. This was proven to be NP-hard 
+by Karp \cite{Karp1972}.
 
 To formulate the \relonto{} schema mapping problem as a STP for a new source 
 $s^\star$, we construct the 
@@ -482,8 +533,44 @@ ln(\psi(a_i,l_i))$. \ddg{CHECK!}
 An example of integration graph can be found in Fig. \ddg{TODO}.
 
 Note that, although the alignment graph is directed, the semantic models are 
-not necessarily rooted directed trees, therefore the directions of the edges is 
-ignored for the STP model (and are all treated as undirected edges). 
+not necessarily rooted directed trees (e.g. \ref{FIG:sem}), therefore the 
+directions of the edges is ignored for the STP model (and are all treated as 
+undirected edges). 
+
+The goal is to build a subgraph $T^\star= (V^\star, E^\star)$ 
+of the integration graph 
+$\mathcal{I}_\mathcal{O}^{s^\star}$ for the new source $s^\star$. The solution 
+$T^\star$ will 
+be used to build the source description $\delta^\star = (s^\star, m^\star, 
+\phi^\star)$. 
+In particular, $(\mathcal{V_O} \cap V^\star,\mathcal{E_O} \cap E^\star)$ 
+corresponds to the semantic model, and 
+$(\mathcal{A}_{s^\star},\mathcal{M}_\mathcal{O}^{s^\star} \cap E^\star)$ 
+corresponds to 
+the attribute mapping function.
+
+The solution $T^\star$ must satisfy the following constraints:
+\begin{enumerate}
+	\item $T^\star$ must be a subgraph of $\mathcal{I}_\mathcal{O}^{s^\star}$.
+	\item $T^\star$ must be a tree (connected acyclic graph).
+	\item $\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$.
+	\item $\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$.
+	\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
+	\{0,2\}$
+	\item $\forall n \in \mathcal{D_{G_O}} \cap V^\star, 
+	degree(a) = 2$
+\end{enumerate}
+
+It is therefore natural to model this a STP with side constraints, since the 2 
+first requirements imply that $T^\star$ is a Steiner Tree of the integration 
+graph. By designing the weighting function $w_\mathcal{I}$ through ML 
+techniques, as shown in Section \ref{SEC:ML}, 
+our hope is that the minimum weight Steiner Tree is a valid semantic model for 
+the new source.
+
+
+
+
 
 \section{Modeling as a Constraint Optimization Problem}
 
@@ -554,28 +641,6 @@ trying any other of its original possible values.
 In order to model this problem we used the \minizinc{} language, and the 
 \chuffed{} solver because it has a global constraint implemented for Steiner 
 Tree Problems \cite{deuna2016steiner}. 
-
-We need to build a subgraph $T^\star= (V^\star, E^\star)$ 
-that is a subset of the integration graph 
-$\mathcal{I}_\mathcal{O}^{s^\star}$ for the new source $s^\star$. The tree will 
-be used to build the source description $\delta^\star = (s^\star, m^\star, 
-\phi^\star)$. 
-In particular, $(\mathcal{V_O} \cap V^\star,\mathcal{E_O} \cap E^\star)$ 
-corresponds to the semantic model, and 
-$(\mathcal{A}_{s^\star},\mathcal{M}_\mathcal{O}^{s^\star} \cap E^\star)$ 
-corresponds to 
-the attribute mapping function.
-
-The solution $T^\star$ must satisfy the following constraints:
-\begin{enumerate}
-	\item $T^\star$ must be a tree (connected acyclic graph).
-	\item $\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$.
-	\item $\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$.
-	\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
-	\{0,2\}$
-	\item $\forall n \in \mathcal{D_{G_O}} \cap V^\star, 
-	degree(a) = 2$
-\end{enumerate}
 
 Because attributes must be connected to exactly one node of the alignment 
 graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$ 
