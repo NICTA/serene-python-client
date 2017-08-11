@@ -450,7 +450,7 @@ correspond to the links which are supported by the known semantic models. Blue
 links are inferred from the ontology $\mathcal{O}$ and can be assigned the 
 maximum weight $w_max$ \ddg{where does this weight come from?} .
 
-\subsection{Frequent Subgraph Pattern Mining}
+\subsection{Frequent Subgraph Pattern Mining \label{SSEC:pattern-mining}}
 
 As an extension to the problem, we consider using pattern mining techniques in 
 order to identify patterns in the training set of semantic model that repeat 
@@ -569,6 +569,21 @@ our hope is that the minimum weight Steiner Tree is a valid semantic model for
 the new source.
 
 
+\subsection{Using Patterns}
+
+As explained in Subsection \ref{SSEC:pattern-mining}, we also tried to use 
+frequently appearing patterns in order to incentivise the solution tree 
+$T^\star$ to contain subgraphs of the alignment graph that have been frequently 
+seen in the training set.
+
+To do this, we use the support of each of the obtained patters as a prize. If 
+the tree contains a pattern, then its weight is automatically reduced by a the 
+value of the support of that pattern. We will see in the next section how this 
+information is integrated in the model.
+
+
+
+
 
 
 
@@ -665,9 +680,14 @@ $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in
 \mathcal{D_{G_O}}$) means that the edge $(a,d) \in 
 \mathcal{M}_\mathcal{O}^{s^\star}$ is part of $E^\star$.
 
+Additionally, for a given set of patterns $\mathcal{P}$ with a support function 
+$w_\mathcal{P} : \mathcal{P} \mapsto \mathbb{R}$, we have a set of variables 
+$c_p, \forall p \in \mathcal{P}$ that tells us whether a pattern $p$ appears in 
+$T^\star$ or not.
+
 
 \begin{flalign}
-	& \text{Minimize~~} w_{STP} + w_{ADIFF}
+	& \text{Minimize~~} w_{STP} + w_{ADIFF} - w_{PAT}
 	%\sum_{e \in \mathcal{E}_\mathcal{O}}c_e * 
 	%w_\mathcal{I}(e) + \sum_{e \in \mathcal{M}_\mathcal{O}^{s^\star}} c_e * 
     %		w_\mathcal{I}(e)
@@ -683,14 +703,20 @@ $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in
 	& \textit{alldifferent}(match) \label{EQ:alld}&& \\
 	& \forall a \in \mathcal{A}_{s^\star}, c_{match[a]} = \mathit{true} 
 	\label{EQ:map}&&\\
-	& w_{ADIFF} = \sum_{(a,d) \in \mathcal{M}_\mathcal{O}^{s^\star}} 
+	& w_{\mathit{ADIFF}} = \sum_{(a,d) \in \mathcal{M}_\mathcal{O}^{s^\star}} 
 	w_\mathcal{I}(~(a,d)~) * \llbracket match[a] = d\rrbracket 
-	\label{EQ:matchcost}
+	\label{EQ:matchcost}  &&\\
+	& \forall p \in \mathcal{P}, \big(\forall e\in edges(p), c_e = 
+	\mathit{true} \big) \Leftrightarrow c_p \label{EQ:patt}&&\\
+	& w_{PAT} = \sum_{p\in\mathcal{P}} \mathit{support}[p] * c_p 
+	\label{EQ:pcost} 
 \end{flalign}
 
 Eq. \ref{EQ:obj} is the objective function, we are trying to minimize the cost 
-of $T^\star$. Eq. \ref{EQ:stp} enforces that the solution $T^\star$ is indeed a 
-tree defined by the $c_n$ and $c_e$ variables, subgraph of the alignment graph 
+of $T^\star$ while collecting prizes for each pattern we use. Eq. \ref{EQ:stp} 
+enforces that the solution 
+$T^\star$ is indeed a tree defined by the $c_n$ and $c_e$ variables, subgraph 
+of the alignment graph 
 and of total weight $w_{STP}$. Equations \ref{EQ:deg1} and \ref{EQ:deg2} ensure 
 that if a data node of the alignment graph is selected, then at most one edge 
 reaches it (from the side of the alignment graph) and otherwise it is 
@@ -703,7 +729,9 @@ the matching part of the problem is a bijection. Eq. \ref{EQ:map} ensures that
 if a data node of the alignment graph has been mapped to some attribute, then 
 that data node must be in the solution tree, and vice-versa. Eq. 
 \ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
-
+Eq. \ref{EQ:patt} indicated that a pattern is used if and only if all its edges 
+are selected in the tree. Eq. \ref{EQ:pcost} computes the prizes collected by 
+using patterns.
 
 \section{Results}
 
