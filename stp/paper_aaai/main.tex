@@ -30,13 +30,14 @@
 \usetikzlibrary{positioning}
 \usetikzlibrary{decorations.text}
 \usetikzlibrary{decorations.pathmorphing}
-\tikzstyle{class}=[draw,ellipse,align=center,fill=green!25]
+\usetikzlibrary{mindmap,backgrounds}
+\tikzstyle{class}=[ellipse,align=center,fill=green!25]
 \tikzstyle{data}=[draw,rectangle,align=center,black!70]
 \tikzstyle{hasaA} = 
 [draw,densely dashed,-,black!70,decoration={snake,segment 
 length=10,amplitude=1.5,post length=4}]
 \tikzstyle{hasaC} = [>=stealth',draw,thick,-, black]
-\tikzstyle{isa} = [>=latex,draw,double,black!90,double distance=1mm]
+\tikzstyle{isa} = [>=o,draw,densely dotted,very thick,black!90]
 
 \newcommand{\authornote}[3]{
   {\fbox{\sc 
@@ -210,8 +211,6 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 	node [midway, above, sloped] {postalCode} (6,-3);	
 	
 
-
-
 \end{tikzpicture}
 \caption{Example of ontology
 (`\tikz{ \node[class] () at (0,0)  {};}' are Classes, `\tikz{ \path[hasaC,->] 
@@ -220,7 +219,8 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 means ``has 
 a data 
 property'' and 
-`\tikz{ \path[isa,->] (0,1) -- (3ex,1);}' means ``is a'' ).
+`\tikz{ \path[isa,->] (0,1) -- (3ex,1);}' means ``is a'' ). Based on 
+\cite{Taheriyan2013}.
 }
 \label{FIG:onto}
 \end{figure}
@@ -254,19 +254,19 @@ relationships in the ontology, as shown if Figures \ref{FIG:onto} and
 \centering
 \begin{tikzpicture}
 \begin{scope}
-	\node[class] (pe) at (0,0)  {\small Person};
+	\node[class] (pe) at (3,0)  {\small Person};
 	\node[class] (co) at (6,0) {\small Org.};
-	\node[class] (ci) at (2.5,0) {\small City};
-	\node[class] (st) at (4.5,0) {\small State};
+	\node[class] (ci) at (1,0) {\small City};
+	\node[class] (st) at (-1,0) {\small State};
 	
-	\node[data] (pen) at (-1,-1) {\scriptsize Person.name};
-	\node[data] (peb) at (1,-1) {\scriptsize Person.birthDate};
-	\node[data] (cin) at (3,-1) {\scriptsize City.name};
-	\node[data] (stn) at (4.5,-1) {\scriptsize State.name};
+	\node[data] (pen) at (2.5,-1) {\scriptsize Person.name};
+	\node[data] (peb) at (4.3,-1) {\scriptsize Person.birthDate};
+	\node[data] (cin) at (1,-1) {\scriptsize City.name};
+	\node[data] (stn) at (-1,-1) {\scriptsize State.name};
 	\node[data] (con) at (6,-1) {\scriptsize Org.name};
 	
 		
-	\path[hasaC,->] (pe) edge [bend left= 20] 
+	\path[hasaC,->] (pe) edge [bend left= 0] 
 	node [midway, above, sloped] {worksFor} (co) ;
 	
 	
@@ -324,7 +324,9 @@ relationships in the ontology, as shown if Figures \ref{FIG:onto} and
 	
 \end{scope}
 \end{tikzpicture}
-\caption{Examples of two semantic models.}
+\caption{Examples of two semantic models (`\tikz{ \node[class] () at (0,0)  
+{};}' are class nodes, and `\tikz{ \node[data] () at (0,0)  {};}' are data 
+nodes).}
 \label{FIG:sem}
 \end{figure}
 
@@ -391,11 +393,11 @@ We formulate the problem of semantic labeling as a multi-class classification
 problem. The known source descriptions $S_T$ provide us the training sample. We
 compute a feature vector for each source \ddg{Which features?} attribute and 
 associate the known
-semantic type with the corresponding feature vector. We train random forest
+semantic type with the corresponding feature vector. We train a random forest
 on this sample. Then we use the learnt model to classify attributes in the new
 source.
 
-In such way, we learn the mapping $\psi : \mathcal{A_s} \times \mathcal{L_O} 
+In such way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O} 
 \mapsto [0, 1]$,
 where $\psi(a_i,l_j)$ indicates the confidence of the attribute $a_i$ to be 
 mapped to the semantic type $l_j$.
@@ -445,10 +447,127 @@ which are inferred from the ontology. As we will see int he next section, this
 makes links present in semantic models more attractive. \ddg{How exactly are 
 they weighted?}
 
-An example alignment graph is illustrated in Fig. \ddg{todo}. Black links 
-correspond to the links which are supported by the known semantic models. Blue
-links are inferred from the ontology $\mathcal{O}$ and can be assigned the 
+An example alignment graph is illustrated in Fig. \ref{FIG:ali}. Bigger 
+examples 
+can be found in \cite{Taheriyan2013}. Black links 
+correspond to the links which are supported by the known semantic models. Blue 
+and orange links are inferred from the ontology $\mathcal{O}$ (the orange ones 
+correspond to the ones added to connect Classes od the ontology that never 
+appeared in the semantic models) and can be assigned the 
 maximum weight $w_max$ \ddg{where does this weight come from?} .
+
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+
+	\node[class] (pe1) at (3,0)  {\small Person};
+	\node[class] (co1) at (6,0) {\small Org.};
+	\node[class] (ci1) at (1,0) {\small City};
+	\node[class] (st1) at (-1,0) {\small State};
+	
+	\node[data] (pen) at (2.5,1) {\scriptsize Person.name};
+	\node[data] (peb) at (4.3,1) {\scriptsize Person.birthDate};
+	\node[data] (cin) at (1,1) {\scriptsize City.name};
+	\node[data] (stn) at (-1,1) {\scriptsize State.name};
+	\node[data] (con) at (6,1) {\scriptsize Org.name};
+	
+		
+	\path[hasaC,->] (pe1) edge [bend left= 0] 
+	node [midway, above, sloped] {worksFor} (co1) ;
+	
+	
+	\path[hasaC,->] (pe1) edge [bend left = 0] 
+	node [midway, above, sloped] {bornIn} (ci1) ;
+	
+	
+	\path[hasaC,->] (ci1) edge  []
+	node [midway, above, sloped] {state} (st1) ;
+
+	
+
+	\path[draw,hasaA,->] (pe1) -- (pen);
+	\path[draw,hasaA,->] (pe1) -- (peb);	
+	
+	\path[draw,hasaA,->] (co1) -- (con);
+	
+	\path[draw,hasaA,->] (ci1) -- (cin);
+	
+	\path[draw,hasaA,->] (st1) -- (stn);
+
+
+% % % CC2
+\def\ysh{-2.5};
+
+	\node[class] (pl2) at (-1,0+\ysh)  {\small City};
+	\node[class] (pe2) at (3,0+\ysh)  {\small Person};
+	\node[class] (co2) at (1,0+\ysh) {\small Org.};
+	\node[class] (ev2) at (6,0+\ysh) {\small Event};
+	
+	\node[data] (pen) at (2.5,-1+\ysh) {\scriptsize Person.name};
+	\node[data] (evs) at (4.2,-1+\ysh) {\scriptsize Event.startDate};
+	\node[data] (eve) at (6,-1+\ysh) {\scriptsize Event endDate};
+	\node[data] (con) at (1,-1+\ysh) {\scriptsize Org.name};
+	\node[data] (pln) at (-1,-1+\ysh) {\scriptsize City.name};
+	
+		
+	\path[hasaC,->] (co2) edge [bend left= 0] 
+	node [midway, above, sloped] {ceo} (pe2) ;
+	
+	
+	\path[hasaC,->] (ev2) edge [bend left = 0] 
+	node [midway, above, sloped] {organizer} (pe2) ;
+	
+	\path[hasaC,->] (co2) edge [bend left = -10] 
+	node [midway, above, sloped] {location} (pl2) ;
+
+
+
+	\path[draw,hasaA,->] (pl2) -- (pln);	
+
+	\path[draw,hasaA,->] (pe2) -- (pen);
+	
+	\path[draw,hasaA,->] (co2) -- (con);
+	
+	\path[draw,hasaA,->] (ev2) -- (evs);
+	\path[draw,hasaA,->] (ev2) -- (eve);
+	
+
+% % % Ontology
+
+	\path[draw,hasaC,->,blue!70] (co2)  edge [bend left = -5] (pe1);
+	\path[draw,hasaC,->,blue!70] (pe1)  edge [bend left = -5] (co2);
+	
+	\path[draw,hasaC,->,blue!70] (co1)  edge [bend left = -5] (pe2);
+	\path[draw,hasaC,->,blue!70] (pe2)  edge [bend left = -5] (co1);
+
+	\path[draw,hasaC,->,blue!70] (pl2) -- (st1);
+	
+	\path[draw,hasaC,->,blue!70] (ev2) -- (pe1);
+	
+	
+	\node[class,fill=orange!30!white] (PL) at (3,\ysh/2)  {\small Place};
+	
+	\path[draw,hasaC,->,orange!30!white] (pe1) edge[bend left=10] (PL);
+	\path[draw,hasaC,->,orange!30!white] (pe1) edge[bend left=-10] (PL);
+	
+	\path[draw,hasaC,->,orange!30!white] (pe2) edge[bend left=10] (PL);
+	\path[draw,hasaC,->,orange!30!white] (pe2) edge[bend left=-10] (PL);
+	
+	\path[draw,hasaC,->,orange!30!white] (co1) edge[bend left=0] (PL);
+	\path[draw,hasaC,->,orange!30!white] (co2) edge[out=45,in=225] (PL);
+
+	\path[draw,hasaC,->,orange!30!white] (ev2) edge[out=90,in=0] (PL);
+	
+	\path[draw,isa,->,orange!30!white] (ci1) edge[out=-45,in=120] (PL);
+	\path[draw,isa,->,orange!30!white] (pl2) edge[out=90,in=180] (PL);
+	\path[draw,isa,->,orange!30!white] (st1) edge[out=-45,in=150] (PL);
+
+\end{tikzpicture}
+\caption{Example of alignment graph.}
+\label{FIG:ali}
+\end{figure}
+
 
 \subsection{Frequent Subgraph Pattern Mining \label{SSEC:pattern-mining}}
 
@@ -462,9 +581,8 @@ In our context, we define a \emph{pattern} is a graph $P$ that is undirected
 and simple (no multiple edges between two nodes, nor self-loops).
 
 Let $G = (V_G,E_G,\lambda_G)$ and $P = (V_P,E_P, \lambda_P)$ be two graphs 
-where $\lambda_P$ is a \emph{labeling function} that maps nodes/edges of $G$ 
-into a set of labels (e.g. natural numbers) $\mathbb{N}$ (similarly for 
-$\lambda_P$).
+where $\lambda_G$ (resp. $\lambda_P$) is a \emph{labeling function} that maps 
+nodes/edges of $G$ (resp. $P$) into a set of labels (e.g. natural numbers).
 An \emph{embedding} of $P$ into $G$ is an injective function $f : V_G \mapsto 
 V_P$ such that for all $x,y \in V_P$:
 \begin{enumerate}
@@ -502,13 +620,13 @@ V$ and $E_s \subseteq E$. In other words, $G_s$ spans all the nodes in $T$ and
 may include additional nodes from $V$, in particular to ensure the 
 connectedness of the constructed tree. The Steiner Tree Problem 
 (STP) is stated as follows: given $G$ and a weight function $w_f : E 
-\longmapsto \mathbb{R}$, find the Steiner Tree that minimizes the sum of the 
+\mapsto \mathbb{R}$, find the Steiner Tree that minimizes the sum of the 
 weights of the edges in $E_s$ given by $w_f$. This was proven to be NP-hard 
 by Karp \cite{Karp1972}.
 
 To formulate the \relonto{} schema mapping problem as a STP for a new source 
 $s^\star$, we construct the 
-\emph{integration graph} $\mathcal{I}_\mathcal{O}^{s^\star} = 
+\emph{integration graph} $~\mathcal{I}_\mathcal{O}^{s^\star} = 
 (\mathcal{V}_\mathcal{O}^{s^\star},\mathcal{E}_\mathcal{O}^{s^\star})$, with 
 nodes $\mathcal{V}_\mathcal{O}^{s^\star} = \mathcal{V_O} \cup 
 \mathcal{A}_{s^\star}$, 
@@ -516,9 +634,9 @@ edges $\mathcal{E}_\mathcal{O}^{s^\star}$.
 
 The set of edges $\mathcal{E}_\mathcal{O}^{s^\star}$ is constructed by using 
 all the edges in the alignment 
-graph, and edges connecting each attributes of $s^\star$ to the nodes 
-$\mathcal{D_{G_O}}$ of the 
-alignment graph \emph{induced} by the semantic labels. We call this last set 
+graph, and edges connecting each attributes of $s^\star$ to the nodes in the 
+alignment graph \emph{induced} by the semantic types (i.e. the set of nodes in 
+$\mathcal{D_{G_O}}$). We call this last set 
 of edges $\mathcal{M}_\mathcal{O}^{s^\star}$ (for ``matches''). Thus, 
 $\mathcal{E}_\mathcal{O}^{s^\star} = 
 \mathcal{E_O} \cup \mathcal{M}_\mathcal{O}^{s^\star}$.
@@ -533,8 +651,8 @@ ln(\psi(a_i,l_i))$. \ddg{CHECK!}
 An example of integration graph can be found in Fig. \ddg{TODO}.
 
 Note that, although the alignment graph is directed, the semantic models are 
-not necessarily rooted directed trees (e.g. \ref{FIG:sem}), therefore the 
-directions of the edges is ignored for the STP model (and are all treated as 
+not necessarily rooted directed trees (e.g. Fig. \ref{FIG:sem}), therefore the 
+direction of the edges is ignored for the STP model (and are all treated as 
 undirected edges). 
 
 The goal is to build a subgraph $T^\star= (V^\star, E^\star)$ 
@@ -551,10 +669,10 @@ the attribute mapping function.
 
 The solution $T^\star$ must satisfy the following constraints:
 \begin{enumerate}
-	\item $T^\star$ must be a subgraph of $\mathcal{I}_\mathcal{O}^{s^\star}$.
-	\item $T^\star$ must be a tree (connected acyclic graph).
-	\item $\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$.
-	\item $\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$.
+	\item $T^\star$ must be a subgraph of $\mathcal{I}_\mathcal{O}^{s^\star}$
+	\item $T^\star$ must be a tree (connected acyclic graph)
+	\item $\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$
+	\item $\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$
 	\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
 	\{0,2\}$
 	\item $\forall n \in \mathcal{D_{G_O}} \cap V^\star, 
@@ -653,15 +771,18 @@ trying any other of its original possible values.
 
 
 \subsection{Modeling \relonto{} in CP}
-In order to model this problem we used the \minizinc{} language, and the 
-\chuffed{} solver because it has a global constraint implemented for Steiner 
+In order to model this problem we used the \minizinc{} language 
+\cite{minizinc}, and the 
+\chuffed{} solver \cite{chu2011improving} because it has a global constraint 
+implemented for Steiner 
 Tree Problems \cite{deuna2016steiner}. 
 
 Because attributes must be connected to exactly one node of the alignment 
 graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$ 
 then the part of the problem between attribute nodes and the alignment graph is 
 actually a matching problem. Each attribute must match exactly to one node of 
-$\mathcal{D_{G_O}}$. 
+$\mathcal{D_{G_O}}$. Note that not all nodes in $\mathcal{D_{G_O}}$ must match 
+to an attribute, as not all of them are part of $T^\star$.
 
 Because there are global constraints in CP specialized in matching 
 \cite{regin1994filtering}, we split the problem into two parts: (i) the 
@@ -694,7 +815,8 @@ $T^\star$ or not.
 	\label{EQ:obj}&&\\
 	&\text{such that~~}  \nonumber&& \\
 	& \textit{steiner\_tree}(\{c_n| n \in \mathcal{V_O}\},\{c_e| e \in 
-	\mathcal{E_O}\},\mathcal{G_O},w_\mathcal{O},w_{STP})  \label{EQ:stp} &&\\
+	\mathcal{E_O}\},\mathcal{G_O},w_\mathcal{O},w_\mathit{STP})  \label{EQ:stp} 
+	&&\\
 	&\forall d \in \mathcal{D_{G_O}}, degree(d) \leq 1 \label{EQ:deg1}&&\\
 	&\forall d \in \mathcal{D_{G_O}}, c_d \Leftrightarrow degree(d) = 1 
 	\label{EQ:deg2}&&\\
