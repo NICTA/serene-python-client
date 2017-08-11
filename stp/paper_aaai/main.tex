@@ -33,6 +33,7 @@
 \usetikzlibrary{mindmap,backgrounds}
 \tikzstyle{class}=[ellipse,align=center,fill=green!25]
 \tikzstyle{data}=[draw,rectangle,align=center,black!70]
+\tikzstyle{att}=[rectangle,align=center,fill=brown!70!red]
 \tikzstyle{hasaA} = 
 [draw,densely dashed,-,black!70,decoration={snake,segment 
 length=10,amplitude=1.5,post length=4}]
@@ -296,7 +297,7 @@ relationships in the ontology, as shown if Figures \ref{FIG:onto} and
 	
 	\node[data] (pen) at (2.5,-1) {\scriptsize Person.name};
 	\node[data] (evs) at (4.2,-1) {\scriptsize Event.startDate};
-	\node[data] (eve) at (6,-1) {\scriptsize Event endDate};
+	\node[data] (eve) at (6,-1) {\scriptsize Event.endDate};
 	\node[data] (con) at (1,-1) {\scriptsize Org.name};
 	\node[data] (pln) at (-1,-1) {\scriptsize City.name};
 	
@@ -452,7 +453,7 @@ examples
 can be found in \cite{Taheriyan2013}. Black links 
 correspond to the links which are supported by the known semantic models. Blue 
 and orange links are inferred from the ontology $\mathcal{O}$ (the orange ones 
-correspond to the ones added to connect Classes od the ontology that never 
+correspond to the ones added to connect Classes of the ontology that never 
 appeared in the semantic models) and can be assigned the 
 maximum weight $w_max$ \ddg{where does this weight come from?} .
 
@@ -461,16 +462,16 @@ maximum weight $w_max$ \ddg{where does this weight come from?} .
 \centering
 \begin{tikzpicture}
 
-	\node[class] (pe1) at (3,0)  {\small Person};
-	\node[class] (co1) at (6,0) {\small Org.};
-	\node[class] (ci1) at (1,0) {\small City};
+	\node[class] (pe1) at (3,0)  {\small Person1};
+	\node[class] (co1) at (6,0) {\small Org.1};
+	\node[class] (ci1) at (1,0) {\small City1};
 	\node[class] (st1) at (-1,0) {\small State};
 	
-	\node[data] (pen) at (2.5,1) {\scriptsize Person.name};
-	\node[data] (peb) at (4.3,1) {\scriptsize Person.birthDate};
-	\node[data] (cin) at (1,1) {\scriptsize City.name};
+	\node[data] (pen) at (2.3,1) {\scriptsize Person1.name};
+	\node[data] (peb) at (4.2,1) {\scriptsize Person1.birthDate};
+	\node[data] (cin) at (0.7,1) {\scriptsize City1.name};
 	\node[data] (stn) at (-1,1) {\scriptsize State.name};
-	\node[data] (con) at (6,1) {\scriptsize Org.name};
+	\node[data] (con) at (6,1) {\scriptsize Org1.name};
 	
 		
 	\path[hasaC,->] (pe1) edge [bend left= 0] 
@@ -499,16 +500,16 @@ maximum weight $w_max$ \ddg{where does this weight come from?} .
 % % % CC2
 \def\ysh{-2.5};
 
-	\node[class] (pl2) at (-1,0+\ysh)  {\small City};
-	\node[class] (pe2) at (3,0+\ysh)  {\small Person};
-	\node[class] (co2) at (1,0+\ysh) {\small Org.};
+	\node[class] (pl2) at (-1,0+\ysh)  {\small City2};
+	\node[class] (pe2) at (3,0+\ysh)  {\small Person2};
+	\node[class] (co2) at (1,0+\ysh) {\small Org.2};
 	\node[class] (ev2) at (6,0+\ysh) {\small Event};
 	
-	\node[data] (pen) at (2.5,-1+\ysh) {\scriptsize Person.name};
+	\node[data] (pen) at (2.3,-1+\ysh) {\scriptsize Person2.name};
 	\node[data] (evs) at (4.2,-1+\ysh) {\scriptsize Event.startDate};
-	\node[data] (eve) at (6,-1+\ysh) {\scriptsize Event endDate};
-	\node[data] (con) at (1,-1+\ysh) {\scriptsize Org.name};
-	\node[data] (pln) at (-1,-1+\ysh) {\scriptsize City.name};
+	\node[data] (eve) at (6,-1+\ysh) {\scriptsize Event.endDate};
+	\node[data] (con) at (0.7,-1+\ysh) {\scriptsize Org2.name};
+	\node[data] (pln) at (-1,-1+\ysh) {\scriptsize City2.name};
 	
 		
 	\path[hasaC,->] (co2) edge [bend left= 0] 
@@ -564,7 +565,10 @@ maximum weight $w_max$ \ddg{where does this weight come from?} .
 	\path[draw,isa,->,orange!30!white] (st1) edge[out=-45,in=150] (PL);
 
 \end{tikzpicture}
-\caption{Example of alignment graph.}
+\caption{Example of alignment graph (`\tikz{ \node[class] () at (0,0)  
+{};}' and `\tikz{ \node[class,fill=orange!30!white] () at (0,0)  
+{};}' are class nodes, and `\tikz{ \node[data] () at (0,0)  {};}' are data 
+nodes). We omit weights for clarity.}
 \label{FIG:ali}
 \end{figure}
 
@@ -648,7 +652,87 @@ w_\mathcal{O}(e)$. For an edge $e
 $l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
 ln(\psi(a_i,l_i))$. \ddg{CHECK!}
 
-An example of integration graph can be found in Fig. \ddg{TODO}.
+An example of integration graph can be found in Fig. \ref{FIG:inte}.
+
+
+
+
+\begin{figure}[ht]
+\centering
+\begin{tikzpicture}
+	\node[class, rectangle, rounded corners] (CLASS) at (0,0) { \small{Class 
+	Nodes of Alignment Graph}};
+	
+	\node[data] (stn1) at (-3.9,-1) {\scriptsize S.n};
+	\node[data] (cin1) at (-3.1,-1) {\scriptsize C1.n};
+	\node[data] (pen1) at (-2.3,-1) {\scriptsize P1.n};
+	\node[data] (peb1) at (-1.5,-1) {\scriptsize P1.b};
+	\node[data] (con1) at (-0.7,-1) {\scriptsize O1.n};
+	
+	\path[draw,hasaA] (CLASS) edge[out=180,in=90] (stn1);
+	\path[draw,hasaA] (CLASS) edge[out=190,in=90] (cin1);	
+	\path[draw,hasaA] (CLASS) edge[out=200,in=90] (pen1);
+	\path[draw,hasaA] (CLASS) edge[out=210,in=90] (peb1);	
+	\path[draw,hasaA] (CLASS) edge[out=220,in=90] (con1);
+
+
+% % % CC2
+\def\ysh{0};
+	
+	\node[data] (cin2) at (0.7,-1+\ysh) {\scriptsize C2.n};
+	\node[data] (con2) at (1.5,-1+\ysh) {\scriptsize O2.n};
+	\node[data] (pen2) at (2.3,-1+\ysh) {\scriptsize P2.n};
+	\node[data] (evs2) at (3.1,-1+\ysh) {\scriptsize E.s};
+	\node[data] (eve2) at (3.9,-1+\ysh) {\scriptsize E.e};
+	
+	\path[draw,hasaA] (CLASS) edge[out=320,in=90] (cin2);	
+	\path[draw,hasaA] (CLASS) edge[out=330,in=90] (con2);
+	\path[draw,hasaA] (CLASS) edge[out=340,in=90] (pen2);
+	\path[draw,hasaA] (CLASS) edge[out=350,in=90] (evs2);
+	\path[draw,hasaA] (CLASS) edge[out=360,in=90] (eve2);
+	
+\node[rectangle, rounded corners,very thick,draw, dashed, 
+brown!40!red!40!white,minimum 
+height=18, minimum 
+width=220] 
+(source) at 
+(0,-3) 
+{};
+\node[brown!40!red!40!white] 
+(source) at 
+(-4.1,-3) 
+{$s^\star$:};
+	\node[att] (a1) at (-3,-3) {\small Surame};
+	\node[att] (a2) at (-1,-3) {\small Workplace};
+	\node[att] (a3) at (1,-3) {\small Date};
+	\node[att] (a4) at (3,-3) {\small Location};
+
+	\path[draw] (a1) -- (stn1);
+	\path[draw] (a1) -- (cin1);
+	\path[draw] (a1) -- (pen1);
+	\path[draw] (a1) -- (cin2);
+	\path[draw] (a1) -- (pen2);
+	
+	\path[draw] (a2) -- (cin1);
+	\path[draw] (a2) -- (con1);
+	\path[draw] (a2) -- (con2);
+
+	\path[draw] (a3) -- (peb1);
+	\path[draw] (a3) -- (evs2);
+	\path[draw] (a3) -- (eve2);
+
+	\path[draw] (a4) -- (stn1);
+	\path[draw] (a4) -- (cin1);
+	\path[draw] (a4) -- (con1);
+	\path[draw] (a4) -- (cin2);
+	\path[draw] (a4) -- (con2);
+\end{tikzpicture}
+\caption{Example of integration graph. (`\tikz{ \node[att] () at (0,0)  
+{};}' are attribute nodes). We omit weights for clarity. Data node labels are 
+abbreviated but 
+correspond to the ones shown in Fig \ref{FIG:ali}.}
+\label{FIG:inte}
+\end{figure}
 
 Note that, although the alignment graph is directed, the semantic models are 
 not necessarily rooted directed trees (e.g. Fig. \ref{FIG:sem}), therefore the 
