@@ -95,13 +95,24 @@ the global model \cite{doan2012principles}.
 
 In our case, we would like this global model to account
 not only for structural properties of the original data sources, but also to 
-include the semantics which is usually implicitly present in the sources. In 
+include the semantics, which is usually implicitly present in the sources. In 
 other words, we want to build a semantic model which describes the data sources 
-in terms of concepts and relationships defined by an ontology. We can view this
-semantic model as a graph with ontology classes as the nodes and ontology
-properties as the links between the nodes \cite{Taheriyan2013}. Henceforth, we 
+in terms of concepts and relationships defined by an ontology 
+\cite{Taheriyan2013}. Henceforth, we 
 focus on a specific data integration problem: automatically mapping a new 
 relational data source onto a user provided ontology.
+
+\subsubsection{Example} Consider the situation where we have some simple 
+relational database tables with columns $\langle$\textit{Surname, 
+Workplace, Date, Location}$\rangle$, 
+$\langle$\textit{Company, Event, Begin, Until, Location}$\rangle$ and 
+$\langle$\textit{Name, D.O.B, Location}$\rangle$. We do not \textit{a priori} 
+know whether ``Date'' is the date of birth or the date a persons started 
+working in the first table; or whether the ``Location'' on the second table 
+refers to the location of the event, or the address of the company. 
+If we are given an ontology like the one in Fig. \ref{FIG:onto}, we would like 
+to automatically map the new data sources to classes of the 
+ontology.$\square$
 
 In this paper we use Machine Learning techniques (ML) to learn mapping rules 
 from already mapped instances. To this end we formulate the 
@@ -113,7 +124,7 @@ Firstly, we build an \emph{integration graph} which includes the
 attributes from the new source as well as ontology classes and properties. 
 Secondly, we apply machine learning techniques to 
 assign costs to its edges. 
-Lastly, we use Constraint Programming to 
+Lastly, we use Constraint Programming (CP) to 
 find a minimum cost Steiner Tree in the graph. The goal is to assign the costs 
 on the edges in such a way that the resulting Steiner Tree is a valid semantic 
 model for the new source. 
@@ -123,9 +134,15 @@ The contributions of this work are:
 	\item \ddg{TODO}
 \end{itemize}
 
-Section bla  presents bla bla... \ddg{TODO}
+Section \ref{SEC:pw} presents the previous work done to achieve this task. 
+Section \ref{SEC:problem} formally states the problem. 
+In Section \ref{SEC:ML} we present how we convert the information given into a 
+useful data representation. 
+Section \ref{SEC:STP} shows how we model the problem as a STP, 
+whereas Section \ref{SEC:CP} discusses how we implement the model in CP. 
+Section \ref{SEC:Res} shows our results. 
 
-\section{Previous Work}
+\section{Previous Work \label{SEC:pw}}
 \ddg{rewrite, add more}
 One of the standard approaches to solve the relational-to-ontology (\relonto{})
 mapping problem is to apply Knowledge Representation and Reasoning (KR)
@@ -138,10 +155,7 @@ to overcome this hurdle.
 
 \cite{taheriyan2016learning} \ddg{Isn't this really similar??}
 
-\section{Motivating Example}
-\ddg{TODO}
-
-\section{Problem Statement}
+\section{Problem Statement \label{SEC:problem}}
 We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 
 
@@ -229,7 +243,7 @@ property'' and
 
 
 
-An ontology $\mathcal{O}$ is a specification of classes of objects and their 
+An ontology $\mathcal{O}$ is a specification of classes of objects, their 
 data properties and relationships between them. An example of an ontology is 
 given 
 in Fig. \ref{FIG:onto}. A Class in an ontology can have \emph{data properties} 
@@ -237,7 +251,7 @@ or
 \emph{class properties}. For example an ``Organisation'' has a ``Person'' 
 (which is a class with its own properties), and it has a ``name'' (which 
 is a data property). Also, a Class can be a subclass of another Class. For 
-example ``Cities'', ``Countries'' or ``States'' are all ``Places''. A subclass 
+example ``Cities'' and ``States'' are both ``Places''. A subclass 
 inherits all the properties of the parent class.
 
 A \emph{semantic model} $m$ is a directed graph with two types of nodes: 
@@ -356,7 +370,7 @@ Given a new source $s^\star$, we want to build a semantic model $m^\star$ and
 an attribute mapping function $\phi^\star$ such that 
 $\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source 
 description. We
-use the term appropriate since there might be many such triples which are
+use the term ``appropriate'' since there might be many such triples which are
 well-formed source descriptions, but only one or a few will capture the intended
 meaning of the source. Our goal is to automatically build $\delta^\star$ such 
 that it minimizes the \emph{graph edit distance} (GED) from the semantic model 
@@ -418,7 +432,7 @@ types. This is achieved by constructing an \emph{alignment graph}.
 The alignment graph is a directed weighted graph $\mathcal{G_O} = 
 (\mathcal{V_O},\mathcal{E_O})$ built on top 
 of the known semantic models and expanded using the semantic types 
-$\mathcal{L_O}$ and the domain ontology $\mathcal{O}$. Similar to a semantic 
+$\mathcal{L_O}$ and the ontology $\mathcal{O}$. Similar to a semantic 
 model, $\mathcal{G_O}$ contains both class and data nodes. The links correspond 
 to properties in  $\mathcal{O}$ and are weighted \cite{taheriyan2016learning}.
 
@@ -442,10 +456,10 @@ call them \emph{data nodes} of the alignment graph.
 
 The graph is weighted by a function $w_\mathcal{O} : \mathcal{E_O} \mapsto 
 \mathbb{R}$ in 
-such a way that links which are present in
+such a way that edges which are present in
 the known semantic models have lower weights than those 
 which are inferred from the ontology. As we will see int he next section, this 
-makes links present in semantic models more attractive. \ddg{How exactly are 
+makes edges present in semantic models more attractive. \ddg{How exactly are 
 they weighted?}
 
 An example alignment graph is illustrated in Fig. \ref{FIG:ali}. Bigger 
@@ -615,7 +629,7 @@ means that big patterns have low support.
 
  
 
-\section{Steiner Tree Formulation}
+\section{Steiner Tree Formulation \label{SEC:STP}}
 
 Given a graph $G =
 (V, E)$ and a subset of its nodes $T \subseteq V$ , called \emph{terminals}, a 
@@ -757,8 +771,8 @@ The solution $T^\star$ must satisfy the following constraints:
 	\item $T^\star$ must be a tree (connected acyclic graph)
 	\item $\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$
 	\item $\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$
-	\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
-	\{0,2\}$
+	%\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
+	%\{0,2\}$
 	\item $\forall n \in \mathcal{D_{G_O}} \cap V^\star, 
 	degree(a) = 2$
 \end{enumerate}
@@ -778,7 +792,7 @@ frequently appearing patterns in order to incentivise the solution tree
 $T^\star$ to contain subgraphs of the alignment graph that have been frequently 
 seen in the training set.
 
-To do this, we use the support of each of the obtained patters as a prize. If 
+To do this, we use the support of each of the obtained patterns as a prize. If 
 the tree contains a pattern, then its weight is automatically reduced by a the 
 value of the support of that pattern. We will see in the next section how this 
 information is integrated in the model.
@@ -789,7 +803,7 @@ information is integrated in the model.
 
 
 
-\section{Modeling as a Constraint Optimization Problem}
+\section{Modeling as a Constraint Optimization Problem \label{SEC:CP}}
 
 \subsection{Definitions}
 A Constraint Satisfaction Problem (CSP) is a tuple $P = (\boldsymbol{v},D,C)$ 
@@ -816,7 +830,7 @@ length.
 Constraint Programming (CP) allows the user to model a CSP or COP and give it 
 to a 
 solver that will find a solution to the CSP, or will report unsatisfiability if 
-no such valuation exists. In the case of COPs, the solver will try to optimize 
+no solution exists. In the case of COPs, the solver will try to optimize 
 the objective function and prove optimality as well.
 
 Briefly, the way a CP solver works is by assigning a value to each variable of 
@@ -831,14 +845,16 @@ uses a combination of search and \emph{propagation}. The latter is achieved by
 \emph{propagating} the last decision made via specialized algorithms called 
 \emph{propagators}. A propagator is a function $p : (v, D_v) \mapsto D_v'$ that 
 takes a subset of the variables of the problem $v \subseteq \boldsymbol{v}$ and 
-the domain of those variables $D_v$ and returns a new domain for thus variables 
+the domain of those variables $D_v$ and returns a new domain for these 
+variables 
 such that $D_v' \sqsubseteq D$. That is, a propagator removes values form the 
 domains of variables (when possible). For a propagator to be correct, it must 
 not remove a value of the domain of a variable if such value could participate 
 in a solution given the decisions already made.
 
-Global constraints are higher order constraints that enforce a complicated 
-constraint over a set ov variables. Typical examples of this is enforcing that 
+\emph{Global constraints} are higher order constraints that enforce a 
+complicated 
+constraint over a set of variables. Typical examples of this is enforcing that 
 a set of variables take different values, or that they describe a path a in a 
 graph. Although it is possible to express these constraints with a conjunction 
 of simple constraints, it is often the case that specific algorithms for these 
@@ -848,10 +864,10 @@ list of these global constraints can be found in \cite{beldiceanu2012global}.
 
 \subsubsection{Example} Consider the toy problem $P$ over variables $a$ and $b$ 
 such that $a \in \{2,3,4\}$, $b \in \{1,2,3\}$. Let $C = \{a + 2b \leq 4, a 
-\neq b\}$ the constraints to be satisfied. If the search step decides that $a = 
-2$, then (i) $a \neq b \Rightarrow b \in \{1,3\}$ and (ii) $a + 2b \leq 4  
+\neq b\}$ be the constraints. If the search step decides that $a = 
+2$, then $(i)$ $a \neq b \Rightarrow b \in \{1,3\}$ and $(ii)$ $a + 2b \leq 4  
 \Rightarrow b \in \{1\}$. Thus we automatically know that $b = 1$ without never 
-trying any other of its original possible values.
+trying any other of its original possible values. $\square$
 
 
 \subsection{Modeling \relonto{} in CP}
@@ -869,7 +885,7 @@ $\mathcal{D_{G_O}}$. Note that not all nodes in $\mathcal{D_{G_O}}$ must match
 to an attribute, as not all of them are part of $T^\star$.
 
 Because there are global constraints in CP specialized in matching 
-\cite{regin1994filtering}, we split the problem into two parts: (i) the 
+\cite{regin1994filtering}, we split the problem into two parts: the 
 \verb|steiner_tree| global constraint will only deal with the part of the 
 integration graph that corresponds to the alignment graph, and the 
 \verb|alldifferent| global constraint will deal with he matching part of the 
@@ -883,13 +899,14 @@ sets fo variables define the value of $T^\star$: $c_n = \mathit{true}$ means
 that $n \in V^\star$, $c_e = \mathit{true}$ means that $e \in E^\star$ and 
 $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in 
 \mathcal{D_{G_O}}$) means that the edge $(a,d) \in 
-\mathcal{M}_\mathcal{O}^{s^\star}$ is part of $E^\star$.
+\mathcal{M}_\mathcal{O}^{s^\star}$ is part of $T^\star$.
 
 Additionally, for a given set of patterns $\mathcal{P}$ with a support function 
-$w_\mathcal{P} : \mathcal{P} \mapsto \mathbb{R}$, we have a set of variables 
+$w_\mathcal{P} : \mathcal{P} \mapsto \mathbb{R}$, we have a set of Boolean 
+variables 
 $c_p, \forall p \in \mathcal{P}$ that tells us whether a pattern $p$ appears in 
 $T^\star$ or not.
-
+The model is presented below.
 
 \begin{flalign}
 	& \text{Minimize~~} w_{STP} + w_{ADIFF} - w_{PAT}
@@ -898,7 +915,7 @@ $T^\star$ or not.
     %		w_\mathcal{I}(e)
 	\label{EQ:obj}&&\\
 	&\text{such that~~}  \nonumber&& \\
-	& \textit{steiner\_tree}(\{c_n| n \in \mathcal{V_O}\},\{c_e| e \in 
+	& \textit{steiner}(\{c_n| n \in \mathcal{V_O}\},\{c_e| e \in 
 	\mathcal{E_O}\},\mathcal{G_O},w_\mathcal{O},w_\mathit{STP})  \label{EQ:stp} 
 	&&\\
 	&\forall d \in \mathcal{D_{G_O}}, degree(d) \leq 1 \label{EQ:deg1}&&\\
@@ -914,11 +931,11 @@ $T^\star$ or not.
 	\label{EQ:matchcost}  &&\\
 	& \forall p \in \mathcal{P}, \big(\forall e\in edges(p), c_e = 
 	\mathit{true} \big) \Leftrightarrow c_p \label{EQ:patt}&&\\
-	& w_{PAT} = \sum_{p\in\mathcal{P}} \mathit{support}[p] * c_p 
+	& w_{PAT} = \sum_{p\in\mathcal{P}} w_\mathcal{P}(p)* c_p 
 	\label{EQ:pcost} 
 \end{flalign}
 
-Eq. \ref{EQ:obj} is the objective function, we are trying to minimize the cost 
+Eq. \ref{EQ:obj} is the objective function: we are minimizing the cost 
 of $T^\star$ while collecting prizes for each pattern we use. Eq. \ref{EQ:stp} 
 enforces that the solution 
 $T^\star$ is indeed a tree defined by the $c_n$ and $c_e$ variables, subgraph 
@@ -931,7 +948,8 @@ the array $match$ corresponds to a subset of data nodes of the alignment graph
 for which there is an edge connecting to the attribute at hand. Eq. 
 \ref{EQ:alld} ensure that each attribute is mapped to exactly one data node of 
 the alignment graph. Equations \ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
-the matching part of the problem is a bijection. Eq. \ref{EQ:map} ensures that 
+there is exactly one data node matched to an attribute, which has to be one of 
+the ones for which an edge existed. Eq. \ref{EQ:map} ensures that 
 if a data node of the alignment graph has been mapped to some attribute, then 
 that data node must be in the solution tree, and vice-versa. Eq. 
 \ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
@@ -939,7 +957,7 @@ Eq. \ref{EQ:patt} indicated that a pattern is used if and only if all its edges
 are selected in the tree. Eq. \ref{EQ:pcost} computes the prizes collected by 
 using patterns.
 
-\section{Results}
+\section{Results \label{SEC:Res}}
 
 \subsection{Experimental Setup}
 \ddg{TODO}
