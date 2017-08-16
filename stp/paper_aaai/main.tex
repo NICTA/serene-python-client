@@ -797,8 +797,33 @@ the tree contains a pattern, then its weight is automatically reduced by a the
 value of the support of that pattern. We will see in the next section how this 
 information is integrated in the model.
 
+\subsection{Unmatched Attributes}
+It is common that the data sources to be integrated will have columns that 
+simply can't be matched to the ontology.
+This can happen when a column of a source table contains some information that 
+is uninteresting to the user, or because the ontology has not been properly 
+designed. 
+Examples of these situations can be found in domain specific data 
+\cite{Pham2016} or HTML 
+tables \cite{ritze2017matching}.
 
+For this reason, we add two artificial Class nodes to the integration graph:  
+\emph{unknown} and \emph{root}. 
+The latter will be connected to every other Class node in 
+$\mathcal{V}_\mathcal{O}^{s^\star}$, including \emph{unknown}.
+We also add a set $U = \{unk_1,...,unk_{|\mathcal{A}_{s^\star}|}\}$ of 
+$|\mathcal{A}_{s^\star}|$ data 
+nodes to the integration graph each connected to exactly one node in 
+$\mathcal{A}_{s^\star}$ and to the \emph{unknown} Class node.  
 
+If an attribute $a$ is matched to $unk_a$, then $unk_a$ will be linked to Class 
+node \emph{unknown}. The rest of the attributes can then be matched normally 
+and build  a semantic model as usual. Then, to maintain connectedness of the 
+Steiner tree, the \emph{unknown} node and one of the selected Class nodes will 
+both be connected to the \emph{root} node. Note that if all attributes find a 
+match, then both the \emph{unknown} and \emph{root} won't be selected in the 
+Steiner tree and the normal behavior will take place.
+\ddg{Explain the weights of the edges introduced by the unknown nodes}
 
 
 
@@ -932,7 +957,9 @@ The model is presented below.
 	& \forall p \in \mathcal{P}, \big(\forall e\in edges(p), c_e = 
 	\mathit{true} \big) \Leftrightarrow c_p \label{EQ:patt}&&\\
 	& w_{PAT} = \sum_{p\in\mathcal{P}} w_\mathcal{P}(p)* c_p 
-	\label{EQ:pcost} 
+	\label{EQ:pcost} &&\\
+	& c_{unknown} \Rightarrow \big( c_{root}  \land 
+	c_{(unknown,root)} \big) \label{EQ:unk}
 \end{flalign}
 
 Eq. \ref{EQ:obj} is the objective function: we are minimizing the cost 
@@ -956,7 +983,16 @@ that data node must be in the solution tree, and vice-versa. Eq.
 Eq. \ref{EQ:patt} indicated that a pattern is used if and only if all its edges 
 are selected in the tree. Eq. \ref{EQ:pcost} computes the prizes collected by 
 using patterns.
+Eq. \ref{EQ:unk} ensures that if the \emph{unknown} class node is used, then it 
+is connected to \emph{root}.
+Notice how there is no further requirement for unmatched attributes, as the 
+$unk_i$ data nodes behave like normal data nodes, and the connectedness 
+requirement will make sure that \emph{root} is connected to the rest of the 
+tree (i.e. the semantic model).
 
+Note how this CP model is easily adaptable to more classic settings where no 
+patterns are used (by dropping Eqs. \ref{EQ:patt} and \ref{EQ:pcost}), or where 
+the \emph{unknown} nodes are used (by dropping \ref{EQ:unk}).
 \section{Results \label{SEC:Res}}
 
 \subsection{Experimental Setup}
