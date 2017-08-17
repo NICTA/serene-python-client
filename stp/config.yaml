@@ -5,10 +5,10 @@
 #=====================
 
 # This is the path to the chuffed CP solver; do not add / at the end
-chuffed-path: /home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170718
+chuffed-path: $SERENE_PYTHON/stp/minizinc/chuffed-rel2onto_20170728
 
 # This is the path to the model.mzn
-model-path: /home/natalia/PycharmProjects/serene-python-client/stp/minizinc/model.mzn
+model-path: $SERENE_PYTHON/stp/minizinc/model.mzn
 
 # This is the path to MiniZinc where mzn2fzn is located
 mzn2fzn-exec: /home/natalia/Installs/MiniZincIDE-2.1.4-bundle-linux-x86_64/mzn2fzn

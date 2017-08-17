@@ -23,6 +23,9 @@
 \usepackage{amssymb}
 \usepackage{textcomp}
 
+% natalia
+\usepackage{multirow}
+
 \usepackage{tikz}
 \usetikzlibrary{shadows.blur}
 \usetikzlibrary{shapes.symbols}
@@ -68,8 +71,7 @@ length=10,amplitude=1.5,post length=4}]
 % The file aaai.sty is the style file for AAAI Press 
 % proceedings, working notes, and technical reports.
 %
-\title{Using Machine Learning and Constraint Programming to Solve the 
-Relational-To-Ontology Mapping Problem}
+\title{Machine Learning and Constraint Programming for Relational-To-Ontology Schema Mapping }
 \author{}
 \maketitle
 \begin{abstract}
@@ -94,40 +96,28 @@ construct source descriptions which specify mappings between the sources and
 the global model \cite{doan2012principles}.
 
 In our case, we would like this global model to account
-not only for structural properties of the original data sources, but also to 
-include the semantics, which is usually implicitly present in the sources. In 
-other words, we want to build a semantic model which describes the data sources 
-in terms of concepts and relationships defined by an ontology 
-\cite{Taheriyan2013}. Henceforth, we 
-focus on a specific data integration problem: automatically mapping a new 
-relational data source onto a user provided ontology.
+not only for structural properties of the original data sources, but also to include the semantics, which is usually implicitly present in the sources.
+In other words, we want to build a semantic model which describes the data sources in terms of concepts and relationships defined by an ontology \cite{Taheriyan2013}.
+Henceforth, we focus on a specific data integration problem: automatically mapping a new relational data source onto a user provided ontology.
 
-\subsubsection{Example} Consider the situation where we have some simple 
-relational database tables with columns $\langle$\textit{Surname, 
-Workplace, Date, Location}$\rangle$, 
+\subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Workplace, Date, Location}$\rangle$, 
 $\langle$\textit{Company, Event, Begin, Until, Location}$\rangle$ and 
-$\langle$\textit{Name, D.O.B, Location}$\rangle$. We do not \textit{a priori} 
-know whether ``Date'' is the date of birth or the date a persons started 
-working in the first table; or whether the ``Location'' on the second table 
-refers to the location of the event, or the address of the company. 
-If we are given an ontology like the one in Fig. \ref{FIG:onto}, we would like 
-to automatically map the new data sources to classes of the 
+$\langle$\textit{Name, D.O.B, Location}$\rangle$.
+We do not \textit{a priori} know whether ``Date'' is the date of birth or the date a persons started working in the first table; or whether the ``Location'' on the second table refers to the location of the event, or the address of the company. 
+If we are given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to classes of the 
 ontology.$\square$
 
-In this paper we use Machine Learning techniques (ML) to learn mapping rules 
-from already mapped instances. To this end we formulate the 
-Relational-To-Ontology Mapping Problem (\relonto{})
-as a Minimum Cost Steiner Tree Problem (STP) with side constraints 
-\cite{deuna2016steiner}.
+In this paper we use Machine Learning techniques (ML) to learn mapping rules from already mapped instances.
+To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum Cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
 
 Firstly, we build an \emph{integration graph} which includes the 
 attributes from the new source as well as ontology classes and properties. 
 Secondly, we apply machine learning techniques to 
 assign costs to its edges. 
 Lastly, we use Constraint Programming (CP) to 
-find a minimum cost Steiner Tree in the graph. The goal is to assign the costs 
-on the edges in such a way that the resulting Steiner Tree is a valid semantic 
-model for the new source. 
+find a minimum cost Steiner Tree in the graph.
+The goal is to assign the costs 
+on the edges in such a way that the resulting Steiner Tree is a valid semantic model for the new source. 
 
 The contributions of this work are:
 \begin{itemize}
@@ -141,19 +131,6 @@ useful data representation.
 Section \ref{SEC:STP} shows how we model the problem as a STP, 
 whereas Section \ref{SEC:CP} discusses how we implement the model in CP. 
 Section \ref{SEC:Res} shows our results. 
-
-\section{Previous Work \label{SEC:pw}}
-\ddg{rewrite, add more}
-One of the standard approaches to solve the relational-to-ontology (\relonto{})
-mapping problem is to apply Knowledge Representation and Reasoning (KR)
-techniques. The main idea of this approach is to exploit constraints specified 
-within relational schemata and ontologies. Several mapping generation
-tools based on this approach already exist, for example, BootOX, MIRROR,
-COMA++ \cite{pinkel2016rodi}. The issue is though that constraints may be 
-inconsistent or absent completely \ddg{Why?}. We suggest to use ML techniques 
-to overcome this hurdle.
-
-\cite{taheriyan2016learning} \ddg{Isn't this really similar??}
 
 \section{Problem Statement \label{SEC:problem}}
 We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
@@ -244,24 +221,25 @@ property'' and
 
 
 An ontology $\mathcal{O}$ is a specification of classes of objects, their 
-data properties and relationships between them. An example of an ontology is 
-given 
-in Fig. \ref{FIG:onto}. A Class in an ontology can have \emph{data properties} 
-or 
-\emph{class properties}. For example an ``Organisation'' has a ``Person'' 
+data properties and relationships between them.
+An example of an ontology is given in Fig. \ref{FIG:onto}. 
+A Class in an ontology can have \emph{data properties} or \emph{object properties}. 
+For example an ``Organisation'' has a ``Person'' 
 (which is a class with its own properties), and it has a ``name'' (which 
-is a data property). Also, a Class can be a subclass of another Class. For 
-example ``Cities'' and ``States'' are both ``Places''. A subclass 
-inherits all the properties of the parent class.
+is a data property). 
+Also, a Class can be a subclass of another Class. 
+For 
+example ``Cities'' and ``States'' are both ``Places''. 
+A subclass inherits all the properties of the parent class.
 
 A \emph{semantic model} $m$ is a directed graph with two types of nodes: 
-\emph{class nodes} and \emph{data nodes}. We denote them as $\mathcal{C}_m$ and 
-$\mathcal{D}_m$ respectively. We define $\mathcal{N}_m = \mathcal{C}_m \cup 
+\emph{class nodes} and \emph{data nodes}. 
+We denote them as $\mathcal{C}_m$ and $\mathcal{D}_m$ respectively.
+ We define $\mathcal{N}_m = \mathcal{C}_m \cup 
 \mathcal{D}_m$. $ \mathcal{C}_m$ corresponds to classes in the ontology 
 $\mathcal{O}$. $\mathcal{D}_m$ corresponds to data 
-properties in the ontology. The edges in the semantic model correspond to 
-relationships in the ontology, as shown if Figures \ref{FIG:onto} and 
-\ref{FIG:sem}.
+properties in the ontology. 
+The edges in the semantic model correspond to relationships in the ontology, as shown if Figures \ref{FIG:onto} and \ref{FIG:sem}.
 
 
 
@@ -372,18 +350,10 @@ $\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source
 description. We
 use the term ``appropriate'' since there might be many such triples which are
 well-formed source descriptions, but only one or a few will capture the intended
-meaning of the source. Our goal is to automatically build $\delta^\star$ such 
-that it minimizes the \emph{graph edit distance} (GED) from the semantic model 
-$m^\star$ to the semantic model $m^\dag$ that the user considers correct.
+meaning of the source. 
+Our goal is to automatically build $\delta^\star$ such that it maximizes the \emph{precision} and \emph{recall} from the semantic model 
+$m^\star$ to the semantic model $m^\dag$ that the user considers correct. \npr{definitions for precision and recall}
 
-The GED is a measure of similarity between two graphs defined as follows for 
-two graphs $g_1$ and $g_2$: $GED(g_1,g_2) = min_{(e_1 ,...,e_k)\in P} 
-\sum_{i=1}^{k}c(e_i)$ where $P$ denotes the set of edit paths transforming 
-$g_1$ into (a graph
-isomorphic to) $g_2$ and $c(e) \geq 0$ is the cost of each graph edit operation 
-$e$. Graph edit operations include among others node insertion, edge deletion, 
-etc. \cite{gao2010survey}. In practice, we use some approximation measures of 
-the graph edit distance. \ddg{which approx?}
 
 \section{ML for Training on Source Descriptions \label{SEC:ML}\ddg{Better title 
 than this 
@@ -398,18 +368,15 @@ For example, from the ontology in Fig. \ref{FIG:onto}, we would get types such
 as 
 (City,name) and (State,name).
 
-The first step to model the semantics of a new source $s^\star$ is to recognize 
-the semantic types present in the source. 
-We call this step \emph{semantic labeling}, which involves giving a confidence 
-value to a match occurring between an attribute from $s^\star$ and type $l \in 
+The first step to model the semantics of a new source $s^\star$ is to recognize the semantic types present in the source. 
+We call this step \emph{semantic labeling}, which involves giving a confidence value to a match occurring between an attribute from $s^\star$ and type $l \in 
 \mathcal{L_O}$. \ddg{CHECK!}
 
 We formulate the problem of semantic labeling as a multi-class classification
-problem. The known source descriptions $S_T$ provide us the training sample. We
-compute a feature vector for each source \ddg{Which features?} attribute and 
-associate the known
-semantic type with the corresponding feature vector. We train a random forest
-on this sample. Then we use the learnt model to classify attributes in the new
+problem.
+The known source descriptions $S_T$ provide us the training sample.
+We compute a feature vector for each source \ddg{Which features?} attribute and associate the known semantic type with the corresponding feature vector. We train a random forest on this sample. 
+Then we use the learnt model to classify attributes in the new
 source.
 
 In such way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O} 
@@ -420,7 +387,7 @@ mapped to the semantic type $l_j$.
 \ddg{IMPORTANT: Do we keep all of them, or only the top $k$ with most 
 confidence? If so, 
 what is $k$?}
-
+\npr{We keep all, that is the crucial difference from Karma which does some voodoo heuristic filtering}
 
 
 \subsection{Alignment Graph}
@@ -448,8 +415,8 @@ Important note above}
 \end{enumerate}
 
 Note how the alignment graph contains data nodes that correspond to at least 
-some of the semantic types. For instance, it could contain two nodes 
-$City.name$ and $State.name$ rather than just one node $name$ connected to two 
+some of the semantic types. 
+For instance, it could contain two nodes $City.name$ and $State.name$ rather than just one node $name$ connected to two 
 nodes $City$ and $State$. We say these nodes are \emph{induced} into the 
 alignment graph by the semantic types, we note them $\mathcal{D_{G_O}}$ and we 
 call them \emph{data nodes} of the alignment graph.
@@ -458,17 +425,14 @@ The graph is weighted by a function $w_\mathcal{O} : \mathcal{E_O} \mapsto
 \mathbb{R}$ in 
 such a way that edges which are present in
 the known semantic models have lower weights than those 
-which are inferred from the ontology. As we will see int he next section, this 
-makes edges present in semantic models more attractive. \ddg{How exactly are 
+which are inferred from the ontology.
+As we will see in the next section, this makes edges present in semantic models more attractive. \ddg{How exactly are 
 they weighted?}
 
-An example alignment graph is illustrated in Fig. \ref{FIG:ali}. Bigger 
-examples 
-can be found in \cite{Taheriyan2013}. Black links 
-correspond to the links which are supported by the known semantic models. Blue 
-and orange links are inferred from the ontology $\mathcal{O}$ (the orange ones 
-correspond to the ones added to connect Classes of the ontology that never 
-appeared in the semantic models) and can be assigned the 
+An example alignment graph is illustrated in Fig. \ref{FIG:ali}. 
+Bigger examples can be found in \cite{Taheriyan2013}. 
+Black links correspond to the links which are supported by the known semantic models. 
+Blue and orange links are inferred from the ontology $\mathcal{O}$ (the orange ones correspond to the ones added to connect Classes of the ontology that never appeared in the semantic models) and can be assigned the 
 maximum weight $w_max$ \ddg{where does this weight come from?} .
 
 
@@ -587,13 +551,10 @@ nodes). We omit weights for clarity.}
 \end{figure}
 
 
-\subsection{Frequent Subgraph Pattern Mining \label{SSEC:pattern-mining}}
+\subsection{Frequent Graph Pattern Mining \label{SSEC:pattern-mining}}
 
-As an extension to the problem, we consider using pattern mining techniques in 
-order to identify patterns in the training set of semantic model that repeat 
-themselves often. The hope is that with such information we can encourage the 
-semantic model $m^\star$ for the new source to use groups of edges that 
-appeared often together in training semantic models.
+As an extension to the problem, we consider using pattern mining techniques in order to identify patterns in the training set of semantic model that repeat themselves often. 
+The hope is that with such information we can encourage the semantic model $m^\star$ for the new source to use groups of edges that                                       appeared often together in training semantic models.
 
 In our context, we define a \emph{pattern} is a graph $P$ that is undirected 
 and simple (no multiple edges between two nodes, nor self-loops).
@@ -617,15 +578,15 @@ $S_T$) and find patterns that appear often across that set of graphs. This is
 known as the Frequent Subgraph Mining (FSM), which contains the subgraph 
 isomorphism, known to be NP-complete. 
 There exists a range of tools that can achieve this task using Transactional 
-Frequent Graph Pattern Mining
-\cite{petermann2017dimspan,yan2002gspan}. We chose to use DIMSpan 
-\cite{petermann2017dimspan}. \ddg{CHECK! How do they solve an NP-complete 
-problem??}
+Frequent Graph Pattern Mining\cite{petermann2017dimspan,yan2002gspan}. 
+We chose to use DIMSpan \cite{petermann2017dimspan}. 
+\ddg{CHECK! How do they solve an NP-complete problem??}
+\npr{Im not sure what to say here: there is just no guarantee how long it will take for the whole thing to run, except there is a threshold on how frequent they have to be; they use gSpan procedure to prune patterns and a variant of Ulmans algorithm for graph pattern matching}
 
 This tool provides us with a list of patterns that are frequent, as well as 
-their support. The \emph{support} of a pattern is a measure of frequency. Thus 
-the higher the support, the more often the pattern appears. This typically 
-means that big patterns have low support.
+their support. 
+The \emph{support} of a pattern is a measure of frequency. 
+Thus, the higher the support, the more often the pattern appears. This typically means that big patterns have low support.
 
  
 
@@ -804,10 +765,8 @@ This can happen when a column of a source table contains some information that
 is uninteresting to the user, or because the ontology has not been properly 
 designed. 
 Examples of these situations can be found in domain specific data 
-\cite{Pham2016} or HTML 
-tables \cite{ritze2017matching}. In current systems, these columns are removed 
-in a reprocess that requires extra time and effort as this is typically done 
-manually in the real world.
+\cite{Pham:semantic} or HTML tables \cite{Ritze:matching}.
+In current systems, these columns are removed in a reprocess that requires extra time and effort as this is typically done manually in the real world.
 
 For this reason, we add two artificial Class nodes to the integration graph:  
 \emph{unknown} and \emph{root}. 
@@ -983,8 +942,7 @@ if a data node of the alignment graph has been mapped to some attribute, then
 that data node must be in the solution tree, and vice-versa. Eq. 
 \ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
 Eq. \ref{EQ:patt} indicated that a pattern is used if and only if all its edges 
-are selected in the tree. Eq. \ref{EQ:pcost} computes the prizes collected by 
-using patterns.
+are selected in the tree. Eq. \ref{EQ:pcost} computes the prizes collected by using patterns.
 Eq. \ref{EQ:unk} ensures that if the \emph{unknown} class node is used, then it 
 is connected to \emph{root}.
 Notice how there is no further requirement for unmatched attributes, as the 
@@ -1000,13 +958,129 @@ the \emph{unknown} nodes are used (by dropping \ref{EQ:unk}).
 \subsection{Experimental Setup}
 \ddg{TODO}
 
+We run experiments on two domains: museum and soccer (see Fig.~\ref{tab:data} for statistics).
+
+\begin{table}[ht]\small
+  \centering
+  \caption{Description of data sources.}\label{tab:data}
+		\begin{tabular}{ccccc} 
+		\hline
+		\multirow{2}{*}{\textbf{Domain}} & \# data & \# semantic & \# & \# unknown\\
+		 & sources & labels & attributes & attributes\\
+		\hline
+		museum & 29 & 20 & 443 & 159  \\
+		soccer & 12 & 18 & 138 & 42 \\
+		\hline
+		\end{tabular} 
+\end{table}
+
+%\begin{table*}[ht]
+%  \centering
+%  \caption{Description of data sources.}\label{tab:data}
+%		\begin{tabular}{ccccccc} 
+%		\hline
+%		\multirow{2}{*}{\textbf{Domain}} & \# & \# semantic & \# & \# unknown & avg \# rows & avg \# attributes\\
+%		 & sources & labels & attributes & attributes & per source & per source\\
+%		\hline
+%		museum & 29 & 20 & 443 & 159 & 6978.89 & 15.27 \\
+%		soccer & 12 & 18 & 138 & 42 & 2120.16 & 11.5 \\
+%		\hline
+%		\end{tabular} 
+%\end{table*}
+
+
+
+
 \subsection{Experimental Results}
 \ddg{TODO}
 
-\section{Conclusions}
-\ddg{TODO} 
+\begin{table}[t]\small
+  \centering
+  \caption{Average performance of semantic labeling for leave one out strategy.}
+  	\label{tab:unknownloo}
+  	\begin{tabular}{c|cc|cc} 
+  		\hline
+  		\multirow{2}{*}{Model} & \multicolumn{2}{c|}{MRR scores} & \multicolumn{2}{c}{Train time ($s$)}\\
+  		 & museum & soccer & museum & soccer\\
+  		\hline
+  		DSL & 0.56 & 0.618 & 156.6 & 36.3\\
+ 		Serene & 0.866 & 0.827 & 100.6 & 6.8\\
+  		\hline
+		\end{tabular} 
+%\vspace*{-3mm}
+\end{table}
 
+\section{Related Work \label{SEC:pw}}
+\ddg{rewrite, add more}
+
+Relational data sources are still one of the most popular ways to store enterprise or Web data, however, the issue with relational schema is the lack of a well-defined semantic description.
+A common ontology provides a way to represent the meaning of a relational schema and can facilitate the integration of heterogeneous data sources within a domain.
+Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated, however, it becomes tedious with the growing number of heterogeneous schemata.
+Hence, automatic or semi-automatic approaches for relational-to-ontology schema mapping are being actively developed.
+
+
+The majority of approaches to solve the relational-to-ontology (\relonto{}) mapping problem are based on heuristic rules and alignment of constraints specified within relational schemata and ontologies.
+A very comprehensive overview and comparison of existing mapping generation tools based on this approach is given in~\cite{Pinkel:rodi} and~\cite{Spanos:semweb}.
+As examples, there are BootOX~\cite{Jimenez:Bootox}, MIRROR~\cite{Luciano:Mirror} and  ontop~\cite{Fagin:Clio}.
+Crudely speaking, these tools first apply a default direct mapping specified by the W3C.
+Further, the default ontology is enriched by using explicit and implicit schema constraints.
+Finally, ontology alignment techniques are applied to match the default ontology to the target ontology.
+The main advantage of these systems is the ability to run in a fully automatic setting.
+Our approach is complementary to the approaches from this group and at its current stage is semi-automatic.
+However, constraint programming offers a convenient framework to incorporate integrity constraints specified either within relational or ontological schema as additional constraints to govern the search for the solution.
+This opens an interesting direction for further research to develop an automatic system.
+
+A major issue with fully automatic systems is though that constraints may be inconsistent or absent completely, e.g., tables on the Web \ddg{Why?}.
+To overcome this issue, we can apply ML techniques.
+\cite{Limaye:Annotating} design a system to annotate web tables with entities for cell values, semantic labels for attributes and relationships for binary combinations of attributes.
+As in our approach, they decompose the process of mapping into two main stages: semantic labeling and finding relationships between matched semantic labels.
+\cite{Limaye:Annotating} enrich their data sources by using YAGO.
+\cite{Mulwad:Semantic} extend this approach by leveraging information from Wikitology Knowledge Base (KB).
+\cite{Venetis:Recovering} develop a scalable approach to recover the semantics of Web tables by incorporating data from the isA database KB.
+\cite{Ritze:matching}, on the other hand, use DBPedia as their KB.
+%extract additional data from knowledge bases to assign a semantic label to an attribute.
+Hence, these approaches are limited to domains well represented in those knowledge bases.
+Also, they are not able to find the relation between attributes in the table if there is no direct connection between the attributes.
+Our approach, on the other hand, allows a model to be trained on any data and can infer complex semantic paths which might exist between attributes.
+However, it might be further bootstrapped by leveraging external knowledge bases.
+This is especially beneficial at the start when the system does not have sufficient training data.
+
+As mentioned above, the approaches for mapping Web tables also perform semantic labeling.
+They design various similarity metrics for attribute names and attribute values.
+However, they disregard the attributes which are not matched to the ontology (the so-called \emph{unknown} class of attributes).
+It is clear that we cannot directly speak about similarity for unmatched attributes, since they are rather dissimilar from known semantic types.
+That is why we have developed a new approach for semantic labeling which can efficiently handle the \emph{unknown} class.
+We demonstrate its efficiency by comparing against the state-of-the-art approach DSL~\cite{Pham:semantic}.
+
+We build upon the work of~\cite{taheriyan2016learning} and use their ideas for the construction of the alignment graph.
+The only difference is that we introduce the \emph{unknown} and \emph{root} class nodes and as many \emph{unknown} data nodes as there are attributes in the modeled data source.
+These nodes serve to capture the unmatched attributes from the source.
+Though we have modified Karma to treat these additional nodes as well, our approach outperforms Karma since we have additional constraints for these nodes and use an exact algorithm to solve the STP.
+\cite{taheriyan2016learning} treat the matching and STP parts of \relonto{} independently and use heuristic algorithms for both.
+We, on the other hand, use exact algorithms for both parts and address them within a unified CP model.
+
+In their follow up work, \cite{Taheriyan:Leveraging} suggest to use graph patterns to boost the performance of their system.
+To perform semantic modeling in such scenario, \cite{Taheriyan:Leveraging} had to revise their algorithm by introducing additional heuristics.
+However, in our case we had to add pattern variables and to modify the objective function in the MiniZinc model.
+No changes to the solver were required.
+This makes our system very convenient and opens directions for validating various additional constraints.
+Though our approach beats the state-of-the-art system Karma in the conducted experiments, it is worth noting that the scalability of our approach is under question.
+The main argument why exact solution for STP is feasible in our setting is that we map data sources to a domain-specific ontology which is expected to be limited in its size.
+
+
+\ddg{Isn't this really similar??}
+\npr{It is very similar, I'm even using their code partially :)}
+
+
+\section{Conclusion}
+\ddg{TODO} 
+In this paper we have introduced a new approach to solve the problem of relational-to-ontology schema mapping.
+
+Future directions:
+incorporate Linked Open Data and other external knowledge bases to overcome cold start problem;
+incorporate schema and ontology constraints.
 
 \bibliographystyle{aaai}
+\npr{shorten citations}
 \bibliography{main}
 \end{document}

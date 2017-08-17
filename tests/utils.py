@@ -26,6 +26,7 @@ class SereneTestServer(object):
         self.host = None
         self.port = None
         self.SERENE_TEST_SERVER_PATH = 'SERENE_TEST_SERVER_PATH'
+        self.launch_server = True
 
     def setup(self):
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests")
@@ -33,7 +34,7 @@ class SereneTestServer(object):
             config = yaml.load(stream)
 
         # Test if we need to launch a server here...
-        launch_server = config['launch-test-server']
+        self.launch_server = config['launch-test-server']
 
         # If launch-test-server is true, then this variable points to
         # the executable which will launch the server. If launch-test-server
@@ -51,7 +52,7 @@ class SereneTestServer(object):
         version = "v1.0"
 
         # if we need to, we start the server with a temporary storage directory
-        if launch_server:
+        if self.launch_server:
             self.server = subprocess.Popen(
                 [filename,
                  "--port", str(port),
@@ -93,7 +94,8 @@ class SereneTestServer(object):
         return False
 
     def tear_down(self):
-        self.server.kill()
+        if self.launch_server:
+            self.server.kill()
 
 
 class TestWithServer(unittest.TestCase):

@@ -8,6 +8,7 @@ Test class for the IntegrationGraph which uses the chuffed solver
 import unittest2 as unittest
 import logging
 import os
+import tarfile
 
 from .utils import TestWithServer
 from serene.elements import SSD
@@ -25,7 +26,7 @@ class TestIntegrationGraph(TestWithServer):
         self._datasets = None
         self._ontologies = None
 
-        self._benchmark_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "resources", "museum_benchmark")
+        self._benchmark_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "tests","resources", "museum_benchmark")
         self._museum_owl_dir = os.path.join(self._benchmark_path, "owl")
         self._museum_data = os.path.join(self._benchmark_path, 'dataset')
         self._museum_ssd = os.path.join(self._benchmark_path, 'ssd')
@@ -80,6 +81,9 @@ class TestIntegrationGraph(TestWithServer):
 
     def _clear_storage(self):
         """Removes all server elements"""
+        for oc in self._serene.octopii.items:
+            self._serene.octopii.remove(oc)
+
         for ssd in self._ssds.items:
             self._ssds.remove(ssd)
 

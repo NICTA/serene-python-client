@@ -22,7 +22,7 @@ except ImportError as e:
     sys.path.insert(0, '.')
     import serene
 from serene import Column, DataNode, ClassNode, ClassInstanceLink, ColumnLink, ObjectLink, DataLink,\
-    ALL_CN, DEFAULT_NS, UNKNOWN_CN
+    ALL_CN, DEFAULT_NS, UNKNOWN_CN, SSD
 
 
 def label(node):
@@ -343,12 +343,14 @@ def process_unknown(ssd, semantic_types):
 
     return mod_ssd
 
-def convert_ssd(ssd, integration_graph, file_name):
+
+def convert_ssd(ssd, integration_graph, file_name=None, clean_ssd=True):
     """
     Convert our ssd to nx object re-using ids from the integration graph whenever possible
     :param ssd: SSD instance
     :param integration_graph: nx MultiDigraph
-    :param file_name: name of the file to write the converted ssd
+    :param file_name: name of the file to write the converted ssd; default None
+    :param clean_ssd: boolean whether to remove extra "connect" links for the node "All"
     :return:
     """
     data_node_map = construct_data_node_map(integration_graph)
@@ -418,24 +420,26 @@ def convert_ssd(ssd, integration_graph, file_name):
             g.add_edge(ssd_node_map[source], ssd_node_map[target], attr_dict=link_data)
 
     # clean ssd: leave only 2 links for All
-    all_id = [n for (n, n_data) in g.nodes(data=True) if
-              n_data["type"] == "ClassNode" and n_data["label"] == ALL_CN]
-    unknown_id = [n for (n, n_data) in g.nodes(data=True) if
-              n_data["type"] == "ClassNode" and n_data["label"] == UNKNOWN_CN]
-    if len(all_id) and len(unknown_id):
-        all_id, unknown_id = all_id[0], unknown_id[0]
-        all_neigh = [(s, t, ld["weight"]) for (s, t, ld) in g.out_edges([all_id], data=True) if t != unknown_id]
-        min_weight = min(ld for (s, t, ld) in all_neigh)
-        keep = min(t for (s, t, ld) in all_neigh if ld == min_weight)
-        logging.info("Removing extra connect links: {}".format(len(all_neigh)-1))
-        for s, t, ld in all_neigh:
-            if t != keep:
-                g.remove_edge(s, t)
+    if clean_ssd:
+        all_id = [n for (n, n_data) in g.nodes(data=True) if
+                  n_data["type"] == "ClassNode" and n_data["label"] == ALL_CN]
+        unknown_id = [n for (n, n_data) in g.nodes(data=True) if
+                  n_data["type"] == "ClassNode" and n_data["label"] == UNKNOWN_CN]
+        if len(all_id) and len(unknown_id):
+            all_id, unknown_id = all_id[0], unknown_id[0]
+            all_neigh = [(s, t, ld["weight"]) for (s, t, ld) in g.out_edges([all_id], data=True) if t != unknown_id]
+            min_weight = min(ld for (s, t, ld) in all_neigh)
+            keep = min(t for (s, t, ld) in all_neigh if ld == min_weight)
+            logging.info("Removing extra connect links: {}".format(len(all_neigh)-1))
+            for s, t, ld in all_neigh:
+                if t != keep:
+                    g.remove_edge(s, t)
 
     print("SSD graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
     logging.info("SSD graph read: {} nodes, {} links".format(g.number_of_nodes(), g.number_of_edges()))
-    logging.info("Writing converted ssd graph to file {}".format(file_name))
-    nx.write_graphml(g, file_name)
+    if file_name:
+        logging.info("Writing converted ssd graph to file {}".format(file_name))
+        nx.write_graphml(g, file_name)
 
     return g
 
@@ -499,6 +503,444 @@ def to_graphviz(graph, out_file=None, prog="dot"):
         # g.draw(out_file, prog='dot')
         g.draw(out_file, prog=prog)
     return g
+
+
+#####################
+#
+#
+####################
+
+import time
+try:
+    import integration as integ
+except ImportError as e:
+    import sys
+    sys.path.insert(0, '.')
+    import integration as integ
+
+def create_octopus(server, ssd_range, sample, ontologies):
+    octo_local = server.Octopus(
+        ssds=[ssd_range[i] for i in sample],
+        ontologies=ontologies,
+        name='num_{}'.format(len(sample)),
+        description='Testing example for places and companies',
+        resampling_strategy="NoResampling",  # optional
+        num_bags=80,  # optional
+        bag_size=50,  # optional
+        model_type="randomForest",
+        modeling_props={
+            "compatibleProperties": True,
+            "ontologyAlignment": True,
+            "addOntologyPaths": True,
+            "mappingBranchingFactor": 50,
+            "numCandidateMappings": 10,
+            "topkSteinerTrees": 50,
+            "multipleSameProperty": True,
+            "confidenceWeight": 1.0,
+            "coherenceWeight": 1.0,
+            "sizeWeight": 1.0,
+            "numSemanticTypes": 4,
+            "thingNode": False,
+            "nodeClosure": True,
+            "propertiesDirect": True,
+            "propertiesIndirect": True,
+            "propertiesSubclass": True,
+            "propertiesWithOnlyDomain": True,
+            "propertiesWithOnlyRange": True,
+            "propertiesWithoutDomainRange": False,
+            "unknownThreshold": 0.05
+        },
+        feature_config={
+            "activeFeatures": [
+                "num-unique-vals",
+                "prop-unique-vals",
+                "prop-missing-vals",
+                "ratio-alpha-chars",
+                "prop-numerical-chars",
+                "prop-whitespace-chars",
+                "prop-entries-with-at-sign",
+                "prop-entries-with-hyphen",
+                "prop-range-format",
+                "is-discrete",
+                "entropy-for-discrete-values",
+                "shannon-entropy"
+            ]
+            ,
+            "activeFeatureGroups": [
+                "char-dist-features",
+                "inferred-data-type",
+                "stats-of-text-length",
+                "stats-of-numeric-type"
+                , "prop-instances-per-class-in-knearestneighbours"
+                , "mean-character-cosine-similarity-from-class-examples"
+                , "min-editdistance-from-class-examples"
+                , "min-wordnet-jcn-distance-from-class-examples"
+                , "min-wordnet-lin-distance-from-class-examples"
+            ],
+            "featureExtractorParams": [
+                {
+                    "name": "prop-instances-per-class-in-knearestneighbours",
+                    "num-neighbours": 3
+                }
+                , {
+                    "name": "min-editdistance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-jcn-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-lin-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }
+            ]
+        }
+    )
+
+    # add this to the endpoint...
+    print("Now we upload to the server")
+    octo = server.octopii.upload(octo_local)
+
+    start = time.time()
+    print()
+    print("     the initial state for {} is {}".format(octo.id, octo.state))
+    print("     training...")
+    octo.train()
+    print("     Done in: {}".format(time.time() - start))
+    print("     the final state for {} is {}".format(octo.id, octo.state))
+
+    return octo
+
+
+def create_octopus2(server, ssd_range, sample, ontologies):
+    octo_local = server.Octopus(
+        ssds=[ssd_range[i] for i in sample],
+        ontologies=ontologies,
+        name='num_{}'.format(len(sample)),
+        description='Testing example for places and companies',
+        resampling_strategy="NoResampling",  # optional
+        num_bags=80,  # optional
+        bag_size=50,  # optional
+        model_type="randomForest",
+        modeling_props={
+            "compatibleProperties": True,
+            "ontologyAlignment": True,
+            "addOntologyPaths": False,
+            "mappingBranchingFactor": 50,
+            "numCandidateMappings": 10,
+            "topkSteinerTrees": 50,
+            "multipleSameProperty": True,
+            "confidenceWeight": 1.0,
+            "coherenceWeight": 1.0,
+            "sizeWeight": 1.0,
+            "numSemanticTypes": 4,
+            "thingNode": False,
+            "nodeClosure": True,
+            "propertiesDirect": True,
+            "propertiesIndirect": True,
+            "propertiesSubclass": True,
+            "propertiesWithOnlyDomain": True,
+            "propertiesWithOnlyRange": True,
+            "propertiesWithoutDomainRange": False,
+            "unknownThreshold": 0.05
+        },
+        feature_config={
+            "activeFeatures": [
+                "num-unique-vals",
+                "prop-unique-vals",
+                "prop-missing-vals",
+                "ratio-alpha-chars",
+                "prop-numerical-chars",
+                "prop-whitespace-chars",
+                "prop-entries-with-at-sign",
+                "prop-entries-with-hyphen",
+                "prop-range-format",
+                "is-discrete",
+                "entropy-for-discrete-values",
+                "shannon-entropy"
+            ]
+            ,
+            "activeFeatureGroups": [
+                "char-dist-features",
+                "inferred-data-type",
+                "stats-of-text-length",
+                "stats-of-numeric-type"
+                , "prop-instances-per-class-in-knearestneighbours"
+                , "mean-character-cosine-similarity-from-class-examples"
+                , "min-editdistance-from-class-examples"
+                , "min-wordnet-jcn-distance-from-class-examples"
+                , "min-wordnet-lin-distance-from-class-examples"
+            ],
+            "featureExtractorParams": [
+                {
+                    "name": "prop-instances-per-class-in-knearestneighbours",
+                    "num-neighbours": 3
+                }
+                , {
+                    "name": "min-editdistance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-jcn-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-lin-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }
+            ]
+        }
+    )
+    # add this to the endpoint...
+    print("Now we upload to the server")
+    octo = server.octopii.upload(octo_local)
+
+    start = time.time()
+    print()
+    print("     the initial state for {} is {}".format(octo.id, octo.state))
+    print("     training...")
+    octo.train()
+    print("     Done in: {}".format(time.time() - start))
+    print("     the final state for {} is {}".format(octo.id, octo.state))
+
+    return octo
+
+
+def create_octopus3(server, ssd_range, sample, ontologies):
+    octo_local = server.Octopus(
+        ssds=[ssd_range[i] for i in sample],
+        ontologies=ontologies,
+        name='num_{}'.format(len(sample)),
+        description='Testing example for places and companies',
+        resampling_strategy="NoResampling",  # optional
+        num_bags=80,  # optional
+        bag_size=50,  # optional
+        model_type="randomForest",
+        modeling_props={
+            "compatibleProperties": True,
+            "ontologyAlignment": True,
+            "addOntologyPaths": False,
+            "mappingBranchingFactor": 50,
+            "numCandidateMappings": 10,
+            "topkSteinerTrees": 50,
+            "multipleSameProperty": False,
+            "confidenceWeight": 1.0,
+            "coherenceWeight": 1.0,
+            "sizeWeight": 1.0,
+            "numSemanticTypes": 4,
+            "thingNode": False,
+            "nodeClosure": True,
+            "propertiesDirect": True,
+            "propertiesIndirect": True,
+            "propertiesSubclass": True,
+            "propertiesWithOnlyDomain": True,
+            "propertiesWithOnlyRange": True,
+            "propertiesWithoutDomainRange": False,
+            "unknownThreshold": 0.05
+        },
+        feature_config={
+            "activeFeatures": [
+                "num-unique-vals",
+                "prop-unique-vals",
+                "prop-missing-vals",
+                "ratio-alpha-chars",
+                "prop-numerical-chars",
+                "prop-whitespace-chars",
+                "prop-entries-with-at-sign",
+                "prop-entries-with-hyphen",
+                "prop-range-format",
+                "is-discrete",
+                "entropy-for-discrete-values",
+                "shannon-entropy"
+            ]
+            ,
+            "activeFeatureGroups": [
+                "char-dist-features",
+                "inferred-data-type",
+                "stats-of-text-length",
+                "stats-of-numeric-type"
+                , "prop-instances-per-class-in-knearestneighbours"
+                , "mean-character-cosine-similarity-from-class-examples"
+                , "min-editdistance-from-class-examples"
+                , "min-wordnet-jcn-distance-from-class-examples"
+                , "min-wordnet-lin-distance-from-class-examples"
+            ],
+            "featureExtractorParams": [
+                {
+                    "name": "prop-instances-per-class-in-knearestneighbours",
+                    "num-neighbours": 3
+                }
+                , {
+                    "name": "min-editdistance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-jcn-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }, {
+                    "name": "min-wordnet-lin-distance-from-class-examples",
+                    "max-comparisons-per-class": 3
+                }
+            ]
+        }
+    )
+    # add this to the endpoint...
+    print("Now we upload to the server")
+    octo = server.octopii.upload(octo_local)
+
+    start = time.time()
+    print()
+    print("     the initial state for {} is {}".format(octo.id, octo.state))
+    print("     training...")
+    octo.train()
+    print("     Done in: {}".format(time.time() - start))
+    print("     the final state for {} is {}".format(octo.id, octo.state))
+
+    return octo
+
+
+
+def semantic_label_df(cur_ssd, col_name="pred_label"):
+    """
+    Get schema matcher part from ssd
+    :param cur_ssd: SSD
+    :param col_name: name to be given to the column which has the label
+    :return: pandas dataframe
+    """
+    ff = [(v.id, k.class_node.label + "---" + k.label) for (k, v) in cur_ssd.mappings.items()]
+    return pd.DataFrame(ff, columns=["column_id", col_name])
+
+
+import sklearn.metrics
+def compare_semantic_label(one_df, two_df):
+    """
+
+    :param one_df:
+    :param two_df:
+    :return:
+    """
+    logging.info("Comparing semantic labels")
+    merged = one_df.merge(two_df, on="column_id", how="outer")
+    y_true = merged["user_label"].astype(str).as_matrix()
+    y_pred = merged["label"].astype(str).as_matrix()
+    accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)  # np.mean(y_pred == y_true)
+    fmeasure = sklearn.metrics.f1_score(y_true, y_pred, average='macro')
+    return {"accuracy": accuracy, "fmeasure": fmeasure}
+
+def do_chuffed(server, ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
+               train_flag=False, chuffed_path=None, simplify=True,
+               patterns=None, experiment="loo", soft_assumptions=False,
+               pattern_sign=1.0, accu=0.0, pattern_time=None):
+    res = []
+    start = time.time()
+    if patterns is None:
+        pattern_time = None
+    try:
+        integrat = integ.IntegrationGraph(octopus=ch_octopus, dataset=ch_dataset,
+                                          match_threshold=0.001, simplify_graph=simplify,
+                                          patterns=patterns, pattern_sign=pattern_sign)
+        if chuffed_path:
+            integrat._chuffed_path = chuffed_path  # change chuffed solver version
+        solution = integrat.solve(ch_column_names,
+                                  soft_assumptions=soft_assumptions, relax_every=2)
+        runtime = time.time() - start
+        # get cost of the ground truth
+        try:
+            nx_ssd = convert_ssd(ch_ssd, integrat.graph, file_name=None, clean_ssd=False)
+            cor_match_score = sum([ld["weight"] for n1, n2, ld in nx_ssd.edges(data=True) if ld["type"] == "MatchLink"])
+            cor_cost = sum([ld["weight"] for n1, n2, ld in nx_ssd.edges(data=True) if ld["type"] != "MatchLink"])
+        except Exception as e:
+            logging.warning("Failed to convert correct ssd with regard to the integration graph: {}".format(e))
+            print("Failed to convert correct ssd with regard to the integration graph: {}".format(e))
+            cor_match_score = None
+            cor_cost=None
+
+        if len(solution) < 1:
+            logging.error("Chuffed found no solutions for ssd {}".format(orig_ssd.id))
+            raise Exception("Chuffed found no solutions!")
+
+        for idx, sol in enumerate(solution):
+            # convert solution to SSD
+            json_sol = json.loads(sol)
+            logging.info("Converted solution: {}".format(json_sol))
+            cp_ssd = SSD().update(json_sol, server._datasets, server._ontologies)
+            eval = cp_ssd.evaluate(ch_ssd, False, True)
+
+            chuffed_time = json_sol["time"]
+            match_score = json_sol["match_score"]
+            cost = json_sol["cost"]
+            objective = json_sol["objective"]
+
+            try:
+                comparison = server.ssds.compare(cp_ssd, ch_ssd, False, False)
+            except:
+                comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+
+            # comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+            try:
+                sol_accuracy = compare_semantic_label(semantic_label_df(ch_ssd, "user_label"),
+                                                  semantic_label_df(cp_ssd, "label"))["accuracy"]
+            except Exception as e:
+                logging.error("Match score fail in chuffed: {}".format(e))
+                print("Match score fail in chuffed: {}".format(e))
+                sol_accuracy = None
+
+            res += [[experiment, ch_octopus.id, ch_dataset.id, orig_ssd.name,
+                     orig_ssd.id, "chuffed", idx, "success",
+                     eval["jaccard"], eval["precision"], eval["recall"],
+                     comparison["jaccard"], comparison["precision"], comparison["recall"],
+                     train_flag, runtime, chuffed_path, simplify, chuffed_time,
+                     soft_assumptions, pattern_sign, accu, sol_accuracy,
+                     match_score, cost, objective,
+                     cor_match_score, cor_cost, pattern_time,
+                     integrat.graph.number_of_nodes(), integrat.graph.number_of_edges()]]
+    except Exception as e:
+        print("CP solver failed to find solution: {}".format(e))
+        res += [[experiment, ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id,
+                 "chuffed", 0, "fail", None, None, None, None, None, None,
+                 train_flag, time.time() - start, chuffed_path, simplify, None,
+                 soft_assumptions, pattern_sign, accu, None,
+                 None, None, None, None, None, pattern_time, None, None]]
+    return res
+
+def do_karma(server, k_octopus, k_dataset, k_ssd, orig_ssd,
+             train_flag=False, experiment="loo", accu=0.0, pattern_time=None):
+    start = time.time()
+    try:
+        karma_pred = k_octopus.predict(k_dataset)[0]
+        karma_ssd = karma_pred.ssd
+        runtime = time.time() - start
+        eval = karma_ssd.evaluate(k_ssd, False, True)
+
+        match_score = karma_pred.score.nodeConfidence
+        cost = karma_pred.score.linkCost
+        objective = karma_pred.score.karmaScore
+
+        try:
+            comparison = server.ssds.compare(karma_ssd, k_ssd, False, False)
+        except:
+            comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+        # comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+        try:
+            sol_accuracy = compare_semantic_label(semantic_label_df(k_ssd, "user_label"),
+                                              semantic_label_df(karma_ssd, "label"))["accuracy"]
+        except Exception as e:
+            logging.error("Match accuracy fail: {}".format(e))
+            print("Match accuracy fail: {}".format(e))
+            sol_accuracy = None
+
+        return [[experiment, k_octopus.id, k_dataset.id, orig_ssd.name,
+                 orig_ssd.id, "karma", 0, "success",
+                 eval["jaccard"], eval["precision"], eval["recall"],
+                 comparison["jaccard"], comparison["precision"], comparison["recall"],
+                 train_flag, runtime, "", None, runtime, None, None, accu, sol_accuracy,
+                 match_score, cost, objective, None, None, None, None, None]]
+    except Exception as e:
+        logging.error("Karma failed to find solution: {}".format(e))
+        print("Karma failed to find solution: {}".format(e))
+        return [[experiment, k_octopus.id, k_dataset.id, orig_ssd.name,
+                 orig_ssd.id, "karma", 0, "fail", None, None, None, None, None, None,
+                train_flag, time.time() - start, "", None, None, None, None, accu, None,
+                 None, None, None, None, None, None, None, None]]
+
+
+#####################
 
 
 if __name__ == "__main__":

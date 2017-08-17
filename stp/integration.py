@@ -11,9 +11,10 @@ import networkx as nx
 import yaml
 import os
 from collections import defaultdict
-from .minizinc import *
+from minizinc import *
 import subprocess
 import re
+import time
 import json
 from pygraphviz import AGraph
 from serene.elements.semantics.base import KARMA_DEFAULT_NS, DEFAULT_NS, ALL_CN, OBJ_PROP, UNKNOWN_CN, UNKNOWN_DN
@@ -23,7 +24,16 @@ class IntegrationGraph(object):
     """
     Integration graph to map a relational data source onto an ontology using a CP solver
     """
-    def __init__(self, octopus, dataset, match_threshold=0.0, simplify_graph=False, patterns=None):
+    UNKNOWN_SCORE = 5.0
+
+    def __init__(self, octopus, dataset, match_threshold=0.0,
+                 simplify_graph=False,
+                 patterns=None,
+                 pattern_sign=1.0,
+                 predicted_df=None,
+                 alignment_graph=None,
+                 alignment_node_map=None,
+                 alignment_link_map=None):
         """
         Octopus should be trained.
         :param octopus: Octopus object which is used to integrate the new data source
@@ -31,6 +41,12 @@ class IntegrationGraph(object):
         :param match_threshold: threshold on match links
         :param simplify_graph: Remove edges that are heavier than some path between its endpoints
         :param patterns: csv file with patterns, None if there will be no patterns
+        :param pattern_sign: positive float number which indicates significance of pattern weights
+                (they will be divided by this number)
+        :param predicted_df: pandas dataframe with predictions
+        :param alignment_graph: networkx multidigraph for the alignment graph
+        :param alignment_node_map: dictionary
+        :param alignment_link_map: dictionary
         :return:
         """
         logging.info("Initializing integration graph for the dataset {} using octopus {}".format(
@@ -41,22 +57,34 @@ class IntegrationGraph(object):
         self._match_threshold = match_threshold  # discard matches with confidence score < threshold
         self._simplify_graph = simplify_graph
         self._patterns = patterns
+        if pattern_sign <= 0:  # this number can be only positive
+            pattern_sign = 1.0
+        self._pattern_sign = pattern_sign
+        self._predicted_df = predicted_df
 
         # the integration graph contains the alignment graph at the beginning
-        self.graph, self._node_map, self._link_map = self._get_initial_alignment()
+        self.graph, self._node_map, self._link_map = self._get_initial_alignment(alignment_graph,
+                                                                                 alignment_node_map,
+                                                                                 alignment_link_map)
         self._chuffed_path, self._mzn2fzn_exec, self._model_mzn, self._solns2out_exec, self._timeout = \
             self._read_config()
 
         self._graph_node_map = {}
 
-    def _get_initial_alignment(self):
+    def _get_initial_alignment(self, alignment_graph, alignment_node_map, alignment_link_map):
         """
         Get initial alignment based on the octopus.
         Depending on the dataset, we do some further changes
+        :param alignment_graph
+        :param alignment_node_map
+        :param alignment_link_map
         :return:
         """
 
-        graph, node_map, link_map = self._octopus.get_alignment()
+        if alignment_graph is not None and alignment_node_map is not None and alignment_link_map is not None:
+            graph, node_map, link_map = alignment_graph, alignment_node_map, alignment_link_map
+        else:
+            graph, node_map, link_map = self._octopus.get_alignment()
 
         # modify the number of unknown data nodes in the alignment graph depending on the number of attributes
         num_attrs = len(self._dataset.columns)
@@ -91,7 +119,7 @@ class IntegrationGraph(object):
                                  'label': UNKNOWN_DN,
                                  'prefix': DEFAULT_NS,
                                  'type': 'DataPropertyLink',
-                                 'weight': 2.0}
+                                 'weight': self.UNKNOWN_SCORE}
                 graph.add_edge(unknown_cn, max_id+i, key=max_edge+i, attr_dict=unknown_edata)
 
         # elif num_attrs < len(unknown_dn):
@@ -121,6 +149,15 @@ class IntegrationGraph(object):
     def __repr__(self):
         return self.__str__()
 
+    def _get_match_weight(self, name, score):
+        if (UNKNOWN_CN in name) and (score == 0):
+            ww = self.UNKNOWN_SCORE
+        else:
+            # TODO: make weight: 1 - ln(score)
+            ww = 1.0 - score
+
+        return ww
+
     def _add_matches(self, column_names=None):
         """
         Add matches to the alignment graph.
@@ -131,7 +168,10 @@ class IntegrationGraph(object):
         """
         logging.info("Prediction for the dataset using octopus...")
         print("Prediction for the dataset using octopus...")
-        predicted_df = self._octopus.matcher_predict(self._dataset)
+        if self._predicted_df is not None:
+            predicted_df = self._predicted_df
+        else:
+            predicted_df = self._octopus.matcher_predict(self._dataset)
         if column_names is None:
             column_names = [c.name for c in self._dataset.columns]
 
@@ -164,14 +204,14 @@ class IntegrationGraph(object):
             }
             new_graph.add_node(cur_id, attr_dict=node_data)
             for score in scores_cols:
-                if row[score] <= threshold:
+                # we ignore scores below threshold, but not unknowns!
+                if row[score] <= threshold and (UNKNOWN_CN not in score):
                     logging.info("Ignoring <=threshold scores")
                     continue
                 lab = score.split("scores_")[1]
-                # TODO: make weight: 1 - ln(score)
                 link_data = {
                     "type": "MatchLink",
-                    "weight": 1.0 - row[score],  # inverse number
+                    "weight": self._get_match_weight(score, row[score]),  # inverse number
                     "label": row["column_name"]
                 }
                 if lab not in available_types:
@@ -215,7 +255,7 @@ class IntegrationGraph(object):
                 l = content[i].strip().replace(' ', '').replace('"', '').replace('[', '').replace(']', '')
                 l = l.split(',')
                 # pattern,support,num_edges,edge_keys
-                w = int(weight_conversion(float(l[1])))
+                w = int(weight_conversion(float(l[1]))/self._pattern_sign)
                 edgs = map(lambda x: g.edge_ids[x] if x in g.edge_ids else None, l[3:len(l)])
                 edgs = [e for e in edgs if e is not None]
                 if len(edgs) > 0:
@@ -424,6 +464,19 @@ class IntegrationGraph(object):
         link["status"] = "Predicted"
         return link
 
+    @staticmethod
+    def _get_attr(ag, attr_name):
+        """
+        Get value of the graph attribute.
+        If not available, None is returned
+        :param ag: Graphviz object
+        :param attr_name: string
+        :return:
+        """
+        if attr_name in ag.graph_attr:
+            return ag.graph_attr[attr_name]
+        return None
+
     def _digraph_to_ssd(self, digraph, dot_file=None):
         """
         Convert digraph string to ssd request
@@ -431,6 +484,7 @@ class IntegrationGraph(object):
         :param dot_file: optional file name to write the solution to the system to a dot file
         :return:
         """
+        start_time = time.time()
         # for some unknown reason stuff disappears from the graph
         copy_graph = self.graph.copy()
         logging.debug("Converting digraph {} to ssd".format(digraph))
@@ -438,16 +492,19 @@ class IntegrationGraph(object):
         if dot_file:
             ag.write(dot_file)  # write the dot file to the system
         # convert to SsdRequest: name, ontologies, semanticModel, mappings
-        if "time" in ag.graph_attr:
-            t = ag.graph_attr["time"]
-        else:
-            t = None
+        t = float(self._get_attr(ag, "time"))
+        cost = self._get_attr(ag, "cost")
+        match_score = self._get_attr(ag, "match_score")
+        obj = self._get_attr(ag, "obj")
         ssd_request = {
             "ontologies": [onto.id for onto in self._octopus.ontologies],
             "name": self._dataset.filename,
             "mappings": [],
             "semanticModel": {"nodes": [], "links": []},
-            "time": t
+            "time": t,
+            "cost": cost,
+            "match_score": match_score,
+            "objective": obj
         }
 
         # mappings: [{"attribute": column_id, "node": data_node_id}]
@@ -498,6 +555,8 @@ class IntegrationGraph(object):
             ssd_request["semanticModel"]["nodes"].append(node)
 
         logging.debug("Conversion finished")
+        conv_time = time.time() - start_time
+        ssd_request["time"] += conv_time
 
         # getting the graph to its original state
         # self.graph = copy_graph
@@ -528,8 +587,6 @@ class IntegrationGraph(object):
             # ssd_request = self._digraph_to_ssd(digraph, dot_file)
             # # to return json:
             # return json.dumps(ssd_request)
-
-            # TODO: make time as a separate element in tuple
             result = [json.dumps(self._digraph_to_ssd(digraph, dot_file)) for digraph in pat.findall(output)]
 
             return result
@@ -539,11 +596,16 @@ class IntegrationGraph(object):
             logging.error("Conversion of chuffed solution failed: {}".format(str(e)))
             return
 
-    def solve(self, column_names=None, dot_file=None):
+    def solve(self, column_names=None, dot_file=None,
+              soft_assumptions=False,
+              relax_every=2):
         """
         :param column_names: list of column names which should be present in the solution;
                 if None, all columns will be taken
         :param dot_file: optional file name to write the dot file to the system
+        :param soft_assumptions: boolean to drop the requirement that all attribute must match a data node
+        :param relax_every: integer seconds used when soft_assmuptions is True; it will ensure that the requirement
+        for attributes to match a data node will be dropped every interval of seconds for half of attributes
         :return: List of Json for SsdRequest
         """
         print("Solving the integration problem with Chuffed...")
@@ -552,12 +614,22 @@ class IntegrationGraph(object):
 
         logging.info("Solving the problem for dataset {} using octopus {}".format(
             self._dataset.id, self._octopus.id))
-        command = "{}/fzn_chuffed -verbosity=2 -time_out={} -lazy=true " \
-                  "-steinerlp=true {}.fzn | {} {}.ozn".format(self._chuffed_path,
-                                                              self._timeout,
-                                                              base_path,
-                                                              self._solns2out_exec,
-                                                              base_path)
+        if soft_assumptions:
+            command = "{}/fzn_chuffed -verbosity=2 -time_out={} -lazy=true " \
+                      "-soft_assumptions=True -relax_every={} " \
+                      "-steinerlp=true {}.fzn | {} {}.ozn".format(self._chuffed_path,
+                                                                  self._timeout,
+                                                                  relax_every,
+                                                                  base_path,
+                                                                  self._solns2out_exec,
+                                                                  base_path)
+        else:
+            command = "{}/fzn_chuffed -verbosity=2 -time_out={} -lazy=true " \
+                      "-steinerlp=true {}.fzn | {} {}.ozn".format(self._chuffed_path,
+                                                                  self._timeout,
+                                                                  base_path,
+                                                                  self._solns2out_exec,
+                                                                  base_path)
         print("Executing command {}".format(command))
         logging.info("Executing command {}".format(command))
         try:

@@ -28,5 +28,16 @@ stp/resources/*.tar.gz
 stp/minizinc/chuffed_20170525/
 stp/resources/storage/*
 stp/resources/museum_stp_benchmark/
+stp/paper_aaai/*.bbl
+stp/paper_aaai/*.aux
+stp/paper_aaai/*.blg
+stp/paper_aaai/*.log
+stp/paper_aaai/*.gz
+
 
 df-testing/*
+
+docker/serene-python-client
+docker/*.gz
+docker/*.tgz
+docker/stp

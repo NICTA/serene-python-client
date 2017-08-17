@@ -8,7 +8,7 @@
 # If true, this will launch a local test server. If false it
 # assumes that you have an existing test server running
 #
-launch-test-server: true
+launch-test-server: false
 
 #
 # If launch-test-server is true, then this variable points to
@@ -25,4 +25,4 @@ launch-test-server-storage: /tmp/test
 # The location of the test server.
 #
 test-server-host: 127.0.0.1
-test-server-port: 9000
+test-server-port: 8080

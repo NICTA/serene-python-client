@@ -181,7 +181,7 @@ def create_octopus(ssd_range, sample):
     octo_local = sn.Octopus(
         ssds=[ssd_range[i] for i in sample],
         ontologies=ontologies,
-        name='octopus-unknown',
+        name='num_{}'.format(len(sample)),
         description='Testing example for places and companies',
         resampling_strategy="NoResampling",  # optional
         num_bags=80,  # optional
@@ -194,10 +194,10 @@ def create_octopus(ssd_range, sample):
             "mappingBranchingFactor": 50,
             "numCandidateMappings": 10,
             "topkSteinerTrees": 50,
-            "multipleSameProperty": False,
+            "multipleSameProperty": True,
             "confidenceWeight": 1.0,
             "coherenceWeight": 1.0,
-            "sizeWeight": 0.5,
+            "sizeWeight": 1.0,
             "numSemanticTypes": 10,
             "thingNode": False,
             "nodeClosure": True,
@@ -282,65 +282,135 @@ reload(al)
 reload(serene)
 
 
+def semantic_label_df(cur_ssd, col_name="pred_label"):
+    """
+    Get schema matcher part from ssd
+    :param cur_ssd: SSD
+    :param col_name: name to be given to the column which has the label
+    :return: pandas dataframe
+    """
+    ff = [(v.id, k.class_node.label + "---" + k.label) for (k, v) in cur_ssd.mappings.items()]
+    return pd.DataFrame(ff, columns=["column_id", col_name])
+
+
+import sklearn.metrics
+def compare_semantic_label(one_df, two_df):
+    """
+
+    :param one_df:
+    :param two_df:
+    :return:
+    """
+    merged = one_df.merge(two_df, on="column_id", how="outer")
+    y_true = merged["user_label"].as_matrix()
+    y_pred = merged["label"].as_matrix()
+    accuracy = sklearn.metrics.accuracy_score(y_true, y_pred)  # np.mean(y_pred == y_true)
+    fmeasure = sklearn.metrics.f1_score(y_true, y_pred, average='macro')
+    return {"accuracy": accuracy, "fmeasure": fmeasure}
+
+
 def do_chuffed(ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd,
-               train_flag=False, chuffed_path=None, simplify=True, patterns=None):
+               train_flag=False, chuffed_path=None, simplify=True,
+               patterns=None, experiment="loo", soft_assumptions=False,
+               pattern_sign=1.0, accu=0.0):
     res = []
     start = time.time()
     try:
         integrat = integ.IntegrationGraph(octopus=ch_octopus, dataset=ch_dataset,
-                                          match_threshold=0.01, simplify_graph=simplify,
-                                          patterns=patterns)
+                                          match_threshold=0.001, simplify_graph=simplify,
+                                          patterns=patterns, pattern_sign=pattern_sign)
         if chuffed_path:
             integrat._chuffed_path = chuffed_path  # change chuffed solver version
-        solution = integrat.solve(ch_column_names)
+        solution = integrat.solve(ch_column_names,
+                                  soft_assumptions=soft_assumptions, relax_every=2)
         runtime = time.time() - start
-        # print(solution)
+        # get cost of the ground truth
+        try:
+            nx_ssd = al.convert_ssd(ch_ssd, integrat.graph, file_name=None, clean_ssd=False)
+            cor_match_score = sum([ld["weight"] for n1, n2, ld in nx_ssd.edges(data=True) if ld["type"] == "MatchLink"])
+            cor_cost = sum([ld["weight"] for n1, n2, ld in nx_ssd.edges(data=True) if ld["type"] != "MatchLink"])
+        except Exception as e:
+            logging.warning("Failed to convert correct ssd with regard to the integration graph: {}".format(e))
+            print("Failed to convert correct ssd with regard to the integration graph: {}".format(e))
+            cor_match_score = None
+            cor_cost=None
+
         if len(solution) < 1:
             logging.error("Chuffed found no solutions for ssd {}".format(ssd.id))
             raise Exception("Chuffed found no solutions!")
+
         for idx, sol in enumerate(solution):
             # convert solution to SSD
-            logging.info("Converted solution: {}".format(json.loads(sol)))
-            cp_ssd = SSD().update(json.loads(sol), sn._datasets, sn._ontologies)
+            json_sol = json.loads(sol)
+            logging.info("Converted solution: {}".format(json_sol))
+            cp_ssd = SSD().update(json_sol, sn._datasets, sn._ontologies)
             eval = cp_ssd.evaluate(ch_ssd, False, True)
 
-            try:
-                comparison = sn.ssds.compare(cp_ssd, ch_ssd, False, False)
-            except:
-                comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+            chuffed_time = json_sol["time"]
+            match_score = json_sol["match_score"]
+            cost = json_sol["cost"]
+            objective = json_sol["objective"]
 
-            res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", idx, "success",
-                   eval["jaccard"], eval["precision"], eval["recall"],
-                   comparison["jaccard"], comparison["precision"], comparison["recall"],
-                   train_flag, runtime, chuffed_path, simplify]]
+            # try:
+            #     comparison = sn.ssds.compare(cp_ssd, ch_ssd, False, False)
+            # except:
+            #     comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+
+            comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+            sol_accuracy = compare_semantic_label(semantic_label_df(ch_ssd, "user_label"),
+                                                  semantic_label_df(cp_ssd, "label"))["accuracy"]
+
+            res += [[experiment, ch_octopus.id, ch_dataset.id, orig_ssd.name,
+                     orig_ssd.id, "chuffed", idx, "success",
+                     eval["jaccard"], eval["precision"], eval["recall"],
+                     comparison["jaccard"], comparison["precision"], comparison["recall"],
+                     train_flag, runtime, chuffed_path, simplify, chuffed_time,
+                     soft_assumptions, pattern_sign, accu, sol_accuracy,
+                     match_score, cost, objective,
+                     cor_match_score, cor_cost]]
     except Exception as e:
         print("CP solver failed to find solution: {}".format(e))
-        res += [[ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id, "chuffed", 0, "fail", 0, 0, 0, 0, 0, 0,
-               train_flag, time.time() - start, chuffed_path, simplify]]
+        res += [[experiment, ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id,
+                 "chuffed", 0, "fail", None, None, None, None, None, None,
+                 train_flag, time.time() - start, chuffed_path, simplify, None,
+                 soft_assumptions, pattern_sign, accu, None,
+                 None, None, None, None, None]]
     return res
 
 
 def do_karma(k_octopus, k_dataset, k_ssd, orig_ssd,
-             train_flag=False):
+             train_flag=False, experiment="loo", accu=0.0):
     start = time.time()
     try:
-        karma_ssd = k_octopus.predict(k_dataset)[0].ssd
+        karma_pred = k_octopus.predict(k_dataset)[0]
+        karma_ssd = karma_pred.ssd
         runtime = time.time() - start
         eval = karma_ssd.evaluate(k_ssd, False, True)
 
-        try:
-            comparison = sn.ssds.compare(karma_ssd, k_ssd, False, False)
-        except:
-            comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+        match_score = karma_pred.score.nodeConfidence
+        cost = karma_pred.score.linkCost
+        objective = karma_pred.score.karmaScore
 
-        return [[k_octopus.id, k_dataset.id, orig_ssd.name, orig_ssd.id, "karma", 0, "success",
-               eval["jaccard"], eval["precision"], eval["recall"],
-               comparison["jaccard"], comparison["precision"], comparison["recall"],
-               train_flag, runtime, "", None]]
+        # try:
+        #     comparison = sn.ssds.compare(karma_ssd, k_ssd, False, False)
+        # except:
+        #     comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+        comparison = {"jaccard": -1, "precision": -1, "recall": -1}
+        sol_accuracy = compare_semantic_label(semantic_label_df(k_ssd, "user_label"),
+                                              semantic_label_df(karma_ssd, "label"))["accuracy"]
+
+        return [[experiment, k_octopus.id, k_dataset.id, orig_ssd.name,
+                 orig_ssd.id, "karma", 0, "success",
+                 eval["jaccard"], eval["precision"], eval["recall"],
+                 comparison["jaccard"], comparison["precision"], comparison["recall"],
+                 train_flag, runtime, "", None, runtime, None, None, accu, sol_accuracy,
+                 match_score, cost, objective, None, None]]
     except Exception as e:
         print("Karma failed to find solution: {}".format(e))
-        return [[k_octopus.id, k_dataset.id, orig_ssd.name, orig_ssd.id, "karma", 0, "fail", 0, 0, 0, 0, 0, 0,
-                train_flag, time.time() - start, "", None]]
+        return [[experiment, k_octopus.id, k_dataset.id, orig_ssd.name,
+                 orig_ssd.id, "karma", 0, "fail", None, None, None, None, None, None,
+                train_flag, time.time() - start, "", None, None, None, None, accu, None,
+                 None, None, None, None, None]]
 
 
 folder = os.path.join(project_path, "stp", "resources", "unknown_run")
@@ -348,19 +418,26 @@ chuffed_paths = ["/home/natalia/PycharmProjects/serene-python-client/stp/minizin
                  "/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170722",
                  "/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728"]
 
-result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_loo.csv")
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_loo_ext.csv")
 with open(result_csv, "w+") as f:
     csvf = csv.writer(f)
-    csvf.writerow(["octopus", "dataset", "name", "ssd", "method", "solution", "status",
-                              "jaccard", "precision", "recall",
-                              "karma_jaccard", "karma_precision", "karma_recall",
-                              "train_flag", "time", "chuffed_path"])  # header
+    csvf.writerow(["experiment", "octopus", "dataset", "name", "ssd",
+                   "method", "solution", "status",
+                   "jaccard", "precision", "recall",
+                   "karma_jaccard", "karma_precision", "karma_recall",
+                   "train_flag", "time", "chuffed_path", "simplify", "chuffed_time",
+                   "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
+                   "match_score", "cost", "objective",
+                   "cor_match_score", "cor_cost"])  # header
 
     sample_range = list(range(len(new_ssds)))
-    benchmark_results = [["octopus", "dataset", "name", "ssd", "method", "solution", "status",
+    benchmark_results = [["experiment", "octopus", "dataset", "name", "ssd",
+                          "method", "solution", "status",
                           "jaccard", "precision", "recall",
                           "karma_jaccard", "karma_precision", "karma_recall",
-                          "train_flag", "time", "chuffed_path", "simplify"]]
+                          "train_flag", "time", "chuffed_path", "simplify", "chuffed_time",
+                          "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
+                          "match_score", "cost", "objective", "cor_match_score", "cor_cost"]]
 
     print("Starting benchmark")
 
@@ -390,28 +467,68 @@ with open(result_csv, "w+") as f:
         # we should do prediction outside of solvers so that solvers use the cached results!
         print("Doing schema matcher part")
         df = octo.matcher_predict(dataset)
-
         cor_ssd = al.process_unknown(ssd, train_labels)
+        sm_accuracy = compare_semantic_label(semantic_label_df(cor_ssd, "user_label"),
+                                             df[["column_id", "label"]])["accuracy"]
+
 
         # cp solver approach
         for idx, chuffed in enumerate(chuffed_paths):
             print("---> trying chuffed {}".format(chuffed))
-            if idx != 2:
+            if idx == 0:
                 res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
-                                 train_flag=(i in train_sample),
-                                 chuffed_path=chuffed, simplify=True, patterns=None)
+                                 train_flag=(cur_id in train_sample),
+                                 chuffed_path=chuffed, simplify=True,
+                                 patterns=None, soft_assumptions=False, accu=sm_accuracy)
+                benchmark_results += res
+                csvf.writerows(res)
+            elif idx == 1:
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=(cur_id in train_sample),
+                                 chuffed_path=chuffed, simplify=True, patterns=None,
+                                 soft_assumptions=True, accu=sm_accuracy)
+                benchmark_results += res
+                csvf.writerows(res)
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=(cur_id in train_sample),
+                                 chuffed_path=chuffed, simplify=True, patterns=None,
+                                 soft_assumptions=False, accu=sm_accuracy)
+                benchmark_results += res
+                csvf.writerows(res)
             else:
                 res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
-                                 train_flag=(i in train_sample),
-                                 chuffed_path=chuffed, simplify=False, patterns=octo_patterns)
-
-
+                                 train_flag=(cur_id in train_sample),
+                                 chuffed_path=chuffed, simplify=False,
+                                 patterns=octo_patterns, soft_assumptions=False,
+                                 accu = sm_accuracy)
+                benchmark_results += res
+                csvf.writerows(res)
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=(cur_id in train_sample),
+                                 chuffed_path=chuffed, simplify=False,
+                                 patterns=octo_patterns, soft_assumptions=True,
+                                 accu=sm_accuracy)
+                benchmark_results += res
+                csvf.writerows(res)
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=(cur_id in train_sample),
+                                 chuffed_path=chuffed, simplify=False,
+                                 patterns=octo_patterns,
+                                 soft_assumptions=True, pattern_sign=5.0, accu=sm_accuracy)
+                benchmark_results += res
+                csvf.writerows(res)
+            res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                             train_flag=(cur_id in train_sample),
+                             chuffed_path=chuffed, simplify=False,
+                             patterns=octo_patterns,
+                             soft_assumptions=True, pattern_sign=10.0, accu=sm_accuracy)
             benchmark_results += res
             csvf.writerows(res)
 
+
         # karma approach
         print("---> trying karma")
-        res = do_karma(octo, dataset, cor_ssd, ssd, train_flag=(i in train_sample))
+        res = do_karma(octo, dataset, cor_ssd, ssd, train_flag=(cur_id in train_sample), accu=sm_accuracy)
         benchmark_results += res
         csvf.writerows(res)
         f.flush()
@@ -419,6 +536,259 @@ with open(result_csv, "w+") as f:
 print("Benchmark finished!")
 print(benchmark_results)
 
+
+# =======================
+#
+#  Changing # known semantic models
+#
+# =======================
+import random
+
+def get_chunks(sample_range, num):
+    """Yield successive n-sized chunks from l."""
+    for i in range(0, len(sample_range), num):
+        yield sorted(sample_range[i:i + num])
+
+
+def create_folds(sample_range, fold_num=2, fold_size=2, test_num=2):
+    """
+    Create train/test splits.
+    There will be fold_num splits, each split will have fold_size instances in
+    train dataset and test_num instances in test dataset.
+    :param sample_range: list of indices
+    :param fold_num: number of folds to be created
+    :param fold_size: number of instances in each fold
+    :param test_num: how many times each train fold can be repeated with different test
+    :return: list of splits
+    """
+    copy_range = [s for s in sample_range]
+    ans = []
+    chunks = []
+    if fold_size > len(sample_range)-1:
+        return ans  # can't really do anything here
+    while len(ans) < fold_num:
+        temp = [chunk for chunk in get_chunks(copy_range, fold_size) if len(chunk) == fold_size
+                and chunk not in chunks][:fold_num]
+        for chunk in temp:
+            test = set(copy_range).difference(set(chunk))
+            ans.append((chunk, random.sample(test, min(test_num, len(test)))))
+            chunks.append(chunk)
+        random.shuffle(copy_range)
+
+    return ans
+
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_difnum3.csv")
+with open(result_csv, "w+") as f:
+    csvf = csv.writer(f)
+    csvf.writerow(["experiment", "octopus", "dataset", "name", "ssd",
+                   "method", "solution", "status",
+                   "jaccard", "precision", "recall",
+                   "karma_jaccard", "karma_precision", "karma_recall",
+                   "train_flag", "time", "chuffed_path", "simplify", "chuffed_time",
+                   "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
+                   "match_score", "cost", "objective", "cor_match_score", "cor_cost"])  # header
+
+    sample_range = list(range(len(new_ssds)))
+    benchmark_results = [["experiment", "octopus", "dataset", "name", "ssd",
+                          "method", "solution", "status",
+                          "jaccard", "precision", "recall",
+                          "karma_jaccard", "karma_precision", "karma_recall",
+                          "train_flag", "time", "chuffed_path", "simplify", "chuffed_time",
+                          "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
+                          "match_score", "cost", "objective", "cor_match_score", "cor_cost"]]
+
+    print("Starting benchmark")
+
+    for sem_num in sorted(list(range(1, len(new_ssds)-1)), reverse=True):
+        print("Number of known semantic models: ", sem_num)
+        if sem_num < 6:
+            splits = create_folds(sample_range, fold_num=5, fold_size=sem_num, test_num=2)
+        else:
+            splits = create_folds(sample_range, fold_num=5, fold_size=sem_num, test_num=2)
+
+        for (train_sample, test_sample) in splits:
+
+            octo = create_octopus(new_ssds, train_sample)
+            octo_csv = os.path.join(project_path, "stp", "resources", "storage",
+                                    "patterns.{}.csv".format(octo.id))
+            try:
+                octo_patterns = octo.get_patterns(octo_csv)
+            except Exception as e:
+                print("failed to get patterns: {}".format(e))
+                logging.warning("failed to get patterns: {}".format(e))
+                octo_patterns = None
+            print("Uploaded octopus:", octo)
+
+            chuffed_paths = [
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170718",
+                 True, None, False, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170722",
+                 True, None, False, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170722",
+                 True, None, True, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, False, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 5.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 10.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 20.0)]
+
+            print("Getting labels in the training set")
+            train_labels = []
+            for i in train_sample:
+                train_labels += [d.full_label for d in new_ssds[i].data_nodes]
+            train_labels = set(train_labels)
+
+            for i in test_sample:
+                ssd = new_ssds[i]
+                dataset = [ds for ds in datasets if ds.filename == ssd.name + ".csv"][0]
+                # we tell here the correct columns
+                column_names = [c.name for c in ssd.columns]
+                print("Chosen dataset: ", dataset)
+                print("Chosen SSD id: ", ssd.id)
+
+                # we should do prediction outside of solvers so that solvers use the cached results!
+                print("Doing schema matcher part")
+                df = octo.matcher_predict(dataset)
+                cor_ssd = al.process_unknown(ssd, train_labels)
+                sm_accuracy = compare_semantic_label(semantic_label_df(cor_ssd, "user_label"),
+                                                     df[["column_id", "label"]])["accuracy"]
+
+                # cp solver approach
+                for (chuffed, simpl, pat, soft, pts) in chuffed_paths:
+                    print("---> trying chuffed {}".format(chuffed))
+                    res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                     train_flag=False,
+                                     chuffed_path=chuffed, simplify=simpl,
+                                     patterns=pat, soft_assumptions=soft,
+                                     pattern_sign=pts, accu=sm_accuracy,
+                                     experiment="known_{}".format(len(train_sample)))
+                    benchmark_results += res
+                    csvf.writerows(res)
+
+                # karma approach
+                print("---> trying karma")
+                res = do_karma(octo, dataset, cor_ssd, ssd, train_flag=False,
+                               accu=sm_accuracy, experiment="known_{}".format(len(train_sample)))
+                benchmark_results += res
+                csvf.writerows(res)
+                f.flush()
+
+    print("Benchmark finished!")
+    print(benchmark_results)
+
+# =======================
+#
+#  Karma style: Changing # known semantic models
+#
+# =======================
+
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_karmadif.csv")
+with open(result_csv, "w+") as f:
+    csvf = csv.writer(f)
+    csvf.writerow(["experiment", "octopus", "dataset", "name", "ssd",
+                   "method", "solution", "status",
+                   "jaccard", "precision", "recall",
+                   "karma_jaccard", "karma_precision", "karma_recall",
+                   "train_flag", "time", "chuffed_path", "simplify", "chuffed_time",
+                   "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
+                   "match_score", "cost", "objective", "cor_match_score", "cor_cost"])  # header
+
+    sample_range = list(range(len(new_ssds)))
+    len_sample = len(sample_range)
+    benchmark_results = [["experiment", "octopus", "dataset", "name", "ssd",
+                          "method", "solution", "status",
+                          "jaccard", "precision", "recall",
+                          "karma_jaccard", "karma_precision", "karma_recall",
+                          "train_flag", "time", "chuffed_path", "simplify", "chuffed_time",
+                          "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
+                          "match_score", "cost", "objective", "cor_match_score", "cor_cost"]]
+
+    print("Starting benchmark")
+
+    for cur_id in sample_range:
+        print("Currently selected ssd: ", cur_id)
+        test_sample = [cur_id]
+
+        for num in range(1, len(sample_range)-1):
+            train_sample = sample_range[:max(cur_id+num+1 - len_sample,0)] + sample_range[cur_id+1: cur_id+1+num]
+            print("     train sample size: ", num)
+
+            octo = create_octopus(new_ssds, train_sample)
+            octo_csv = os.path.join(project_path, "stp", "resources", "storage",
+                                    "patterns.{}.csv".format(octo.id))
+            try:
+                octo_patterns = octo.get_patterns(octo_csv)
+            except Exception as e:
+                print("failed to get patterns: {}".format(e))
+                logging.warning("failed to get patterns: {}".format(e))
+                octo_patterns = None
+            print("Uploaded octopus:", octo)
+
+            chuffed_paths = [
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170718",
+                 True, None, False, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170722",
+                 True, None, False, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170722",
+                 True, None, True, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, False, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 1.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 5.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 10.0),
+                ("/home/natalia/PycharmProjects/serene-python-client/stp/minizinc/chuffed-rel2onto_20170728",
+                 False, octo_patterns, True, 20.0)]
+
+            print("Getting labels in the training set")
+            train_labels = []
+            for i in train_sample:
+                train_labels += [d.full_label for d in new_ssds[i].data_nodes]
+            train_labels = set(train_labels)
+
+            ssd = new_ssds[cur_id]
+            dataset = [ds for ds in datasets if ds.filename == ssd.name + ".csv"][0]
+            # we tell here the correct columns
+            column_names = [c.name for c in ssd.columns]
+            print("Chosen dataset: ", dataset)
+            print("Chosen SSD id: ", ssd.id)
+
+            # we should do prediction outside of solvers so that solvers use the cached results!
+            print("Doing schema matcher part")
+            df = octo.matcher_predict(dataset)
+            cor_ssd = al.process_unknown(ssd, train_labels)
+            sm_accuracy = compare_semantic_label(semantic_label_df(cor_ssd, "user_label"),
+                                                 df[["column_id", "label"]])["accuracy"]
+
+            # cp solver approach
+            for (chuffed, simpl, pat, soft, pts) in chuffed_paths:
+                print("---> trying chuffed {}".format(chuffed))
+                res = do_chuffed(octo, dataset, column_names, cor_ssd, ssd,
+                                 train_flag=False,
+                                 chuffed_path=chuffed, simplify=simpl,
+                                 patterns=pat, soft_assumptions=soft,
+                                 pattern_sign=pts, accu=sm_accuracy,
+                                 experiment="eknown_{}".format(len(train_sample)))
+                benchmark_results += res
+                csvf.writerows(res)
+
+            # karma approach
+            print("---> trying karma")
+            res = do_karma(octo, dataset, cor_ssd, ssd, train_flag=False,
+                           accu=sm_accuracy, experiment="eknown_{}".format(len(train_sample)))
+            benchmark_results += res
+            csvf.writerows(res)
+            f.flush()
+
+    print("Benchmark finished!")
+    print(benchmark_results)
 
 # =======================
 #
@@ -671,7 +1041,7 @@ for dataset in datasets:
     # cp solver approach
     print("---> Converting")
     integrat = integ.IntegrationGraph(octopus=octo, dataset=dataset,
-                                      match_threshold=0.01, simplify_graph=True)
+                                      match_threshold=0.001, simplify_graph=True)
 
     # write alignment graph
     align_path = os.path.join(folder, "{}.alignment".format(ssd.id))

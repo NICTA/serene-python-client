@@ -14,11 +14,13 @@ list2D2dznsetlist = lambda l: "["+_list2D2dznsetlist(l)+"];"
 
 #This needs to be done better
 def weight_conversion(v):
-    """If Chuffed is used to solve this STP, it does NOT support floats.
+    """
+    If Chuffed is used to solve this STP, it does NOT support floats.
     Therefore a conversion is made to get a higher precision by multiplying the 
     floats by 10000.
     Nonetheless, if some edge is way too heavy, this multiplication may overflow ints.
-    Therefore we do a pretty mediocre conversion...."""
+    Therefore we do a pretty mediocre conversion....
+    """
     fac = 10000 if v < 100 else 100
     return v*fac
 
