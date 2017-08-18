@@ -234,7 +234,7 @@ def do_experiment(octopus, orig_ds, orig_ssd, avail_labels, chosen_paths, chosen
 
     # karma approach
     print("---> trying karma")
-    res = al.do_karma(sn, octopus, orig_ds, cor_ssd, ssd, train_flag=False,
+    res = al.do_karma(sn, octopus, orig_ds, cor_ssd, ssd, train_flag=known_num,
                       accu=sm_accuracy, experiment=experiment_descr, pattern_time=pattern_time)
     benchmark_results += res
     csvfile.writerows(res)
@@ -245,7 +245,7 @@ def do_experiment(octopus, orig_ds, orig_ssd, avail_labels, chosen_paths, chosen
 # =======================
 import time
 chuffed_lookup_path = os.path.join(project_path, "stp", "minizinc")
-result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_museum_addpaths.csv")
+result_csv = os.path.join(project_path, "stp", "resources", "unknown_benchmark_museum_addpaths_loo.csv")
 with open(result_csv, "w+") as f:
     csvf = csv.writer(f)
     csvf.writerow(["experiment", "octopus", "dataset", "name", "ssd",
@@ -254,7 +254,8 @@ with open(result_csv, "w+") as f:
                    "karma_jaccard", "karma_precision", "karma_recall",
                    "known_num", "time", "chuffed_path", "simplify", "chuffed_time",
                    "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
-                   "match_score", "cost", "objective", "cor_match_score", "cor_cost", "pattern_time"])  # header
+                   "match_score", "cost", "objective", "cor_match_score", "cor_cost", "pattern_time",
+                   "num_node", "num_edges"])  # header
 
     sample_range = list(range(len(new_ssds)))
     len_sample = len(sample_range)
@@ -272,7 +273,7 @@ with open(result_csv, "w+") as f:
         print("Currently selected ssd: ", cur_id)
         test_sample = [cur_id]
 
-        for num in range(1, len(sample_range)):
+        for num in [28]:#range(1, len(sample_range)):
             train_sample = sample_range[:max(cur_id + num + 1 - len_sample, 0)] + sample_range[
                                                                                   cur_id + 1: cur_id + 1 + num]
             print("     train sample size: ", num)
@@ -284,36 +285,36 @@ with open(result_csv, "w+") as f:
                 print("Octopus creation failed: {}".format(e))
                 continue
 
-            try:
-                octo2 = al.create_octopus2(sn, new_ssds, train_sample, ontologies)
-            except Exception as e:
-                logging.error("Octopus2 creation failed: {}".format(e))
-                octo2 = None
+            # try:
+            #     octo2 = al.create_octopus2(sn, new_ssds, train_sample, ontologies)
+            # except Exception as e:
+            #     logging.error("Octopus2 creation failed: {}".format(e))
+            #     octo2 = None
 
-            try:
-                octo3 = al.create_octopus3(sn, new_ssds, train_sample, ontologies)
-            except Exception as e:
-                logging.error("Octopus3 creation failed: {}".format(e))
-                octo3 = None
+            # try:
+            #     octo3 = al.create_octopus3(sn, new_ssds, train_sample, ontologies)
+            # except Exception as e:
+            #     logging.error("Octopus3 creation failed: {}".format(e))
+            #     octo3 = None
 
+            octo2 = None
+            octo3=None
             octo_csv = os.path.join(project_path, "stp", "resources", "storage",
                                     "patterns.{}.csv".format(octo.id))
+            pattern_time = None
             start_time = time.time()
             try:
                 octo_patterns = octo.get_patterns(octo_csv)
+                pattern_time = time.time() - start_time
             except Exception as e:
                 print("failed to get patterns: {}".format(e))
                 logging.warning("failed to get patterns: {}".format(e))
                 octo_patterns = None
-            if octo_patterns:
-                pattern_time = time.time() - start_time
-            else:
-                pattern_time = None
             print("Uploaded octopus:", octo)
 
             chuffed_paths = [
-                (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170718"),
-                 True, None, False, 1.0),
+                # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170718"),
+                #  True, None, False, 1.0),
                 (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170722"),
                  True, None, True, 1.0),
                 (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
