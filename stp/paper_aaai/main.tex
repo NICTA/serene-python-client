@@ -140,11 +140,11 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 \centering
 \begin{tikzpicture}
 	\node[class] (pe) at (0,0)  {Person};
-	\node[class] (co) at (0,-3) {Organisation};
-	\node[class] (ev) at (3.5,1) {Event};
+	\node[class] (co) at (0,-2.5) {Organisation};
+	\node[class] (ev) at (3,0.5) {Event};
 	\node[class] (pl) at (5,-1) {Place};
-	\node[class] (ci) at (3,-3) {City};
-	\node[class] (st) at (5,-3) {State};
+	\node[class] (ci) at (3,-2.5) {City};
+	\node[class] (st) at (5,-2.5) {State};
 	
 		
 	\path[hasaC,->] (pe) edge [bend left= -30] 
@@ -184,18 +184,18 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 	node [midway, below, sloped] {birthDate} (0,2);	
 	
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {name} (-1,-5);
+	node [midway, below, sloped] {name} (-1,-4);
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {phone} (0,-5);
+	node [midway, above, sloped] {phone} (0,-4);
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {email} (1,-5);
+	node [midway, above, sloped] {email} (1,-4);
 	
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {startDate} (2.5,3.2);
+	node [midway, below, sloped] {startDate} (2.3,2.2);
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {endDate} (3.5,3.2);
+	node [midway, above, sloped] {endDate} (3.5,2.2);
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {title} (4.5,3.2);
+	node [midway, below, sloped] {title} (4.5,2);
 	
 	\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {name} (6.5,-1.8);
@@ -384,10 +384,17 @@ In such way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O}
 where $\psi(a_i,l_j)$ indicates the confidence of the attribute $a_i$ to be 
 mapped to the semantic type $l_j$.
 
-\ddg{IMPORTANT: Do we keep all of them, or only the top $k$ with most 
-confidence? If so, 
-what is $k$?}
-\npr{We keep all, that is the crucial difference from Karma which does some voodoo heuristic filtering}
+Note that we keep all the matches, regardless of the confidence fo the match. 
+This is an important difference between our system and other approaches 
+\cite{taheriyan2016learning} that 
+remove some of the matches based on heuristics to then simplify the task of 
+finding the semantic model.
+
+%\ddg{IMPORTANT: Do we keep  all of them, or only the top $k$ with most 
+%confidence? If so, 
+%what is $k$?}
+%\npr{We keep all, that is the crucial difference from Karma which does some 
+%voodoo heuristic filtering}
 
 
 \subsection{Alignment Graph}
@@ -409,8 +416,8 @@ The algorithm we used to construct $\mathcal{G_O}$ is the same as Taheriyan
 Briefly, the algorithm has three parts:
 \begin{enumerate}
 \item Adding the known semantic models.
-\item Adding the semantic types learned for the target source. \ddg{TODO: see 
-Important note above}
+\item Adding the semantic types learned for the target source. \ddg{If we keep 
+all matches, isn't this just adding all the semantic types?}
 \item Expanding the graph using the domain ontology $\mathcal{O}$.
 \end{enumerate}
 
@@ -578,10 +585,14 @@ $S_T$) and find patterns that appear often across that set of graphs. This is
 known as the Frequent Subgraph Mining (FSM), which contains the subgraph 
 isomorphism, known to be NP-complete. 
 There exists a range of tools that can achieve this task using Transactional 
-Frequent Graph Pattern Mining\cite{petermann2017dimspan,yan2002gspan}. 
-We chose to use DIMSpan \cite{petermann2017dimspan}. 
-\ddg{CHECK! How do they solve an NP-complete problem??}
-\npr{Im not sure what to say here: there is just no guarantee how long it will take for the whole thing to run, except there is a threshold on how frequent they have to be; they use gSpan procedure to prune patterns and a variant of Ulmans algorithm for graph pattern matching}
+Frequent Graph Pattern Mining \cite{petermann2017dimspan,yan2002gspan}. 
+We chose to use DIMSpan \cite{petermann2017dimspan}, which uses gSpan as a 
+pruning procedure \cite{yan2002gspan}.
+%\ddg{CHECK! How do they solve an NP-complete problem??}
+%\npr{Im not sure what to say here: there is just no guarantee how long it will 
+%take for the whole thing to run, except there is a threshold on how frequent 
+%they have to be; they use gSpan procedure to prune patterns and a variant of 
+%Ulmans algorithm for graph pattern matching}
 
 This tool provides us with a list of patterns that are frequent, as well as 
 their support. 
@@ -703,7 +714,8 @@ width=220]
 	\path[draw] (a4) -- (con2);
 \end{tikzpicture}
 \caption{Example of integration graph. (`\tikz{ \node[att] () at (0,0)  
-{};}' are attribute nodes). We omit weights for clarity. Data node labels are 
+{};}' are attribute nodes). We omit weights and only show the most likely 
+matches for clarity. Data node labels are 
 abbreviated but 
 correspond to the ones shown in Fig \ref{FIG:ali}.}
 \label{FIG:inte}
