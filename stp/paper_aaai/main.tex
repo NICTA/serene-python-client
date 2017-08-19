@@ -118,7 +118,7 @@ Secondly, we apply machine learning techniques to
 assign costs to its edges. 
 Lastly, we use Constraint Programming (CP) to 
 find a minimum cost Steiner Tree in the graph.
-The goal is to assign the costs on the edges in such a way that the resulting Steiner Tree is a valid semantic model for the new source.
+The goal is to assign the costs on the edges in such a way that the resulting Steiner Tree is a valid semantic model for the new source. 
 
 The contributions of this work are:
 \begin{itemize}
@@ -141,11 +141,11 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 \centering
 \begin{tikzpicture}
 	\node[class] (pe) at (0,0)  {Person};
-	\node[class] (co) at (0,-2.5) {Organisation};
-	\node[class] (ev) at (3,0.5) {Event};
+	\node[class] (co) at (0,-3) {Organisation};
+	\node[class] (ev) at (3.5,1) {Event};
 	\node[class] (pl) at (5,-1) {Place};
-	\node[class] (ci) at (3,-2.5) {City};
-	\node[class] (st) at (5,-2.5) {State};
+	\node[class] (ci) at (3,-3) {City};
+	\node[class] (st) at (5,-3) {State};
 	
 		
 	\path[hasaC,->] (pe) edge [bend left= -30] 
@@ -185,18 +185,18 @@ We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 	node [midway, below, sloped] {birthDate} (0,2);	
 	
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {name} (-1,-4);
+	node [midway, below, sloped] {name} (-1,-5);
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {phone} (0,-4);
+	node [midway, above, sloped] {phone} (0,-5);
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {email} (1,-4);
+	node [midway, above, sloped] {email} (1,-5);
 	
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {startDate} (2.3,2.2);
+	node [midway, below, sloped] {startDate} (2.5,3.2);
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {endDate} (3.5,2.2);
+	node [midway, above, sloped] {endDate} (3.5,3.2);
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {title} (4.5,2);
+	node [midway, below, sloped] {title} (4.5,3.2);
 	
 	\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {name} (6.5,-1.8);
@@ -223,9 +223,9 @@ property'' and
 
 An ontology $\mathcal{O}$ is a specification of classes of objects, their 
 data properties and relationships between them.
-An example of an ontology is given in Fig.~\ref{FIG:onto}.
+An example of an ontology is given in Fig.~\ref{FIG:onto}. 
 A Class in an ontology can have \emph{data properties} or \emph{object properties}. 
-For example, an ``Organisation'' has a ``Person''
+For example, an ``Organisation'' has a ``Person'' 
 (which is a class with its own properties), and it has a ``name'' (which 
 is a data property). 
 Also, a Class can be a subclass of another Class. 
@@ -332,7 +332,7 @@ A \emph{source} $s$ is a $n$-ary relation with a set of attributes
 $\mathcal{A}_s = (a_1,...,a_n)$.
 
 An \emph{attribute mapping} function $\phi : \mathcal{A}_s \mapsto 
-\mathcal{D}_m$ is a function which maps the attributes of the source $s$ into the nodes of the semantic model $m$.
+\mathcal{D}_m$ is a function which maps the attributes of the source $s$ into the nodes of the semantic model $m$. 
 It can be a partial mapping, meaning that only some of the attributes
 are connected to the nodes of $m$.
 
@@ -341,14 +341,13 @@ A \emph{source description} is a triple $\delta = (s, m, \phi)$ where $s$ is a s
 Our problem can be stated now the following way. We have an ontology 
 $\mathcal{O}$ and a set of source descriptions $S_T = \{(s_1, m_1, \phi_1),..., 
 (s_l, m_l, \phi_l)\}$.
-Given a new source $s^\star$, we want to build a semantic model $m^\star$ and an attribute mapping function $\phi^\star$ such that
+Given a new source $s^\star$, we want to build a semantic model $m^\star$ and an attribute mapping function $\phi^\star$ such that 
 $\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source 
-description. We
-use the term ``appropriate'' since there might be many such triples which are
-well-formed source descriptions, but only one or a few will capture the intended
-meaning of the source. 
-Our goal is to automatically build $\delta^\star$ such that it maximizes the \emph{precision} and \emph{recall} from the semantic model 
-$m^\star$ to the semantic model $m^\dag$ that the user considers correct. \npr{definitions for precision and recall}
+description. 
+We
+use the term ``appropriate'' since there might be many such triples which are well-formed source descriptions, but only one or a few will capture the intended meaning of the source. 
+Our goal is to automatically build $\delta^\star$ such that it maximizes the \emph{precision} and \emph{recall} between the semantic model 
+$m^\star$ and the semantic model $m^\dag$ that the user considers correct. \npr{definitions for precision and recall}
 
 
 \section{ML for Training on Source Descriptions \label{SEC:ML}\ddg{Better title 
@@ -380,47 +379,42 @@ In such way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O}
 where $\psi(a_i,l_j)$ indicates the confidence of the attribute $a_i$ to be 
 mapped to the semantic type $l_j$.
 
-Note that we keep all the matches, regardless of the confidence fo the match.
-This is an important difference between our system and other approaches
-\cite{taheriyan2016learning} that
-remove some of the matches based on heuristics to then simplify the task of
-finding the semantic model.
-
-%\ddg{IMPORTANT: Do we keep  all of them, or only the top $k$ with most
-%confidence? If so,
-%what is $k$?}
-%\npr{We keep all, that is the crucial difference from Karma which does some
-%voodoo heuristic filtering}
+\ddg{IMPORTANT: Do we keep all of them, or only the top $k$ with most 
+confidence? If so, 
+what is $k$?}
+\npr{We keep all, that is the crucial difference from Karma which does some voodoo heuristic filtering}
 
 
 \subsection{Alignment Graph}
 
-To provide an integrated view over the known sources descriptions $S_T$, we 
+To provide an integrated view over the known source descriptions $S_T$, we 
 need to align their semantic models as well as all considered semantic 
-types. This is achieved by constructing an \emph{alignment graph}. 
+types. 
+This is achieved by constructing an \emph{alignment graph}. 
 
 The alignment graph is a directed weighted graph $\mathcal{G_O} = 
 (\mathcal{V_O},\mathcal{E_O})$ built on top 
 of the known semantic models and expanded using the semantic types 
-$\mathcal{L_O}$ and the ontology $\mathcal{O}$. Similar to a semantic 
-model, $\mathcal{G_O}$ contains both class and data nodes. The links correspond 
+$\mathcal{L_O}$ and the ontology $\mathcal{O}$. 
+Similar to a semantic 
+model, $\mathcal{G_O}$ contains both class and data nodes.
+The links correspond 
 to properties in  $\mathcal{O}$ and are weighted \cite{taheriyan2016learning}.
 
-The algorithm we used to construct $\mathcal{G_O}$ is the same as Taheriyan 
-\etal{} and is described in detail in the cited paper 
-\cite{taheriyan2016learning}.
+The algorithm we used to construct $\mathcal{G_O}$ is the same as \cite{taheriyan2016learning} and is described in detail in their work.
 Briefly, the algorithm has three parts:
 \begin{enumerate}
 \item Adding the known semantic models.
-\item Adding the semantic types learned for the target source. \ddg{If we keep
-all matches, isn't this just adding all the semantic types?}
+\item Adding the semantic types learned for the target source. \ddg{TODO: see 
+Important note above}
 \item Expanding the graph using the domain ontology $\mathcal{O}$.
 \end{enumerate}
 
 Note how the alignment graph contains data nodes that correspond to at least 
 some of the semantic types. 
 For instance, it could contain two nodes $City.name$ and $State.name$ rather than just one node $name$ connected to two 
-nodes $City$ and $State$. We say these nodes are \emph{induced} into the 
+nodes $City$ and $State$. 
+We say these nodes are \emph{induced} into the 
 alignment graph by the semantic types, we note them $\mathcal{D_{G_O}}$ and we 
 call them \emph{data nodes} of the alignment graph.
 
@@ -432,7 +426,7 @@ which are inferred from the ontology.
 As we will see in the next section, this makes edges present in semantic models more attractive. \ddg{How exactly are 
 they weighted?}
 
-An example alignment graph is illustrated in Fig. \ref{FIG:ali}. 
+An example alignment graph is illustrated in Fig.~\ref{FIG:ali}. 
 Bigger examples can be found in \cite{Taheriyan2013}. 
 Black links correspond to the links which are supported by the known semantic models. 
 Blue and orange links are inferred from the ontology $\mathcal{O}$ (the orange ones correspond to the ones added to connect Classes of the ontology that never appeared in the semantic models) and can be assigned the 
@@ -560,7 +554,7 @@ As an extension to the problem, we consider using pattern mining techniques in o
 The hope is that with such information we can encourage the semantic model $m^\star$ for the new source to use groups of edges that                                       appeared often together in training semantic models.
 
 \npr{reformulate for typed directed multigraphs and example based on Fig3}
-In our context, we define a \emph{pattern} is a graph $P$ that is undirected
+In our context, we define a \emph{pattern} is a graph $P$ that is undirected 
 and simple (no multiple edges between two nodes, nor self-loops).
 
 Let $G = (V_G,E_G,\lambda_G)$ and $P = (V_P,E_P, \lambda_P)$ be two graphs 
@@ -578,21 +572,21 @@ vice-versa); and the labelling functions of both graphs must match after
 applying the embedding function.
 
 Our goal is to take a set of graphs (the semantic models from the training set 
-$S_T$) and find patterns that appear often across that set of graphs. This is 
-known as the Frequent Subgraph Mining (FSM), which contains the subgraph 
+$S_T$) and find patterns that appear often across that set of graphs. 
+This is 
+known as the Frequent Graph Pattern Mining, which contains the subgraph 
 isomorphism, known to be NP-complete. 
 There exists a range of tools that can achieve this task using Transactional 
-Frequent Graph Pattern Mining \cite{petermann2017dimspan,yan2002gspan}.
-We chose to use DIMSpan \cite{petermann2017dimspan}, which uses gSpan as a
-pruning procedure \cite{yan2002gspan}.
-%\ddg{CHECK! How do they solve an NP-complete problem??}
-%\npr{Im not sure what to say here: there is just no guarantee how long it will take for the whole thing to run, except there is a threshold on how frequent they have to be; they use gSpan procedure to prune patterns and a variant of Ulmans algorithm for graph pattern matching}
-
-We obtain patterns of size upto 6 in under 4 minutes for the biggest instances in our evaluation framework. \npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe cite my work on how databases perform for graph pattern matching}
+Frequent Graph Pattern Mining~\cite{yan2002gspan}. 
+We chose to use DIMSpan \cite{petermann2017dimspan}. 
+\ddg{CHECK! How do they solve an NP-complete problem??}
+\npr{Im not sure what to say here: there is just no guarantee how long it will take for the whole thing to run, except there is a threshold on how frequent they have to be; they use gSpan procedure to prune patterns and a variant of Ulmans algorithm for graph pattern matching}
+ 
+We obtain patterns of size upto 6 in under 4 minutes for the biggest instances in our evaluation framework. \npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe cite my work on how databases perform for graph pattern matching. Should it be better in related work?}
 
 This tool provides us with a list of patterns that are frequent, as well as 
 their support. 
-The \emph{support} of a pattern is a measure of frequency. 
+The \emph{support} of a pattern is an anti-monotonous measure of frequency. 
 Thus, the higher the support, the more often the pattern appears. This typically means that big patterns have low support.
 
  
@@ -710,8 +704,7 @@ width=220]
 	\path[draw] (a4) -- (con2);
 \end{tikzpicture}
 \caption{Example of integration graph. (`\tikz{ \node[att] () at (0,0)  
-{};}' are attribute nodes). We omit weights and only show the most likely
-matches for clarity. Data node labels are
+{};}' are attribute nodes). We omit weights for clarity. Data node labels are 
 abbreviated but 
 correspond to the ones shown in Fig \ref{FIG:ali}.}
 \label{FIG:inte}
@@ -786,10 +779,13 @@ nodes to the integration graph each connected to exactly one node in
 $\mathcal{A}_{s^\star}$ and to the \emph{unknown} Class node.  
 
 If an attribute $a$ is matched to $unk_a$, then $unk_a$ will be linked to Class 
-node \emph{unknown}. The rest of the attributes can then be matched normally 
-and build  a semantic model as usual. Then, to maintain connectedness of the 
+node \emph{unknown}. 
+The rest of the attributes can then be matched normally 
+and build  a semantic model as usual. 
+Then, to maintain connectedness of the 
 Steiner tree, the \emph{unknown} node and one of the selected Class nodes will 
-both be connected to the \emph{root} node. Note that if all attributes find a 
+both be connected to the \emph{root} node. 
+Note that if all attributes find a 
 match, then both the \emph{unknown} and \emph{root} won't be selected in the 
 Steiner tree and the normal behavior will take place.
 \ddg{Explain the weights of the edges introduced by the unknown nodes}
@@ -807,7 +803,8 @@ $\boldsymbol{v}$ specifying
 the \emph{domain} of these variables, $C$ is a set of $n$-ary 
 \emph{constraints} over variables $\boldsymbol{v}$.
 A valuation $\theta(\boldsymbol{v})$ is a mapping from the set of variables to 
-values in $D$. If there exist a valuation $\theta^\star$ such that all 
+values in $D$. 
+If there exist a valuation $\theta^\star$ such that all 
 variables map 
 to exactly one value, and all the constraints in $D\cup C$ are satisfied by the 
 valuation, then $\theta^\star$ is a \emph{solution} to $P$.
@@ -966,12 +963,15 @@ the \emph{unknown} nodes are used (by dropping \ref{EQ:unk}).
 \subsection{Experimental Setup}
 \ddg{TODO}
 
+% datasets for evaluation
 We run experiments on two domains: museum and soccer (see Fig.~\ref{tab:data} for statistics).
+The museum dataset~\cite{taheriyan2016learning} contains 29 sources which are mapped to the EDM domain ontology.
+The soccer dataset~\cite{Pham:semantic} is much smaller with only 12 data sources, and its domain ontology is an extension of the schema.org ontology.
 
 \begin{table}[ht]\small
   \centering
   \caption{Description of data sources.}\label{tab:data}
-		\begin{tabular}{ccccc} 
+		\begin{tabular}{ccccc}
 		\hline
 		\multirow{2}{*}{\textbf{Domain}} & \# data & \# semantic & \# & \# unknown\\
 		 & sources & labels & attributes & attributes\\
@@ -996,9 +996,53 @@ We run experiments on two domains: museum and soccer (see Fig.~\ref{tab:data} fo
 %		\end{tabular} 
 %\end{table*}
 
-We have run all our experiments on a Dell server with 252 GiB of memory, 2 CPUs with 4 cores each, 1 Titan GPU and 1 GeForce 1080 Ti GPU.
-\npr{check characteristics}
+% baseline for evaluation
+We choose \emph{Karma}~\cite{taheriyan2016learning} as our baseline.
+This system also phrases the \relonto{} problem as STP and decomposes it further into two parts.
+However, they use approximation algorithms both for the matching and for the STP parts.
+Additionally, they do not consider unmatched attributes in the sources.
+To ensure that Karma also handles such attributes, we change its semantic labeling model SemanticTyper~\cite{Ramnandan:Assigning} to ours and we add a special \emph{unknown} ontology which gives specification for \emph{root} and \emph{unknown} nodes of the alignment graph.
+The first modification also ensures the fairness of evaluation since both Karma and Serene will have the same matches for attributes.
 
+% performance metrics
+The performance of these systems is estimated in terms of \emph{precision} and \emph{recall}.
+Assuming $m^\star$ is the predicted semantic model and $m^\dag$ is the correct semantic model, then:
+$$precision = \frac{|rel(m^\star)\cap rel(m^\dag)|}{|rel(m^\star)|}$$
+$$recall = \frac{|rel(m^\star)\cap rel(m^\dag)|}{|rel(m^\dag)|}$$
+where $rel(m)$ is the set of triples $(u,e,v)$ with $e$ being an edge from the vertex $u$ to the vertex $v$ in the semantic model $m$.
+Since we want to estimate the accuracy of both the matching and STP parts,
+we also include triples for attributes and data nodes into the corresponding sets.
+Note that unmatched attributes as well as \emph{unknown} and \emph{root} nodes are not part of these sets.
+We perform also a modification to the ground truth semantic models:
+if the true semantic label of an attribute is not present in any of the previously mapped data sources,
+we substitute it with \emph{unknown} and map it to the \emph{Unknown} class node.
+In such way we validate how well the systems can detect earlier unseen cases.
+
+% semantic labeling models
+To illustrate that our semantic labeling model is better suited for the
+matching task, we compare it against the state-of-the-art model \emph{DSL}~\cite{Pham:semantic} which was shown to perform even better than SemanticTyper. 
+\npr{not sure whether I should explain how this model works}
+We use \emph{mean reciprocal rank} (MRR) to evaluate semantic labeling models.
+This measure is useful to estimate how highly the true semantic label is ranked among top $k$ suggestions.
+It is calculated the following way:
+$$MRR = \frac{1}{n}\sum_{i=1}^{n}{\frac{1}{rank_i}},$$
+where $rank_i$ is the rank of the correct semantic label for the attribute $a_i$ among the top $k$ predictions.
+
+
+% evaluation strategy
+We perform an evaluation strategy outlined by~\cite{taheriyan2016learning}.
+Let $M_j$ be the set of $j$ known semantic models.
+For each data source $s_i$ in the domain we perform experiments $t-1$ times,
+where $t$ is the total number of data sources in the domain and each experiment has a different number of known semantic models $M_1, M_2, \ldots, M_{t-1}$.
+The case with $M_{t-1}$ known semantic models corresponds to leave-one-out validation strategy. 
+For example, in the soccer domain for the source $s_1$ we run experiments 11 times using $M_1=\{m_2\}, M_2=\{m_2, m_3\}, \ldots, M_{11}=\{m_2, m_3, \ldots, m_{12}\}$
+We repeat the procedure for other data sources in the domain and then average the results.
+Such procedure ensures that each source is at least once in the training as well as testing datasets.
+
+
+% architecture
+We have run all our experiments on a Dell server with 252 GiB of memory, 2 CPUs with 4 cores each, 1 Titan GPU and 1 GeForce 1080 Ti GPU.
+\npr{check characteristics, AWS machine is bigger}
 
 
 \subsection{Experimental Results}
@@ -1006,12 +1050,13 @@ We have run all our experiments on a Dell server with 252 GiB of memory, 2 CPUs 
 
 We have developed a new approach for semantic labeling which can efficiently handle the \emph{unknown} class.
 We demonstrate its efficiency by comparing against the state-of-the-art approach DSL~\cite{Pham:semantic}.
+Tab.~\ref{tab:semlab} provides evidence that our new semantic labeling model is better suited for the task when there are unmatched attributes in domains.
 \npr{Explain}
 
 \begin{table}[t]\small
   \centering
-  \caption{Average performance of semantic labeling for leave one out strategy.}
-  	\label{tab:unknownloo}
+  \caption{Average performance of semantic labeling models for leave one out strategy.}
+  	\label{tab:semlab}
   	\begin{tabular}{c|cc|cc} 
   		\hline
   		\multirow{2}{*}{Model} & \multicolumn{2}{c|}{MRR scores} & \multicolumn{2}{c}{Train time ($s$)}\\
@@ -1024,6 +1069,16 @@ We demonstrate its efficiency by comparing against the state-of-the-art approach
 %\vspace*{-3mm}
 \end{table}
 
+
+%%%
+% performance figures
+%%%
+We evaluate our new system \emph{serene} and its modification \emph{serene-pats}, which uses graph patterns, against the state-of-the-art system \emph{karma}.
+Fig.~\ref{fig:perfmuseum} and~\ref{fig:perfsoccer} show their performance on the museum and soccer domains.
+We report average precision, recall and run times for the systems with regard to variable number of semantic models in the training set.
+
+
+%%% museum domain
 \begin{figure*}[ht]\small
 \pgfplotsset{
     small,
@@ -1033,15 +1088,157 @@ We demonstrate its efficiency by comparing against the state-of-the-art approach
         anchor=south west,
     },
    }%
-\begin{minipage}[b]{.5\linewidth}
+\begin{minipage}[b]{.34\linewidth}
 \centering
 \begin{tikzpicture}[baseline]
 \begin{axis}[
-		    xlabel={\emph{numBags}},
-		    ylabel={Performance (MRR)},
-		    xmin=0, xmax=150,
-		    ymin=0.5, ymax=1,
-		    xtick={0,10,50,100,150},
+		    xlabel={\emph{known semantic models}},
+		    ylabel={Performance},
+		    xmin=1, xmax=28,
+		    ymin=0.2, ymax=0.9,
+		    xtick={1,5,10,15,20,25,28},
+		    ytick={0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
+		    legend pos=south east,
+		    ymajorgrids=true,
+		    grid style=dashed
+		]
+
+		\addplot[
+		    color=blue,
+		    mark=square,
+		    ]
+		    coordinates {
+		    (1,0.477688172043011)(2,0.543722761679028)(3,0.584279525763794)(4,0.560916442048518)(5,0.508442559100454)(6,0.451911027568922)(7,0.560410216718266)(8,0.627540834845735)(9,0.658907184769254)(10,0.494298245614035)(11,0.594547996272134)(12,0.572438909774436)(13,0.643132689678742)(14,0.544147521036133)(15,0.561388900346478)(16,0.620470013199142)(17,0.631330163644405)(18,0.644192377495463)(19,0.642924629016761)(20,0.656325397672681)(21,0.610482642157672)(22,0.628992740471869)(23,0.570074611816898)(24,0.679169187336157)(25,0.673558897243108)(26,0.667890182643746)(27,0.68742147145051)(28,0.709820528332325)
+		    };
+		\addplot[
+		    color=red,
+		    mark=*,
+		    ]
+		    coordinates {
+		    (1,0.570063795853269)(2,0.756845238095238)(3,0.621034680606911)(4,0.719615829557505)(5,0.663677414539484)(6,0.680661881977671)(7,0.702849371292569)(8,0.730720679999118)(9,0.715323491375385)(10,0.722695511010729)(11,0.722586065299008)(12,0.725508681952266)(13,0.728214414334958)(14,0.753560036454773)(15,0.778231825645619)(16,0.745982043507288)(17,0.715855206037534)(18,0.733838894506235)(19,0.728435738081271)(20,0.754932383250967)(21,0.76774421230943)(22,0.761660230839754)(23,0.750358005521049)(24,0.82098385331144)(25,0.823507591442374)(26,0.834847535505431)(27,0.84013108540293)(28,0.813133718212162)
+		    };
+		\addplot[
+		    color=green,
+		    mark=x,
+		    ]
+		    coordinates {
+		    (1,0.580144743457437)(2,0.699277168494516)(3,0.596982860940987)(4,0.683431847315197)(5,0.634133314342686)(6,0.630169810336433)(7,0.628025663269931)(8,0.642973856209151)(9,0.618457602339181)(10,0.616241290282443)(11,0.606940556177678)(12,0.605471976942706)(13,0.598988030767536)(14,0.608112237561116)(15,0.609841319882303)(16,0.578626150272492)(17,0.55776862026862)(18,0.57760989010989)(19,0.567994505494506)(20,0.492368742368742)(21,0.582722832722833)(22,0.574786324786325)(23,0.644688644688645)(24,0.658424908424909)(25,0.708791208791209)(26,0.716727716727717)(27,0.719373219373219)(28,0.708791208791209)
+		    };
+		%\legend{karma,serene,serene-pats}
+
+		\end{axis}
+\end{tikzpicture}
+\subcaption{precision}\label{fig:museumprec}
+\end{minipage}%
+%
+\begin{minipage}[b]{.33\linewidth}
+\centering
+\begin{tikzpicture}[baseline]
+		\begin{axis}[
+		    xlabel={\emph{known semantic models}},
+		    %ylabel={recall},
+		    xmin=1, xmax=28,
+		    ymin=0.2, ymax=0.9,
+		    xtick={1,5,10,15,20,25,28},
+		    ytick={0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
+		    ymajorgrids=true,
+		    grid style=dashed,
+		    legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
+		]
+
+		\addplot[
+		    color=blue,
+		    mark=square,
+		    ]
+		    coordinates {
+		    (1,0.209547221954433)(2,0.411561264822134)(3,0.457295783926219)(4,0.449720026350461)(5,0.414575098814229)(6,0.364575098814229)(7,0.452173913043478)(8,0.526317523056654)(9,0.588158761528327)(10,0.403491436100132)(11,0.506175889328063)(12,0.489690382081687)(13,0.584008563899868)(14,0.470553359683795)(15,0.48570487483531)(16,0.553513584117033)(17,0.553774817136886)(18,0.573236677115987)(19,0.567816091954023)(20,0.580551201671891)(21,0.557301462904911)(22,0.559979101358412)(23,0.477098571926158)(24,0.57088122605364)(25,0.56078021595263)(26,0.565134099616858)(27,0.585336119818878)(28,0.598310693138279)
+};
+		\addplot[
+		    color=red,
+		    mark=*,
+		    ]
+		    coordinates {
+		    (1,0.558240946045824)(2,0.733876811594203)(3,0.610770750988142)(4,0.707559288537549)(5,0.654891304347826)(6,0.670421607378129)(7,0.704710144927536)(8,0.729611330698287)(9,0.716913702239789)(10,0.728837285902504)(11,0.724769433465085)(12,0.724670619235837)(13,0.727783267457181)(14,0.76187417654809)(15,0.790283267457181)(16,0.751266980146291)(17,0.72991118077325)(18,0.761259143155695)(19,0.742058516196448)(20,0.759103970741902)(21,0.776149425287357)(22,0.758842737722048)(23,0.730668756530825)(24,0.800330895158482)(25,0.800330895158482)(26,0.808951584813654)(27,0.813305468477882)(28,0.790229885057471)
+};
+		\addplot[
+		    color=green,
+		    mark=x,
+		    ]
+		    coordinates {
+		    (1,0.571875702946753)(2,0.770701581027668)(3,0.637285902503294)(4,0.73596837944664)(5,0.677618577075099)(6,0.693148880105402)(7,0.725263504611331)(8,0.750164690382082)(9,0.739640974967062)(10,0.743988801054019)(11,0.742094861660079)(12,0.734420289855072)(13,0.742934782608696)(14,0.775131752305666)(15,0.795965085638999)(16,0.772361546499478)(17,0.752899686520376)(18,0.776671891327064)(19,0.765308254963427)(20,0.733838383838384)(21,0.783986415882968)(22,0.774255485893417)(23,0.751219087425984)(24,0.803030303030303)(25,0.828456983629397)(26,0.83707767328457)(27,0.841431556948798)(28,0.828456983629397)
+};
+		 %\legend{karma,serene,serene-pats}
+
+		\end{axis}
+	\end{tikzpicture}
+\subcaption{recall}\label{fig:museumrec}
+\end{minipage}%
+%
+\begin{minipage}[b]{.33\linewidth}
+\centering
+\begin{tikzpicture}[baseline]
+\begin{axis}[
+		    xlabel={\emph{known semantic models}},
+		    %ylabel={time(s)},
+		    xmin=1, xmax=28,
+		    ymin=0.0, ymax=8.5,
+		    xtick={1,5,10,15,20,25,28},
+		    ytick={0.0,1,2,3,4,5,6,7,8},
+		    ymajorgrids=true,
+		    grid style=dashed,
+		    %legend pos=outer north east,
+		    %legend style={at={(0.5,-0.1)},anchor=north, legend columns=-1}
+		]
+
+		\addplot[
+		    color=blue,
+		    mark=square,
+		    ]
+		    coordinates {
+		    (1,0.28413987159729)(2,0.598592698574067)(3,0.36263108253479)(4,0.400362551212311)(5,0.387216985225677)(6,0.392432987689972)(7,0.394440889358521)(8,0.430805265903473)(9,0.438177883625031)(10,0.441894292831421)(11,0.461780428886414)(12,0.469180881977081)(13,0.477133095264435)(14,0.498149693012238)(15,0.512342214584351)(16,0.600962460041046)(17,0.5725257396698)(18,0.907191514968871)(19,0.551609396934509)(20,0.585879027843475)(21,0.610454380512239)(22,0.575962841510773)(23,0.657813549041748)(24,0.671637773513794)(25,0.689822912216188)(26,0.724388360977171)(27,0.750569899876912)(28,0.771229823430379)
+};
+		\addplot[
+		    color=red,
+		    mark=*,
+		    ]
+		    coordinates {
+		    (1,0.0166666666666667)(2,0.995)(3,0.8725)(4,0.8325)(5,0.9175)(6,0.965)(7,0.89)(8,0.9675)(9,0.96)(10,1.1225)(11,1.1475)(12,1.36)(13,1.295)(14,1.3925)(15,1.375)(16,1.4975)(17,1.9575)(18,2.11)(19,1.9075)(20,1.9175)(21,1.865)(22,1.915)(23,2.49)(24,2.4)(25,2.49)(26,2.49)(27,2.68333333333333)(28,2.47666666666667)
+};
+		\addplot[
+		    color=green,
+		    mark=x,
+		    ]
+		    coordinates {
+		    (1,0.025)(2,1.0375)(3,0.93)(4,1)(5,0.9575)(6,0.9425)(7,0.9)(8,0.975)(9,1.06)(10,1.2025)(11,1.2975)(12,1.9425)(13,1.52)(14,2.2825)(15,1.6275)(16,3.5375)(17,2.255)(18,2.1625)(19,6.505)(20,1.44666666666667)(21,2.2825)(22,2.3475)(23,8.28666666666667)(24,1.895)(25,8.3)(26,3.75333333333333)(27,3.73)(28,3.75)
+};
+		 %\legend{karma,serene,serene-pats}
+
+		\end{axis}
+\end{tikzpicture}
+\subcaption{time (s)}\label{fig:museumtime}
+\end{minipage}%
+\caption{Average precision, recall and time on the museum domain for \relonto{} systems with variable training set size.}\label{fig:perfmuseum}
+\end{figure*}
+
+%%% soccer domain
+\begin{figure*}[ht]\small
+\pgfplotsset{
+    small,
+    %legend style={legend pos=north east}
+    legend style={
+        at={(0.01,0.01)},
+        anchor=south west,
+    },
+   }%
+\begin{minipage}[b]{.34\linewidth}
+\centering
+\begin{tikzpicture}[baseline]
+\begin{axis}[
+		    xlabel={\emph{known semantic models}},
+		    ylabel={Performance},
+		    xmin=1, xmax=11,
+		    ymin=0.5, ymax=0.9,
+		    xtick={1,2,4,6,8,10,11},
 		    ytick={0.5,0.6,0.7,0.8,0.9,1},
 		    legend pos=south east,
 		    ymajorgrids=true,
@@ -1053,56 +1250,42 @@ We demonstrate its efficiency by comparing against the state-of-the-art approach
 		    mark=square,
 		    ]
 		    coordinates {
-		    (10, 0.85154623154623166)(50, 0.85902097902097896)(100,0.87487956487956486)(150,0.8802331002331002)
+		    (1,0.635191626901633)(2,0.549997502815009)(3,0.675720834727361)(4,0.719693253328935)(5,0.759169846724195)(6,0.760054331456753)(7,0.800812140122402)(8,0.812192030050689)(9,0.799552066440611)(10,0.821470975418344)(11,0.785878855002637)
 		    };
 		\addplot[
 		    color=red,
 		    mark=*,
 		    ]
 		    coordinates {
-		    (10,  0.73272601851632158)(50, 0.73596072887032105)(100,0.73736629035127532)(150,0.73512315058140676)
+		    (1,0.676934852587026)(2,0.61473599870339)(3,0.723937079602602)(4,0.786238815638129)(5,0.777035817669233)(6,0.781984613615049)(7,0.81368099248534)(8,0.817013725291758)(9,0.816270530687007)(10,0.846744827831784)(11,0.852649148301322)
 		    };
 		\addplot[
 		    color=green,
 		    mark=x,
 		    ]
 		    coordinates {
-		    (10,  0.53396973928187841)(50, 0.56218126081141884)(100,0.55857468339226135)(150,0.55938671902457904)
+		    (1,0.66759959719914)(2,0.629014687197419)(3,0.692208378950833)(4,0.744652988406557)(5,0.773486992410165)(6,0.756607637648352)(7,0.803820434917082)(8,0.793054493090329)(9,0.792256229657042)(10,0.822093203062231)(11,0.828181360184871)
 		    };
-		 \addplot[
-		    color=brown,
-		    mark=+,
-		    ]
-		    coordinates {
-		    (10,  0.81292733659634253)(50, 0.81182668838989458)(100, 0.80705336361770219)(150,0.80801980454223066)
-		    };
-		 \addplot[
-		    color=violet,
-		    mark=star,
-		    ]
-		    coordinates {
-		    (10,   0.87823326846764416)(50, 0.89727564102564272)(100,0.9136698717948738)(150,0.91708333333333425)
-		    };
-		%\legend{weather,weapons,soccer,museum,city}
+		%\legend{karma,serene,serene-pats}
 
 		\end{axis}
 \end{tikzpicture}
-\subcaption{fixing \emph{bagSize}=100}\label{fig:numbags}
+\subcaption{precision}\label{fig:soccerprec}
 \end{minipage}%
 %
-\begin{minipage}[b]{.5\linewidth}
+\begin{minipage}[b]{.33\linewidth}
 \centering
 \begin{tikzpicture}[baseline]
 		\begin{axis}[
-		    xlabel={\emph{bagSize}},
-		    %ylabel={Performance (MRR)},
-		    xmin=0, xmax=100,
-		    ymin=0.5, ymax=1,
-		    xtick={0,10,30,50,100},
-		    ytick={0.5,0.6,0.7,0.8,0.9,1},
-		    legend pos=outer north east,
+		    xlabel={\emph{known semantic models}},
+		    %ylabel={recall},
+		    xmin=1, xmax=11,
+		    ymin=0.3, ymax=0.9,
+		    xtick={1,2,4,6,8,10,11},
+		    ytick={0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
 		    ymajorgrids=true,
-		    grid style=dashed
+		    grid style=dashed,
+		    legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
 		]
 
 		\addplot[
@@ -1110,48 +1293,319 @@ We demonstrate its efficiency by comparing against the state-of-the-art approach
 		    mark=square,
 		    ]
 		    coordinates {
-		    (10, 0.88427350427350415)(30,  0.9027583527583527)(50,0.91336441336441332)(100,0.87871794871794873)
+		    (1,0.444761527680188)(2,0.372447158105053)(3,0.545528381345078)(4,0.596008831526073)(5,0.6499887923799)(6,0.643884492868159)(7,0.685035675993026)(8,0.702870161195933)(9,0.654001538724769)(10,0.685153350715964)(11,0.662999993217779)
 		    };
 		\addplot[
 		    color=red,
 		    mark=*,
 		    ]
 		    coordinates {
-		    (10,  0.75910921069769555)(30, 0.76156533626682754)(50,0.75502218858295522)(100,0.75538165183154382)
+		    (1,0.690636806043505)(2,0.613080486764697)(3,0.72563707600459)(4,0.780625908674911)(5,0.776616927805676)(6,0.779496772132888)(7,0.813459305700685)(8,0.813245834960899)(9,0.810586300672508)(10,0.84298404022542)(11,0.849899398175261)
 		    };
 		\addplot[
 		    color=green,
 		    mark=x,
 		    ]
 		    coordinates {
-		    (10,  0.56646107828012637)(30, 0.5693901714881866)(50,0.58629781920572777)(100,0.58408351395802571)
+		    (1,0.689786194666577)(2,0.655399210040359)(3,0.719915653815835)(4,0.776231754935929)(5,0.802770096610387)(6,0.787355423564135)(7,0.838616573256072)(8,0.82175912881902)(9,0.821414409345444)(10,0.851497334083541)(11,0.85656084018153)
 		    };
-		 \addplot[
+		 \legend{karma,serene,serene-pats}
+
+		\end{axis}
+	\end{tikzpicture}
+\subcaption{recall}\label{fig:soccerrec}
+\end{minipage}%
+%
+\begin{minipage}[b]{.33\linewidth}
+\centering
+\begin{tikzpicture}[baseline]
+\begin{axis}[
+		    xlabel={\emph{known semantic models}},
+		    %ylabel={time(s)},
+		    xmin=1, xmax=11,
+		    ymin=0.0, ymax=0.3,
+		    xtick={1,2,4,6,8,10,11},
+		    ytick={0.0,0.1,0.2},
+		    ymajorgrids=true,
+		    grid style=dashed,
+		    %legend pos=outer north east,
+		    %legend style={at={(0.5,-0.1)},anchor=north, legend columns=-1}
+		]
+
+		\addplot[
+		    color=blue,
+		    mark=square,
+		    ]
+		    coordinates {
+		    (1,0.107354099100286)(2,0.137003461519877)(3,0.163627962271372)(4,0.17774627606074)(5,0.179288367430369)(6,0.183507978916168)(7,0.189805428187052)(8,0.191188136736552)(9,0.196139633655548)(10,0.200133164723714)(11,0.218581974506378)
+		    };
+		\addplot[
+		    color=red,
+		    mark=*,
+		    ]
+		    coordinates {
+		    (1,0.0595748017051003)(2,0.0895205450057983)(3,0.0976518734296163)(4,0.103216880957286)(5,0.108438626130422)(6,0.115763804117839)(7,0.125697635014852)(8,0.118865826924642)(9,0.119359710216522)(10,0.123752357959747)(11,0.153613630930583)
+		    };
+		\addplot[
+		    color=green,
+		    mark=x,
+		    ]
+		    coordinates {
+		    (1,0.0687879033522172)(2,0.0874820310419256)(3,0.103948153495789)(4,0.104214943885803)(5,0.115242712974548)(6,0.126150580406189)(7,0.122052125063809)(8,0.128753701051076)(9,0.129606107076009)(10,0.13165650844574)(11,0.142413517634074)
+		    };
+		 %\legend{karma,serene,serene-pats}
+
+		\end{axis}
+\end{tikzpicture}
+\subcaption{time (s)}\label{fig:soccertime}
+\end{minipage}%
+\caption{Average precision, recall and time on the soccer domain for \relonto{} systems with variable training set size.}\label{fig:perfsoccer}
+\end{figure*}
+
+
+%%
+As mentioned previously, the chuffed solver outputs solutions as it finds them.
+In Fig.~\ref{fig:perfmuseum} and~\ref{fig:perfsoccer} we report the first found solutions.
+In Fig.~\ref{fig:perfsol} we show how the performance of \emph{serene} changes across sequentially found solutions.
+In all our experiments we use a timeout threshold of 15s for the chuffed solver.
+Additionally, we investigate how the performance is influenced if we introduce a weighting scheme on the patterns,
+i.e., costs of patterns are scaled by a factor. 
+%% sequentially found solutions and different weights for patterns
+\begin{figure*}[ht]\small
+\pgfplotsset{
+    small,
+    %legend style={legend pos=north east}
+    legend style={
+        at={(0.01,0.01)},
+        anchor=south west,
+    },
+   }%
+\begin{minipage}[b]{.34\linewidth}
+\centering
+\begin{tikzpicture}[baseline]
+\begin{axis}[
+		    xlabel={\emph{solution}},
+		    ylabel={Performance},
+		    xmin=0, xmax=20,
+		    ymin=0.7, ymax=1,
+		    xtick={0,5,10,15,20},
+		    ytick={0.7,0.8,0.9,1},
+		    legend pos=south east,
+		    ymajorgrids=true,
+		    grid style=dashed,
+		    legend style={at={(1.5,1.1)},anchor=south, legend columns=-1}
+		]
+
+		\addplot[
+		    color=blue,
+		    mark=square,
+		    ]
+		    coordinates {
+		    (0,0.813133718212162)(1,0.870689655172414)(2,0.869565217391304)(3,0.854700854700855)(4,0.847457627118644)(5,0.862068965517241)(6,0.862068965517241)(7,0.860869565217391)
+		    };
+		\addplot[
+		    color=red,
+		    mark=*,
+		    ]
+		    coordinates {
+		    (0,0.708791208791209)(1,0.720429778415431)(2,0.727852084972463)(3,0.734756097560976)(4,0.737969058591178)(5,0.723003960808839)(6,0.727905921593153)(7,0.740887177292826)(8,0.733003960808839)(9,0.746193299741805)(10,0.73554304773817)(11,0.74569890495285)(12,0.756325773784054)(13,0.745676961413577)(14,0.753615746683783)(15,0.7306060898002)(16,0.723882805154582)(17,0.720774744968293)(18,0.733079110976868)(19,0.731544715447155)(20,0.734034752112227)
+
+		    };
+		\addplot[
+		    color=green,
+		    mark=x,
+		    ]
+		    coordinates {
+		    (0,0.71031746031746)(1,0.722023912003826)(2,0.734193548387097)(3,0.740054370716392)(4,0.751788722391459)(5,0.752652119278914)(6,0.765286464150101)(7,0.766275317871063)(8,0.763956676916058)(9,0.779373522458629)(10,0.780497706328908)(11,0.786846912678115)(12,0.793409626193882)(13,0.801554001554001)(14,0.800878033205619)(15,0.861352657004831)(16,0.863636363636364)(17,0.863636363636364)(18,0.883720930232558)(19,0.8125)(20,0.795918367346939)
+		    };
+		\addplot[
 		    color=brown,
 		    mark=+,
 		    ]
 		    coordinates {
-		    (10,  0.78552344907839267)(30, 0.78870711278952932)(50,0.78519302797324753)(100,0.77792094596490047)
-		    };
+		    (0,0.71031746031746)(1,0.722023912003826)(2,0.734193548387097)(3,0.740054370716392)(4,0.751788722391459)(5,0.752652119278914)(6,0.758342019705656)(7,0.772281323877069)(8,0.774638933587619)(9,0.786846912678115)(10,0.786846912678115)(11,0.795363644516187)(12,0.804524886877828)(13,0.797201562617384)(14,0.812955643390426)(15,0.775568181818182)(16,0.863636363636364)(17,0.883720930232558)(18,0.883720930232558)(19,0.883720930232558)(20,0.904761904761905)
+};
 		 \addplot[
 		    color=violet,
 		    mark=star,
 		    ]
 		    coordinates {
-		    (10,  0.80810421349483996)(30, 0.84745259081196467)(50,0.8751719894688631)(100,0.89739411630036825)
-		    };
-		\legend{weather,weapons,soccer,museum,city}
+		    (0,0.716727716727717)(1,0.728559859716244)(2,0.740860215053763)(3,0.746857091804827)(4,0.757315933275812)(5,0.758342019705656)(6,0.765286464150101)(7,0.779373522458629)(8,0.787744083140503)(9,0.786846912678115)(10,0.789244481875285)(11,0.804524886877828)(12,0.811442006269593)(13,0.803401771336554)(14,0.785524847694936)(15,0.849173553719008)(16,0.852651515151516)(17,0.866230213015439)(18,0.876750700280112)(19,0.85593220338983)(20,0.863247863247863)
+};
+		\legend{serene,pats-1,pats-5,pats-10,pats-20}
 
 		\end{axis}
+\end{tikzpicture}
+\subcaption{precision}\label{fig:solprec}
+\end{minipage}%
+%
+\begin{minipage}[b]{.33\linewidth}
+\centering
+\begin{tikzpicture}[baseline]
+		\begin{axis}[
+		    xlabel={\emph{solution}},
+		    %ylabel={recall},
+		    xmin=0, xmax=20,
+		    ymin=0.7, ymax=1,
+		    xtick={0,5,10,15,20},
+		    ytick={0.7,0.8,0.9,1},
+		    ymajorgrids=true,
+		    grid style=dashed,
+		    %legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
+		]
+
+		\addplot[
+		    color=blue,
+		    mark=square,
+		    ]
+		    coordinates {
+		    (0,0.790229885057471)(1,0.870689655172414)(2,0.862068965517241)(3,0.862068965517241)(4,0.862068965517241)(5,0.862068965517241)(6,0.862068965517241)(7,0.853448275862069)
+		    };
+		\addplot[
+		    color=red,
+		    mark=*,
+		    ]
+		    coordinates {
+		    (0,0.828456983629397)(1,0.828456983629397)(2,0.828456983629397)(3,0.828456983629397)(4,0.828456983629397)(5,0.82088122605364)(6,0.82088122605364)(7,0.823754789272031)(8,0.82088122605364)(9,0.823754789272031)(10,0.841431556948798)(11,0.841431556948798)(12,0.841431556948798)(13,0.835684430512017)(14,0.838557993730407)(15,0.825583420411007)(16,0.810431905259492)(17,0.82088122605364)(18,0.82088122605364)(19,0.83098223615465)(20,0.833855799373041)
+};
+		\addplot[
+		    color=green,
+		    mark=x,
+		    ]
+		    coordinates {
+		    (0,0.83098223615465)(1,0.83098223615465)(2,0.83098223615465)(3,0.823406478578892)(4,0.828108672936259)(5,0.820532915360502)(6,0.828108672936259)(7,0.820532915360502)(8,0.820532915360502)(9,0.828108672936259)(10,0.820532915360502)(11,0.820532915360502)(12,0.818007662835249)(13,0.810431905259492)(14,0.800330895158482)(15,0.867163009404389)(16,0.863636363636364)(17,0.863636363636364)(18,0.863636363636364)(19,0.886363636363636)(20,0.886363636363636)
+};
+		 \addplot[
+		    color=brown,
+		    mark=+,
+		    ]
+		    coordinates {
+		    (0,0.83098223615465)(1,0.83098223615465)(2,0.83098223615465)(3,0.823406478578892)(4,0.828108672936259)(5,0.820532915360502)(6,0.820532915360502)(7,0.820532915360502)(8,0.820532915360502)(9,0.820532915360502)(10,0.820532915360502)(11,0.820532915360502)(12,0.820532915360502)(13,0.810431905259492)(14,0.810431905259492)(15,0.765151515151516)(16,0.863636363636364)(17,0.863636363636364)(18,0.863636363636364)(19,0.863636363636364)(20,0.863636363636364)
+};
+		 \addplot[
+		    color=violet,
+		    mark=star,
+		    ]
+		    coordinates {
+		    (0,0.838557993730407)(1,0.838557993730407)(2,0.838557993730407)(3,0.83098223615465)(4,0.828108672936259)(5,0.820532915360502)(6,0.828108672936259)(7,0.828108672936259)(8,0.828108672936259)(9,0.820532915360502)(10,0.820532915360502)(11,0.820532915360502)(12,0.818007662835249)(13,0.800330895158482)(14,0.790229885057471)(15,0.867163009404389)(16,0.867163009404389)(17,0.867163009404389)(18,0.867163009404389)(19,0.870689655172414)(20,0.870689655172414)
+};	
+	%\legend{serene,pats-1,pats-5,pats-10,pats-20}
+		\end{axis}
 	\end{tikzpicture}
-\subcaption{fixing \emph{numBags}=50}\label{fig:bagsize}
-\end{minipage}
-\caption{Average precision and recall on museum domain.}\label{fig:bagging}
+\subcaption{recall}\label{fig:solrec}
+\end{minipage}%
+%
+\begin{minipage}[b]{.33\linewidth}
+\centering
+\begin{tikzpicture}[baseline]
+\begin{axis}[
+		    xlabel={\emph{solution}},
+		    %ylabel={time(s)},
+		    xmin=0, xmax=20,
+		    ymin=0.0, ymax=21,
+		    xtick={0,5,10,15,20},
+		    ytick={0.0,3.0,6.0,9.0,12,15.0,18,21.0},
+		    ymajorgrids=true,
+		    grid style=dashed,
+		    %legend pos=outer north east,
+		    %legend style={at={(0.5,-0.1)},anchor=north, legend columns=-1}
+		]
+
+		\addplot[
+		    color=blue,
+		    mark=square,
+		    ]
+		    coordinates {
+		    (0,2.47666666666667)(1,7.15)(2,7.41)(3,8.83)(4,9.15)(5,9.32)(6,9.84)(7,10.04)
+};
+		\addplot[
+		    color=red,
+		    mark=*,
+		    ]
+		    coordinates {
+		    (0,3.75)(1,3.8)(2,3.84)(3,3.88666666666667)(4,3.93333333333333)(5,3.98)(6,4.03333333333333)(7,4.08)(8,4.13333333333333)(9,4.23)(10,4.29333333333333)(11,4.34)(12,4.38666666666667)(13,4.74)(14,4.83)(15,5.74333333333333)(16,5.96333333333333)(17,6.48666666666667)(18,6.53)(19,6.58333333333333)(20,6.63)
+};
+		\addplot[
+		    color=green,
+		    mark=x,
+		    ]
+		    coordinates {
+		    (0,3.74)(1,3.79)(2,3.83666666666667)(3,3.88666666666667)(4,3.93666666666667)(5,3.98666666666667)(6,4.03666666666667)(7,4.09333333333333)(8,4.17333333333333)(9,4.23)(10,4.31666666666667)(11,4.38)(12,4.54333333333333)(13,5)(14,6.17666666666667)(15,6.755)(16,1.61)(17,2.21)(18,2.35)(19,2.61)(20,3.11)
+};
+		\addplot[
+		    color=brown,
+		    mark=+,
+		    ]
+		    coordinates {
+		    (0,3.75)(1,3.8)(2,3.84666666666667)(3,3.89666666666667)(4,3.95)(5,3.99666666666667)(6,4.05)(7,4.10333333333333)(8,4.16666666666667)(9,4.23333333333333)(10,4.43)(11,4.53333333333333)(12,4.78)(13,5.15333333333333)(14,5.36333333333333)(15,3.365)(16,1.91)(17,1.95)(18,8.42)(19,8.62)(20,8.85)
+};
+		 \addplot[
+		    color=violet,
+		    mark=star,
+		    ]
+		    coordinates {
+		    (0,3.73666666666667)(1,3.78666666666667)(2,3.83666666666667)(3,3.88333333333333)(4,3.93666666666667)(5,3.98666666666667)(6,4.04333333333333)(7,4.09666666666667)(8,4.16)(9,4.22)(10,4.38333333333333)(11,4.49)(12,4.72333333333333)(13,4.99333333333333)(14,9.33333333333333)(15,10.715)(16,10.86)(17,10.915)(18,12.65)(19,20.35)(20,20.56)
+};	
+	%\legend{serene,pats-1,pats-5,pats-10,pats-20}
+		\end{axis}
+\end{tikzpicture}
+\subcaption{time (s)}\label{fig:soltime}
+\end{minipage}%
+\caption{Average precision, recall and time on the museum domain for leave-one-out strategy and different weighting scheme for patterns in serene.}\label{fig:perfsol}
 \end{figure*}
+
+
+% change in performance if we look at sequentially found solutions
+% only leave-one-out for museum domain with 15s timeout for chuffed
+\begin{figure}\small
+\begin{tikzpicture}\small
+\pgfplotsset{
+    scale only axis,
+    small,
+    xmin=0, xmax=9
+}
+
+\begin{axis}[
+  axis y line*=left,
+  ymin=0.5, ymax=1,
+  xlabel=solution number,
+  ylabel=performance,
+  legend pos=south east,
+]
+\addplot[smooth,mark=x,red]
+  coordinates{
+    (0,0.776507549540743)(1,0.71093042754513)(2,0.822783653218436)(3,0.845760233918129)(4,0.879310344827586)(5,0.88695652173913)(6,0.885964912280702)(7,0.870689655172414)(8,0.878260869565217)(9,0.87719298245614)
+
+}; \label{plot_one}
+\addlegendentry{precision}
+\addplot[smooth,mark=*,green]
+  coordinates{
+    (0,0.773180507486795)(1,0.677202255831871)(2,0.805899400726987)(3,0.838122605363985)(4,0.879310344827586)(5,0.879310344827586)(6,0.870689655172414)(7,0.870689655172414)(8,0.870689655172414)(9,0.862068965517241)
+}; \label{plot_two}
+\addlegendentry{recall}
+\end{axis}
+
+\begin{axis}[
+  axis y line*=right,
+  axis x line=none,
+  ymin=0, ymax=15,
+  legend pos=south east,
+  ylabel=time (s)
+]
+\addlegendimage{/pgfplots/refstyle=plot_one}\addlegendentry{precision}
+\addlegendimage{/pgfplots/refstyle=plot_two}\addlegendentry{recall}
+\addplot[smooth,mark=square,blue]
+  coordinates{
+    (0,0.894338290115883)(1,2.39426428574782)(2,6.89703391393025)(3,10.3563708686829)(4,9.87668780326843)(5,9.92719115257263)(6,10.4045292949677)(7,14.3818371582031)(8,14.4026180458069)(9,14.8023208427429)
+}; \addlegendentry{time}
+\end{axis}
+\end{tikzpicture}
+\caption{Performance of chuffed for museum leave-one-out}\label{fig:loo}
+\end{figure}
 
 \section{Related Work \label{SEC:pw}}
 \ddg{rewrite, add more}
-\npr{Now the opposite: shrink please}
+\npr{Now the opposite problem}
 
 Relational data sources are still one of the most popular ways to store enterprise or Web data, however, the issue with relational schema is the lack of a well-defined semantic description.
 A common ontology provides a way to represent the meaning of a relational schema and can facilitate the integration of heterogeneous data sources within a domain.
@@ -1170,7 +1624,7 @@ Our approach is complementary to the approaches from this group and at its curre
 However, constraint programming offers a convenient framework to incorporate integrity constraints specified either within relational or ontological schema as additional constraints to govern the search for the solution.
 This opens an interesting direction for further research to develop an automatic system.
 
-A major issue with fully automatic systems is though that constraints may be inconsistent or absent completely, e.g., tables on the Web \ddg{Why?}.
+A major issue with fully automatic systems is though that constraints may be inconsistent or absent completely, e.g., data from Web services or tables on the Web \ddg{Why?}.
 To overcome this issue, we can apply ML techniques.
 \cite{Limaye:Annotating} design a system to annotate web tables with entities for cell values, semantic labels for attributes and relationships for binary combinations of attributes.
 As in our approach, they decompose the process of mapping into two main stages: semantic labeling and finding relationships between matched semantic labels.
