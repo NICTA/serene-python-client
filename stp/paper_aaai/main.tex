@@ -134,7 +134,6 @@ whereas Section \ref{SEC:CP} discusses how we implement the model in CP.
 Section \ref{SEC:Res} shows our results. 
 
 \section{Problem Statement \label{SEC:problem}}
-We follow the definitions proposed by Doal \etal{} \cite{doan2012principles}.
 
 
 \begin{figure}[ht]
@@ -218,21 +217,15 @@ property'' and
 \label{FIG:onto}
 \end{figure}
 
-
-
-
-An ontology $\mathcal{O}$ is a specification of classes of objects, their 
-data properties and relationships between them.
+In our work we consider that an ontology $\mathcal{O}$ has such basic elements as classes which represent a set of concepts, literal values, individuals which are members of classes and properties~\cite{Spanos:semweb}.
+Properties are classified into object properties, which relate two individuals, and datatype properties, which relate indivuduals to literal values.
 An example of an ontology is given in Fig.~\ref{FIG:onto}. 
-A Class in an ontology can have \emph{data properties} or \emph{object properties}. 
-For example, an ``Organisation'' has a ``Person'' 
-(which is a class with its own properties), and it has a ``name'' (which 
-is a data property). 
-Also, a Class can be a subclass of another Class. 
+Here, an individual of the class ``Organisation'' can be related to an individual of the class ``Person'' via object properties ``ceo'' or ``worksFor'', and it can have a data property ``name''. 
+We also consider a special ``subclass'' (or ``is-a'') type of object properties.
 For 
-example ``Cities'' and ``States'' are both ``Places''. 
+example, ``Cities'' and ``States'' are both ``Places''. 
 A subclass inherits all the properties of the parent class.
-\npr{rephrase, I think terminology is off}
+\npr{check}
 
 A \emph{semantic model} $m$ is a directed graph with two types of nodes: 
 \emph{class nodes} and \emph{data nodes}. 
@@ -241,9 +234,8 @@ We denote them as $\mathcal{C}_m$ and $\mathcal{D}_m$ respectively.
 \mathcal{D}_m$. $ \mathcal{C}_m$ corresponds to classes in the ontology 
 $\mathcal{O}$. $\mathcal{D}_m$ corresponds to data 
 properties in the ontology. 
-The edges in the semantic model correspond to relationships in the ontology, as shown if Fig.~\ref{FIG:onto} and \ref{FIG:sem}.
-
-
+The edges in the semantic model correspond to object properties in the ontology, as shown if Fig.~\ref{FIG:onto} and \ref{FIG:sem}.
+The semantic model may have several instances of the same ontology class or object property.
 
 \begin{figure}[ht]
 \centering
@@ -325,27 +317,29 @@ nodes).}
 \label{FIG:sem}
 \end{figure}
 
-
-
-
-A \emph{source} $s$ is a $n$-ary relation with a set of attributes 
+In our setting we work with relational sources.
+Hence, a \emph{data source} $s$ is a $n$-ary relation with a set of attributes 
 $\mathcal{A}_s = (a_1,...,a_n)$.
+We want to map them to the target ontology $\mathcal{O}$.
+
+Following the traditional data integration framework~\cite{doan2012principles}, we decompose the problem into two parts: schema matching and schema mapping.
+Schema matching part, which we refer to as \emph{semantic labeling}, finds correspondences between attributes from data sources and data nodes of the target ontology.
+In the schema mapping part we want to generate the semantic models of data sources by identifying the connecting paths for the matched data nodes.
 
 An \emph{attribute mapping} function $\phi : \mathcal{A}_s \mapsto 
 \mathcal{D}_m$ is a function which maps the attributes of the source $s$ into the nodes of the semantic model $m$. 
 It can be a partial mapping, meaning that only some of the attributes
 are connected to the nodes of $m$.
+The attribute mapping function addresses the first part of the problem (semantic labeling).
 
-A \emph{source description} is a triple $\delta = (s, m, \phi)$ where $s$ is a source, $m$ is a semantic model, and $\phi$ is an attribute mapping.
-
+We define a \emph{source description} as a triple $\delta = (s, m, \phi)$ where $s$ is a source, $m$ is a semantic model, and $\phi$ is an attribute mapping.
 Our problem can be stated now the following way. We have an ontology 
 $\mathcal{O}$ and a set of source descriptions $S_T = \{(s_1, m_1, \phi_1),..., 
 (s_l, m_l, \phi_l)\}$.
 Given a new source $s^\star$, we want to build a semantic model $m^\star$ and an attribute mapping function $\phi^\star$ such that 
-$\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source 
-description. 
-We
-use the term ``appropriate'' since there might be many such triples which are well-formed source descriptions, but only one or a few will capture the intended meaning of the source. 
+$\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source description. 
+We use the term ``appropriate'' since there might be many such triples which are well-formed source descriptions, 
+but only one or a few will capture the intended meaning of the source. 
 Our goal is to automatically build $\delta^\star$ such that it maximizes the \emph{precision} and \emph{recall} between the semantic model 
 $m^\star$ and the semantic model $m^\dag$ that the user considers correct. \npr{definitions for precision and recall}
 
@@ -364,8 +358,9 @@ as
 (City,name) and (State,name).
 
 The first step to model the semantics of a new source $s^\star$ is to recognize the semantic types present in the source. 
-We call this step \emph{semantic labeling}, which involves giving a confidence value to a match occurring between an attribute from $s^\star$ and type $l \in 
-\mathcal{L_O}$. \ddg{CHECK!}
+We call this step \emph{semantic labeling}, which assigns a confidence value to a match of an attribute from $s^\star$ to a type $l \in 
+\mathcal{L_O}$.
+%\ddg{CHECK!}
 
 We formulate the problem of semantic labeling as a multi-class classification
 problem.

@@ -245,8 +245,9 @@ def do_experiment(octopus, orig_ds, orig_ssd, avail_labels, chosen_paths, chosen
 #
 # =======================
 import time
+import yaml
 chuffed_lookup_path = os.path.join(project_path, "stp", "minizinc")
-result_csv = os.path.join(project_path, "stp", "resources", "results", "unknown_benchmark_soccer_addpaths.csv")
+result_csv = os.path.join(project_path, "stp", "resources", "results", "soccer_test.csv")
 with open(result_csv, "w+") as f:
     csvf = csv.writer(f)
     csvf.writerow(["experiment", "octopus", "dataset", "name", "ssd",
@@ -255,7 +256,8 @@ with open(result_csv, "w+") as f:
                    "karma_jaccard", "karma_precision", "karma_recall",
                    "known_num", "time", "chuffed_path", "simplify", "chuffed_time",
                    "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
-                   "match_score", "cost", "objective", "cor_match_score", "cor_cost", "pattern_time"])  # header
+                   "match_score", "cost", "objective", "cor_match_score", "cor_cost",
+                   "pattern_time", "number_nodes", "number_links", "extended_time"])  # header
 
     sample_range = list(range(len(new_ssds)))
     len_sample = len(sample_range)
@@ -265,17 +267,17 @@ with open(result_csv, "w+") as f:
                           "karma_jaccard", "karma_precision", "karma_recall",
                           "train_flag", "time", "chuffed_path", "simplify", "chuffed_time",
                           "soft_assumptions", "pattern_significance", "sm_accuracy", "sol_accuracy",
-                          "match_score", "cost", "objective", "cor_match_score", "cor_cost", "pattern_time"]]
+                          "match_score", "cost", "objective", "cor_match_score", "cor_cost", "pattern_time",
+                          "extended_time"]]
 
     print("Starting benchmark")
 
-    for cur_id in sample_range:
+    for cur_id in [0]:#sample_range:
         print("Currently selected ssd: ", cur_id)
         test_sample = [cur_id]
 
-        for num in range(1, len(sample_range)):
-            train_sample = sample_range[:max(cur_id + num + 1 - len_sample, 0)] + sample_range[
-                                                                                  cur_id + 1: cur_id + 1 + num]
+        for num in [5]: #range(1, len(sample_range)):
+            train_sample = sample_range[:max(cur_id + num + 1 - len_sample, 0)] + sample_range[cur_id + 1: cur_id + 1 + num]
             print("     train sample size: ", num)
 
             try:
@@ -285,40 +287,42 @@ with open(result_csv, "w+") as f:
                 print("Octopus creation failed: {}".format(e))
                 continue
 
-            try:
-                octo2 = al.create_octopus2(sn, new_ssds, train_sample, ontologies)
-            except Exception as e:
-                logging.error("Octopus2 creation failed: {}".format(e))
-                octo2 = None
-
-            try:
-                octo3 = al.create_octopus3(sn, new_ssds, train_sample, ontologies)
-            except Exception as e:
-                logging.error("Octopus3 creation failed: {}".format(e))
-                octo3 = None
+            # try:
+            #     octo2 = al.create_octopus2(sn, new_ssds, train_sample, ontologies)
+            # except Exception as e:
+            #     logging.error("Octopus2 creation failed: {}".format(e))
+            #     octo2 = None
+            #
+            # try:
+            #     octo3 = al.create_octopus3(sn, new_ssds, train_sample, ontologies)
+            # except Exception as e:
+            #     logging.error("Octopus3 creation failed: {}".format(e))
+            #     octo3 = None
 
             octo_csv = os.path.join(project_path, "stp", "resources", "storage",
                                     "patterns.{}.csv".format(octo.id))
             start_time = time.time()
+            pattern_time = None
             try:
-                octo_patterns = octo.get_patterns(octo_csv)
+                with open(os.path.join(project_path, "stp", 'config.yaml'), 'r') as stream:
+                    config = yaml.load(stream)
+                print("Serene-path: ", config["embeds-path"])
+                octo_patterns = octo.get_patterns(octo_csv, serene_path=str(config["embeds-path"]))
+                pattern_time = time.time() - start_time
+                print("Patterns obtained")
             except Exception as e:
                 print("failed to get patterns: {}".format(e))
                 logging.warning("failed to get patterns: {}".format(e))
                 octo_patterns = None
-            if octo_patterns:
-                pattern_time = time.time() - start_time
-            else:
-                pattern_time = None
             print("Uploaded octopus:", octo)
 
             chuffed_paths = [
-                (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170718"),
-                 True, None, False, 1.0),
+                # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170718"),
+                #  True, None, False, 1.0),
                 (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170722"),
                  True, None, True, 1.0),
-                (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
-                 False, octo_patterns, False, 1.0),
+                # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
+                #  False, octo_patterns, False, 1.0),
                 (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
                  False, octo_patterns, True, 1.0),
                 (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
@@ -348,18 +352,18 @@ with open(result_csv, "w+") as f:
                           benchmark_results=benchmark_results, csvfile=csvf, known_num=len(train_sample),
                           pattern_time=pattern_time)
 
-            if octo2:
-                do_experiment(octopus=octo2, orig_ds=dataset, orig_ssd=ssd, avail_labels=train_labels,
-                              chosen_paths=chuffed_paths, chosen_columns=column_names,
-                              experiment_descr="octo2_known_{}".format(len(train_sample)),
-                              benchmark_results=benchmark_results, csvfile=csvf, known_num=len(train_sample),
-                          pattern_time=pattern_time)
-            if octo3:
-                do_experiment(octopus=octo3, orig_ds=dataset, orig_ssd=ssd, avail_labels=train_labels,
-                              chosen_paths=chuffed_paths, chosen_columns=column_names,
-                              experiment_descr="octo3_known_{}".format(len(train_sample)),
-                              benchmark_results=benchmark_results, csvfile=csvf, known_num=len(train_sample),
-                          pattern_time=pattern_time)
+            # if octo2:
+            #     do_experiment(octopus=octo2, orig_ds=dataset, orig_ssd=ssd, avail_labels=train_labels,
+            #                   chosen_paths=chuffed_paths, chosen_columns=column_names,
+            #                   experiment_descr="octo2_known_{}".format(len(train_sample)),
+            #                   benchmark_results=benchmark_results, csvfile=csvf, known_num=len(train_sample),
+            #               pattern_time=pattern_time)
+            # if octo3:
+            #     do_experiment(octopus=octo3, orig_ds=dataset, orig_ssd=ssd, avail_labels=train_labels,
+            #                   chosen_paths=chuffed_paths, chosen_columns=column_names,
+            #                   experiment_descr="octo3_known_{}".format(len(train_sample)),
+            #                   benchmark_results=benchmark_results, csvfile=csvf, known_num=len(train_sample),
+            #               pattern_time=pattern_time)
             # we should do prediction outside of solvers so that solvers use the cached results!
             # print("Doing schema matcher part")
             # df = octo.matcher_predict(dataset)

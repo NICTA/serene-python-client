@@ -580,17 +580,17 @@ def create_octopus(server, ssd_range, sample, ontologies):
             "featureExtractorParams": [
                 {
                     "name": "prop-instances-per-class-in-knearestneighbours",
-                    "num-neighbours": 3
+                    "num-neighbours": 5
                 }
                 , {
                     "name": "min-editdistance-from-class-examples",
-                    "max-comparisons-per-class": 3
+                    "max-comparisons-per-class": 5
                 }, {
                     "name": "min-wordnet-jcn-distance-from-class-examples",
-                    "max-comparisons-per-class": 3
+                    "max-comparisons-per-class": 5
                 }, {
                     "name": "min-wordnet-lin-distance-from-class-examples",
-                    "max-comparisons-per-class": 3
+                    "max-comparisons-per-class": 5
                 }
             ]
         }
@@ -833,8 +833,9 @@ def do_chuffed(server, ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd
         pattern_time = None
     try:
         integrat = integ.IntegrationGraph(octopus=ch_octopus, dataset=ch_dataset,
-                                          match_threshold=0.001, simplify_graph=simplify,
-                                          patterns=patterns, pattern_sign=pattern_sign)
+                                          simplify_graph=simplify,
+                                          patterns=patterns, pattern_sign=pattern_sign,
+                                          add_unknown=True)
         if chuffed_path:
             integrat._chuffed_path = chuffed_path  # change chuffed solver version
         solution = integrat.solve(ch_column_names,
@@ -866,6 +867,7 @@ def do_chuffed(server, ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd
             match_score = json_sol["match_score"]
             cost = json_sol["cost"]
             objective = json_sol["objective"]
+            extended_time = json_sol["extended_time"]
 
             try:
                 comparison = server.ssds.compare(cp_ssd, ch_ssd, False, False)
@@ -889,14 +891,14 @@ def do_chuffed(server, ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd
                      soft_assumptions, pattern_sign, accu, sol_accuracy,
                      match_score, cost, objective,
                      cor_match_score, cor_cost, pattern_time,
-                     integrat.graph.number_of_nodes(), integrat.graph.number_of_edges()]]
+                     integrat.graph.number_of_nodes(), integrat.graph.number_of_edges(), extended_time]]
     except Exception as e:
         print("CP solver failed to find solution: {}".format(e))
         res += [[experiment, ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id,
                  "chuffed", 0, "fail", None, None, None, None, None, None,
                  train_flag, time.time() - start, chuffed_path, simplify, None,
                  soft_assumptions, pattern_sign, accu, None,
-                 None, None, None, None, None, pattern_time, None, None]]
+                 None, None, None, None, None, pattern_time, None, None, None]]
     return res
 
 def do_karma(server, k_octopus, k_dataset, k_ssd, orig_ssd,
@@ -930,14 +932,14 @@ def do_karma(server, k_octopus, k_dataset, k_ssd, orig_ssd,
                  eval["jaccard"], eval["precision"], eval["recall"],
                  comparison["jaccard"], comparison["precision"], comparison["recall"],
                  train_flag, runtime, "", None, runtime, None, None, accu, sol_accuracy,
-                 match_score, cost, objective, None, None, None, None, None]]
+                 match_score, cost, objective, None, None, None, None, None, None]]
     except Exception as e:
         logging.error("Karma failed to find solution: {}".format(e))
         print("Karma failed to find solution: {}".format(e))
         return [[experiment, k_octopus.id, k_dataset.id, orig_ssd.name,
                  orig_ssd.id, "karma", 0, "fail", None, None, None, None, None, None,
                 train_flag, time.time() - start, "", None, None, None, None, accu, None,
-                 None, None, None, None, None, None, None, None]]
+                 None, None, None, None, None, None, None, None, None]]
 
 
 #####################

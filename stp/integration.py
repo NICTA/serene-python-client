@@ -11,7 +11,14 @@ import networkx as nx
 import yaml
 import os
 from collections import defaultdict
-from minizinc import *
+
+try:
+    from minizinc import *
+except ImportError as e:
+    import sys
+    sys.path.insert(0, '.')
+    from minizinc import *
+
 import subprocess
 import re
 import time
@@ -25,6 +32,7 @@ class IntegrationGraph(object):
     Integration graph to map a relational data source onto an ontology using a CP solver
     """
     UNKNOWN_SCORE = 5.0
+    DEFAULT_SCORE = 99.0
 
     def __init__(self, octopus, dataset, match_threshold=0.0,
                  simplify_graph=False,
@@ -33,7 +41,8 @@ class IntegrationGraph(object):
                  predicted_df=None,
                  alignment_graph=None,
                  alignment_node_map=None,
-                 alignment_link_map=None):
+                 alignment_link_map=None,
+                 add_unknown=False):
         """
         Octopus should be trained.
         :param octopus: Octopus object which is used to integrate the new data source
@@ -47,6 +56,7 @@ class IntegrationGraph(object):
         :param alignment_graph: networkx multidigraph for the alignment graph
         :param alignment_node_map: dictionary
         :param alignment_link_map: dictionary
+        :param add_unknown
         :return:
         """
         logging.info("Initializing integration graph for the dataset {} using octopus {}".format(
@@ -61,23 +71,28 @@ class IntegrationGraph(object):
             pattern_sign = 1.0
         self._pattern_sign = pattern_sign
         self._predicted_df = predicted_df
+        self._add_unknown = add_unknown
 
         # the integration graph contains the alignment graph at the beginning
         self.graph, self._node_map, self._link_map = self._get_initial_alignment(alignment_graph,
                                                                                  alignment_node_map,
-                                                                                 alignment_link_map)
+                                                                                 alignment_link_map,
+                                                                                 add_unknown)
         self._chuffed_path, self._mzn2fzn_exec, self._model_mzn, self._solns2out_exec, self._timeout = \
             self._read_config()
 
         self._graph_node_map = {}
 
-    def _get_initial_alignment(self, alignment_graph, alignment_node_map, alignment_link_map):
+    def _get_initial_alignment(self, alignment_graph,
+                               alignment_node_map, alignment_link_map,
+                               add_unknown=False):
         """
         Get initial alignment based on the octopus.
         Depending on the dataset, we do some further changes
         :param alignment_graph
         :param alignment_node_map
         :param alignment_link_map
+        :param add_unknown
         :return:
         """
 
@@ -98,11 +113,52 @@ class IntegrationGraph(object):
             logging.error("Alignment graph has more than one unknown class node. This is wrong")
             raise Exception("Alignment graph has more than one unknown class node. This is wrong")
         if len(unknown_cn) < 1:
-            logging.info("There is no unknown class node."
-                         "No manipulation to the original alignment graph will be done.")
-            return graph, node_map, link_map
+            if add_unknown:
+                logging.info("Adding unknown class node")
+                class_nodes = [n_id for (n_id, n_data) in graph.nodes(data=True) if n_data["type"] == "ClassNode"]
+                # add more Unknown and All class nodes
+                max_id = max(n for n in graph.nodes()) + 1
+                node_data = {
+                    "type": "ClassNode",
+                    "label": UNKNOWN_CN,
+                    "lab": UNKNOWN_CN + "1",
+                    "prefix": DEFAULT_NS
+                }
+                graph.add_node(max_id, attr_dict=node_data)
+                node_data = {
+                    "type": "ClassNode",
+                    "label": ALL_CN,
+                    "lab": ALL_CN + "1",
+                    "prefix": DEFAULT_NS
+                }
+                graph.add_node(max_id+1, attr_dict=node_data)
+                # we need to add links
+                link_data = {
+                    "type": "ObjectPropertyLink",
+                    "weight": self.DEFAULT_SCORE,
+                    "label": OBJ_PROP,
+                    "prefix": DEFAULT_NS,
+                    'alignId': DEFAULT_NS + ALL_CN + "1---" +
+                               DEFAULT_NS + OBJ_PROP + "---" +
+                               DEFAULT_NS + UNKNOWN_CN + "1"
+                }
+                max_edge_id = max(k for (source, target, k) in graph.edges(data=False, keys=True)) + 1
+                graph.add_edge(max_id+1, max_id, attr_dict=link_data)  # All --> Unknown
+                for (n_id, inc) in enumerate(class_nodes):
+                    link_data["alignId"] = DEFAULT_NS + ALL_CN + "1---" + \
+                                           DEFAULT_NS + OBJ_PROP + "---" + \
+                                           DEFAULT_NS + graph.node[n_id]["label"]
+                    graph.add_edge(max_id + 1, n_id, key= max_edge_id + inc,
+                                   attr_dict=link_data)  # All --> ClassNode
 
-        if num_attrs > len(unknown_dn):
+                unknown_cn = [max_id]
+
+            else:
+                logging.info("There is no unknown class node. "
+                             "No manipulation to the original alignment graph will be done.")
+                return graph, node_map, link_map
+
+        if num_attrs > len(unknown_dn) and add_unknown:
             logging.info("Adding more unknown data nodes...")
             # add more unknown data nodes
             max_id = max(n for n in graph.nodes()) + 1
@@ -189,6 +245,10 @@ class IntegrationGraph(object):
         available_types = set(data_node_map.keys())
 
         logging.info("Node map constructed: {}".format(data_node_map))
+
+        if self._add_unknown and "scores_" + UNKNOWN_CN + "---" + UNKNOWN_DN not in predicted_df.columns:
+            logging.info("Adding unknown scores!")
+            predicted_df["scores_" + UNKNOWN_CN + "---" + UNKNOWN_DN] = 0.0
 
         cur_id = 1 + new_graph.number_of_nodes()  # we start nodes here from this number
         link_id = 1 + new_graph.number_of_edges()  # we start links here from this number
@@ -484,7 +544,6 @@ class IntegrationGraph(object):
         :param dot_file: optional file name to write the solution to the system to a dot file
         :return:
         """
-        start_time = time.time()
         # for some unknown reason stuff disappears from the graph
         copy_graph = self.graph.copy()
         logging.debug("Converting digraph {} to ssd".format(digraph))
@@ -492,6 +551,7 @@ class IntegrationGraph(object):
         if dot_file:
             ag.write(dot_file)  # write the dot file to the system
         # convert to SsdRequest: name, ontologies, semanticModel, mappings
+        start_time = time.time()
         t = float(self._get_attr(ag, "time"))
         cost = self._get_attr(ag, "cost")
         match_score = self._get_attr(ag, "match_score")
@@ -556,7 +616,7 @@ class IntegrationGraph(object):
 
         logging.debug("Conversion finished")
         conv_time = time.time() - start_time
-        ssd_request["time"] += conv_time
+        ssd_request["extended_time"] = ssd_request["time"] + conv_time
 
         # getting the graph to its original state
         # self.graph = copy_graph

@@ -251,13 +251,14 @@ class Octopus(object):
         logging.info("Training complete for {}.".format(self.id))
         return self._get_state().status == Status.COMPLETE
 
-    def get_patterns(self, path):
+    def get_patterns(self, path, serene_path=None):
         """
         Send the request to the API to perform pattern mining and pattern embeddings.
         Then a new csv is composed from the obtained files.
 
         Args:
             path: file name where to write the csv file with patterns
+            serene_path: location of storage with respect to python client
 
         Returns: string -- path of the csv file with patterns
 
@@ -271,7 +272,18 @@ class Octopus(object):
             raise Exception(msg)
 
         embeds_path = self._session.octopus_api.patterns(self.id)  # launch training
-        logging.info("Embeddings found for {}.".format(self.id))
+        logging.info("Embeddings found for {} and stored to {}.".format(self.id, embeds_path))
+        print("Embeddings path returned from api: ", embeds_path)
+
+        if serene_path:
+            print("Obtained path: ", serene_path)
+            part = embeds_path.split("/storage/")[1]
+            print("Part: ", part)
+            embeds_path = os.path.join(serene_path, part)
+            logging.info("Recomputed embeddings path {}.".format(embeds_path))
+            print("New Embeddings path: ", embeds_path)
+
+
 
         graph_j = os.path.join(embeds_path, "graphs.json")
         edges_j = os.path.join(embeds_path, "edges.json")
