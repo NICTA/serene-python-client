@@ -32,6 +32,9 @@
 \usepgfplotslibrary{colorbrewer}
 
 \usepackage{tikz}
+\tikzset{every picture/.style={font issue=\small},
+         font issue/.style={execute at begin picture={#1\selectfont}}
+        }
 \usetikzlibrary{shadows.blur}
 \usetikzlibrary{shapes.symbols}
 \usetikzlibrary{arrows,shapes,decorations.pathmorphing}
@@ -44,7 +47,7 @@
 \tikzstyle{att}=[rectangle,align=center,fill=brown!70!red]
 \tikzstyle{hasaA} = 
 [draw,densely dashed,-,black!70,decoration={snake,segment 
-length=10,amplitude=1.5,post length=4}]
+length=10,amplitude=0.3,post length=4}]
 \tikzstyle{hasaC} = [>=stealth',draw,thick,-, black]
 \tikzstyle{isa} = [>=o,draw,densely dotted,very thick,black!90]
 
@@ -65,6 +68,8 @@ length=10,amplitude=1.5,post length=4}]
 \newcommand{\etal}{\textit{et al.}}
 
 \newcommand{\code}[1]{\texttt{#1}}
+
+\newcommand{\ignore}[1]{}
 
 %PDF Info Is Required:
 
@@ -141,11 +146,11 @@ Section \ref{SEC:Res} shows our results.
 \centering
 \begin{tikzpicture}
 	\node[class] (pe) at (0,0)  {Person};
-	\node[class] (co) at (0,-3) {Organisation};
-	\node[class] (ev) at (3.5,1) {Event};
+	\node[class] (co) at (0,-2) {Organisation};
+	\node[class] (ev) at (3,0.2) {Event};
 	\node[class] (pl) at (5,-1) {Place};
-	\node[class] (ci) at (3,-3) {City};
-	\node[class] (st) at (5,-3) {State};
+	\node[class] (ci) at (3,-2.5) {City};
+	\node[class] (st) at (5,-2.5) {State};
 	
 		
 	\path[hasaC,->] (pe) edge [bend left= -30] 
@@ -154,7 +159,7 @@ Section \ref{SEC:Res} shows our results.
 	node [midway, above, sloped] {ceo} (pe) ;
 	
 	\path[hasaC,->] (co) edge [] 
-	node [midway, above, sloped] {location} (pl) ;
+	node [near start, above, sloped] {location} (pl) ;
 	
 	\path[hasaC,->] (pe) edge [bend left = -20] 
 	node [midway, above, sloped] {bornIn} (pl) ;
@@ -179,24 +184,24 @@ Section \ref{SEC:Res} shows our results.
 	\path[isa,->] (st) -- node [] {} (pl) ;
 	
 
-	\path[draw,hasaA,->] (pe) edge [decorate,bend left = 10] 
-	node [midway, above, sloped] {name} (-0.5,2);
-	\path[draw,hasaA,->] (pe) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {birthDate} (0,2);	
+	\path[draw,hasaA,->] (pe) edge [decorate,out=140,in=0] 
+	node [midway, above, sloped] {name} (-0.9,0.5);
+	\path[draw,hasaA,->] (pe) edge [decorate,out=100,in=0] 
+	node [midway, above, sloped] {birthDate} (-0.9,1);	
 	
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {name} (-1,-5);
+	node [midway, below, sloped] {name} (-1,-3);
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {phone} (0,-5);
+	node [midway, above, sloped] {phone} (0,-3.2);
 	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {email} (1,-5);
+	node [midway, above, sloped] {email} (1.4,-3);
 	
+	\path[draw,hasaA,->] (ev) edge [decorate,out=70,in=200] 
+	node [midway, above, sloped] {startDate} (3.8,1);
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {startDate} (2.5,3.2);
+	node [midway, above, sloped] {endDate} (4.5,0.8);
 	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {endDate} (3.5,3.2);
-	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {title} (4.5,3.2);
+	node [midway, above, sloped] {title} (5,0.2);
 	
 	\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
 	node [midway, above, sloped] {name} (6.5,-1.8);
@@ -219,14 +224,15 @@ property'' and
 \end{figure}
 
 In our work we consider that an ontology $\mathcal{O}$ has such basic elements as classes which represent a set of concepts, literal values, individuals which are members of classes and properties~\cite{Spanos:semweb}.
-Properties are classified into object properties, which relate two individuals, and datatype properties, which relate indivuduals to literal values.
+Properties are classified into \emph{object properties}, which relate two 
+individuals, 
+and \emph{datatype properties}, which relate individuals to literal values.
 An example of an ontology is given in Fig.~\ref{FIG:onto}. 
 Here, an individual of the class ``Organisation'' can be related to an individual of the class ``Person'' via object properties ``ceo'' or ``worksFor'', and it can have a data property ``name''. 
 We also consider a special ``subclass'' (or ``is-a'') type of object properties.
 For 
 example, ``Cities'' and ``States'' are both ``Places''. 
 A subclass inherits all the properties of the parent class.
-\npr{check}
 
 A \emph{semantic model} $m$ is a directed graph with two types of nodes: 
 \emph{class nodes} and \emph{data nodes}. 
@@ -247,11 +253,11 @@ The semantic model may have several instances of the same ontology class or obje
 	\node[class] (ci) at (1,0) {\small City};
 	\node[class] (st) at (-1,0) {\small State};
 	
-	\node[data] (pen) at (2.5,-1) {\scriptsize Person.name};
-	\node[data] (peb) at (4.3,-1) {\scriptsize Person.birthDate};
-	\node[data] (cin) at (1,-1) {\scriptsize City.name};
-	\node[data] (stn) at (-1,-1) {\scriptsize State.name};
-	\node[data] (con) at (6,-1) {\scriptsize Org.name};
+	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person.name};
+	\node[data] (peb) at (4.3,-0.7) {\scriptsize Person.birthDate};
+	\node[data] (cin) at (1,-0.7) {\scriptsize City.name};
+	\node[data] (stn) at (-1,-0.7) {\scriptsize State.name};
+	\node[data] (con) at (6,-0.7) {\scriptsize Org.name};
 	
 		
 	\path[hasaC,->] (pe) edge [bend left= 0] 
@@ -276,17 +282,17 @@ The semantic model may have several instances of the same ontology class or obje
 	
 	\path[draw,hasaA,->] (st) -- (stn);
 \end{scope}
-\begin{scope}[yshift=-60]
+\begin{scope}[yshift=-40]
 	\node[class] (pl) at (-1,0)  {\small City};
 	\node[class] (pe) at (3,0)  {\small Person};
 	\node[class] (co) at (1,0) {\small Org.};
 	\node[class] (ev) at (6,0) {\small Event};
 	
-	\node[data] (pen) at (2.5,-1) {\scriptsize Person.name};
-	\node[data] (evs) at (4.2,-1) {\scriptsize Event.startDate};
-	\node[data] (eve) at (6,-1) {\scriptsize Event.endDate};
-	\node[data] (con) at (1,-1) {\scriptsize Org.name};
-	\node[data] (pln) at (-1,-1) {\scriptsize City.name};
+	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person.name};
+	\node[data] (evs) at (4.2,-0.7) {\scriptsize Event.startDate};
+	\node[data] (eve) at (6,-0.7) {\scriptsize Event.endDate};
+	\node[data] (con) at (1,-0.7) {\scriptsize Org.name};
+	\node[data] (pln) at (-1,-0.7) {\scriptsize City.name};
 	
 		
 	\path[hasaC,->] (co) edge [bend left= 0] 
@@ -296,7 +302,7 @@ The semantic model may have several instances of the same ontology class or obje
 	\path[hasaC,->] (ev) edge [bend left = 0] 
 	node [midway, above, sloped] {organizer} (pe) ;
 	
-	\path[hasaC,->] (co) edge [bend left = -10] 
+	\path[hasaC,->] (co) edge [bend left = 0] 
 	node [midway, above, sloped] {location} (pl) ;
 
 
@@ -342,12 +348,11 @@ $\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source de
 We use the term ``appropriate'' since there might be many such triples which are well-formed source descriptions, 
 but only one or a few will capture the intended meaning of the source. 
 Our goal is to automatically build $\delta^\star$ such that it maximizes the \emph{precision} and \emph{recall} between the semantic model 
-$m^\star$ and the semantic model $m^\dag$ that the user considers correct. \npr{definitions for precision and recall}
+$m^\star$ and the semantic model $m^\dag$ that the user considers correct. 
+%\npr{definitions for precision and recall}
 
 
-\section{ML for Training on Source Descriptions \label{SEC:ML}\ddg{Better title 
-than this 
-please...}}
+\section{ML for Training on Source Descriptions \label{SEC:ML}}
 
 
 \subsection{Semantic Labeling}
@@ -370,7 +375,8 @@ Thirdly, a considerable number of attributes which do not have any corresponding
 We formulate the problem of semantic labeling as a multi-class classification
 problem.
 The known source descriptions $S_T$ provide us the training sample.
-We compute a feature vector for each attribute in a data source \ddg{Which features?} and associate the known semantic type with the corresponding feature vector.
+We compute a feature vector for each attribute in a data source and associate 
+the known semantic type with the corresponding feature vector.
 The feature vector includes characteristics of the attribute such as a number of whitespaces and other special characters, statistics of values in the column (e.g, mean/ max/ min string length and numeric statistics) and many more.
 One of the important features characterising information content of an attribute is Shannon's entropy of the attribute's concatenated rows.
 Shannon's entropy (or information entropy~\cite{Manning:Introduction}) of a string $X$ is defined as
@@ -392,10 +398,17 @@ In such way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O}
 where $\psi(a_i,l_j)$ indicates the confidence of the attribute $a_i$ to be 
 mapped to the semantic type $l_j$.
 
-\ddg{IMPORTANT: Do we keep all of them, or only the top $k$ with most 
-confidence? If so, 
-what is $k$?}
-\npr{We keep all, that is the crucial difference from Karma which does some voodoo heuristic filtering}
+Note that we keep all the matches, regardless of the confidence fo the match. 
+This is an important difference between our system and other approaches 
+\cite{taheriyan2016learning} that 
+remove some of the matches based on heuristics to then simplify the task of 
+finding the semantic model. \ddg{CHECK}
+
+%\ddg{IMPORTANT: Do we keep  all of them, or only the top $k$ with most 
+%confidence? If so, 
+%what is $k$?}
+%\npr{We keep all, that is the crucial difference from Karma which does some 
+%voodoo heuristic filtering}
 
 
 \subsection{Alignment Graph}
@@ -416,12 +429,15 @@ to properties in  $\mathcal{O}$ and are weighted \cite{taheriyan2016learning}.
 
 The algorithm for the construction of the alignment graph $\mathcal{G_O}$ follows the ideas of~\cite{taheriyan2016learning}.
 Briefly, the algorithm has three parts:
-\begin{enumerate}
-\item Adding the known semantic models.
-\item Adding the semantic types learned for the target source. \ddg{TODO: see 
-Important note above}
-\item Expanding the graph using the domain ontology $\mathcal{O}$.
-\end{enumerate}
+%\begin{enumerate}
+$(i)$ %\item 
+Adding the known semantic models
+$(ii)$ %\item 
+Adding the semantic types learned for the target source \ddg{If we keep 
+all matches, isn't this just adding all the semantic types?}
+%\item 
+$(iii)$ Expanding the graph using the domain ontology $\mathcal{O}$.
+%\end{enumerate}
 
 Note how the alignment graph contains data nodes that correspond to at least 
 some of the semantic types. 
@@ -443,7 +459,7 @@ An example alignment graph is illustrated in Fig.~\ref{FIG:ali}.
 Bigger examples can be found in \cite{Taheriyan2013}. 
 Black links correspond to the links which are supported by the known semantic models. 
 Blue and orange links are inferred from the ontology $\mathcal{O}$ (the orange ones correspond to the ones added to connect Classes of the ontology that never appeared in the semantic models) and can be assigned the 
-maximum weight $w_max$ \ddg{where does this weight come from?} .
+maximum weight $w_max$ \ddg{where does this weight come from?}
 
 
 \begin{figure}[ht]
@@ -455,11 +471,11 @@ maximum weight $w_max$ \ddg{where does this weight come from?} .
 	\node[class] (ci1) at (1,0) {\small City1};
 	\node[class] (st1) at (-1,0) {\small State};
 	
-	\node[data] (pen) at (2.3,1) {\scriptsize Person1.name};
-	\node[data] (peb) at (4.2,1) {\scriptsize Person1.birthDate};
-	\node[data] (cin) at (0.7,1) {\scriptsize City1.name};
-	\node[data] (stn) at (-1,1) {\scriptsize State.name};
-	\node[data] (con) at (6,1) {\scriptsize Org1.name};
+	\node[data] (pen) at (2.3,0.7) {\scriptsize Person1.name};
+	\node[data] (peb) at (4.2,0.7) {\scriptsize Person1.birthDate};
+	\node[data] (cin) at (0.7,0.7) {\scriptsize City1.name};
+	\node[data] (stn) at (-1,0.7) {\scriptsize State.name};
+	\node[data] (con) at (6,0.7) {\scriptsize Org1.name};
 	
 		
 	\path[hasaC,->] (pe1) edge [bend left= 0] 
@@ -486,18 +502,18 @@ maximum weight $w_max$ \ddg{where does this weight come from?} .
 
 
 % % % CC2
-\def\ysh{-2.5};
+\def\ysh{-2};
 
 	\node[class] (pl2) at (-1,0+\ysh)  {\small City2};
 	\node[class] (pe2) at (3,0+\ysh)  {\small Person2};
 	\node[class] (co2) at (1,0+\ysh) {\small Org.2};
 	\node[class] (ev2) at (6,0+\ysh) {\small Event};
 	
-	\node[data] (pen) at (2.3,-1+\ysh) {\scriptsize Person2.name};
-	\node[data] (evs) at (4.2,-1+\ysh) {\scriptsize Event.startDate};
-	\node[data] (eve) at (6,-1+\ysh) {\scriptsize Event.endDate};
-	\node[data] (con) at (0.7,-1+\ysh) {\scriptsize Org2.name};
-	\node[data] (pln) at (-1,-1+\ysh) {\scriptsize City2.name};
+	\node[data] (pen) at (2.3,-0.7+\ysh) {\scriptsize Person2.name};
+	\node[data] (evs) at (4.2,-0.7+\ysh) {\scriptsize Event.startDate};
+	\node[data] (eve) at (6,-0.7+\ysh) {\scriptsize Event.endDate};
+	\node[data] (con) at (0.7,-0.7+\ysh) {\scriptsize Org2.name};
+	\node[data] (pln) at (-1,-0.7+\ysh) {\scriptsize City2.name};
 	
 		
 	\path[hasaC,->] (co2) edge [bend left= 0] 
@@ -548,9 +564,9 @@ maximum weight $w_max$ \ddg{where does this weight come from?} .
 
 	\path[draw,hasaC,->,orange!30!white] (ev2) edge[out=90,in=0] (PL);
 	
-	\path[draw,isa,->,orange!30!white] (ci1) edge[out=-45,in=120] (PL);
-	\path[draw,isa,->,orange!30!white] (pl2) edge[out=90,in=180] (PL);
-	\path[draw,isa,->,orange!30!white] (st1) edge[out=-45,in=150] (PL);
+	\path[draw,isa,->,orange!30!white] (ci1) edge[out=-25,in=130] (PL);
+	\path[draw,isa,->,orange!30!white] (pl2) edge[out=50,in=180] (PL);
+	\path[draw,isa,->,orange!30!white] (st1) edge[out=-45,in=160] (PL);
 
 \end{tikzpicture}
 \caption{Example of alignment graph (`\tikz{ \node[class] () at (0,0)  
@@ -577,10 +593,13 @@ In our context, patterns are typed directed graphs.
 We mine these patterns from the set of semantic models in the training set $S_T$.
 This is known as Transactional Frequent Graph Pattern Mining, which contains the subgraph 
 isomorphism, known to be NP-complete.
-The frequency of a pattern is an anti-monotonous measure, meaning that bigger patterns will have lower supports than their subgraphs.
+The frequency of a pattern is an anti-monotonous measure, meaning that bigger 
+patterns will have lower supports than their subgraphs. \ddg{Define support}
 We solve this pattern mining task with the tool DIMSpan \cite{petermann2017dimspan} which adapts gSpan~\cite{yan2002gspan} pruning techniques to the typed graphs and uses Apache Flink for scalability.  
 We obtain patterns of size upto 6 in under 4 minutes for the biggest instances in our evaluation framework. 
-\npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe cite my work on how databases perform for graph pattern matching. Should it be better in related work?}
+\npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe 
+cite my work on how databases perform for graph pattern matching. Should it be 
+better in related work?}
 
 
 %Let $G = (V_G,E_G,\lambda_G)$ and $P = (V_P,E_P, \lambda_P)$ be two graphs 
@@ -616,7 +635,7 @@ We obtain patterns of size upto 6 in under 4 minutes for the biggest instances i
 \section{Steiner Tree Formulation \label{SEC:STP}}
 
 Given a graph $G =
-(V, E)$ and a subset of its nodes $T \subseteq V$ , called \emph{terminals}, a 
+(V, E)$ and a subset of its nodes $T \subseteq V$, a 
 Steiner Tree $G_s = (V_s, E_s )$ is a tree such that $T \subseteq V_s \subseteq 
 V$ and $E_s \subseteq E$. In other words, $G_s$ spans all the nodes in $T$ and 
 may include additional nodes from $V$, in particular to ensure the 
@@ -629,10 +648,9 @@ by Karp \cite{Karp1972}.
 To formulate the \relonto{} schema mapping problem as a STP for a new source 
 $s^\star$, we construct the 
 \emph{integration graph} $~\mathcal{I}_\mathcal{O}^{s^\star} = 
-(\mathcal{V}_\mathcal{O}^{s^\star},\mathcal{E}_\mathcal{O}^{s^\star})$, with 
-nodes $\mathcal{V}_\mathcal{O}^{s^\star} = \mathcal{V_O} \cup 
-\mathcal{A}_{s^\star}$, 
-edges $\mathcal{E}_\mathcal{O}^{s^\star}$.
+(\mathcal{V}_\mathcal{O}^{s^\star},\mathcal{E}_\mathcal{O}^{s^\star})$, where  
+$\mathcal{V}_\mathcal{O}^{s^\star} = \mathcal{V_O} \cup 
+\mathcal{A}_{s^\star}$.
 
 The set of edges $\mathcal{E}_\mathcal{O}^{s^\star}$ is constructed by using 
 all the edges in the alignment 
@@ -661,11 +679,11 @@ An example of integration graph can be found in Fig. \ref{FIG:inte}.
 	\node[class, rectangle, rounded corners] (CLASS) at (0,0) { \small{Class 
 	Nodes of Alignment Graph}};
 	
-	\node[data] (stn1) at (-3.9,-1) {\scriptsize S.n};
-	\node[data] (cin1) at (-3.1,-1) {\scriptsize C1.n};
-	\node[data] (pen1) at (-2.3,-1) {\scriptsize P1.n};
-	\node[data] (peb1) at (-1.5,-1) {\scriptsize P1.b};
-	\node[data] (con1) at (-0.7,-1) {\scriptsize O1.n};
+	\node[data] (stn1) at (-3.9,-0.9) {\scriptsize S.n};
+	\node[data] (cin1) at (-3.1,-0.9) {\scriptsize C1.n};
+	\node[data] (pen1) at (-2.3,-0.9) {\scriptsize P1.n};
+	\node[data] (peb1) at (-1.5,-0.9) {\scriptsize P1.b};
+	\node[data] (con1) at (-0.7,-0.9) {\scriptsize O1.n};
 	
 	\path[draw,hasaA] (CLASS) edge[out=180,in=90] (stn1);
 	\path[draw,hasaA] (CLASS) edge[out=190,in=90] (cin1);	
@@ -675,7 +693,7 @@ An example of integration graph can be found in Fig. \ref{FIG:inte}.
 
 
 % % % CC2
-\def\ysh{0};
+\def\ysh{0.1};
 	
 	\node[data] (cin2) at (0.7,-1+\ysh) {\scriptsize C2.n};
 	\node[data] (con2) at (1.5,-1+\ysh) {\scriptsize O2.n};
@@ -694,16 +712,16 @@ brown!40!red!40!white,minimum
 height=18, minimum 
 width=220] 
 (source) at 
-(0,-3) 
+(0,-2) 
 {};
 \node[brown!40!red!40!white] 
 (source) at 
-(-4.1,-3) 
+(-4.1,-2) 
 {$s^\star$:};
-	\node[att] (a1) at (-3,-3) {\small Surame};
-	\node[att] (a2) at (-1,-3) {\small Workplace};
-	\node[att] (a3) at (1,-3) {\small Date};
-	\node[att] (a4) at (3,-3) {\small Location};
+	\node[att] (a1) at (-3,-2) {\small Surame};
+	\node[att] (a2) at (-1,-2) {\small Workplace};
+	\node[att] (a3) at (1,-2) {\small Date};
+	\node[att] (a4) at (3,-2) {\small Location};
 
 	\path[draw] (a1) -- (stn1);
 	\path[draw] (a1) -- (cin1);
@@ -726,9 +744,9 @@ width=220]
 	\path[draw] (a4) -- (con2);
 \end{tikzpicture}
 \caption{Example of integration graph. (`\tikz{ \node[att] () at (0,0)  
-{};}' are attribute nodes). We omit weights for clarity. Data node labels are 
-abbreviated but 
-correspond to the ones shown in Fig \ref{FIG:ali}.}
+{};}' are attribute nodes). We omit weights and only show the most likely 
+matches for clarity. Data node
+are the same as in Fig \ref{FIG:ali}.}
 \label{FIG:inte}
 \end{figure}
 
@@ -737,12 +755,10 @@ not necessarily rooted directed trees (e.g. Fig. \ref{FIG:sem}), therefore the
 direction of the edges is ignored for the STP model (and are all treated as 
 undirected edges). 
 
-The goal is to build a subgraph $T^\star= (V^\star, E^\star)$ 
-of the integration graph 
+The goal is to build a subgraph $T^\star= (V^\star, E^\star)$ of
 $\mathcal{I}_\mathcal{O}^{s^\star}$ for the new source $s^\star$. The solution 
 $T^\star$ will 
-be used to build the source description $\delta^\star = (s^\star, m^\star, 
-\phi^\star)$. 
+be used to build the source description $\delta^\star$. 
 In particular, $(\mathcal{V_O} \cap V^\star,\mathcal{E_O} \cap E^\star)$ 
 corresponds to the semantic model, and 
 $(\mathcal{A}_{s^\star},\mathcal{M}_\mathcal{O}^{s^\star} \cap E^\star)$ 
@@ -750,16 +766,20 @@ corresponds to
 the attribute mapping function.
 
 The solution $T^\star$ must satisfy the following constraints:
-\begin{enumerate}
-	\item $T^\star$ must be a subgraph of $\mathcal{I}_\mathcal{O}^{s^\star}$
-	\item $T^\star$ must be a tree (connected acyclic graph)
-	\item $\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$
-	\item $\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$
+%\begin{enumerate}
+	$(i)$ %\item 
+	$T^\star$ must be a subgraph of $\mathcal{I}_\mathcal{O}^{s^\star}$,
+	$(ii)$ %\item 
+	$T^\star$ must be a tree (connected acyclic graph),
+	$(iii)$ %\item 
+	$\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$,
+	$(iv)$ %\item 
+	$\forall a \in \mathcal{A}_{s^\star}, degree(a) = 1$,
 	%\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
 	%\{0,2\}$
-	\item $\forall n \in \mathcal{D_{G_O}} \cap V^\star, 
-	degree(a) = 2$
-\end{enumerate}
+	$(v)$ %\item 
+	$\forall n \in \mathcal{D_{G_O}} \cap V^\star, degree(a) = 2$
+%\end{enumerate}
 
 It is therefore natural to model this a STP with side constraints, since the 2 
 first requirements imply that $T^\star$ is a Steiner Tree of the integration 
@@ -816,72 +836,60 @@ Steiner tree and the normal behavior will take place.
 
 
 \section{Modeling as a Constraint Optimization Problem \label{SEC:CP}}
-
 \subsection{Definitions}
-A Constraint Satisfaction Problem (CSP) is a tuple $P = (\boldsymbol{v},D,C)$ 
+A Constraint Optimization Problem (COP) is a tuple $P = (\boldsymbol{v},C,o)$ 
 where $\boldsymbol{v}$ is a 
-set of \emph{variables}, $D$ is a set of unary constraints over 
-$\boldsymbol{v}$ specifying 
-the \emph{domain} of these variables, $C$ is a set of $n$-ary 
-\emph{constraints} over variables $\boldsymbol{v}$.
-A valuation $\theta(\boldsymbol{v})$ is a mapping from the set of variables to 
-values in $D$. 
-If there exist a valuation $\theta^\star$ such that all 
-variables map 
-to exactly one value, and all the constraints in $D\cup C$ are satisfied by the 
-valuation, then $\theta^\star$ is a \emph{solution} to $P$.
+set of \emph{variables}, $C$ is a set of $n$-ary 
+\emph{constraints} over variables $\boldsymbol{v}$ and $o$ is an 
+\emph{objective function} $o : \boldsymbol{v} \mapsto \mathbb{R}$ to be 
+(w.l.o.g.) minimized. 
+A valuation such that all variables in $\boldsymbol{v}$ map 
+to exactly one value, and all the constraints in $C$ are satisfied by the 
+valuation is a \emph{solution} to $P$. A solution $\theta$ is optimal if$\not 
+\exists \theta', \theta'(\boldsymbol{v}) < \theta(\boldsymbol{v})$.
 
-A Constraint Optimization Problem (COP) is a CSP with an additional 
-\emph{objective function} $o : \boldsymbol{v} \mapsto \mathbb{R}$ and a 
-\emph{sign} which is either \verb|minimize| or \verb|maximize|. 
 
+\ignore{
 A typical example of COP is the Traveling Salesman Problem, where we need to 
 find a route that visits all cities in a region exactly one and is of minimal 
 length.
+}
 
-\subsection{Constraint Programming}
-Constraint Programming (CP) allows the user to model a CSP or COP and give it 
-to a 
-solver that will find a solution to the CSP, or will report unsatisfiability if 
-no solution exists. In the case of COPs, the solver will try to optimize 
-the objective function and prove optimality as well.
+%\subsection{Constraint Programming}
+Constraint Programming (CP) allows the user to model a COP and give it 
+to a solver that will find solutions to the COP and while optimizing 
+the objective function (and prove optimality).
 
 Briefly, the way a CP solver works is by assigning a value to each variable of 
-$\boldsymbol{v}$ from $D$ in turn. At each iteration it will check whether any 
+$\boldsymbol{v}$ in turn. At each iteration it will check whether any 
 constraint in $C$ is violated, in which case it will backtrack to change it's 
-last decision. The choice of the order of the variables to be assigned, and the 
+last decision. \ignore{The choice of the order of the variables to be assigned, 
+and the 
 choice of the value to be assigned to each variable is called the \emph{search 
-strategy}.
+strategy}}.
 
 Since only using a backtracking algorithm would have a prohibitive cost, CP 
 uses a combination of search and \emph{propagation}. The latter is achieved by 
 \emph{propagating} the last decision made via specialized algorithms called 
-\emph{propagators}. A propagator is a function $p : (v, D_v) \mapsto D_v'$ that 
-takes a subset of the variables of the problem $v \subseteq \boldsymbol{v}$ and 
-the domain of those variables $D_v$ and returns a new domain for these 
-variables 
-such that $D_v' \sqsubseteq D$. That is, a propagator removes values form the 
-domains of variables (when possible). For a propagator to be correct, it must 
-not remove a value of the domain of a variable if such value could participate 
-in a solution given the decisions already made.
+\emph{propagators}. A propagator is a function that removes inconsistent values 
+form the domains of variables. That way, values that cannot appear in a 
+solution givent eh current set of decisions are never tried by the search. 
 
 \emph{Global constraints} are higher order constraints that enforce a 
-complicated 
-constraint over a set of variables. Typical examples of this is enforcing that 
-a set of variables take different values, or that they describe a path a in a 
-graph. Although it is possible to express these constraints with a conjunction 
-of simple constraints, it is often the case that specific algorithms for these 
-constraints perform substantially better than a decomposition approach (e.g. 
-\cite{regin1994filtering}). A wide 
-list of these global constraints can be found in \cite{beldiceanu2012global}.
+complex 
+constraint over a set of variables. These are typically implemented with 
+propagators that use specific algorithms for these 
+constraints and perform substantially better than a decomposition approach
+\cite{regin1994filtering,beldiceanu2012global}.
 
+\ignore{
 \subsubsection{Example} Consider the toy problem $P$ over variables $a$ and $b$ 
 such that $a \in \{2,3,4\}$, $b \in \{1,2,3\}$. Let $C = \{a + 2b \leq 4, a 
 \neq b\}$ be the constraints. If the search step decides that $a = 
 2$, then $(i)$ $a \neq b \Rightarrow b \in \{1,3\}$ and $(ii)$ $a + 2b \leq 4  
 \Rightarrow b \in \{1\}$. Thus we automatically know that $b = 1$ without never 
 trying any other of its original possible values. $\square$
-
+}
 
 \subsection{\relonto{} in Constraint Programming}
 In order to model this problem we used the \minizinc{} language 
@@ -899,16 +907,17 @@ to an attribute, as not all of them are part of $T^\star$.
 
 Because there are global constraints in CP specialized in matching 
 \cite{regin1994filtering}, we split the problem into two parts: the 
-\verb|steiner_tree| global constraint will only deal with the part of the 
+$\mathit{steiner}$ global constraint will only deal with the part of the 
 integration graph that corresponds to the alignment graph, and the 
-\verb|alldifferent| global constraint will deal with he matching part of the 
+$\mathit{alldifferent}$ global constraint will deal with he matching part of 
+the 
 problem.
 
 We use the following variables to represent the tree $T^\star$: Boolean 
 variables $c_n,\forall n \in 
 \mathcal{V_O}$, $c_e, \forall e \in	\mathcal{E_O}$ and an array of variables 
 $match$ indexed by the set of attributes of $s^\star$. The combination of these 
-sets fo variables define the value of $T^\star$: $c_n = \mathit{true}$ means 
+sets of variables define the value of $T^\star$: $c_n = \mathit{true}$ means 
 that $n \in V^\star$, $c_e = \mathit{true}$ means that $e \in E^\star$ and 
 $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in 
 \mathcal{D_{G_O}}$) means that the edge $(a,d) \in 
@@ -958,11 +967,12 @@ of the alignment graph
 and of total weight $w_{STP}$. Equations \ref{EQ:deg1} and \ref{EQ:deg2} ensure 
 that if a data node of the alignment graph is selected, then at most one edge 
 reaches it (from the side of the alignment graph) and otherwise it is 
-disconnected. Eq. \ref{EQ:matchdom} ensures that the domain of each variable in 
+disconnected. \ignore{Eq. \ref{EQ:matchdom} ensures that the domain of each 
+variable in 
 the array $match$ corresponds to a subset of data nodes of the alignment graph 
 for which there is an edge connecting to the attribute at hand. Eq. 
 \ref{EQ:alld} ensure that each attribute is mapped to exactly one data node of 
-the alignment graph. Equations \ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
+the alignment graph.} Equations \ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
 there is exactly one data node matched to an attribute, which has to be one of 
 the ones for which an edge existed. Eq. \ref{EQ:map} ensures that 
 if a data node of the alignment graph has been mapped to some attribute, then 
@@ -977,13 +987,12 @@ $unk_i$ data nodes behave like normal data nodes, and the connectedness
 requirement will make sure that \emph{root} is connected to the rest of the 
 tree (i.e. the semantic model).
 
-Note how this CP model is easily adaptable to more classic settings where no 
+Note how this CP model is easy to adapt to more classic settings where no 
 patterns are used (by dropping Eqs. \ref{EQ:patt} and \ref{EQ:pcost}), or where 
 the \emph{unknown} nodes are used (by dropping \ref{EQ:unk}).
 \section{Results \label{SEC:Res}}
 
 \subsection{Experimental Setup}
-\ddg{TODO}
 
 % datasets for evaluation
 We run experiments on two domains: museum and soccer (see Fig.~\ref{tab:data} for statistics).
@@ -1030,11 +1039,15 @@ The first modification also ensures the fairness of evaluation since both Karma 
 % performance metrics
 The performance of these systems is estimated in terms of \emph{precision} and \emph{recall}.
 Assuming $m^\star$ is the predicted semantic model and $m^\dag$ is the correct semantic model, then:
-$$precision = \frac{|rel(m^\star)\cap rel(m^\dag)|}{|rel(m^\star)|}$$
-$$recall = \frac{|rel(m^\star)\cap rel(m^\dag)|}{|rel(m^\dag)|}$$
+$$\mathit{prec} = \frac{|\mathit{rel}(m^\star)\cap 
+\mathit{rel}(m^\dag)|}{|\mathit{rel}(m^\star)|}, 
+\mathit{recall} = \frac{|\mathit{rel}(m^\star)\cap 
+\mathit{rel}(m^\dag)|}{|\mathit{rel}(m^\dag)|}$$
 where $rel(m)$ is the set of triples $(u,e,v)$ with $e$ being an edge from the vertex $u$ to the vertex $v$ in the semantic model $m$.
-Since we want to estimate the accuracy of both the matching and STP parts,
-we also include triples for attributes and data nodes into the corresponding sets.
+\ignore{Since we want to estimate the accuracy of both the matching and STP 
+parts,
+we also include triples for attributes and data nodes into the corresponding 
+sets.}
 Note that unmatched attributes as well as \emph{unknown} and \emph{root} nodes are not part of these sets.
 We perform also a modification to the ground truth semantic models:
 if the true semantic label of an attribute is not present in any of the previously mapped data sources,
@@ -1048,7 +1061,7 @@ matching task, we compare it against the state-of-the-art model \emph{DSL}~\cite
 We use \emph{mean reciprocal rank} (MRR) to evaluate semantic labeling models.
 This measure is useful to estimate how highly the true semantic label is ranked among top $k$ suggestions.
 It is calculated the following way:
-$$MRR = \frac{1}{n}\sum_{i=1}^{n}{\frac{1}{rank_i}},$$
+$MRR = \frac{1}{n}\sum_{i=1}^{n}{\frac{1}{rank_i}},$
 where $rank_i$ is the rank of the correct semantic label for the attribute $a_i$ among the top $k$ predictions.
 
 
@@ -1069,7 +1082,6 @@ We have run all our experiments on a Dell server with 252 GiB of memory, 2 CPUs 
 In all our experiments we use a timeout threshold of 15s for the chuffed solver.
 
 \subsection{Experimental Results}
-\ddg{TODO}
 
 To evaluate our new system \emph{serene}, we show that its semantic labeling model produces more accurate matches for attributes and the CP formulation leads to better semantic models in terms of precision and recall.
 
@@ -1148,7 +1160,6 @@ Our intution why our approach performs better is that we have encorporated featu
 		    (1,0.580144743457437)(2,0.699277168494516)(3,0.596982860940987)(4,0.683431847315197)(5,0.634133314342686)(6,0.630169810336433)(7,0.628025663269931)(8,0.642973856209151)(9,0.618457602339181)(10,0.616241290282443)(11,0.606940556177678)(12,0.605471976942706)(13,0.598988030767536)(14,0.608112237561116)(15,0.609841319882303)(16,0.578626150272492)(17,0.55776862026862)(18,0.57760989010989)(19,0.567994505494506)(20,0.492368742368742)(21,0.582722832722833)(22,0.574786324786325)(23,0.644688644688645)(24,0.658424908424909)(25,0.708791208791209)(26,0.716727716727717)(27,0.719373219373219)(28,0.708791208791209)
 		    };
 		%\legend{karma,serene,serene-pats}
-
 		\end{axis}
 \end{tikzpicture}
 \subcaption{precision}\label{fig:museumprec}
@@ -1649,8 +1660,6 @@ The sequential solutions are not always better, and hitting the optimal solution
 \npr{Maybe some words on how optimal solution found by chuffed relates to the ground truth?}
 
 \section{Related Work \label{SEC:pw}}
-\ddg{rewrite, add more}
-\npr{Now the opposite problem}
 
 Relational data sources are still one of the most popular ways to store enterprise or Web data, however, the issue with relational schema is the lack of a well-defined semantic description.
 A common ontology provides a way to represent the meaning of a relational schema and can facilitate the integration of heterogeneous data sources within a domain.
