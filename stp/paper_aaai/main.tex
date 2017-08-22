@@ -2199,5 +2199,32 @@ systems with variable training set size.}
 \caption{Average precision, recall and time on the museum domain for leave-one-out strategy and different weighting scheme for patterns in serene.}\label{fig:perfsol}
 \end{figure*}
 
+\begin{table}[ht]\small
+  \centering
+  \caption{Run times (s) for all instances on the museum domain}\label{tab:time}
+		\begin{tabular}{cccc}
+		\hline
+		System & Mean & Min & Max\\
+		\hline
+		karma & 0.48 & 0.19 & 2.3  \\
+		serene & 0.53 & 0.01 & 8 \\
+		serene-pats & 0.97 & 0.01 & 20.3 \\
+		\hline
+		\end{tabular} 
+\end{table}
+
+\begin{table}[ht]\small
+  \centering
+  \caption{Sizes of integration graphs on the museum domain}\label{tab:size}
+		\begin{tabular}{cccc}
+		\hline
+		 & Mean & Min & Max\\
+		\hline
+		number of nodes & 87.8 & 29 & 168  \\
+		number of edges & 1129.4 & 88 & 5629 \\
+		\hline
+		\end{tabular} 
+\end{table}
+
 
 \end{document}
