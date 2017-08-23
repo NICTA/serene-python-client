@@ -101,7 +101,10 @@ findings.
 \end{abstract}
 
 \section{Introduction}
-The problem of integrating heterogeneous data sources is a long standing issue in the database research field and is of high relevance in many real-world domains.
+The problem of integrating heterogeneous data sources is a long standing issue 
+in the database research field and is of high relevance in many real-world 
+domains (see e.g. 
+\cite{Rahm:2001:SAA:767149.767154,Dhamankar:imap,Taheriyan2013}).
 A common approach to tackle this problem is to design a global model and to
 construct source descriptions which specify mappings between the sources and
 the global model \cite{doan2012principles}.
@@ -113,9 +116,12 @@ Henceforth, we focus on a specific data integration problem: automatically mappi
 \subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Workplace, Date, Location}$\rangle$, 
 $\langle$\textit{Company, Event, Begin, Until, Location}$\rangle$ and 
 $\langle$\textit{Name, D.O.B, Location}$\rangle$.
-We do not \textit{a priori} know whether ``Date'' is the date of birth or the date a persons started working in the first table; or whether the ``Location'' on the second table refers to the location of the event, or the address of the company. 
+We do not \textit{a priori} know whether ``Date'' in the first table is the 
+date of birth or the date a persons started working; or whether the 
+``Location'' on the second table refers to the location of the event, or the 
+address of the company. 
 If we are given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to classes of the 
-ontology.$\square$
+ontology.\hfill$\square$
 
 In this paper we use Machine Learning techniques (ML) to learn mapping rules from previously mapped instances.
 To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum Cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
@@ -128,12 +134,15 @@ Lastly, we use Constraint Programming (CP) to
 find a minimum cost Steiner Tree in the graph.
 The goal is to assign the costs on the edges in such a way that the resulting 
 Steiner Tree is a valid and coherent semantic model for the new source. 
-We call our system \serene{}.
-
-The contributions of this work are:\ddg{TODO}
+The contributions of this work are:
 \begin{itemize}
-	\item A novel modeling framework for \relonto{} problem which seemlessly incorporates machine learning and constraint programming.
-	\item An efficient approach to handle attributes which cannot be matched to the ontology. \npr{semantic labeling model and root, unknown nodes in the alignment graph and additional constraints} 
+	\item A novel modeling framework for the \relonto{} problem which 
+	seamlessly incorporates machine learning and constraint programming.
+	\item An efficient approach to handle attributes which cannot be matched to 
+	the ontology, through a new semantic labeling model and a new STP 
+	model with additional nodes.
+	\item A flexible and extensible approach to the problem, which is easy to 
+	reuse and adapt to specific situations.
 \end{itemize}
 
 
@@ -141,9 +150,9 @@ Section \ref{SEC:problem} formally states the problem.
 In Section \ref{SEC:ML} we present how we convert the information given into a 
 useful data representation. 
 Section \ref{SEC:STP} shows how we model the problem as a STP, 
-whereas Section \ref{SEC:CP} discusses how we implement the model in CP. 
+whereas Section \ref{SEC:CP} presents our implementation in CP. 
 Section \ref{SEC:Res} shows our results. 
-Section \ref{SEC:pw} presents the previous work done to achieve this task. 
+Section \ref{SEC:pw} compares with the previous work done to achieve this task. 
 
 \section{Problem Statement \label{SEC:problem}}
 
@@ -229,7 +238,9 @@ property'' and
 \label{FIG:onto}
 \end{figure}
 
-In our work we consider that an ontology $\mathcal{O}$ has such basic elements as classes which represent a set of concepts, literal values, individuals which are members of classes and properties~\cite{Spanos:semweb}.
+In our work we consider that an ontology $\mathcal{O}$ includes basic elements 
+as classes which represent a set of concepts, literal values, individuals which 
+are members of classes and properties~\cite{Spanos:semweb}.
 Properties are classified into \emph{object properties}, which relate two 
 individuals, 
 and \emph{datatype properties}, which relate individuals to literal values.
@@ -248,7 +259,7 @@ whereas $\mathcal{D}_m$ corresponds to data
 properties. 
 Edges in the semantic model correspond to properties in the ontology, as 
 shown in Fig.~\ref{FIG:onto} and \ref{FIG:sem}.
-The semantic model may have several instances of a same ontology class or 
+The semantic model may have several instances of the same ontology class or 
 object property.
 
 \begin{figure}[ht]
@@ -337,7 +348,9 @@ $\mathcal{A}_s = (a_1,...,a_n)$.
 We want to map them to the target ontology $\mathcal{O}$.
 
 Following the traditional data integration framework~\cite{doan2012principles}, we decompose the problem into two parts: schema matching and schema mapping.
-Schema matching part, which we refer to as \emph{semantic labeling}, finds correspondences between attributes from data sources and data nodes of the target ontology.
+Schema matching, which we refer to as \emph{semantic labeling}, finds 
+correspondences between attributes from data sources and data nodes of the 
+target ontology.
 In the schema mapping part we want to generate the semantic models of data sources by identifying the connecting paths for the matched data nodes.
 
 An \emph{attribute mapping} function $\phi : \mathcal{A}_s \mapsto 
@@ -347,7 +360,7 @@ are connected to the nodes of $m$.
 The attribute mapping function addresses the first part of the problem (semantic labeling).
 
 We define a \emph{source description} as a triple $\delta = (s, m, \phi)$ where $s$ is a source, $m$ is a semantic model, and $\phi$ is an attribute mapping.
-Our problem can be stated now the following way. We have an ontology 
+Our problem can hence be stated as follows. We have an ontology 
 $\mathcal{O}$ and a set of source descriptions $S_T = \{(s_1, m_1, \phi_1),..., 
 (s_l, m_l, \phi_l)\}$.
 Given a new source $s^\star$, we want to build a semantic model $m^\star$ and an attribute mapping function $\phi^\star$ such that 
@@ -378,7 +391,8 @@ Firstly, there can be naming conflicts~\cite{Pinkel:rodi}, including those
 cases where users represent the same data in different ways.
 Secondly, semantically different attributes might have syntactically similar 
 content, for example, startDate versus endDate for the Event class.
-Thirdly, a considerable number of attributes which do not have any corresponding property in the ontology, either by accident or on purpose.
+Thirdly, there may be considerable number of attributes which do not have any 
+corresponding property in the ontology, either by accident or deliberately.
 %\ddg{CHECK!}
 
 We formulate the problem of semantic labeling as a multi-class classification
@@ -405,15 +419,15 @@ Among others, we compute mean cosine similarity for character distributions of a
 %The number of thus extracted features depends on the number of semantic labels in the training data.
 We train a random forest on the obtained sample. 
 
-In such way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O} 
+In this way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O} 
 \mapsto [0, 1]$,
-where $\psi(a_i,l_j)$ indicates the confidence of the attribute $a_i$ to be 
+where $\psi(a_i,l_j)$ indicates the confidence that the attribute $a_i$ is 
 mapped to the semantic type $l_j$.
 
-Note that we keep all the matches, regardless of the confidence fo the match. 
+Note that we keep all the matches, regardless of the confidence of the match. 
 This is an important difference between our system and other approaches 
 \cite{taheriyan2016learning} that 
-remove some of the matches based on heuristics to then simplify the task of 
+remove some of the matches based on heuristics in order to simplify the task of 
 finding the semantic model.
 
 %\ddg{IMPORTANT: Do we keep  all of them, or only the top $k$ with most 
@@ -611,12 +625,13 @@ To increase the coherence of the generated semantic models, we would like to dis
 \npr{reformulate for typed directed multigraphs and example based on Fig3}
 In our context, patterns are typed directed graphs.
 We mine these patterns from the set of semantic models in the training set $S_T$.
-This is known as Transactional Frequent Graph Pattern Mining, which contains the subgraph 
-isomorphism, known to be NP-complete.
+This is known as Transactional Frequent Graph Pattern Mining, which generalizes 
+the subgraph isomorphism problem, known to be NP-complete.
 The frequency of a pattern is an anti-monotonous measure, meaning that bigger 
 patterns will have lower supports than their subgraphs. \ddg{Define support}
 We solve this pattern mining task with the tool DIMSpan \cite{petermann2017dimspan} which adapts gSpan~\cite{yan2002gspan} pruning techniques to the typed graphs and uses Apache Flink for scalability.  
-We obtain patterns of size upto 6 in under 4 minutes for the biggest instances in our evaluation framework. 
+We obtain patterns of size up to 6 in under 4 minutes for the biggest instances 
+in our evaluation framework. 
 \npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe 
 cite my work on how databases perform for graph pattern matching. Should it be 
 better in related work?}
@@ -656,7 +671,8 @@ better in related work?}
 
 Given a graph $G =
 (V, E)$ and a subset of its nodes $T \subseteq V$, a 
-Steiner Tree $G_s = (V_s, E_s )$ is a tree such that $T \subseteq V_s \subseteq 
+Steiner Tree $G_s = (V_s, E_s )$ is a tree (connected acyclic graph) such that 
+$T \subseteq V_s \subseteq 
 V$ and $E_s \subseteq E$. In other words, $G_s$ spans all the nodes in $T$ and 
 may include additional nodes from $V$, in particular to ensure the 
 connectedness of the constructed tree. The Steiner Tree Problem 
@@ -674,7 +690,7 @@ $\mathcal{V}_\mathcal{O}^{s^\star} = \mathcal{V_O} \cup
 
 The set of edges $\mathcal{E}_\mathcal{O}^{s^\star}$ is constructed by using 
 all the edges in the alignment 
-graph, and edges connecting each attributes of $s^\star$ to the nodes in the 
+graph, and edges connecting each attribute of $s^\star$ to the nodes in the 
 alignment graph \emph{induced} by the semantic types (i.e. the set of nodes in 
 $\mathcal{D_{G_O}}$). We call this last set 
 of edges $\mathcal{M}_\mathcal{O}^{s^\star}$ (for ``matches''). Thus, 
@@ -686,7 +702,7 @@ the integration graph. For an edge $e \in \mathcal{E_O}$, $w_\mathcal{I}(e) =
 w_\mathcal{O}(e)$. For an edge $e 
 \in \mathcal{M}_\mathcal{O}^{s^\star}$ connecting attribute $a_i$ to the node 
 $l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
-ln(\psi(a_i,l_i))$. %\ddg{CHECK!}
+ln(\psi(a_i,l_j))$. %\ddg{CHECK!}
 
 An example of integration graph can be found in Fig. \ref{FIG:inte}.
 
@@ -738,7 +754,7 @@ width=220]
 (source) at 
 (-4.1,-2) 
 {$s^\star$:};
-	\node[att] (a1) at (-3,-2) {\small Surame};
+	\node[att] (a1) at (-3,-2) {\small Surname};
 	\node[att] (a2) at (-1,-2) {\small Workplace};
 	\node[att] (a3) at (1,-2) {\small Date};
 	\node[att] (a4) at (3,-2) {\small Location};
@@ -790,7 +806,7 @@ The solution $T^\star$ must satisfy the following constraints:
 	$(i)$ %\item 
 	$T^\star$ must be a subgraph of $\mathcal{I}_\mathcal{O}^{s^\star}$,
 	$(ii)$ %\item 
-	$T^\star$ must be a tree (connected acyclic graph),
+	$T^\star$ must be a tree,
 	$(iii)$ %\item 
 	$\forall a \in \mathcal{A}_{s^\star}, a\in V^\star$,
 	$(iv)$ %\item 
@@ -798,15 +814,15 @@ The solution $T^\star$ must satisfy the following constraints:
 	%\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
 	%\{0,2\}$
 	$(v)$ %\item 
-	$\forall n \in \mathcal{D_{G_O}} \cap V^\star, degree(a) = 2$
+	$\forall n \in \mathcal{D_{G_O}} \cap V^\star, degree(a) = 2$.
 %\end{enumerate}
 
-It is therefore natural to model this a STP with side constraints, since the 2 
-first requirements imply that $T^\star$ is a Steiner Tree of the integration 
-graph. By designing the weighting function $w_\mathcal{I}$ through ML 
-techniques, as shown in Section \ref{SEC:ML}, 
-our hope is that the minimum weight Steiner Tree is a valid semantic model for 
-the new source.
+It is therefore natural to model this a STP with side constraints, since the 
+two first requirements imply that $T^\star$ is a Steiner Tree of the 
+integration graph. By designing the weighting function $w_\mathcal{I}$ through 
+ML techniques, as shown in Section \ref{SEC:ML}, 
+our expectation is that the minimum weight Steiner Tree is a valid semantic 
+model for the new source.
 
 
 \subsection{Using Patterns}
@@ -823,7 +839,7 @@ information is integrated in the model.
 
 \subsection{Unmatched Attributes}
 It is common that the data sources to be integrated will have columns that 
-simply can't be matched to the ontology.
+simply cannot be matched to the ontology.
 This can happen when a column of a source table contains some information that 
 is uninteresting to the user, or because the ontology has not been properly 
 designed. 
@@ -850,8 +866,8 @@ Steiner tree, the \emph{unknown} node and one of the other selected Class nodes
 will 
 both be connected to the \emph{root} node. 
 Note that if all attributes find a 
-match, then both the \emph{unknown} and \emph{root} won't be selected in the 
-Steiner tree and the normal behavior will take place.
+match, then both the \emph{unknown} and \emph{root} nodes won't be selected in 
+the Steiner tree and the normal behavior will take place.
 \ddg{Explain the weights of the edges introduced by the unknown nodes}
 
 
@@ -859,6 +875,7 @@ Steiner tree and the normal behavior will take place.
 
 \section{Modeling in Constraint Programming \label{SEC:CP}}
 \subsection{Definitions}
+
 A Constraint Optimization Problem (COP) is a tuple $P = (\boldsymbol{v},C,o)$ 
 where $\boldsymbol{v}$ is a 
 set of \emph{variables}, $C$ is a set of $n$-ary 
@@ -870,29 +887,21 @@ to exactly one value, and all the constraints in $C$ are satisfied by the
 valuation is a \emph{solution} to $P$. A solution $\theta$ is optimal if$\not 
 \exists \theta', \theta'(\boldsymbol{v}) < \theta(\boldsymbol{v})$.
 
-
-\ignore{
-A typical example of COP is the Traveling Salesman Problem, where we need to 
-find a route that visits all cities in a region exactly one and is of minimal 
-length.
-}
-
-%\subsection{Constraint Programming}
 Constraint Programming (CP) allows the user to model a COP and give it 
 to a solver that will find solutions while optimizing 
 the objective function (and prove optimality).
 
 Briefly, the way a CP solver works is by assigning a value to each variable of 
 $\boldsymbol{v}$ in turn. At each iteration it will check whether any 
-constraint in $C$ is violated, in which case it will backtrack to change it's 
+constraint in $C$ is violated, in which case it will backtrack to change its 
 last decision. \ignore{The choice of the order of the variables to be assigned, 
 and the 
 choice of the value to be assigned to each variable is called the \emph{search 
-strategy}}.
+strategy}.}
 Since only using a backtracking algorithm would have a prohibitive cost, CP 
 uses a combination of search and \emph{propagation}. The latter is achieved by  
 removing inconsistent values 
-form the domains of variables. That way, values that cannot appear in a 
+from the domains of variables. That way, values that cannot appear in a 
 solution, given the current set of decisions, are never tried by the search. 
 \emph{Global constraints} are higher order constraints that enforce a 
 complex 
@@ -901,14 +910,6 @@ specialized algorithms for these
 constraints and perform substantially better than a decomposition approaches
 \cite{regin1994filtering,beldiceanu2012global}.
 
-\ignore{
-\subsubsection{Example} Consider the toy problem $P$ over variables $a$ and $b$ 
-such that $a \in \{2,3,4\}$, $b \in \{1,2,3\}$. Let $C = \{a + 2b \leq 4, a 
-\neq b\}$ be the constraints. If the search step decides that $a = 
-2$, then $(i)$ $a \neq b \Rightarrow b \in \{1,3\}$ and $(ii)$ $a + 2b \leq 4  
-\Rightarrow b \in \{1\}$. Thus we automatically know that $b = 1$ without never 
-trying any other of its original possible values. $\square$
-}
 
 \subsection{\relonto{} in Constraint Programming}
 In order to model this problem we used the \minizinc{} language 
@@ -928,9 +929,8 @@ Because there are global constraints in CP specialized in matching
 \cite{regin1994filtering}, we split the problem into two parts: the 
 $\mathit{steiner}$ global constraint will only deal with the part of the 
 integration graph that corresponds to the alignment graph, and the 
-$\mathit{alldifferent}$ global constraint will deal with he matching part of 
-the 
-problem.
+$\mathit{alldifferent}$ global constraint will deal with the matching part of 
+the problem.
 
 We use the following variables to represent the tree $T^\star$: Boolean 
 variables $c_n,\forall n \in 
@@ -996,7 +996,7 @@ ensures that
 if a data node of the alignment graph has been mapped to some attribute, then 
 that data node must be in the solution tree, and vice-versa. Eq. 
 \ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
-Eq. \ref{EQ:patt} indicated that a pattern is used if and only if all its edges 
+Eq. \ref{EQ:patt} indicates that a pattern is used if and only if all its edges 
 are selected in the tree. Eq. \ref{EQ:pcost} computes the prizes collected by using patterns.
 Eq. \ref{EQ:unk} ensures that if the \emph{unknown} class node is used, then it 
 is connected to \emph{root}.
@@ -1006,13 +1006,16 @@ requirement will make sure that \emph{root} is connected to the rest of the
 tree (i.e. the semantic model).
 
 Note how this CP model is easy to adapt to more classic settings where no 
-patterns are used (by dropping Eqs. \ref{EQ:patt} and \ref{EQ:pcost}), or where 
-the \emph{unknown} nodes are used (by dropping \ref{EQ:unk}).
+patterns are used (by dropping Eqs. \ref{EQ:patt} and \ref{EQ:pcost}), or 
+without \emph{unknown} nodes (by dropping Eq. \ref{EQ:unk}).
 \section{Results \label{SEC:Res}}
 
 \subsection{Experimental Setup}
 
 % datasets for evaluation
+For the rest of the paper, we call our system \serene{} when it is not using 
+patterns in the CP model, and \serenepats{} when it uses them.
+
 We run experiments on two domains: museum and soccer (see Fig.~\ref{tab:data} for statistics).
 The museum dataset~\cite{taheriyan2016learning} contains 29 sources which are mapped to the EDM domain ontology.
 The soccer dataset~\cite{Pham:semantic} is much smaller with only 12 data sources, and its domain ontology is an extension of the schema.org ontology.
@@ -1048,9 +1051,12 @@ The soccer dataset~\cite{Pham:semantic} is much smaller with only 12 data source
 % baseline for evaluation
 We choose \karma{}~\cite{taheriyan2016learning} as our baseline.
 This system also phrases the \relonto{} problem as STP and decomposes it further into two parts.
-However, they use heuristic algorithms both for the matching and for the STP parts.
-They solve the problems sequentially, i.e., once they produce a set of candidate mappings for attributes into the ontology, they fix this set and move onto the STP part.
-Additionally, they do not consider unmatched attributes in the sources.
+However, it uses heuristic algorithms both for the matching and for the STP 
+parts.
+It solve the problems sequentially, i.e., once it produces a set of candidate 
+mappings for attributes into the ontology, it fixes this set and move onto the 
+STP part.
+Additionally, it does not consider unmatched attributes in the sources.
 To ensure that \karma{} also handles such attributes, we change its semantic 
 labeling model, SemanticTyper~\cite{Ramnandan:Assigning}, to ours and we add a 
 special \emph{unknown} ontology which gives specification for \emph{root} and 
@@ -1071,9 +1077,10 @@ parts,
 we also include triples for attributes and data nodes into the corresponding 
 sets.}
 Note that unmatched attributes as well as \emph{unknown} and \emph{root} nodes are not part of these sets.
-We perform also a modification to the ground truth semantic models:
-if the true semantic label of an attribute is not present in any of the previously mapped data sources,
-we substitute it with \emph{unknown} and map it to the \emph{Unknown} class node.
+We also perform a modification to the ground truth semantic models:
+if the true semantic label of an attribute $a$ is not present in any of the 
+previously mapped data sources, we substitute it with $unk_a$ and map it to the 
+\emph{unknown} class node.
 In such way we validate how well the systems can detect earlier unseen cases.
 
 % semantic labeling models
@@ -1099,9 +1106,11 @@ Such procedure ensures that each source is at least once in the training as well
 
 
 % architecture
-We have run all our experiments on a Dell server with 252 GiB of memory, 2 CPUs with 4 cores each, 1 Titan GPU and 1 GeForce 1080 Ti GPU.
+We have run all our experiments on a Dell server with 252 GB of memory, 2 CPUs 
+with 4 cores each.
 \npr{check characteristics, AWS machine is bigger}
-In all our experiments we use a timeout threshold of 15s for \chuffed{}.
+In all our experiments we use a timeout threshold of 15s for \chuffed{}, which 
+runs on a single core (thus easy to deploy on any user's machine).
 
 \subsection{Experimental Results}
 
@@ -1116,7 +1125,9 @@ approach DSL~\cite{Pham:semantic}. } %Repeat from above
 Tab.~\ref{tab:semlab} provides evidence that our new semantic labeling model is better suited for the task when there are unmatched attributes in domains.
 DSL uses heuristic measures to capture the similarity of attributes within the same class.
 It is clear that we cannot directly speak about similarity for unmatched attributes, since they are rather dissimilar from known semantic types.
-Our intution why our approach performs better is that we have encorporated features which are derived directly from attribute values and are not based on the notion of similarity.
+Our intuition as to why our approach performs better is that we have 
+incorporated features which are derived directly from attribute values and are 
+not based on the notion of similarity.
 \npr{Good enough explanation?}
 
 \begin{table}[!ht]\small
@@ -1129,8 +1140,8 @@ Our intution why our approach performs better is that we have encorporated featu
   		\multicolumn{2}{c}{Train time ($s$)}\\
   		 & museum & soccer & museum & soccer\\
   		\hline
-  		DSL & 0.56 & 0.618 & 156.6 & 36.3\\
- 		Serene & 0.866 & 0.827 & 100.6 & 6.8\\
+  		DSL & 0.560 & 0.618 & 156.6 & 36.3\\
+ 		\textsc{Serene(Pats)} & 0.866 & 0.827 & 100.6 & 6.80\\
   		\hline
 		\end{tabular} 
 %\vspace*{-3mm}
@@ -1180,7 +1191,7 @@ Our intution why our approach performs better is that we have encorporated featu
 		
 		\end{axis}
 \end{tikzpicture}
-\subcaption{Precission (museum)}\label{fig:museumprec}
+\subcaption{Precision (museum)}\label{fig:museumprec}
 \end{minipage}%
 \begin{minipage}[b]{.5\linewidth}
 \centering
@@ -1268,7 +1279,7 @@ Our intution why our approach performs better is that we have encorporated featu
 
 		\end{axis}
 \end{tikzpicture}
-\subcaption{Precission (soccer)}\label{fig:soccerprec}
+\subcaption{Precision (soccer)}\label{fig:soccerprec}
 \end{minipage}%
 \begin{minipage}[b]{0.5\linewidth}
 \centering
@@ -1312,7 +1323,8 @@ Our intution why our approach performs better is that we have encorporated featu
 	\end{tikzpicture}
 \subcaption{Recall (soccer)}\label{fig:soccerrec}
 \end{minipage}%
-\caption{Performance over the museum and soccer datasets\label{fig:perf}}
+\caption{Performance over the museum and soccer datasets. Average size of 
+integration graph: 88 nodes and 1129 nodes.\label{fig:perf}}
 \end{figure}
 
 
@@ -1321,9 +1333,10 @@ We evaluate our new system \serene{} and its modification \serenepats{}, which
 uses graph patterns, against the state-of-the-art system \karma{}.
 All three systems have access to the same set of matches produced by our semantic labeling model.
 Fig.~\ref{fig:perf} show their performance on the museum and soccer domains.
-We report average precision, recall and run times for the systems with regard to variable number of semantic models in the training set.
+We report average precision and recall for the systems with regard to variable 
+number of semantic models in the training set.
 For \serene{} and \serenepats{} we report the first solutions found by
-\chuffed{}.
+\chuffed{}. All three systems find solutions in less than a second in average.
 We use default parameters for \karma{} which were shown to yield the best 
 results~\cite{taheriyan2016learning}.
 As we can see, \serene{} produces on average the best semantic models in terms 
@@ -1336,27 +1349,27 @@ instances.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% sequential solution
-In Fig.~\ref{fig:perfsol} we show how the performance of \serene{} changes 
+In Fig.~\ref{fig:loo} we show how the performance of \serene{} changes 
 across sequentially found solutions.
 \chuffed{} successively finds better solutions in terms of Eq. \ref{EQ:obj}, 
-however, as we can see from the results,
+however,
 that does not translate directly into more precise semantic models.
-Additionally, we investigate how the performance is influenced if we introduce a weighting scheme on the patterns,
-i.e., costs of patterns are scaled by a factor.
+On average, we have observed that \serene{} yields very good results already 
+with the first solution found, and plateaus after the third solution.
+
+Additionally, we investigate how the performance is influenced by introducing 
+a weighting scheme on the patterns, i.e., costs of patterns are scaled by a 
+factor.
 In Fig.~\ref{fig:perf} we use a scaling factor 1 
 for pattern costs.
-Fig.~\ref{fig:perfsol} demonstrates that by using scaling factors 5, 10 or 20 
-for patterns costs from the museum domain we can generate semantic models which 
+When trying scaling factors 5, 10 or 20 for patterns costs from the museum 
+domain we can generate semantic models which 
 are almost 90\% in precision and recall.
-This is a 20\% improvement in precision compared to the first solution found by 
-\serenepats{} and a 10\% improvement both in precision and recall for the 
-first solution from \serene{}.
-
-Yet such improvement comes at a cost in run time.
-On average, we have observed that \serene{} yields very good results already 
-with the first solution found.
-\serenepats{}, on the other hand, produces considerably better solutions with 
-scaled pattern costs and sequential solutions.
+This is a 20\% improvement in precision compared to the first solution found 
+with a scaling factor of 1, and a 10\% improvement both in precision and recall 
+for the first solution from \serene{}.
+Contrarily to \serene{}, \serenepats{} with scaled factors produced better 
+solutions in terms of precision over time.
 However, the sequential solutions are not always better, and hitting the 
 optimal solution may take hours.
 
@@ -1368,33 +1381,31 @@ time.
 
 % change in performance if we look at sequentially found solutions
 % only leave-one-out for museum domain with 15s timeout for chuffed
-\npr{not sure whether Fig.~\ref{fig:loo} is needed}
-\begin{figure}\small
-\begin{tikzpicture}\small
+
+\begin{figure}[!ht]
+\centering
+\begin{tikzpicture}[scale=0.4]
 \pgfplotsset{
     scale only axis,
-    small,
     xmin=0, xmax=9
 }
 
 \begin{axis}[
   axis y line*=left,
   ymin=0.5, ymax=1,
-  xlabel=solution number,
+  xlabel=Solution Number,
   ylabel=performance,
-  legend pos=south east,
+  		    		    style = {font=\huge}
 ]
 \addplot[smooth,mark=x,red]
   coordinates{
     (0,0.776507549540743)(1,0.71093042754513)(2,0.822783653218436)(3,0.845760233918129)(4,0.879310344827586)(5,0.88695652173913)(6,0.885964912280702)(7,0.870689655172414)(8,0.878260869565217)(9,0.87719298245614)
 
 }; \label{plot_one}
-\addlegendentry{precision}
 \addplot[smooth,mark=*,green]
   coordinates{
     (0,0.773180507486795)(1,0.677202255831871)(2,0.805899400726987)(3,0.838122605363985)(4,0.879310344827586)(5,0.879310344827586)(6,0.870689655172414)(7,0.870689655172414)(8,0.870689655172414)(9,0.862068965517241)
 }; \label{plot_two}
-\addlegendentry{recall}
 \end{axis}
 
 \begin{axis}[
@@ -1402,7 +1413,8 @@ time.
   axis x line=none,
   ymin=0, ymax=15,
   legend pos=south east,
-  ylabel=time (s)
+  ylabel=time (s),
+  		    		    style = {font=\huge}
 ]
 \addlegendimage{/pgfplots/refstyle=plot_one}\addlegendentry{precision}
 \addlegendimage{/pgfplots/refstyle=plot_two}\addlegendentry{recall}
@@ -1412,7 +1424,8 @@ time.
 }; \addlegendentry{time}
 \end{axis}
 \end{tikzpicture}
-\caption{Performance of \emph{serene} for leave-one-out strategy on the museum domain.}\label{fig:loo}
+\caption{Performance of \serene{} for leave-one-out strategy on the museum 
+domain.}\label{fig:loo}
 \end{figure}
 
 \npr{Maybe some words on how optimal solution found by chuffed relates to the ground truth?}
@@ -1420,7 +1433,9 @@ time.
 \section{Related Work \label{SEC:pw}}
 
 Relational data sources are still one of the most popular ways to store enterprise or Web data, however, the issue with relational schema is the lack of a well-defined semantic description.
-A common ontology provides a way to represent the meaning of a relational schema and can facilitate the integration of heterogeneous data sources within a domain.
+A common ontology provides a way of representing the meaning of a relational 
+schema and can facilitate the integration of heterogeneous data sources within 
+a domain.
 Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated, however, it becomes tedious with the growing number of heterogeneous schemata.
 Hence, automatic or semi-automatic approaches for relational-to-ontology schema mapping are being actively developed.
 
@@ -1438,7 +1453,7 @@ Our approach is complementary to the approaches from this group and at its curre
 However, constraint programming offers a convenient framework to incorporate integrity constraints specified either within relational or ontological schema as additional constraints to govern the search for the solution.
 This opens an interesting direction for further research to develop an automatic system.
 
-A major issue with fully automatic systems is though that constraints may be 
+A major issue with fully automatic systems is that constraints may be 
 inconsistent or absent completely, e.g., data from Web services or tables on 
 the Web.
 To overcome this issue, we can apply ML techniques.
@@ -1457,7 +1472,9 @@ This is especially beneficial at the start when the system does not have suffici
 
 As mentioned above, the approaches for mapping Web tables also perform semantic labeling.
 They design various similarity metrics for attribute names and values.
-However, they disregard the attributes which are not matched to the ontology (the so-called \emph{unknown} set of attributes) which are especially abundant on the Web~\cite{Ritze:matching}\cite{Pham:semantic}.
+However, they disregard the attributes which are not matched to the ontology 
+(the so-called \emph{unknown} set of attributes) which are especially abundant 
+on the Web~\cite{Ritze:matching,Pham:semantic}.
 It is clear that we cannot directly speak about similarity for unmatched attributes, since they are rather dissimilar from known semantic types.
 That is why we have developed a new approach for semantic labeling which can efficiently handle the \emph{unknown} class.
 We demonstrate its efficiency by comparing against the state-of-the-art approach DSL~\cite{Pham:semantic}.
@@ -1465,40 +1482,49 @@ We demonstrate its efficiency by comparing against the state-of-the-art approach
 We build upon the work of~\cite{taheriyan2016learning} and use their ideas for the construction of the alignment graph.
 The only difference is that we introduce the \emph{unknown} and \emph{root} class nodes and as many \emph{unknown} data nodes as there are attributes in the modeled data source.
 These nodes serve to capture the unmatched attributes from the source.
-Though we have modified Karma to treat these additional nodes as well, our approach outperforms Karma since we have additional constraints for these nodes and use an exact algorithm to solve the STP.
+Though we have modified \karma{} to treat these additional nodes as well, our 
+approach outperforms \karma{} since we have additional constraints for these 
+nodes and use an exact algorithm to solve the STP.
 \cite{taheriyan2016learning} treat the matching and STP parts of \relonto{} independently and use heuristic algorithms for both.
 We, on the other hand, use exact algorithms for both parts and address them within a unified CP model.
 
-In their follow up work, \cite{Taheriyan:Leveraging} suggest to use graph 
+In their follow up work, \cite{Taheriyan:Leveraging} suggest using graph 
 patterns to boost the performance of their system.
 To perform semantic modeling in such scenario, \cite{Taheriyan:Leveraging} had to revise their algorithm by introducing additional heuristics.
 However, in our case we only had to add pattern variables and to modify the 
 objective function in the \minizinc{} model.
 No changes to the solver were required.
 This makes our system very convenient and opens directions for validating various additional constraints.
-Though our approach beats the state-of-the-art in the conducted experiments, it 
+\ignore{Though our approach beats the state-of-the-art in the conducted 
+experiments, it 
 is worth noting that the scalability of our approach is under question.
 The main argument why exact solution for STP is feasible in our setting is that 
 we map data sources to a domain-specific ontology which is expected to be 
-limited in its size.
+limited in its size.}
 
 \section{Conclusion}
-In this paper we have introduced a new approach \serene{} to solve the 
-problem of relational-to-ontology schema mapping \relonto{}.
-We have also built its extension \serenepats{} which additionally uses 
-frequent graph patterns.
-Our experiments on two domains demonstrate that 
+In this paper we have introduced a new approach, \serene{} (and its extension 
+that uses frequent graph patterns, \serenepats{}) to solve the problem of 
+relational-to-ontology schema mapping.
+Our experiments demonstrate that 
 \serene{} generates on average more consistent semantic models in terms of 
 precision and recall compared to the state-of-the-art approach \karma{}.
 \serenepats{} produces, on average, better semantic models in terms of 
-recall, however, its overall performance is rather mixed if we consider the 
-first produced model.
-However, the solutions discovered by \serenepats{} afterwards tend to be 
+recall, and it's precision can be enhanced by adding a scaling factor for 
+pattern costs.
+
+Furthermore, our approach is extremely flexible and easy to extend with 
+specific side constraints thanks to the use of CP rather than a specific 
+heuristic algorithm.
+\ignore{
+However, the solutions discovered by \serenepats{} later tend to be 
 much better both in precision and recall.
 The disadvantage is though that it comes at a cost of run time.
-In the end, which approach to use for \relonto{} problem comes down to 
+In the end, which approach to use for the \relonto{} problem comes down to 
 trade-offs between precision, recall and time.
+}
 
+\ignore{
 %%%%%%%%future directions%%%%%%%%%%%%%
 % cold start problem and LOD
 One of the key limitations of our approach is the availability of training data 
@@ -1534,303 +1560,14 @@ and $n:1$ matches.
 transformations through Python scripts.
 \cite{Dhamankar:imap} offer a way to learn such transformations from the 
 historic data.
-This is one of the features which we want to incorporate into \emph{serene}.
-
+This is one of the features which we want to incorporate into \serene{}.
+}
 \bibliographystyle{aaai}
 \bibliography{main}
 
-\newpage
-
-%%%
-% performance figures
-%%%
-%%% museum domain
-\begin{figure*}[ht]\small
-\pgfplotsset{
-    small,
-    %legend style={legend pos=north east}
-    legend style={
-        at={(0.01,0.01)},
-        anchor=south west,
-    },
-   }%
-\begin{minipage}[b]{.34\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-\begin{axis}[
-		    xlabel={\emph{known semantic models}},
-		    ylabel={Performance},
-		    xmin=1, xmax=28,
-		    ymin=0.2, ymax=0.9,
-		    xtick={1,5,10,15,20,25,28},
-		    ytick={0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
-		    legend pos=south east,
-		    ymajorgrids=true,
-		    grid style=dashed
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (1,0.517753313989873)(2,0.488688737671076)(3,0.51551313872799)(4,0.495118819099343)(5,0.527778910368045)(6,0.532176796157059)(7,0.566662366701066)(8,0.637110556563823)(9,0.685799234290614)(10,0.538089511412941)(11,0.621051710776405)(12,0.599367875333495)(13,0.670421793119162)(14,0.583598347357422)(15,0.623587223886899)(16,0.645277499838855)(17,0.653525664651826)(18,0.665572696108086)(19,0.670283086011174)(20,0.663804745401859)(21,0.633242908391853)(22,0.66099516031458)(23,0.644625119528521)(24,0.72069799334011)(25,0.737468671679198)(26,0.715572819263667)(27,0.727291592547725)(28,0.752558983666062)
-};
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (1,0.551714513556619)(2,0.682453503286837)(3,0.567702774084261)(4,0.646748619299324)(5,0.65492113250734)(6,0.701065228379203)(7,0.684439263401395)(8,0.700511175298951)(9,0.681034059961129)(10,0.685637253116215)(11,0.699316636125265)(12,0.697036509934383)(13,0.693463987436823)(14,0.704225209488367)(15,0.732978923190269)(16,0.724305489322319)(17,0.699459026247245)(18,0.716210056654951)(19,0.698987880687053)(20,0.733337516584389)(21,0.751908839952318)(22,0.75007040599401)(23,0.750592804644915)(24,0.814515445676703)(25,0.810987671748541)(26,0.817791638186375)(27,0.826003784931597)(28,0.809805364617137)
-};
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (1,0.598323207198336)(2,0.656420469232034)(3,0.551668227640311)(4,0.620327113896406)(5,0.623771074555817)(6,0.652894375155994)(7,0.625071981901494)(8,0.623287932111462)(9,0.601893257814311)(10,0.601192717220153)(11,0.602088073148115)(12,0.581718160067067)(13,0.570577347465439)(14,0.572274187082211)(15,0.581600752329829)(16,0.565774690293304)(17,0.5550594629542)(18,0.565097183518236)(19,0.524149694006153)(20,0.511449953555217)(21,0.576679655627024)(22,0.571388650336019)(23,0.546588180559473)(24,0.608169608169608)(25,0.608169608169608)(26,0.633066933066933)(27,0.634654234654234)(28,0.628305028305028)
-};
-		%\legend{karma,serene,serene-pats}
-
-		\end{axis}
-\end{tikzpicture}
-\subcaption{precision}\label{fig:museumprec}
-\end{minipage}%
-%
-\begin{minipage}[b]{.33\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-		\begin{axis}[
-		    xlabel={\emph{known semantic models}},
-		    %ylabel={recall},
-		    xmin=1, xmax=28,
-		    ymin=0.2, ymax=0.9,
-		    xtick={1,5,10,15,20,25,28},
-		    ytick={0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
-		    ymajorgrids=true,
-		    grid style=dashed,
-		    legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (1,0.300191975130116)(2,0.387168789342702)(3,0.418780803201093)(4,0.414852632606256)(5,0.449767567691694)(6,0.454560596014134)(7,0.472473240503931)(8,0.552403403170667)(9,0.618322253509807)(10,0.45708434156857)(11,0.540246526073466)(12,0.523083348403042)(13,0.603209776078489)(14,0.509054454749254)(15,0.54874878365927)(16,0.577977828772285)(17,0.583053944903167)(18,0.591126557438254)(19,0.592414794781259)(20,0.591100946357877)(21,0.575601120513223)(22,0.587190134384184)(23,0.575949431206362)(24,0.655469912102772)(25,0.649409306042166)(26,0.64025693035835)(27,0.652378142479562)(28,0.666045239412379)
-};
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (1,0.517923133776792)(2,0.667141218952813)(3,0.56262382276875)(4,0.646790367442541)(5,0.651735815098987)(6,0.706388551614468)(7,0.698383379116542)(8,0.714984169630376)(9,0.700346244485205)(10,0.704664218197892)(11,0.717929077647748)(12,0.711690361988742)(13,0.707592621296799)(14,0.725417933239758)(15,0.760334088253952)(16,0.741766948274724)(17,0.726258869970838)(18,0.748428390280994)(19,0.723282293295816)(20,0.746991608671798)(21,0.769430045325921)(22,0.751719414109543)(23,0.756837646239269)(24,0.816669125330383)(25,0.816669125330383)(26,0.821841539123487)(27,0.824453869322024)(28,0.810608519269777)
-};
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (1,0.592810513524547)(2,0.704036744254136)(3,0.580300590445518)(4,0.665729761381935)(5,0.671789291034815)(6,0.721540066765983)(7,0.718258458411911)(8,0.728686409419572)(9,0.71549775963672)(10,0.719667189083217)(11,0.729479363111076)(12,0.713288181617252)(13,0.723866470903981)(14,0.739158277862456)(15,0.764121967041831)(16,0.755829992510182)(17,0.746486501253236)(18,0.758703555728573)(19,0.723655728717502)(20,0.729409784115667)(21,0.774654705722995)(22,0.768167419063295)(23,0.754561938768098)(24,0.828459715477971)(25,0.828459715477971)(26,0.838717192206036)(27,0.841329522404573)(28,0.833544778412933)
-};
-		 %\legend{karma,serene,serene-pats}
-
-		\end{axis}
-	\end{tikzpicture}
-\subcaption{recall}\label{fig:museumrec}
-\end{minipage}%
-%
-\begin{minipage}[b]{.33\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-\begin{axis}[
-		    xlabel={\emph{known semantic models}},
-		    %ylabel={time(s)},
-		    xmin=1, xmax=28,
-		    ymin=0.0, ymax=8.5,
-		    xtick={1,5,10,15,20,25,28},
-		    ytick={0.0,1,2,3,4,5,6,7,8},
-		    ymajorgrids=true,
-		    grid style=dashed,
-		    %legend pos=outer north east,
-		    %legend style={at={(0.5,-0.1)},anchor=north, legend columns=-1}
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (1,0.268540382385254)(2,0.485812822977702)(3,0.346803307533264)(4,0.372188647588094)(5,0.367514610290527)(6,0.37602166334788)(7,0.376668055852254)(8,0.410835981369019)(9,0.422285079956055)(10,0.424292365709941)(11,0.439166347185771)(12,0.446258664131165)(13,0.46294093132019)(14,0.484450976053874)(15,0.489395022392273)(16,0.550653139750163)(17,0.543892900149027)(18,0.760240634282429)(19,0.529818336168925)(20,0.544886191685995)(21,0.576984961827597)(22,0.557323813438416)(23,0.563650608062744)(24,0.60092453956604)(25,0.626034975051881)(26,0.663434648513793)(27,0.692028045654297)(28,0.702148389816284)
-};
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (1,0.0175)(2,0.665)(3,0.585)(4,0.561666666666667)(5,0.62)(6,0.655)(7,0.605)(8,0.66)(9,0.655)(10,0.766666666666667)(11,0.783333333333333)(12,0.933333333333333)(13,0.901666666666667)(14,0.968333333333333)(15,0.956666666666667)(16,1.03333333333333)(17,1.34166666666667)(18,1.44666666666667)(19,1.30833333333333)(20,1.31333333333333)(21,1.27833333333333)(22,1.31333333333333)(23,1.28166666666667)(24,1.472)(25,1.526)(26,1.528)(27,1.642)(28,1.52)
-};
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (1,0.02)(2,0.696666666666667)(3,0.619166666666666)(4,0.67)(5,0.65)(6,0.64)(7,0.615833333333333)(8,0.674166666666667)(9,0.741666666666667)(10,0.8375)(11,0.9125)(12,1.62)(13,1.05)(14,1.94583333333333)(15,1.11916666666667)(16,2.85916666666667)(17,1.55583333333333)(18,1.53666666666667)(19,3.27)(20,1.399)(21,1.63833333333333)(22,1.66)(23,3.24181818181818)(24,3.64444444444444)(25,3.69777777777778)(26,2.343)(27,2.334)(28,2.373)
-};
-		 %\legend{karma,serene,serene-pats}
-
-		\end{axis}
-\end{tikzpicture}
-\subcaption{time (s)}\label{fig:museumtime}
-\end{minipage}%
-\caption{Average precision, recall and time on the museum domain for \relonto{} 
-systems with variable training set size.}\label{fig:perfmuseum}
-\end{figure*}
-
-%%% soccer domain
-\begin{figure*}[ht]\small
-\pgfplotsset{
-    small,
-    %legend style={legend pos=north east}
-    legend style={
-        at={(0.01,0.01)},
-        anchor=south west,
-    },
-   }%
-\begin{minipage}[b]{.34\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-\begin{axis}[
-		    xlabel={\emph{known semantic models}},
-		    ylabel={Performance},
-		    xmin=1, xmax=11,
-		    ymin=0.5, ymax=0.9,
-		    xtick={1,2,4,6,8,10,11},
-		    ytick={0.5,0.6,0.7,0.8,0.9,1},
-		    legend pos=south east,
-		    ymajorgrids=true,
-		    grid style=dashed
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (1,0.635191626901633)(2,0.549997502815009)(3,0.675720834727361)(4,0.719693253328935)(5,0.759169846724195)(6,0.760054331456753)(7,0.800812140122402)(8,0.812192030050689)(9,0.799552066440611)(10,0.821470975418344)(11,0.785878855002637)
-		    };
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (1,0.676934852587026)(2,0.61473599870339)(3,0.723937079602602)(4,0.786238815638129)(5,0.777035817669233)(6,0.781984613615049)(7,0.81368099248534)(8,0.817013725291758)(9,0.816270530687007)(10,0.846744827831784)(11,0.852649148301322)
-		    };
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (1,0.66759959719914)(2,0.629014687197419)(3,0.692208378950833)(4,0.744652988406557)(5,0.773486992410165)(6,0.756607637648352)(7,0.803820434917082)(8,0.793054493090329)(9,0.792256229657042)(10,0.822093203062231)(11,0.828181360184871)
-		    };
-		%\legend{karma,serene,serene-pats}
-
-		\end{axis}
-\end{tikzpicture}
-\subcaption{precision}
-\end{minipage}%
-%
-\begin{minipage}[b]{.33\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-		\begin{axis}[
-		    xlabel={\emph{known semantic models}},
-		    %ylabel={recall},
-		    xmin=1, xmax=11,
-		    ymin=0.3, ymax=0.9,
-		    xtick={1,2,4,6,8,10,11},
-		    ytick={0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
-		    ymajorgrids=true,
-		    grid style=dashed,
-		    legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (1,0.444761527680188)(2,0.372447158105053)(3,0.545528381345078)(4,0.596008831526073)(5,0.6499887923799)(6,0.643884492868159)(7,0.685035675993026)(8,0.702870161195933)(9,0.654001538724769)(10,0.685153350715964)(11,0.662999993217779)
-		    };
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (1,0.690636806043505)(2,0.613080486764697)(3,0.72563707600459)(4,0.780625908674911)(5,0.776616927805676)(6,0.779496772132888)(7,0.813459305700685)(8,0.813245834960899)(9,0.810586300672508)(10,0.84298404022542)(11,0.849899398175261)
-		    };
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (1,0.689786194666577)(2,0.655399210040359)(3,0.719915653815835)(4,0.776231754935929)(5,0.802770096610387)(6,0.787355423564135)(7,0.838616573256072)(8,0.82175912881902)(9,0.821414409345444)(10,0.851497334083541)(11,0.85656084018153)
-		    };
-		 \legend{karma,serene,serene-pats}
-
-		\end{axis}
-	\end{tikzpicture}
-\subcaption{recall}
-\end{minipage}%
-%
-\begin{minipage}[b]{.33\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-\begin{axis}[
-		    xlabel={\emph{known semantic models}},
-		    %ylabel={time(s)},
-		    xmin=1, xmax=11,
-		    ymin=0.0, ymax=0.3,
-		    xtick={1,2,4,6,8,10,11},
-		    ytick={0.0,0.1,0.2},
-		    ymajorgrids=true,
-		    grid style=dashed,
-		    %legend pos=outer north east,
-		    %legend style={at={(0.5,-0.1)},anchor=north, legend columns=-1}
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (1,0.107354099100286)(2,0.137003461519877)(3,0.163627962271372)(4,0.17774627606074)(5,0.179288367430369)(6,0.183507978916168)(7,0.189805428187052)(8,0.191188136736552)(9,0.196139633655548)(10,0.200133164723714)(11,0.218581974506378)
-		    };
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (1,0.0595748017051003)(2,0.0895205450057983)(3,0.0976518734296163)(4,0.103216880957286)(5,0.108438626130422)(6,0.115763804117839)(7,0.125697635014852)(8,0.118865826924642)(9,0.119359710216522)(10,0.123752357959747)(11,0.153613630930583)
-		    };
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (1,0.0687879033522172)(2,0.0874820310419256)(3,0.103948153495789)(4,0.104214943885803)(5,0.115242712974548)(6,0.126150580406189)(7,0.122052125063809)(8,0.128753701051076)(9,0.129606107076009)(10,0.13165650844574)(11,0.142413517634074)
-		    };
-		 %\legend{karma,serene,serene-pats}
-
-		\end{axis}
-\end{tikzpicture}
-\subcaption{time (s)}
-\end{minipage}%
-\caption{Average precision, recall and time on the soccer domain for \relonto{} 
-systems with variable training set size.}
-\end{figure*}
 
 
+\ignore{
 %% sequentially found solutions and different weights for patterns
 \begin{figure*}[h]\small
 \pgfplotsset{
@@ -2015,189 +1752,9 @@ systems with variable training set size.}
 \caption{Average precision, recall and time on the museum domain for leave-one-out strategy and different weighting scheme for patterns in serene.}\label{fig:perfsol}
 \end{figure*}
 
-%% sequentially found solutions and different weights for patterns
-\begin{figure*}[h]\small
-\pgfplotsset{
-    small,
-    %legend style={legend pos=north east}
-    legend style={
-        at={(0.01,0.01)},
-        anchor=south west,
-    },
-   }%
-\begin{minipage}[b]{.34\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-\begin{axis}[
-		    xlabel={\emph{solution}},
-		    ylabel={Performance},
-		    xmin=0, xmax=20,
-		    ymin=0.7, ymax=1,
-		    xtick={0,5,10,15,20},
-		    ytick={0.7,0.8,0.9,1},
-		    legend pos=south east,
-		    ymajorgrids=true,
-		    grid style=dashed,
-		    legend style={at={(1.5,1.1)},anchor=south, legend columns=-1}
-		]
+}
 
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (0,0.813133718212162)(1,0.870689655172414)(2,0.869565217391304)(3,0.854700854700855)(4,0.847457627118644)(5,0.862068965517241)(6,0.862068965517241)(7,0.860869565217391)
-		    };
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (0,0.708791208791209)(1,0.720429778415431)(2,0.727852084972463)(3,0.734756097560976)(4,0.737969058591178)(5,0.723003960808839)(6,0.727905921593153)(7,0.740887177292826)(8,0.733003960808839)(9,0.746193299741805)(10,0.73554304773817)(11,0.74569890495285)(12,0.756325773784054)(13,0.745676961413577)(14,0.753615746683783)(15,0.7306060898002)(16,0.723882805154582)(17,0.720774744968293)(18,0.733079110976868)(19,0.731544715447155)(20,0.734034752112227)
-
-		    };
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (0,0.71031746031746)(1,0.722023912003826)(2,0.734193548387097)(3,0.740054370716392)(4,0.751788722391459)(5,0.752652119278914)(6,0.765286464150101)(7,0.766275317871063)(8,0.763956676916058)(9,0.779373522458629)(10,0.780497706328908)(11,0.786846912678115)(12,0.793409626193882)(13,0.801554001554001)(14,0.800878033205619)(15,0.861352657004831)(16,0.863636363636364)(17,0.863636363636364)(18,0.883720930232558)(19,0.8125)(20,0.795918367346939)
-		    };
-		\addplot[
-		    color=brown,
-		    mark=+,
-		    ]
-		    coordinates {
-		    (0,0.71031746031746)(1,0.722023912003826)(2,0.734193548387097)(3,0.740054370716392)(4,0.751788722391459)(5,0.752652119278914)(6,0.758342019705656)(7,0.772281323877069)(8,0.774638933587619)(9,0.786846912678115)(10,0.786846912678115)(11,0.795363644516187)(12,0.804524886877828)(13,0.797201562617384)(14,0.812955643390426)(15,0.775568181818182)(16,0.863636363636364)(17,0.883720930232558)(18,0.883720930232558)(19,0.883720930232558)(20,0.904761904761905)
-};
-		 \addplot[
-		    color=violet,
-		    mark=star,
-		    ]
-		    coordinates {
-		    (0,0.716727716727717)(1,0.728559859716244)(2,0.740860215053763)(3,0.746857091804827)(4,0.757315933275812)(5,0.758342019705656)(6,0.765286464150101)(7,0.779373522458629)(8,0.787744083140503)(9,0.786846912678115)(10,0.789244481875285)(11,0.804524886877828)(12,0.811442006269593)(13,0.803401771336554)(14,0.785524847694936)(15,0.849173553719008)(16,0.852651515151516)(17,0.866230213015439)(18,0.876750700280112)(19,0.85593220338983)(20,0.863247863247863)
-};
-		\legend{serene,pats-1,pats-5,pats-10,pats-20}
-
-		\end{axis}
-\end{tikzpicture}
-\subcaption{precision}\label{fig:solprec}
-\end{minipage}%
-%
-\begin{minipage}[b]{.33\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-		\begin{axis}[
-		    xlabel={\emph{solution}},
-		    %ylabel={recall},
-		    xmin=0, xmax=20,
-		    ymin=0.7, ymax=1,
-		    xtick={0,5,10,15,20},
-		    ytick={0.7,0.8,0.9,1},
-		    ymajorgrids=true,
-		    grid style=dashed,
-		    %legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (0,0.790229885057471)(1,0.870689655172414)(2,0.862068965517241)(3,0.862068965517241)(4,0.862068965517241)(5,0.862068965517241)(6,0.862068965517241)(7,0.853448275862069)
-		    };
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (0,0.828456983629397)(1,0.828456983629397)(2,0.828456983629397)(3,0.828456983629397)(4,0.828456983629397)(5,0.82088122605364)(6,0.82088122605364)(7,0.823754789272031)(8,0.82088122605364)(9,0.823754789272031)(10,0.841431556948798)(11,0.841431556948798)(12,0.841431556948798)(13,0.835684430512017)(14,0.838557993730407)(15,0.825583420411007)(16,0.810431905259492)(17,0.82088122605364)(18,0.82088122605364)(19,0.83098223615465)(20,0.833855799373041)
-};
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (0,0.83098223615465)(1,0.83098223615465)(2,0.83098223615465)(3,0.823406478578892)(4,0.828108672936259)(5,0.820532915360502)(6,0.828108672936259)(7,0.820532915360502)(8,0.820532915360502)(9,0.828108672936259)(10,0.820532915360502)(11,0.820532915360502)(12,0.818007662835249)(13,0.810431905259492)(14,0.800330895158482)(15,0.867163009404389)(16,0.863636363636364)(17,0.863636363636364)(18,0.863636363636364)(19,0.886363636363636)(20,0.886363636363636)
-};
-		 \addplot[
-		    color=brown,
-		    mark=+,
-		    ]
-		    coordinates {
-		    (0,0.83098223615465)(1,0.83098223615465)(2,0.83098223615465)(3,0.823406478578892)(4,0.828108672936259)(5,0.820532915360502)(6,0.820532915360502)(7,0.820532915360502)(8,0.820532915360502)(9,0.820532915360502)(10,0.820532915360502)(11,0.820532915360502)(12,0.820532915360502)(13,0.810431905259492)(14,0.810431905259492)(15,0.765151515151516)(16,0.863636363636364)(17,0.863636363636364)(18,0.863636363636364)(19,0.863636363636364)(20,0.863636363636364)
-};
-		 \addplot[
-		    color=violet,
-		    mark=star,
-		    ]
-		    coordinates {
-		    (0,0.838557993730407)(1,0.838557993730407)(2,0.838557993730407)(3,0.83098223615465)(4,0.828108672936259)(5,0.820532915360502)(6,0.828108672936259)(7,0.828108672936259)(8,0.828108672936259)(9,0.820532915360502)(10,0.820532915360502)(11,0.820532915360502)(12,0.818007662835249)(13,0.800330895158482)(14,0.790229885057471)(15,0.867163009404389)(16,0.867163009404389)(17,0.867163009404389)(18,0.867163009404389)(19,0.870689655172414)(20,0.870689655172414)
-};	
-	%\legend{serene,pats-1,pats-5,pats-10,pats-20}
-		\end{axis}
-	\end{tikzpicture}
-\subcaption{recall}\label{fig:solrec}
-\end{minipage}%
-%
-\begin{minipage}[b]{.33\linewidth}
-\centering
-\begin{tikzpicture}[baseline]
-\begin{axis}[
-		    xlabel={\emph{solution}},
-		    %ylabel={time(s)},
-		    xmin=0, xmax=20,
-		    ymin=0.0, ymax=21,
-		    xtick={0,5,10,15,20},
-		    ytick={0.0,3.0,6.0,9.0,12,15.0,18,21.0},
-		    ymajorgrids=true,
-		    grid style=dashed,
-		    %legend pos=outer north east,
-		    %legend style={at={(0.5,-0.1)},anchor=north, legend columns=-1}
-		]
-
-		\addplot[
-		    color=blue,
-		    mark=square,
-		    ]
-		    coordinates {
-		    (0,2.47666666666667)(1,7.15)(2,7.41)(3,8.83)(4,9.15)(5,9.32)(6,9.84)(7,10.04)
-};
-		\addplot[
-		    color=red,
-		    mark=*,
-		    ]
-		    coordinates {
-		    (0,3.75)(1,3.8)(2,3.84)(3,3.88666666666667)(4,3.93333333333333)(5,3.98)(6,4.03333333333333)(7,4.08)(8,4.13333333333333)(9,4.23)(10,4.29333333333333)(11,4.34)(12,4.38666666666667)(13,4.74)(14,4.83)(15,5.74333333333333)(16,5.96333333333333)(17,6.48666666666667)(18,6.53)(19,6.58333333333333)(20,6.63)
-};
-		\addplot[
-		    color=green,
-		    mark=x,
-		    ]
-		    coordinates {
-		    (0,3.74)(1,3.79)(2,3.83666666666667)(3,3.88666666666667)(4,3.93666666666667)(5,3.98666666666667)(6,4.03666666666667)(7,4.09333333333333)(8,4.17333333333333)(9,4.23)(10,4.31666666666667)(11,4.38)(12,4.54333333333333)(13,5)(14,6.17666666666667)(15,6.755)(16,1.61)(17,2.21)(18,2.35)(19,2.61)(20,3.11)
-};
-		\addplot[
-		    color=brown,
-		    mark=+,
-		    ]
-		    coordinates {
-		    (0,3.75)(1,3.8)(2,3.84666666666667)(3,3.89666666666667)(4,3.95)(5,3.99666666666667)(6,4.05)(7,4.10333333333333)(8,4.16666666666667)(9,4.23333333333333)(10,4.43)(11,4.53333333333333)(12,4.78)(13,5.15333333333333)(14,5.36333333333333)(15,3.365)(16,1.91)(17,1.95)(18,8.42)(19,8.62)(20,8.85)
-};
-		 \addplot[
-		    color=violet,
-		    mark=star,
-		    ]
-		    coordinates {
-		    (0,3.73666666666667)(1,3.78666666666667)(2,3.83666666666667)(3,3.88333333333333)(4,3.93666666666667)(5,3.98666666666667)(6,4.04333333333333)(7,4.09666666666667)(8,4.16)(9,4.22)(10,4.38333333333333)(11,4.49)(12,4.72333333333333)(13,4.99333333333333)(14,9.33333333333333)(15,10.715)(16,10.86)(17,10.915)(18,12.65)(19,20.35)(20,20.56)
-};	
-	%\legend{serene,pats-1,pats-5,pats-10,pats-20}
-		\end{axis}
-\end{tikzpicture}
-\subcaption{time (s)}\label{fig:soltime}
-\end{minipage}%
-\caption{Average precision, recall and time on the museum domain for leave-one-out strategy and different weighting scheme for patterns in serene.}\label{fig:perfsol}
-\end{figure*}
+\ignore{
 
 \begin{table}[ht]\small
   \centering
@@ -2212,7 +1769,6 @@ systems with variable training set size.}
 		\hline
 		\end{tabular} 
 \end{table}
-
 \begin{table}[ht]\small
   \centering
   \caption{Sizes of integration graphs on the museum domain}\label{tab:size}
@@ -2225,6 +1781,6 @@ systems with variable training set size.}
 		\hline
 		\end{tabular} 
 \end{table}
-
+}
 
 \end{document}
