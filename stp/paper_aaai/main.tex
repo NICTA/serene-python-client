@@ -74,6 +74,9 @@ length=10,amplitude=0.3,post length=4}]
 
 \newcommand{\ignore}[1]{}
 
+\newcommand{\citeasnoun}[1]{\citeauthor{#1}~\shortcite{#1}}
+
+
 %PDF Info Is Required:
 
 %  \pdfinfo{
@@ -227,13 +230,11 @@ Section \ref{SEC:pw} compares with the previous work done to achieve this task.
 \end{tikzpicture}
 \caption{Example of ontology
 (`\tikz{ \node[class] () at (0,0)  {};}' are Classes, `\tikz{ \path[hasaC,->] 
-(0,1) -- (3ex,1);}' means ``has a Class property'', 
+(0,1) -- (3ex,1);}' means ``has an object property'', 
 `\tikz{ \path[hasaA,decoration={post length=0}] (0,0) edge[decorate] (3ex,0);}' 
-means ``has 
-a data 
-property'' and 
-`\tikz{ \path[isa,->] (0,1) -- (3ex,1);}' means ``is a'' ). Based on 
-\cite{Taheriyan2013}.
+means ``has a data property'' and 
+`\tikz{ \path[isa,->] (0,1) -- (3ex,1);}' means ``is a'' ). Example by
+\citeasnoun{Taheriyan2013}.
 }
 \label{FIG:onto}
 \end{figure}
@@ -1443,7 +1444,9 @@ Hence, automatic or semi-automatic approaches for relational-to-ontology schema 
 The majority of approaches to solve the \relonto{} mapping problem are based on 
 heuristic rules and alignment of constraints specified within relational 
 schemata and ontologies.
-A very comprehensive overview and comparison of existing mapping generation tools based on this approach is given in~\cite{Pinkel:rodi} and~\cite{Spanos:semweb}.
+A very comprehensive overview and comparison of existing mapping generation 
+tools based on this approach is given by~\citeasnoun{Pinkel:rodi}
+and~\citeasnoun{Spanos:semweb}.
 As examples, there are BootOX~\cite{Jimenez:Bootox}, MIRROR~\cite{Luciano:Mirror} and  ontop~\cite{Fagin:Clio}.
 Crudely speaking, these tools first apply a default direct mapping specified by the W3C.
 Further, the default ontology is enriched by using explicit and implicit schema constraints.
@@ -1457,12 +1460,16 @@ A major issue with fully automatic systems is that constraints may be
 inconsistent or absent completely, e.g., data from Web services or tables on 
 the Web.
 To overcome this issue, we can apply ML techniques.
-\cite{Limaye:Annotating} design a system to annotate web tables with entities for cell values, semantic labels for attributes and relationships for binary combinations of attributes.
+\citeasnoun{Limaye:Annotating} design a system to annotate web tables with 
+entities for cell values, semantic labels for attributes and relationships for 
+binary combinations of attributes.
 As in our approach, they decompose the process of mapping into two main stages: semantic labeling and finding relationships between matched semantic labels.
-\cite{Limaye:Annotating} enrich their data sources by using YAGO.
-\cite{Mulwad:Semantic} extend this approach by leveraging information from Wikitology Knowledge Base (KB).
-\cite{Venetis:Recovering} develop a scalable approach to recover the semantics of Web tables by incorporating data from the isA database KB.
-\cite{Ritze:matching}, on the other hand, use DBPedia as their KB.
+\citeasnoun{Limaye:Annotating} enrich their data sources by using YAGO.
+\citeasnoun{Mulwad:Semantic} extend this approach by leveraging information 
+from Wikitology Knowledge Base (KB).
+\citeasnoun{Venetis:Recovering} develop a scalable approach to recover the 
+semantics of Web tables by incorporating data from the isA database KB.
+\citeasnoun{Ritze:matching}, on the other hand, use DBPedia as their KB.
 %extract additional data from knowledge bases to assign a semantic label to an attribute.
 Hence, these approaches are limited to domains well represented in those knowledge bases.
 Also, they are not able to find the relation between attributes in the table if there is no direct connection between the attributes.
@@ -1479,7 +1486,8 @@ It is clear that we cannot directly speak about similarity for unmatched attribu
 That is why we have developed a new approach for semantic labeling which can efficiently handle the \emph{unknown} class.
 We demonstrate its efficiency by comparing against the state-of-the-art approach DSL~\cite{Pham:semantic}.
 
-We build upon the work of~\cite{taheriyan2016learning} and use their ideas for the construction of the alignment graph.
+We build upon the work of \citeasnoun{taheriyan2016learning} and use their 
+ideas for the construction of the alignment graph.
 The only difference is that we introduce the \emph{unknown} and \emph{root} class nodes and as many \emph{unknown} data nodes as there are attributes in the modeled data source.
 These nodes serve to capture the unmatched attributes from the source.
 Though we have modified \karma{} to treat these additional nodes as well, our 
