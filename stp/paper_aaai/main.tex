@@ -96,7 +96,7 @@ relevance in the database field. Several techniques exist to approach this
 problem. Nonetheless, side constraints on the data integration cannot be easily 
 integrated with these tools and thus the results may be inconsistent. We 
 present a new approach that combines Machine Learning and 
-Constraint Programming techniques, by modelling the data integration problem as 
+Constraint Programming techniques, by modeling the data integration problem as 
 a Steiner Tree Problem in a weighted graph. We show that through this approach 
 we can achieve better precision, recall and speed compared to state-of-the-art 
 approaches. We provide a comprehensive set of experiments supporting our 
@@ -260,23 +260,22 @@ whereas $\mathcal{D}_m$ corresponds to data
 properties. 
 Edges in the semantic model correspond to properties in the ontology, as 
 shown in Fig.~\ref{FIG:onto} and \ref{FIG:sem}.
-The semantic model may have several instances of the same ontology class or 
-object property.
+The semantic model may have several instances of the same ontology class, that is why class nodes are enumerated.
 
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}
 \begin{scope}
-	\node[class] (pe) at (3,0)  {\small Person};
-	\node[class] (co) at (6,0) {\small Org.};
-	\node[class] (ci) at (1,0) {\small City};
-	\node[class] (st) at (-1,0) {\small State};
+	\node[class] (pe) at (3,0)  {\small Person1};
+	\node[class] (co) at (6,0) {\small Org.1};
+	\node[class] (ci) at (1,0) {\small City1};
+	\node[class] (st) at (-1,0) {\small State1};
 	
-	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person.name};
-	\node[data] (peb) at (4.3,-0.7) {\scriptsize Person.birthDate};
-	\node[data] (cin) at (1,-0.7) {\scriptsize City.name};
-	\node[data] (stn) at (-1,-0.7) {\scriptsize State.name};
-	\node[data] (con) at (6,-0.7) {\scriptsize Org.name};
+	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person1.name};
+	\node[data] (peb) at (4.3,-0.7) {\scriptsize Person1.birthDate};
+	\node[data] (cin) at (1,-0.7) {\scriptsize City1.name};
+	\node[data] (stn) at (-1,-0.7) {\scriptsize State1.name};
+	\node[data] (con) at (6,-0.7) {\scriptsize Org1.name};
 	
 		
 	\path[hasaC,->] (pe) edge [bend left= 0] 
@@ -302,16 +301,16 @@ object property.
 	\path[draw,hasaA,->] (st) -- (stn);
 \end{scope}
 \begin{scope}[yshift=-40]
-	\node[class] (pl) at (-1,0)  {\small City};
-	\node[class] (pe) at (3,0)  {\small Person};
-	\node[class] (co) at (1,0) {\small Org.};
-	\node[class] (ev) at (6,0) {\small Event};
+	\node[class] (pl) at (-1,0)  {\small City2};
+	\node[class] (pe) at (3,0)  {\small Person2};
+	\node[class] (co) at (1,0) {\small Org.2};
+	\node[class] (ev) at (6,0) {\small Event1};
 	
-	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person.name};
-	\node[data] (evs) at (4.2,-0.7) {\scriptsize Event.startDate};
-	\node[data] (eve) at (6,-0.7) {\scriptsize Event.endDate};
-	\node[data] (con) at (1,-0.7) {\scriptsize Org.name};
-	\node[data] (pln) at (-1,-0.7) {\scriptsize City.name};
+	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person2.name};
+	\node[data] (evs) at (4.2,-0.7) {\scriptsize Event1.startDate};
+	\node[data] (eve) at (6,-0.7) {\scriptsize Event1.endDate};
+	\node[data] (con) at (1,-0.7) {\scriptsize Org2.name};
+	\node[data] (pln) at (-1,-0.7) {\scriptsize City2.name};
 	
 		
 	\path[hasaC,->] (co) edge [bend left= 0] 
@@ -401,10 +400,14 @@ problem.
 The known source descriptions $S_T$ provide us the training sample.
 We compute a feature vector for each attribute in a data source and associate 
 the known semantic type with the corresponding feature vector.
-The feature vector includes characteristics of the attribute such as a number 
-of whitespaces and other special characters, statistics of values in the column 
-(e.g, mean/max/min string length and numeric statistics) and more. A full 
-list can be found in appendix \ddg{Apendix!}
+The feature vector, among others, includes characteristics
+such as a number 
+of whitespaces and other special characters, statistics of 
+values in the column 
+(e.g, mean/max/min string length and numeric statistics), etc. 
+A full list can be found in appendix \ddg{Apendix!}
+\npr{If I remove entropy descr, we are perfectly within page limit}
+%\ignore{
 One of the important features characterising information content of an attribute is Shannon's entropy of the attribute's concatenated rows.
 Shannon's entropy (or information entropy~\cite{Manning:Introduction}) of a string $X$ is defined as
 $H(X) = -\sum_{i}{p_i \log_{2}p_i},$ where $p_i$ is the probability of a character, whose index in character vocabulary is $i$, to appear in $X$, and the summation ranges over all
@@ -412,6 +415,7 @@ characters in the vocabulary of all possible characters.
 To evaluate $p_i$ in Shannon's entropy, we evaluate normalized character frequency distribution \emph{chardist} of an attribute, as character counts in concatenated rows of the attribute, normalized by the total length of the concatenated rows.
 The vocabulary of all characters consists of 100 printable characters (including $\backslash$n).
 Finally, we add the 100-dimensional vector of $p_i$ to the attribute feature vector.
+%}
 We also compute a set of features based on similarity metrics inspired by state-of-the-art works~\cite{Pham:semantic} or~\cite{Ritze:matching}.
 Among others, we compute mean cosine similarity for character distributions of attribute values and string similarity metrics for attribute names.
 %To extract features from attribute names, we compute string similarity metrics: minimum edit distance, two WordNet based similarity measures such as JCN~\cite{Jiang:Semantic} and LIN ~\cite{Lin:Information}, and $k$-nearest neighbors using Needle-Wunsch distance~\cite{Needleman:General}.
@@ -429,7 +433,8 @@ Note that we keep all the matches, regardless of the confidence of the match.
 This is an important difference between our system and other approaches 
 \cite{taheriyan2016learning} that 
 remove some of the matches based on heuristics in order to simplify the task of 
-finding the semantic model. \ddg{is this last paragraph true?}
+finding the semantic model. 
+%\ddg{is this last paragraph true?} \npr{yes}
 
 %\ddg{IMPORTANT: Do we keep  all of them, or only the top $k$ with most 
 %confidence? If so, 
@@ -501,12 +506,12 @@ appeared in the semantic models).
 	\node[class] (pe1) at (3,0)  {\small Person1};
 	\node[class] (co1) at (6,0) {\small Org.1};
 	\node[class] (ci1) at (1,0) {\small City1};
-	\node[class] (st1) at (-1,0) {\small State};
+	\node[class] (st1) at (-1,0) {\small State1};
 	
 	\node[data] (pen) at (2.3,0.7) {\scriptsize Person1.name};
 	\node[data] (peb) at (4.2,0.7) {\scriptsize Person1.birthDate};
 	\node[data] (cin) at (0.7,0.7) {\scriptsize City1.name};
-	\node[data] (stn) at (-1,0.7) {\scriptsize State.name};
+	\node[data] (stn) at (-1,0.7) {\scriptsize State1.name};
 	\node[data] (con) at (6,0.7) {\scriptsize Org1.name};
 	
 		
@@ -539,11 +544,11 @@ appeared in the semantic models).
 	\node[class] (pl2) at (-1,0+\ysh)  {\small City2};
 	\node[class] (pe2) at (3,0+\ysh)  {\small Person2};
 	\node[class] (co2) at (1,0+\ysh) {\small Org.2};
-	\node[class] (ev2) at (6,0+\ysh) {\small Event};
+	\node[class] (ev2) at (6,0+\ysh) {\small Event1};
 	
 	\node[data] (pen) at (2.3,-0.7+\ysh) {\scriptsize Person2.name};
-	\node[data] (evs) at (4.2,-0.7+\ysh) {\scriptsize Event.startDate};
-	\node[data] (eve) at (6,-0.7+\ysh) {\scriptsize Event.endDate};
+	\node[data] (evs) at (4.2,-0.7+\ysh) {\scriptsize Event1.startDate};
+	\node[data] (eve) at (6,-0.7+\ysh) {\scriptsize Event1.endDate};
 	\node[data] (con) at (0.7,-0.7+\ysh) {\scriptsize Org2.name};
 	\node[data] (pln) at (-1,-0.7+\ysh) {\scriptsize City2.name};
 	
@@ -585,7 +590,7 @@ appeared in the semantic models).
 	
 	\node[class,orange,fill=orange!30!white,text=black] (PL) at (3,\ysh/2)  
 	{\small 
-	Place};
+	Place1};
 	
 	\path[draw,hasaC,->,orange!30!white] (pe1) edge[bend left=10] (PL);
 	\path[draw,hasaC,->,orange!30!white] (pe1) edge[bend left=-10] (PL);
@@ -623,20 +628,25 @@ To increase the coherence of the generated semantic models, we would like to dis
 %As an extension to the problem, we consider using pattern mining techniques in order to identify patterns in the training set of semantic model that repeat themselves often. 
 %The hope is that with such information we can encourage the semantic model $m^\star$ for the new source to use groups of edges that                                       appeared often together in training semantic models.
 
-\npr{reformulate for typed directed multigraphs and example based on Fig3}
+%\npr{reformulate for typed directed multigraphs and example based on Fig3}
 In our context, patterns are typed directed graphs.
 We mine these patterns from the set of semantic models in the training set $S_T$.
-This is known as Transactional Frequent Graph Pattern Mining, which generalizes 
+This is known as Transactional Frequent Graph Pattern Mining, which includes
 the subgraph isomorphism problem, known to be NP-complete.
-The frequency of a pattern is an anti-monotonous measure, meaning that bigger 
-patterns will have lower supports than their subgraphs. \ddg{Define support}
-We solve this pattern mining task with the tool DIMSpan \cite{petermann2017dimspan} which adapts gSpan~\cite{yan2002gspan} pruning techniques to the typed graphs and uses Apache Flink for scalability.  
+The frequency of a pattern is the number of semantic models which contain at least one subgraph isomorphic to the pattern
+The \emph{support} of the pattern is calculated as its frequency relative to the number of semantic models.
+This is an anti-monotonous measure, meaning that bigger 
+patterns will have lower supports than their subgraphs.
+% \ddg{Define support}
+We solve the pattern mining task with the tool DIMSpan \cite{petermann2017dimspan} which adapts gSpan~\cite{yan2002gspan} pruning techniques to the typed graphs and uses Apache Flink for scalability.  
 We obtain patterns of size up to 6 in under 4 minutes for the biggest instances 
-in our evaluation framework. 
+in our evaluation framework.
+Hence, this pattern mining procedure is a highly 
+scalable approach compared to the technique based on SPARQL queries 
+from~\cite{Taheriyan:Leveraging}.
 \npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe 
 cite my work on how databases perform for graph pattern matching. Should it be 
 better in related work?}
-
 
 %Let $G = (V_G,E_G,\lambda_G)$ and $P = (V_P,E_P, \lambda_P)$ be two graphs 
 %where $\lambda_G$ (resp. $\lambda_P$) is a \emph{labeling function} that maps 
@@ -713,10 +723,10 @@ An example of integration graph can be found in Fig. \ref{FIG:inte}.
 \begin{figure}[ht]
 \centering
 \begin{tikzpicture}
-	\node[class, rectangle, rounded corners] (CLASS) at (0,0) { \small{Class 
+	\node[class, rectangle, rounded corners] (CLASS) at (0,0) { \small{ 
 	Nodes of Alignment Graph}};
 	
-	\node[data] (stn1) at (-3.9,-0.9) {\scriptsize S.n};
+	\node[data] (stn1) at (-3.9,-0.9) {\scriptsize S1.n};
 	\node[data] (cin1) at (-3.1,-0.9) {\scriptsize C1.n};
 	\node[data] (pen1) at (-2.3,-0.9) {\scriptsize P1.n};
 	\node[data] (peb1) at (-1.5,-0.9) {\scriptsize P1.b};
@@ -735,8 +745,8 @@ An example of integration graph can be found in Fig. \ref{FIG:inte}.
 	\node[data] (cin2) at (0.7,-1+\ysh) {\scriptsize C2.n};
 	\node[data] (con2) at (1.5,-1+\ysh) {\scriptsize O2.n};
 	\node[data] (pen2) at (2.3,-1+\ysh) {\scriptsize P2.n};
-	\node[data] (evs2) at (3.1,-1+\ysh) {\scriptsize E.s};
-	\node[data] (eve2) at (3.9,-1+\ysh) {\scriptsize E.e};
+	\node[data] (evs2) at (3.1,-1+\ysh) {\scriptsize E1.s};
+	\node[data] (eve2) at (3.9,-1+\ysh) {\scriptsize E1.e};
 	
 	\path[draw,hasaA] (CLASS) edge[out=320,in=90] (cin2);	
 	\path[draw,hasaA] (CLASS) edge[out=330,in=90] (con2);
@@ -791,6 +801,7 @@ Note that, although the alignment graph is directed, the semantic models are
 not necessarily rooted directed trees (e.g. Fig. \ref{FIG:sem}), therefore the 
 direction of the edges is ignored for the STP model (and are all treated as 
 undirected edges). 
+\npr{This is not true: semantic models are directed. can we soften the statement here? direction of links can change semantics}
 
 The goal is to build a subgraph $T^\star= (V^\star, E^\star)$ of
 $\mathcal{I}_\mathcal{O}^{s^\star}$ for the new source $s^\star$. The solution 
@@ -818,7 +829,7 @@ The solution $T^\star$ must satisfy the following constraints:
 	$\forall n \in \mathcal{D_{G_O}} \cap V^\star, degree(a) = 2$.
 %\end{enumerate}
 
-It is therefore natural to model this a STP with side constraints, since the 
+It is therefore natural to model this problem as a STP with side constraints, since the 
 two first requirements imply that $T^\star$ is a Steiner Tree of the 
 integration graph. By designing the weighting function $w_\mathcal{I}$ through 
 ML techniques, as shown in Section \ref{SEC:ML}, 
@@ -846,8 +857,7 @@ is uninteresting to the user, or because the ontology has not been properly
 designed. 
 Examples of these situations can be found in domain specific data 
 \cite{Pham:semantic} or HTML tables \cite{Ritze:matching}.
-In current systems, these columns are removed in a process that requires 
-extra time and effort as this is typically done manually in the real world.
+In current systems, these columns are removed in a pre-processing step as a manual effort.
 
 For this reason, we add two artificial Class nodes to the integration graph:  
 \emph{unknown} and \emph{root}. 
@@ -862,14 +872,16 @@ If an attribute $a$ is matched to $unk_a$, then $unk_a$ will be linked to Class
 node \emph{unknown}. 
 The rest of the attributes can then be matched normally 
 and build  a semantic model as usual. 
-Then, to maintain connectedness of the 
+To maintain connectedness of the 
 Steiner tree, the \emph{unknown} node and one of the other selected Class nodes 
 will 
 both be connected to the \emph{root} node. 
 Note that if all attributes find a 
-match, then both the \emph{unknown} and \emph{root} nodes won't be selected in 
+match, then both the \emph{unknown} and \emph{root} nodes will not be selected in 
 the Steiner tree and the normal behavior will take place.
-\ddg{Explain the weights of the edges introduced by the unknown nodes}
+The weights of the edges between these special nodes are
+assigned the same way as for the rest of the edges.
+%\ddg{Explain the weights of the edges introduced by the unknown nodes}
 
 
 
@@ -1129,7 +1141,7 @@ It is clear that we cannot directly speak about similarity for unmatched attribu
 Our intuition as to why our approach performs better is that we have 
 incorporated features which are derived directly from attribute values and are 
 not based on the notion of similarity.
-\npr{Good enough explanation?}
+%\npr{Good enough explanation?}
 
 \begin{table}[!ht]\small
   \centering
@@ -1173,21 +1185,21 @@ not based on the notion of similarity.
 		    mark=square,
 		    ]
 		    coordinates {
-		    (1,0.517753313989873)(2,0.488688737671076)(3,0.51551313872799)(4,0.495118819099343)(5,0.527778910368045)(6,0.532176796157059)(7,0.566662366701066)(8,0.637110556563823)(9,0.685799234290614)(10,0.538089511412941)(11,0.621051710776405)(12,0.599367875333495)(13,0.670421793119162)(14,0.583598347357422)(15,0.623587223886899)(16,0.645277499838855)(17,0.653525664651826)(18,0.665572696108086)(19,0.670283086011174)(20,0.663804745401859)(21,0.633242908391853)(22,0.66099516031458)(23,0.644625119528521)(24,0.72069799334011)(25,0.737468671679198)(26,0.715572819263667)(27,0.727291592547725)(28,0.752558983666062)
+		    (1,0.514832366157273)(2,0.520674170412197)(3,0.521026469009226)(4,0.497426082405143)(5,0.564688628672475)(6,0.55713561774315)(7,0.535076529852905)(8,0.560010216333054)(9,0.584508074744603)(10,0.546065110600816)(11,0.572489269396419)(12,0.564125297742057)(13,0.569829859460611)(14,0.543552852090991)(15,0.549734788036156)(16,0.558412528664919)(17,0.560598355931883)(18,0.607717979536758)(19,0.599585378842078)(20,0.612366200965436)(21,0.593021913264951)(22,0.623428063505196)(23,0.584747451140003)(24,0.605908308460775)(25,0.62089087544623)(26,0.607245006682788)(27,0.616141552483661)(28,0.623256309823247)
 };
 		\addplot[
 		    color=red,
 		    mark=*,
 		    ]
 		    coordinates {
-		    (1,0.551714513556619)(2,0.682453503286837)(3,0.567702774084261)(4,0.646748619299324)(5,0.65492113250734)(6,0.701065228379203)(7,0.684439263401395)(8,0.700511175298951)(9,0.681034059961129)(10,0.685637253116215)(11,0.699316636125265)(12,0.697036509934383)(13,0.693463987436823)(14,0.704225209488367)(15,0.732978923190269)(16,0.724305489322319)(17,0.699459026247245)(18,0.716210056654951)(19,0.698987880687053)(20,0.733337516584389)(21,0.751908839952318)(22,0.75007040599401)(23,0.750592804644915)(24,0.814515445676703)(25,0.810987671748541)(26,0.817791638186375)(27,0.826003784931597)(28,0.809805364617137)
+		    (1,0.582318872699517)(2,0.628627876837901)(3,0.609932492636812)(4,0.610866990370165)(5,0.674948143747368)(6,0.679265687227716)(7,0.70619376828754)(8,0.715634190728361)(9,0.703653042970976)(10,0.714021677870418)(11,0.718515409501215)(12,0.72006314095146)(13,0.714534069979324)(14,0.739946209262199)(15,0.741872691279687)(16,0.759026528736177)(17,0.748648620477246)(18,0.765437399193282)(19,0.749182097087044)(20,0.764528564841459)(21,0.757553110476648)(22,0.753597067073318)(23,0.757298299109379)(24,0.778783553420146)(25,0.765628808466358)(26,0.785689475530164)(27,0.768145186235277)(28,0.783815747353212)
 };
 		\addplot[
 		    color=green,
 		    mark=x,
 		    ]
 		    coordinates {
-		    (1,0.598323207198336)(2,0.656420469232034)(3,0.551668227640311)(4,0.620327113896406)(5,0.623771074555817)(6,0.652894375155994)(7,0.625071981901494)(8,0.623287932111462)(9,0.601893257814311)(10,0.601192717220153)(11,0.602088073148115)(12,0.581718160067067)(13,0.570577347465439)(14,0.572274187082211)(15,0.581600752329829)(16,0.565774690293304)(17,0.5550594629542)(18,0.565097183518236)(19,0.524149694006153)(20,0.511449953555217)(21,0.576679655627024)(22,0.571388650336019)(23,0.546588180559473)(24,0.608169608169608)(25,0.608169608169608)(26,0.633066933066933)(27,0.634654234654234)(28,0.628305028305028)
+		    (1,0.58839328678273)(2,0.607758082933845)(3,0.58226798181609)(4,0.591999006493134)(5,0.636658963454311)(6,0.609378189548976)(7,0.65198352100422)(8,0.639237266085298)(9,0.646381524706678)(10,0.658451931832802)(11,0.651981340743635)(12,0.639000646239548)(13,0.638100886472842)(14,0.652718769812707)(15,0.65270159785683)(16,0.665279840041019)(17,0.663658936249597)(18,0.675430261986635)(19,0.662138443878962)(20,0.662006475337153)(21,0.664124779844034)(22,0.661879115723149)(23,0.670248656767086)(24,0.677264055645277)(25,0.676979334359473)(26,0.687880411346927)(27,0.67459653454876)(28,0.68627902145454)
 };
 		
 		\end{axis}
@@ -1215,21 +1227,21 @@ not based on the notion of similarity.
 		    mark=square,
 		    ]
 		    coordinates {
-		    (1,0.300191975130116)(2,0.387168789342702)(3,0.418780803201093)(4,0.414852632606256)(5,0.449767567691694)(6,0.454560596014134)(7,0.472473240503931)(8,0.552403403170667)(9,0.618322253509807)(10,0.45708434156857)(11,0.540246526073466)(12,0.523083348403042)(13,0.603209776078489)(14,0.509054454749254)(15,0.54874878365927)(16,0.577977828772285)(17,0.583053944903167)(18,0.591126557438254)(19,0.592414794781259)(20,0.591100946357877)(21,0.575601120513223)(22,0.587190134384184)(23,0.575949431206362)(24,0.655469912102772)(25,0.649409306042166)(26,0.64025693035835)(27,0.652378142479562)(28,0.666045239412379)
+		    (1,0.367995759495435)(2,0.43314958257729)(3,0.465102732953193)(4,0.446507314880989)(5,0.506469092210478)(6,0.506789578789452)(7,0.477080991784194)(8,0.503937397649502)(9,0.534229842849261)(10,0.492507267102593)(11,0.515796460946058)(12,0.509165531142068)(13,0.516097781643373)(14,0.488160651098756)(15,0.496282029692244)(16,0.504382820425249)(17,0.503923406733149)(18,0.552759367968562)(19,0.540550359776821)(20,0.554759177609889)(21,0.53688314428863)(22,0.561628603103704)(23,0.525601546354885)(24,0.548689620179471)(25,0.559372079917562)(26,0.54849327148799)(27,0.558777769863011)(28,0.561036686567106)
 };
 		\addplot[
 		    color=red,
 		    mark=*,
 		    ]
 		    coordinates {
-		    (1,0.517923133776792)(2,0.667141218952813)(3,0.56262382276875)(4,0.646790367442541)(5,0.651735815098987)(6,0.706388551614468)(7,0.698383379116542)(8,0.714984169630376)(9,0.700346244485205)(10,0.704664218197892)(11,0.717929077647748)(12,0.711690361988742)(13,0.707592621296799)(14,0.725417933239758)(15,0.760334088253952)(16,0.741766948274724)(17,0.726258869970838)(18,0.748428390280994)(19,0.723282293295816)(20,0.746991608671798)(21,0.769430045325921)(22,0.751719414109543)(23,0.756837646239269)(24,0.816669125330383)(25,0.816669125330383)(26,0.821841539123487)(27,0.824453869322024)(28,0.810608519269777)
+		    (1,0.568526176536315)(2,0.612789529917517)(3,0.603758658205161)(4,0.611122761022995)(5,0.679226888229885)(6,0.689545922126768)(7,0.718173517817693)(8,0.72049339757837)(9,0.712025690044822)(10,0.719376710211083)(11,0.719738340274138)(12,0.727571790593847)(13,0.718652567615389)(14,0.742375410864123)(15,0.744789115461273)(16,0.761896901012414)(17,0.753562034501087)(18,0.768934123583718)(19,0.753381510225111)(20,0.767814904456983)(21,0.758472395730288)(22,0.753685690354242)(23,0.754906882661518)(24,0.772285894201019)(25,0.771337684854641)(26,0.782427299035871)(27,0.762524256400432)(28,0.778430045086962)
 };
 		\addplot[
 		    color=green,
 		    mark=x,
 		    ]
 		    coordinates {
-		    (1,0.592810513524547)(2,0.704036744254136)(3,0.580300590445518)(4,0.665729761381935)(5,0.671789291034815)(6,0.721540066765983)(7,0.718258458411911)(8,0.728686409419572)(9,0.71549775963672)(10,0.719667189083217)(11,0.729479363111076)(12,0.713288181617252)(13,0.723866470903981)(14,0.739158277862456)(15,0.764121967041831)(16,0.755829992510182)(17,0.746486501253236)(18,0.758703555728573)(19,0.723655728717502)(20,0.729409784115667)(21,0.774654705722995)(22,0.768167419063295)(23,0.754561938768098)(24,0.828459715477971)(25,0.828459715477971)(26,0.838717192206036)(27,0.841329522404573)(28,0.833544778412933)
+		    (1,0.596084829534507)(2,0.640760186457491)(3,0.62082780704382)(4,0.636003942692136)(5,0.692664734541117)(6,0.701974230777832)(7,0.728319438123534)(8,0.750185705723487)(9,0.736888107321033)(10,0.742404159647386)(11,0.743250566844835)(12,0.732378757282814)(13,0.729581368486718)(14,0.7525692913614)(15,0.751549245497265)(16,0.767850111275969)(17,0.762600014025882)(18,0.778934826315818)(19,0.764342969952451)(20,0.767198788345341)(21,0.761867162993121)(22,0.765611676236013)(23,0.768814394670878)(24,0.779481328123055)(25,0.783142085550363)(26,0.789525770002408)(27,0.774378390471089)(28,0.790117094780008)
 };
 		 %\legend{karma,serene,serene-pats}
 
@@ -1454,7 +1466,7 @@ Finally, ontology alignment techniques are applied to match the default ontology
 The main advantage of these systems is the ability to run in a fully automatic setting.
 Our approach is complementary to the approaches from this group and at its current stage is semi-automatic.
 However, constraint programming offers a convenient framework to incorporate integrity constraints specified either within relational or ontological schema as additional constraints to govern the search for the solution.
-This opens an interesting direction for further research to develop an automatic system.
+This opens an interesting direction for further research.
 
 A major issue with fully automatic systems is that constraints may be 
 inconsistent or absent completely, e.g., data from Web services or tables on 
@@ -1518,7 +1530,7 @@ Our experiments demonstrate that
 \serene{} generates on average more consistent semantic models in terms of 
 precision and recall compared to the state-of-the-art approach \karma{}.
 \serenepats{} produces, on average, better semantic models in terms of 
-recall, and it's precision can be enhanced by adding a scaling factor for 
+recall, and its precision can be enhanced by adding a scaling factor for 
 pattern costs.
 
 Furthermore, our approach is extremely flexible and easy to extend with 
@@ -1573,6 +1585,99 @@ This is one of the features which we want to incorporate into \serene{}.
 \bibliographystyle{aaai}
 \bibliography{main}
 
+\newpage
+
+Below are the description of features used by \serene{} semantic model.
+Note that features are extracted from the name and values of each attribute in the data source.
+Thus, all the data from a single column is reduced to some feature
+vector of the concatenation of values computed by the extractors below.
+
+We refer to a single value from the column as an entry.
+E.g.
+
+\begin{table}[!ht]\small
+  \centering
+  \caption{Example table.}
+  	\label{tab:semlab}
+  	\begin{tabular}{ccc} 
+  		\hline
+		Person & Age & Gender \\
+  		\hline
+	    John & 20 & M\\
+    	Jane & 30 & F\\
+  		\hline
+		\end{tabular} 
+%\vspace*{-3mm}
+\end{table}
+
+From the table above, John is an entry of the column Person.
+
+The following feature extractors produce a scalar value:
+\begin{enumerate}
+\item num-unique-vals      : A simple count of unique entries of a column
+\item prop-unique-vals     : The proportion of unique entries of a column. 
+\item prop-missing-vals    : The proportion of all missing/empty entries from all entries in a column.
+\item ratio-alpha-chars    : The average of the proportion of alphabetic characters from each entry.
+\item prop-numerical-chars : The average of the proportion of numeric characters from each entry.
+\item prop-whitespace-chars       : The average of the proportion of whitespace characters from each entry.
+\item prop-entries-with-at-sign   : The proportion of entries with an '@' sign.
+\item prop-entries-with-hyphen    : The proportion of entries with a '-'.
+\item prop-range-format           : The proportion of entries which follow some numerical range format: ([0-9]+)-([0-9]+).
+\item is-discrete                 : A binary indicator if the column entries are discrete.
+\item entropy-for-discrete-values : The entropy of the entries of a column.
+\item shannon-entropy             : Shannon's entropy for the vocabulary specified in the description of the feature 'char-dist-features'
+\end{enumerate}
+
+The following feature extractors produce a vector value.
+Some of these are computed together to reduce computation time.
+Others are values that are computed for all classes.
+
+\begin{enumerate}
+\item inferred-data-type      : Produces a vector which contains the inferred data type.  
+                          Only a single element is non-zero in the vector (i.e. 1-of-K format).  
+                          The set of inferred types are in {float,integer,long,boolean,date,time,datetime,string}.
+
+\item char-dist-features      : produces a vector for character distribution of column values;
+                        considered characters are printable characters:
+%                        0123456789abcdefghijklmnopqrstuvwxyz
+%                        ABCDEFGHIJKLMNOPQRSTUVWXYZ!"
+%                        #$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ \t\n\r\x0b\x0c
+
+\item stats-of-text-length    : Computes the mean, median, mode, min, max of string lengths from a columns entries.
+
+\item stats-of-numerical-type : Computes the mean, median, mode, min, max of entries from a column of numerical type.
+
+\item prop-instances-per-class-in-knearestneighbours         : This finds the k columns from the training set with most similar names.
+                                                         It then produces a vector of class proportions from these k neighbours.
+                                                         Parameters:
+                                                             "num-neighbours": The number of neighbours to find (k).
+
+\item mean-character-cosine-similarity-from-class-examples   : For some test instance t, this computes the character distribution 
+                                                         from this instance's entries.  It then produces a vector of the average
+                                                         cosine similarity of t with training instances of each class.
+
+\item min-editdistance-from-class-examples                   : For some test instance t, this produces a vector of the minimum column name
+                                                         edit distance between t and all training instances of each class.
+                                                         Parameters:
+                                                              "cache-size": Size of cache for storing edit distances of words 
+                                                              "max-comparisons-per-class": Max number of training instances to compare
+                                                                                           against for each class.
+
+\item min-wordnet-jcn-distance-from-class-examples            : For some test instance t, this produces a vector of the minimum column name
+                                                         JCN WS4J distance between t and all training instances of each class.
+                                                         Parameters:
+                                                              "cache-size": Size of cache for storing wordnet distances of words 
+                                                              "max-comparisons-per-class": Max number of training instances to compare
+                                                                                           against for each class.
+
+\item min-wordnet-lin-distance-from-class-examples            : For some test instance t, this produces a vector of the minimum column name
+                                                         LIN WS4J distance between t and all training instances of each class.
+                                                         Parameters:
+                                                              "cache-size": Size of cache for storing wordnet distances of words 
+                                                              "max-comparisons-per-class": Max number of training instances to compare
+                                                                                           against for each class.
+                                                                                           
+\end{enumerate}
 
 
 \ignore{
