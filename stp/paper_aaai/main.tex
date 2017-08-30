@@ -13,7 +13,8 @@
 \usepackage{spverbatim}
 \usepackage{fancyvrb}
 
-\usepackage{color,colortbl}
+\usepackage{colortbl}
+\usepackage{color}
 \usepackage{xcolor}
 \definecolor{Gray}{gray}{0.96}
 \usepackage{amsmath,amsthm,stmaryrd}
@@ -33,7 +34,10 @@
 \usepgfplotslibrary{colorbrewer}
 
 
-\usepackage{supertabular}
+\usepackage{listings}
+%%AR defines some stuff such as syntax highlighting for stochastic Minzinc listings
+\input{commondefs.tex}
+
 
 \usepackage{tikz}
 \tikzset{every picture/.style={font issue=\small},
@@ -120,14 +124,13 @@ In our case, we would like this global model to account not only for structural 
 In other words, we want to build a semantic model which describes the data sources in terms of concepts and relationships defined by an ontology \cite{taheriyan2016learning}.
 Henceforth, we focus on a specific data integration problem: automatically mapping a new relational data source onto a user provided ontology.
 
-\subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Workplace, Date, Location}$\rangle$, 
-$\langle$\textit{Company, Event, Begin, Until, Location}$\rangle$ and 
-$\langle$\textit{Name, D.O.B, Location}$\rangle$.
-We do not \textit{a priori} know whether ``Date'' in the first table is the 
-date of birth or the date a persons started working; or whether the 
+\subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Workplace, Date}$\rangle$, and 
+$\langle$\textit{Company, Event, Begin, Until, Location}$\rangle$.
+We do not \textit{a priori} know if ``Date'' in the first table is a 
+date of birth or the date a person started working; or whether the 
 ``Location'' on the second table refers to the location of the event, or the 
 address of the company. 
-If we are given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to classes of the 
+Given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to classes of the 
 ontology.\hfill$\square$
 
 In this paper we use Machine Learning techniques (ML) to learn mapping rules from previously mapped instances.
@@ -249,7 +252,7 @@ are members of classes and properties~\cite{Spanos:semweb}.
 Properties are classified into \emph{object properties}, which relate two 
 individuals, 
 and \emph{datatype properties}, which relate individuals to literal values.
-An example of an ontology is given in Fig.~\ref{FIG:onto}. 
+Fig.~\ref{FIG:onto} gives an example of an ontology. 
 Here, an individual of the class ``Organisation'' can be related to an individual of the class ``Person'' via object properties ``ceo'' or ``worksFor'', and it can have a data property ``name''. 
 We also consider a special ``subclass'' (or ``is-a'') type of object properties.
 For 
@@ -464,15 +467,15 @@ The links correspond
 to properties in  $\mathcal{O}$ and are weighted \cite{taheriyan2016learning}.
 
 The algorithm we use for the construction of the alignment graph 
-$\mathcal{G_O}$ was given by~\cite{taheriyan2016learning}.
-Briefly, the algorithm has three parts:
+$\mathcal{G_O}$ was given by~\citeasnoun{taheriyan2016learning}.
+Briefly, it has three parts:
 %\begin{enumerate}
 $(i)$ %\item 
 Adding the known semantic models
 $(ii)$ %\item 
 Adding the semantic types learned for the target source
 %\item 
-$(iii)$ Expanding the graph using the domain ontology $\mathcal{O}$.
+$(iii)$ Expanding the graph using the domain ontology.
 %\end{enumerate}
 
 Note how the alignment graph contains data nodes that correspond to semantic 
@@ -484,13 +487,12 @@ alignment graph by the semantic types.
 We denote them as $\mathcal{D_{G_O}}$ and call them the \emph{data nodes} of the alignment graph.
 
 The graph is weighted by a function $w_\mathcal{O} : \mathcal{E_O} \mapsto 
-\mathbb{R}$ in 
-such a way that edges which are present in
+\mathbb{R}$ such that edges which are present in
 the known semantic models have lower weights than those 
 which are inferred from the ontology.
-As we will see in the next section, this makes edges present in semantic models 
+In the next section we will see that this makes edges from semantic models 
 more attractive. 
-Details on the weighting function can be found in \cite{taheriyan2016learning}.
+\citeasnoun{taheriyan2016learning} provide details on the weighting function.
 %\ddg{How exactly are they weighted?}
 
 An example alignment graph is illustrated in Fig.~\ref{FIG:ali}. 
@@ -892,7 +894,7 @@ assigned the same way as for the rest of the edges.
 \section{Modeling in Constraint Programming \label{SEC:CP}}
 \subsection{Definitions}
 
-A Constraint Optimization Problem (COP) is a tuple $P = (\boldsymbol{v},C,o)$ 
+A Constraint Optimization Problem (COP) is a tuple $P=(\boldsymbol{v},C,o)$ 
 where $\boldsymbol{v}$ is a 
 set of \emph{variables}, $C$ is a set of $n$-ary 
 \emph{constraints} over variables $\boldsymbol{v}$ and $o$ is an 
@@ -908,21 +910,21 @@ to a solver that will find solutions while optimizing
 the objective function (and prove optimality).
 
 Briefly, the way a CP solver works is by assigning a value to each variable of 
-$\boldsymbol{v}$ in turn. At each iteration it will check whether any 
+$\boldsymbol{v}$ in turn. 
+\ignore{At each iteration it will check whether any 
 constraint in $C$ is violated, in which case it will backtrack to change its 
 last decision. \ignore{The choice of the order of the variables to be assigned, 
 and the 
 choice of the value to be assigned to each variable is called the \emph{search 
-strategy}.}
-CP uses a combination of search and \emph{propagation}. The latter is achieved by  
-removing inconsistent values 
+strategy}.}}
+CP uses a combination of complete search and \emph{propagation}. The latter
+removes inconsistent values 
 from the domains of variables. That way, values that cannot appear in a 
 solution, given the current set of decisions, are never tried by the search. 
 \emph{Global constraints} are higher order constraints that enforce a 
 complex 
-constraint over a set of variables. These are typically implemented with 
-specialized algorithms that perform substantially better than decomposition approaches
-\cite{regin1994filtering,beldiceanu2012global}.
+constraint over a set of variables. They are implemented with 
+specialized algorithms for performance.
 
 
 \subsection{\relonto{} in Constraint Programming}
@@ -1022,6 +1024,9 @@ tree (i.e. the semantic model).
 Note how this CP model is easy to adapt to more classic settings where no 
 patterns are used (by dropping Eqs. \ref{EQ:patt} and \ref{EQ:pcost}), or 
 without \emph{unknown} nodes (by dropping Eq. \ref{EQ:unk}).
+
+We choose a search strategy that will first try to match attributes using the cheapest edges in $\mathcal{M}_\mathcal{O}^{s^\star}$. Then, it will try to use the cheapest unfixed edge $e\in\mathcal{E_O}$ that completes a pattern $p$ such that $w_\mathcal{P}(p) > w_\mathcal{O}(e)$ or simply the cheapest edge if none complete a pattern.
+
 \section{Results \label{SEC:Res}}
 
 \subsection{Experimental Setup}
@@ -1167,7 +1172,7 @@ not based on the notion of similarity.
 \begin{minipage}[b]{.5\linewidth}
 \centering
 \hspace*{-15pt}
-\begin{tikzpicture}[baseline,scale=0.47]
+\begin{tikzpicture}[baseline,scale=0.43]
 \begin{axis}[
 		    xlabel={\emph{known semantic models}},
 		    ylabel={},
@@ -1209,7 +1214,7 @@ not based on the notion of similarity.
 \end{minipage}%
 \begin{minipage}[b]{.5\linewidth}
 \centering
-\begin{tikzpicture}[baseline,scale=0.47]
+\begin{tikzpicture}[baseline,scale=0.43]
 		\begin{axis}[
 		    xlabel={\emph{known semantic models}},
 		    %ylabel={recall},
@@ -1254,7 +1259,7 @@ not based on the notion of similarity.
 \begin{minipage}[b]{.5\linewidth}
 \centering
 \hspace*{-15pt}
-\begin{tikzpicture}[baseline,scale=0.47]
+\begin{tikzpicture}[baseline,scale=0.43]
 \begin{axis}[
 		    xlabel={\emph{known semantic models}},
 		    ylabel={},
@@ -1297,7 +1302,7 @@ not based on the notion of similarity.
 \end{minipage}%
 \begin{minipage}[b]{0.5\linewidth}
 \centering
-\begin{tikzpicture}[baseline,scale=0.47]
+\begin{tikzpicture}[baseline,scale=0.43]
 		\begin{axis}[
 		    xlabel={\emph{known semantic models}},
 		    %ylabel={recall},
@@ -1601,7 +1606,6 @@ We refer to a single value from the column as an entry. For example, in the tabl
 \begin{table}[!ht]\small
   \centering
   \caption{Example table.}
-  	\label{tab:semlab}
   	\begin{tabular}{ccc} 
   		\hline
 		Person & Age & Gender \\
@@ -1614,7 +1618,7 @@ We refer to a single value from the column as an entry. For example, in the tabl
 \end{table}
 
 
-\begin{table}[!ht]
+\begin{table}[h]
 	\centering
 	\caption{Feature extractors that produce a scalar value}
 	\begin{tabular}{p{3cm}p{4.5cm}}
@@ -1640,28 +1644,10 @@ We refer to a single value from the column as an entry. For example, in the tabl
 	shannon-entropy          & Shannon's entropy for the vocabulary specified in the description of the feature 'char-dist-features'\\
 	\end{tabular}
 \end{table}
-\ignore{
-The following feature extractors produce a scalar value:
-\begin{enumerate}
-\item num-unique-vals      : A simple count of unique entries of a column
-\item prop-unique-vals     : The proportion of unique entries of a column. 
-\item prop-missing-vals    : The proportion of all missing/empty entries from all entries in a column.
-\item ratio-alpha-chars    : The average of the proportion of alphabetic characters from each entry.
-\item prop-numerical-chars : The average of the proportion of numeric characters from each entry.
-\item prop-whitespace-chars       : The average of the proportion of whitespace characters from each entry.
-\item prop-entries-with-at-sign   : The proportion of entries with an '@' sign.
-\item prop-entries-with-hyphen    : The proportion of entries with a '-'.
-\item prop-range-format           : The proportion of entries which follow some numerical range format: ([0-9]+)-([0-9]+).
-\item is-discrete                 : A binary indicator if the column entries are discrete.
-\item entropy-for-discrete-values : The entropy of the entries of a column.
-\item shannon-entropy             : Shannon's entropy for the vocabulary specified in the description of the feature 'char-dist-features'
-\end{enumerate}
-}
 
 
 
-
-\begin{table}[!ht]
+\begin{table}[t]
 	\centering
 	\caption{Feature extractors that produce a vector value. Some of these are computed together to reduce computation time.
 	Others are values that are computed for all classes.}
@@ -1716,64 +1702,132 @@ against for each class.\\
 \end{table}
 
 
-\ignore{
-The following feature extractors produce a vector value.
-Some of these are computed together to reduce computation time.
-Others are values that are computed for all classes.
-
-\begin{enumerate}
-\item inferred-data-type      : Produces a vector which contains the inferred data type.  
-                          Only a single element is non-zero in the vector (i.e. 1-of-K format).  
-                          The set of inferred types are in {float,integer,long,boolean,date,time,datetime,string}.
-
-\item char-dist-features      : produces a vector for character distribution of column values;
-                        considered characters are printable characters:
-%                        0123456789abcdefghijklmnopqrstuvwxyz
-%                        ABCDEFGHIJKLMNOPQRSTUVWXYZ!"
-%                        #$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ \t\n\r\x0b\x0c
-
-\item stats-of-text-length    : Computes the mean, median, mode, min, max of string lengths from a columns entries.
-
-\item stats-of-numerical-type : Computes the mean, median, mode, min, max of entries from a column of numerical type.
-
-\item prop-instances-per-class-in-knearestneighbours         : This finds the k columns from the training set with most similar names.
-                                                         It then produces a vector of class proportions from these k neighbours.
-                                                         Parameters:
-                                                             "num-neighbours": The number of neighbours to find (k).
-
-\item mean-character-cosine-similarity-from-class-examples   : For some test instance t, this computes the character distribution 
-                                                         from this instance's entries.  It then produces a vector of the average
-                                                         cosine similarity of t with training instances of each class.
-
-\item min-editdistance-from-class-examples                   : For some test instance t, this produces a vector of the minimum column name
-                                                         edit distance between t and all training instances of each class.
-                                                         Parameters:
-                                                              "cache-size": Size of cache for storing edit distances of words 
-                                                              "max-comparisons-per-class": Max number of training instances to compare
-                                                                                           against for each class.
-
-\item min-wordnet-jcn-distance-from-class-examples            : For some test instance t, this produces a vector of the minimum column name
-                                                         JCN WS4J distance between t and all training instances of each class.
-                                                         Parameters:
-                                                              "cache-size": Size of cache for storing wordnet distances of words 
-                                                              "max-comparisons-per-class": Max number of training instances to compare
-                                                                                           against for each class.
-
-\item min-wordnet-lin-distance-from-class-examples            : For some test instance t, this produces a vector of the minimum column name
-                                                         LIN WS4J distance between t and all training instances of each class.
-                                                         Parameters:
-                                                              "cache-size": Size of cache for storing wordnet distances of words 
-                                                              "max-comparisons-per-class": Max number of training instances to compare
-                                                                                           against for each class.
-                                                                                           
-\end{enumerate}
-}
 
 
 
 
-
+\clearpage\newpage
 \subsection{\minizinc{} Model \label{Ann:MZ}}
+\renewcommand{\lstlistingname}{Model}
+\begin{minipage}{\textwidth}
+%\begin{figure}[!h]
+	\begin{lstlisting}[caption={\minizinc{} model (part 1 of 2)},captionpos=b]
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%                                                          %%
+%% MiniZinc model to solve the Steiner Tree Problem arising %%
+%% in the Rel2Onto problem.                                 %%
+%%                                                          %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+include "globals.mzn";
+
+%%%%%%% Steiner Tree Problem
+int: nbV;                               % Nb of nodes in alignment graph
+int: nbE;                               % Nb of edges in alignment graph
+set of int: nodes = 1..nbV;    
+set of int: edges = 1..nbE;
+set of int: cnodes;                     % Class nodes in alignment graph
+set of int: dnodes;                     % Data nodes in alignment graph
+set of int: anodes;                     % Attribute nodes in alignment graph (normally none)
+array [nodes] of var bool: vs;          % Is a node of the alignment graph in the solution?
+array [edges] of var bool: es;          % Is an edge of the alignment graph in the solution?
+array [nodes,edges] of bool: adjacent;  % adjacent[n,e] <=> node n is an endnode of edge e
+array [edges] of nodes: heads;          % endpoint 1 of each edge (The graph is undirected!!)
+array [edges] of nodes: tails;          % endpoint 2 of each edge
+array[1..2,edges] of int: endpairs = array2d(1..2,edges,tails++heads);
+array [edges] of int: ws;               % Weights of edges in alignment graph
+var 0..sum(ws): w;                      % Weight of the solution corresponding to the alignment part
+constraint steiner_tree(vs,es,adjacent,endpairs,w,ws);  % Steiner Tree constraint
+constraint forall (d in dnodes) (vs[d] <-> sum(e in edges where adjacent[d,e])(es[e]) == 1); %Only 1 edges per data node 
+
+%%%%%%% Matching Problem
+int: nbA;                                           % Nb of attribute nodes
+set of int: atts = 1..nbA;                 
+array [atts] of set of int: attribute_domains;      % Data nodes to which each attribute can attach  
+constraint forall(att in anodes) (vs[att] == true); % Attribute nodes (normally none) are in the graph.
+array [atts] of var int: match;                     % Match between Attributes and Data nodes
+array[atts,int] of int: match_costs;                % Weight of match edges
+constraint forall (a in atts) (match[a] in (attribute_domains[a]));   % Must match someone in the domain
+constraint forall (a in atts) (vs[match[a]]);       % The data node matched must be in the subgraph of the alignment
+constraint alldifferent(match);                     % Exact match
+var 0..sum(a in atts)(sum(n in index_set_2of2(match_costs))(match_costs[a,n])): wm;  %Total cost from matching part :
+constraint wm = sum(a in atts) (match_costs[a,match[a]]);
+
+	\end{lstlisting}
+%	\caption{\minizinc{} model (1/2).}
+%\end{figure}
+\end{minipage}
+\clearpage
+\newpage
+\begin{minipage}{\textwidth}
+%\begin{figure*}[t]
+	\begin{lstlisting}[caption={\minizinc{} model (part 2 of 2)},captionpos=b]
+%%%%%%% Unknown nodes
+int: nb_unknown_nodes;                 % Number of unknown data nodes
+set of int: unknowns = 1..nb_unknown_nodes;
+array [int] of int: all_unk_nodes;     % List of all unknown nodes (first two elements are class nodes, by convention)
+int: node_root = all_unk_nodes[1];     % Root node if unknown class node is used.
+int: node_unk = all_unk_nodes[2];      % Unknown class node
+constraint if nb_unknown_nodes > 0 then
+    vs[node_unk] <-> vs[node_root]     % If class node "Unknown" is used, class node "Root" is used as well
+ /\ vs[node_root] <-> sum(e in edges where adjacent[node_root,e])(es[e]) in {1,2}
+else true %Ignore constraint
+endif;
+
+
+%%%%%%% Patterns
+int: nb_patterns;                     %Number of patterns
+set of int: PATTS = 1..nb_patterns;
+array[PATTS] of int: patterns_w;      %Support of patterns
+array[PATTS] of set of int: patterns; %The actual patterns
+array[PATTS] of var bool: c_p;        %Is pattern chosen
+constraint forall (p in PATTS) ((sum (e in patterns[p])   % All edges of a pattern are used <-> pattern is used
+							                  	(es[e]) == card(patterns[p])) <-> c_p[p]);
+var 0..sum(patterns_w): wp; % Total prize collected from patterns : 
+constraint if nb_patterns = 0 then wp = 0 else wp = sum(p in PATTS) (c_p[p] * patterns_w[p]) endif;
+
+
+%%%%%%% Final objective function 
+var int: obj = w + wm - wp; % Total cost of semantic model - prize collected from patterns
+
+
+%%%%%%% Search startegy
+array[atts,int] of int: match_costs_sorted;  % Match of attributes, sorted by cost.
+ann: cheap_matches = int_search([ match[a] == match_costs_sorted[a,i] |a in atts, i in index_set_2of2(match_costs_sorted)], input_order,indomain_max,complete);
+
+array[edges] of int: sorted_edges = arg_sort(ws);
+ann: cheap_edges = int_search([es[sorted_edges[nbE + 1 - e]] | e in edges],input_order,indomain_min,complete);
+
+ann: cheap_edges_fill_pattern; % Custom search strategy for patterns
+ann: custom(ann, array[int] of int, array[int] of var bool);
+array[int] of ann: cefp = 
+if nb_patterns == 0 then [] 
+else [custom(cheap_edges_fill_pattern,[nbE]++[nb_patterns]++ws++[ card(patterns[p]) | p in PATTS]++patterns_w++array1d([ e | p in PATTS, e in patterns[p]]),es)] endif;
+
+solve ::seq_search([cheap_matches]++cefp++[cheap_edges]) 
+minimize obj;
+
+
+	\end{lstlisting}
+	%\caption{\minizinc{} model (2/2).}
+%\end{figure*}
+\end{minipage}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 \ignore{
 %% sequentially found solutions and different weights for patterns
