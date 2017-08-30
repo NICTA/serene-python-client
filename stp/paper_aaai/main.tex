@@ -13,8 +13,9 @@
 \usepackage{spverbatim}
 \usepackage{fancyvrb}
 
-\usepackage{color}
+\usepackage{color,colortbl}
 \usepackage{xcolor}
+\definecolor{Gray}{gray}{0.96}
 \usepackage{amsmath,amsthm,stmaryrd}
 \usepackage{algpseudocode}
 \usepackage{algorithm}
@@ -31,6 +32,9 @@
 \pgfplotsset{width=10cm,compat=1.9}
 \usepgfplotslibrary{colorbrewer}
 
+
+\usepackage{supertabular}
+
 \usepackage{tikz}
 \tikzset{every picture/.style={font issue=\small},
          font issue/.style={execute at begin picture={#1\selectfont}}
@@ -42,8 +46,8 @@
 \usetikzlibrary{decorations.text}
 \usetikzlibrary{decorations.pathmorphing}
 \usetikzlibrary{mindmap,backgrounds}
-\tikzstyle{class}=[draw,green,ellipse,align=center,fill=green!25,text=black]
-\tikzstyle{data}=[draw,rectangle,align=center,black!70]
+\tikzstyle{class}=[draw,green,ellipse,align=center,fill=green!25,text=black,inner sep=1]
+\tikzstyle{data}=[draw,rectangle,align=center,black!70,inner sep=2]
 \tikzstyle{att}=[rectangle,align=center,fill=brown!70!red]
 \tikzstyle{hasaA} = 
 [draw,densely dashed,-,black!70,decoration={snake,segment 
@@ -127,7 +131,7 @@ If we are given an ontology like the one in Fig. \ref{FIG:onto}, we would like t
 ontology.\hfill$\square$
 
 In this paper we use Machine Learning techniques (ML) to learn mapping rules from previously mapped instances.
-To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum Cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
+To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
 
 Firstly, we build an \emph{integration graph} which includes the 
 attributes from the new source as well as ontology classes and properties. 
@@ -137,7 +141,7 @@ Lastly, we use Constraint Programming (CP) to
 find a minimum cost Steiner Tree in the graph.
 The goal is to assign the costs on the edges in such a way that the resulting 
 Steiner Tree is a valid and coherent semantic model for the new source. 
-The contributions of this work are:
+Our contributions are:
 \begin{itemize}
 	\item A novel modeling framework for the \relonto{} problem which 
 	seamlessly incorporates machine learning and constraint programming.
@@ -405,7 +409,7 @@ such as a number
 of whitespaces and other special characters, statistics of 
 values in the column 
 (e.g, mean/max/min string length and numeric statistics), etc. 
-A full list can be found in appendix \ddg{Apendix!}
+A full list can be found in Appendix \ref{Ann:SemLab}.
 \npr{If I remove entropy descr, we are perfectly within page limit}
 %\ignore{
 One of the important features characterising information content of an attribute is Shannon's entropy of the attribute's concatenated rows.
@@ -798,10 +802,9 @@ are the same as in Fig \ref{FIG:ali}.}
 \end{figure}
 
 Note that, although the alignment graph is directed, the semantic models are 
-not necessarily rooted directed trees (e.g. Fig. \ref{FIG:sem}), therefore the 
+not necessarily rooted graphs (e.g. Fig. \ref{FIG:sem}), therefore the 
 direction of the edges is ignored for the STP model (and are all treated as 
 undirected edges). 
-\npr{This is not true: semantic models are directed. can we soften the statement here? direction of links can change semantics}
 
 The goal is to build a subgraph $T^\star= (V^\star, E^\star)$ of
 $\mathcal{I}_\mathcal{O}^{s^\star}$ for the new source $s^\star$. The solution 
@@ -911,16 +914,14 @@ last decision. \ignore{The choice of the order of the variables to be assigned,
 and the 
 choice of the value to be assigned to each variable is called the \emph{search 
 strategy}.}
-Since only using a backtracking algorithm would have a prohibitive cost, CP 
-uses a combination of search and \emph{propagation}. The latter is achieved by  
+CP uses a combination of search and \emph{propagation}. The latter is achieved by  
 removing inconsistent values 
 from the domains of variables. That way, values that cannot appear in a 
 solution, given the current set of decisions, are never tried by the search. 
 \emph{Global constraints} are higher order constraints that enforce a 
 complex 
 constraint over a set of variables. These are typically implemented with 
-specialized algorithms for these 
-constraints and perform substantially better than a decomposition approaches
+specialized algorithms that perform substantially better than decomposition approaches
 \cite{regin1994filtering,beldiceanu2012global}.
 
 
@@ -929,7 +930,7 @@ In order to model this problem we used the \minizinc{} language
 \cite{minizinc}, and the 
 \chuffed{} solver \cite{chu2011improving} because it has a global constraint 
 implemented for Steiner 
-Tree Problems \cite{deuna2016steiner}. 
+Tree Problems \cite{deuna2016steiner}. The model can be found in Appendix \ref{Ann:MZ}.
 
 Because attributes must be connected to exactly one node of the alignment 
 graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$ 
@@ -1586,14 +1587,16 @@ This is one of the features which we want to incorporate into \serene{}.
 \bibliography{main}
 
 \newpage
+\section*{Appendices}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+
+\subsection{Features for Semantic Labeling\label{Ann:SemLab}}
 
 Below are the description of features used by \serene{} semantic model.
 Note that features are extracted from the name and values of each attribute in the data source.
 Thus, all the data from a single column is reduced to some feature
 vector of the concatenation of values computed by the extractors below.
-
-We refer to a single value from the column as an entry.
-E.g.
+We refer to a single value from the column as an entry. For example, in the table below, John is an entry of the column Person.
 
 \begin{table}[!ht]\small
   \centering
@@ -1610,8 +1613,34 @@ E.g.
 %\vspace*{-3mm}
 \end{table}
 
-From the table above, John is an entry of the column Person.
 
+\begin{table}[!ht]
+	\centering
+	\caption{Feature extractors that produce a scalar value}
+	\begin{tabular}{p{3cm}p{4.5cm}}
+	Feature name & Description \\ \hline
+	num-unique-vals & A simple count of unique entries of a column\\
+	\rowcolor{Gray}
+	prop-unique-vals & The proportion of unique entries of a column. \\
+	\rowcolor{Gray}
+	prop-missing-vals & The proportion of all missing/empty entries from all entries in a column.\\
+	ratio-alpha-chars & The average of the proportion of alphabetic characters from each entry.\\
+	\rowcolor{Gray}
+	prop-numerical-chars & The average of the proportion of numeric characters from each entry.\\
+	prop-whitespace-chars    & The average of the proportion of whitespace characters from each entry.\\
+	\rowcolor{Gray}
+	prop-entries-with-at-sign& The proportion of entries with an '@' sign. \\
+	prop-entries-with-hyphen & The proportion of entries with a '-'. \\
+	\rowcolor{Gray}
+	prop-range-format        & The proportion of entries which follow some \\ numerical range format &  ([0-9]+)-([0-9]+) \\
+	\rowcolor{Gray}
+	is-discrete              & A binary indicator if the column entries are discrete. \\
+	entropy-for-discrete-values & The entropy of the entries of a column.\\
+	\rowcolor{Gray}	
+	shannon-entropy          & Shannon's entropy for the vocabulary specified in the description of the feature 'char-dist-features'\\
+	\end{tabular}
+\end{table}
+\ignore{
 The following feature extractors produce a scalar value:
 \begin{enumerate}
 \item num-unique-vals      : A simple count of unique entries of a column
@@ -1627,7 +1656,67 @@ The following feature extractors produce a scalar value:
 \item entropy-for-discrete-values : The entropy of the entries of a column.
 \item shannon-entropy             : Shannon's entropy for the vocabulary specified in the description of the feature 'char-dist-features'
 \end{enumerate}
+}
 
+
+
+
+\begin{table}[!ht]
+	\centering
+	\caption{Feature extractors that produce a vector value. Some of these are computed together to reduce computation time.
+	Others are values that are computed for all classes.}
+	
+	\begin{tabular}{p{2.5cm}p{5cm}}
+	Feature name & Description \\ \hline
+inferred-data-type      & Produces a vector which contains the inferred data type.  
+Only a single element is non-zero in the vector (i.e. 1-of-K format).  
+The set of inferred types are in float, integer, long, boolean, date, time, datetime, string. \\
+	\rowcolor{Gray}
+char-dist-features      & Produces a vector for character distribution of column values;
+considered characters are printable characters
+%                        0123456789abcdefghijklmnopqrstuvwxyz
+%                        ABCDEFGHIJKLMNOPQRSTUVWXYZ!"
+%                        #$%&\'()*+,-./:;<=>?@[\\]^_`{|}~ \t\n\r\x0b\x0c
+\\
+stats-of-text-length    & Computes the mean, median, mode, min, max of string lengths from a columns entries.\\
+	\rowcolor{Gray}
+stats-of-numerical-type & Computes the mean, median, mode, min, max of entries from a column of numerical type.\\
+
+prop-instances-per-class-in-knearestneighbours         & This finds the k columns from the training set with most similar names.
+It then produces a vector of class proportions from these k neighbours.
+Parameters:
+"num-neighbours": The number of neighbours to find (k).\\
+	\rowcolor{Gray}
+mean-character-cosine-similarity-from-class-examples   & For some test instance t, this computes the character distribution 
+from this instance's entries.  It then produces a vector of the average
+cosine similarity of t with training instances of each class.\\
+min-editdistance-from-class-examples                   & For some test instance t, this produces a vector of the minimum column name
+edit distance between t and all training instances of each class.
+Parameters:
+"cache-size": Size of cache for storing edit distances of words 
+"max-comparisons-per-class": Max number of training instances to compare
+against for each class.\\
+
+	\rowcolor{Gray}
+min-wordnet-jcn-distance-from-class-examples            & For some test instance t, this produces a vector of the minimum column name
+JCN WS4J distance between t and all training instances of each class.
+Parameters:
+"cache-size": Size of cache for storing wordnet distances of words 
+"max-comparisons-per-class": Max number of training instances to compare
+against for each class.\\
+
+min-wordnet-lin-distance-from-class-examples            & For some test instance t, this produces a vector of the minimum column name
+LIN WS4J distance between t and all training instances of each class.
+Parameters:
+"cache-size": Size of cache for storing wordnet distances of words 
+"max-comparisons-per-class": Max number of training instances to compare
+against for each class.\\
+
+\end{tabular}
+\end{table}
+
+
+\ignore{
 The following feature extractors produce a vector value.
 Some of these are computed together to reduce computation time.
 Others are values that are computed for all classes.
@@ -1678,7 +1767,13 @@ Others are values that are computed for all classes.
                                                                                            against for each class.
                                                                                            
 \end{enumerate}
+}
 
+
+
+
+
+\subsection{\minizinc{} Model \label{Ann:MZ}}
 
 \ignore{
 %% sequentially found solutions and different weights for patterns
