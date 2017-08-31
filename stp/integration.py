@@ -17,7 +17,7 @@ try:
 except ImportError as e:
     import sys
     sys.path.insert(0, '.')
-    from minizinc import *
+    from stp.minizinc import *
 
 import subprocess
 import re
@@ -537,7 +537,7 @@ class IntegrationGraph(object):
             return ag.graph_attr[attr_name]
         return None
 
-    def _digraph_to_ssd(self, digraph, dot_file=None):
+    def _digraph_to_ssd(self, digraph, dot_file=None, optimal_flag=False):
         """
         Convert digraph string to ssd request
         :param digraph: string of a digraph
@@ -564,7 +564,8 @@ class IntegrationGraph(object):
             "time": t,
             "cost": cost,
             "match_score": match_score,
-            "objective": obj
+            "objective": obj,
+            "optimalFlag": optimal_flag
         }
 
         # mappings: [{"attribute": column_id, "node": data_node_id}]
@@ -638,6 +639,7 @@ class IntegrationGraph(object):
         output = output.decode("ascii")
         pat = re.compile("digraph \{.+?\}", re.DOTALL)
         logging.debug("Chuffed output: {}".format(output))
+        optimal_flag = not("Time limit exceeded" in output)
 
         try:
             # get graphviz digraph
@@ -647,7 +649,7 @@ class IntegrationGraph(object):
             # ssd_request = self._digraph_to_ssd(digraph, dot_file)
             # # to return json:
             # return json.dumps(ssd_request)
-            result = [json.dumps(self._digraph_to_ssd(digraph, dot_file)) for digraph in pat.findall(output)]
+            result = [json.dumps(self._digraph_to_ssd(digraph, dot_file, optimal_flag)) for digraph in pat.findall(output)]
 
             return result
 

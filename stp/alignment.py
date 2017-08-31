@@ -511,12 +511,13 @@ def to_graphviz(graph, out_file=None, prog="dot"):
 ####################
 
 import time
-try:
-    import integration as integ
-except ImportError as e:
-    import sys
-    sys.path.insert(0, '.')
-    import integration as integ
+import stp.integration as integ
+# try:
+#     import integration as integ
+# except ImportError as e:
+#     import sys
+#     sys.path.insert(0, '.')
+#     import stp.integration as integ
 
 def create_octopus(server, ssd_range, sample, ontologies):
     octo_local = server.Octopus(
@@ -855,6 +856,7 @@ def do_chuffed(server, ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd
         if len(solution) < 1:
             logging.error("Chuffed found no solutions for ssd {}".format(orig_ssd.id))
             raise Exception("Chuffed found no solutions!")
+        max_sol = len(solution) -1
 
         for idx, sol in enumerate(solution):
             # convert solution to SSD
@@ -863,11 +865,17 @@ def do_chuffed(server, ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd
             cp_ssd = SSD().update(json_sol, server._datasets, server._ontologies)
             eval = cp_ssd.evaluate(ch_ssd, False, True)
 
+            # time returned by chuffed
             chuffed_time = json_sol["time"]
+            # match score calculated by chuffed
             match_score = json_sol["match_score"]
+            # cost of the calculated steiner tree
             cost = json_sol["cost"]
+            # value of the calculated objective function
             objective = json_sol["objective"]
             extended_time = json_sol["extended_time"]
+            # optimal soluiotn is the last found by chuffed
+            optimal_flag = json_sol["optimalFlag"] & idx == max_sol
 
             try:
                 comparison = server.ssds.compare(cp_ssd, ch_ssd, False, False)
@@ -891,14 +899,14 @@ def do_chuffed(server, ch_octopus, ch_dataset, ch_column_names, ch_ssd, orig_ssd
                      soft_assumptions, pattern_sign, accu, sol_accuracy,
                      match_score, cost, objective,
                      cor_match_score, cor_cost, pattern_time,
-                     integrat.graph.number_of_nodes(), integrat.graph.number_of_edges(), extended_time]]
+                     integrat.graph.number_of_nodes(), integrat.graph.number_of_edges(), extended_time, optimal_flag]]
     except Exception as e:
         print("CP solver failed to find solution: {}".format(e))
         res += [[experiment, ch_octopus.id, ch_dataset.id, orig_ssd.name, orig_ssd.id,
                  "chuffed", 0, "fail", None, None, None, None, None, None,
                  train_flag, time.time() - start, chuffed_path, simplify, None,
                  soft_assumptions, pattern_sign, accu, None,
-                 None, None, None, None, None, pattern_time, None, None, None]]
+                 None, None, None, None, None, pattern_time, None, None, None, None]]
     return res
 
 def do_karma(server, k_octopus, k_dataset, k_ssd, orig_ssd,
@@ -932,14 +940,14 @@ def do_karma(server, k_octopus, k_dataset, k_ssd, orig_ssd,
                  eval["jaccard"], eval["precision"], eval["recall"],
                  comparison["jaccard"], comparison["precision"], comparison["recall"],
                  train_flag, runtime, "", None, runtime, None, None, accu, sol_accuracy,
-                 match_score, cost, objective, None, None, None, None, None, None]]
+                 match_score, cost, objective, None, None, None, None, None, None, None]]
     except Exception as e:
         logging.error("Karma failed to find solution: {}".format(e))
         print("Karma failed to find solution: {}".format(e))
         return [[experiment, k_octopus.id, k_dataset.id, orig_ssd.name,
                  orig_ssd.id, "karma", 0, "fail", None, None, None, None, None, None,
                 train_flag, time.time() - start, "", None, None, None, None, accu, None,
-                 None, None, None, None, None, None, None, None, None]]
+                 None, None, None, None, None, None, None, None, None, None]]
 
 
 #####################
