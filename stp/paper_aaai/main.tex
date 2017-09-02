@@ -236,7 +236,7 @@ Section \ref{SEC:pw} compares with the previous work done to achieve this task.
 
 \end{tikzpicture}
 \caption{Example of ontology
-(`\tikz{ \node[class] () at (0,0)  {};}' are Classes, `\tikz{ \path[hasaC,->] 
+(`\tikz{ \node[class, inner sep = 2] () at (0,0)  {};}' are Classes, `\tikz{ \path[hasaC,->] 
 (0,1) -- (3ex,1);}' means ``has an object property'', 
 `\tikz{ \path[hasaA,decoration={post length=0}] (0,0) edge[decorate] (3ex,0);}' 
 means ``has a data property'' and 
@@ -343,7 +343,7 @@ The semantic model may have several instances of the same ontology class, that i
 	
 \end{scope}
 \end{tikzpicture}
-\caption{Examples of two semantic models (`\tikz{ \node[class] () at (0,0)  
+\caption{Examples of two semantic models (`\tikz{ \node[class, inner sep = 2] () at (0,0)  
 {};}' are class nodes, and `\tikz{ \node[data] () at (0,0)  {};}' are data 
 nodes).}
 \label{FIG:sem}
@@ -614,8 +614,8 @@ appeared in the semantic models).
 	\path[draw,isa,->,orange!30!white] (st1) edge[out=-45,in=160] (PL);
 
 \end{tikzpicture}
-\caption{Example of alignment graph (`\tikz{ \node[class] () at (0,0)  
-{};}' `\tikz{ \node[class,orange,fill=orange!30!white,text=black] () at 
+\caption{Example of alignment graph (`\tikz{ \node[class, inner sep = 2] () at (0,0)  
+{};}' `\tikz{ \node[class,orange,fill=orange!30!white,text=black, inner sep = 2] () at 
 (0,0)  
 {};}' are class nodes, and `\tikz{ \node[data] () at (0,0)  {};}' are data 
 nodes). We omit weights for clarity.}
@@ -1025,7 +1025,7 @@ Note how this CP model is easy to adapt to more classic settings where no
 patterns are used (by dropping Eqs. \ref{EQ:patt} and \ref{EQ:pcost}), or 
 without \emph{unknown} nodes (by dropping Eq. \ref{EQ:unk}).
 
-We choose a search strategy that will first try to match attributes using the cheapest edges in $\mathcal{M}_\mathcal{O}^{s^\star}$. Then, it will try to use the cheapest unfixed edge $e\in\mathcal{E_O}$ that completes a pattern $p$ such that $w_\mathcal{P}(p) > w_\mathcal{O}(e)$ or simply the cheapest edge if none complete a pattern.
+We choose a search strategy that will first try to match attributes using the cheapest edges in $\mathcal{M}_\mathcal{O}^{s^\star}$. Then, it will try to use the cheapest unfixed edge $e\in\mathcal{E_O}$ that fills a pattern $p$ (i.e. $\forall e_p\in p, e_p \neq e, c_{e_p}$) such that $w_\mathcal{P}(p) > w_\mathcal{O}(e)$ or simply the cheapest edge if none fill a pattern.
 
 \section{Results \label{SEC:Res}}
 
