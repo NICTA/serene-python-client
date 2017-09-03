@@ -148,6 +148,7 @@ Our contributions are:
 \begin{itemize}
 	\item A novel modeling framework for the \relonto{} problem which 
 	seamlessly incorporates machine learning and constraint programming.
+	\npr{symbolic AI, ontological reasoning, transitive closure}
 	\item An efficient approach to handle attributes which cannot be matched to 
 	the ontology, through a new semantic labeling model and a new STP 
 	model with additional nodes.
@@ -411,14 +412,19 @@ The feature vector, among others, includes characteristics
 such as a number 
 of whitespaces and other special characters, statistics of 
 values in the column 
-(e.g, mean/max/min string length and numeric statistics), etc. 
+%(e.g, mean/max/min string length and numeric statistics)
+, etc. 
 A full list can be found in Appendix \ref{Ann:SemLab}.
 \npr{If I remove entropy descr, we are perfectly within page limit}
 %\ignore{
-One of the important features characterising information content of an attribute is Shannon's entropy of the attribute's concatenated rows.
-Shannon's entropy (or information entropy~\cite{Manning:Introduction}) of a string $X$ is defined as
+One of the important features characterising information content of an attribute is Shannon's entropy.
+% of the attribute's concatenated rows
+Shannon's entropy 
+%(or information entropy~\cite{Manning:Introduction})
+ of a string $X$ is defined as
 $H(X) = -\sum_{i}{p_i \log_{2}p_i},$ where $p_i$ is the probability of a character, whose index in character vocabulary is $i$, to appear in $X$, and the summation ranges over all
-characters in the vocabulary of all possible characters.
+characters in the vocabulary.
+%of all possible characters
 To evaluate $p_i$ in Shannon's entropy, we evaluate normalized character frequency distribution \emph{chardist} of an attribute, as character counts in concatenated rows of the attribute, normalized by the total length of the concatenated rows.
 The vocabulary of all characters consists of 100 printable characters (including $\backslash$n).
 Finally, we add the 100-dimensional vector of $p_i$ to the attribute feature vector.
@@ -637,10 +643,13 @@ To increase the coherence of the generated semantic models, we would like to dis
 %\npr{reformulate for typed directed multigraphs and example based on Fig3}
 In our context, patterns are typed directed graphs.
 We mine these patterns from the set of semantic models in the training set $S_T$.
-This is known as Transactional Frequent Graph Pattern Mining, which includes
-the subgraph isomorphism problem, known to be NP-complete.
-The frequency of a pattern is the number of semantic models which contain at least one subgraph isomorphic to the pattern
-The \emph{support} of the pattern is calculated as its frequency relative to the number of semantic models.
+This is known as Transactional Frequent Graph Pattern Mining, which
+includes the subgraph isomorphism problem, known to be NP-complete.
+The frequency of a pattern is the number of semantic models 
+which contain
+at least one subgraph isomorphic to the pattern.
+The \emph{support} of the pattern is calculated as its 
+frequency relative to the number of semantic models.
 This is an anti-monotonous measure, meaning that bigger 
 patterns will have lower supports than their subgraphs.
 % \ddg{Define support}
@@ -650,9 +659,9 @@ in our evaluation framework.
 Hence, this pattern mining procedure is a highly 
 scalable approach compared to the technique based on SPARQL queries 
 from~\cite{Taheriyan:Leveraging}.
-\npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe 
-cite my work on how databases perform for graph pattern matching. Should it be 
-better in related work?}
+%\npr{Elaborate more, karma's approach for pattern mining took 1 hour, maybe 
+%cite my work on how databases perform for graph pattern matching. Should it be 
+%better in related work?}
 
 %Let $G = (V_G,E_G,\lambda_G)$ and $P = (V_P,E_P, \lambda_P)$ be two graphs 
 %where $\lambda_G$ (resp. $\lambda_P$) is a \emph{labeling function} that maps 
@@ -720,8 +729,7 @@ w_\mathcal{O}(e)$. For an edge $e
 \in \mathcal{M}_\mathcal{O}^{s^\star}$ connecting attribute $a_i$ to the node 
 $l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
 ln(\psi(a_i,l_j))$. %\ddg{CHECK!}
-
-An example of integration graph can be found in Fig. \ref{FIG:inte}.
+An example of an integration graph can be found in Fig. \ref{FIG:inte}.
 
 
 
@@ -803,10 +811,16 @@ are the same as in Fig \ref{FIG:ali}.}
 \label{FIG:inte}
 \end{figure}
 
-Note that, although the alignment graph is directed, the semantic models are 
-not necessarily rooted graphs (e.g. Fig. \ref{FIG:sem}), therefore the 
-direction of the edges is ignored for the STP model (and are all treated as 
-undirected edges). 
+Note that, although the alignment graph is directed, we disregard the
+direction of edges for the STP model.
+We disambiguate the direction and semantics of edges via their
+weights.
+We can further improve this step by using patterns.
+%\npr{this was not completely correct}
+%the semantic models are 
+%not necessarily rooted graphs (e.g. Fig. \ref{FIG:sem}), therefore the 
+%direction of the edges is ignored for the STP model (and are all treated as 
+%undirected edges). 
 
 The goal is to build a subgraph $T^\star= (V^\star, E^\star)$ of
 $\mathcal{I}_\mathcal{O}^{s^\star}$ for the new source $s^\star$. The solution 
@@ -991,32 +1005,36 @@ The model is presented below.
 	\label{EQ:pcost} &&\\
 	& c_{unknown} \Rightarrow \big( c_{root}  \land 
 	c_{(unknown,root)} \big) \label{EQ:unk}
+\vspace{-3mm}
 \end{flalign}
 
-Eq. \ref{EQ:obj} is the objective function: we are minimizing the cost 
-of $T^\star$ while collecting prizes for each pattern we use. Eq. \ref{EQ:stp} 
-enforces that the solution 
-$T^\star$ is indeed a tree defined by the $c_n$ and $c_e$ variables, subgraph 
-of the alignment graph 
-and of total weight $w_{STP}$. Equations \ref{EQ:deg1} and \ref{EQ:deg2} ensure 
+Eq.~\ref{EQ:obj} is the objective function: we are minimizing the cost 
+of $T^\star$ while collecting prizes for each pattern we use. 
+Eq.~\ref{EQ:stp} enforces that the solution 
+$T^\star$ is indeed a tree defined by the $c_n$ and $c_e$ variables,
+subgraph of the alignment graph 
+and of total weight $w_{STP}$. 
+Eq.~\ref{EQ:deg1} and \ref{EQ:deg2} ensure 
 that if a data node of the alignment graph is selected, then at most one edge 
 reaches it (from the side of the alignment graph) and otherwise it is 
-disconnected. \ignore{Eq. \ref{EQ:matchdom} ensures that the domain of each 
+disconnected. 
+\ignore{Eq. \ref{EQ:matchdom} ensures that the domain of each 
 variable in 
 the array $match$ corresponds to a subset of data nodes of the alignment graph 
-for which there is an edge connecting to the attribute at hand. Eq. 
-\ref{EQ:alld} ensure that each attribute is mapped to exactly one data node of 
-the alignment graph.} Equations \ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
-there is exactly one data node matched to an attribute. Eq. \ref{EQ:map} 
-ensures that 
+for which there is an edge connecting to the attribute at hand. 
+Eq.~\ref{EQ:alld} ensure that each attribute is mapped to exactly one data node of 
+the alignment graph.}
+Eq.~\ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
+there is exactly one data node matched to an attribute. 
+Eq.~\ref{EQ:map} ensures that 
 if a data node of the alignment graph has been mapped to some attribute, then 
-that data node must be in the solution tree, and vice-versa. Eq. 
-\ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
-Eq. \ref{EQ:patt} indicates that a pattern is used if and only if all its edges 
-are selected in the tree. Eq. \ref{EQ:pcost} computes the prizes collected by using patterns.
+that data node must be in the solution tree, and vice-versa. 
+Eq.~\ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
+Eq.~\ref{EQ:patt} indicates that a pattern is used if and only if all its edges are selected in the tree. 
+Eq.~\ref{EQ:pcost} computes the prizes collected by using patterns.
 Eq. \ref{EQ:unk} ensures that if the \emph{unknown} class node is used, then it 
 is connected to \emph{root}.
-Notice how there is no further requirement for unmatched attributes, as the 
+Notice there is no further requirement for unmatched attributes, as the 
 $unk_i$ data nodes behave like normal data nodes, and the connectedness 
 requirement will make sure that \emph{root} is connected to the rest of the 
 tree (i.e. the semantic model).
@@ -1032,8 +1050,7 @@ We choose a search strategy that will first try to match attributes using the ch
 \subsection{Experimental Setup}
 
 % datasets for evaluation
-For the rest of the paper, we call our system \serene{} when it is not using 
-patterns in the CP model, and \serenepats{} when it uses them.
+For the rest of the paper, we call our system \serene{} if no patterns are used in the model, and \serenepats{} otherwise.
 
 We run experiments on two domains: museum and soccer (see Fig.~\ref{tab:data} for statistics).
 The museum dataset~\cite{taheriyan2016learning} contains 29 sources which are mapped to the EDM domain ontology.
@@ -1072,9 +1089,9 @@ We choose \karma{}~\cite{taheriyan2016learning} as our baseline.
 This system also phrases the \relonto{} problem as STP and decomposes it further into two parts.
 However, it uses heuristic algorithms both for the matching and for the STP 
 parts.
-It solve the problems sequentially, i.e., once it produces a set of candidate 
-mappings for attributes into the ontology, it fixes this set and move onto the 
-STP part.
+It solves the problems sequentially, i.e., once it produces a set of candidate 
+mappings for attributes into the ontology, it fixes this set and moves
+onto the STP part.
 Additionally, it does not consider unmatched attributes in the sources.
 To ensure that \karma{} also handles such attributes, we change its semantic 
 labeling model, SemanticTyper~\cite{Ramnandan:Assigning}, to ours and we add a 
@@ -1104,8 +1121,10 @@ In such way we validate how well the systems can detect earlier unseen cases.
 
 % semantic labeling models
 To illustrate that our semantic labeling model is better suited for the
-matching task, we compare it against the state-of-the-art model \emph{DSL}~\cite{Pham:semantic} which was shown to perform even better than SemanticTyper. 
-\npr{not sure whether I should explain how this model works}
+matching task, 
+we compare it against the state-of-the-art model \emph{DSL}~\cite{Pham:semantic} which was shown to perform 
+even better than SemanticTyper. 
+%\npr{not sure whether I should explain how this model works}
 We use \emph{mean reciprocal rank} (MRR) to evaluate semantic labeling models.
 This measure is useful to estimate how highly the true semantic label is ranked among top $k$ suggestions.
 It is calculated the following way:
@@ -1401,7 +1420,7 @@ time.
 % change in performance if we look at sequentially found solutions
 % only leave-one-out for museum domain with 15s timeout for chuffed
 
-\begin{figure}[!ht]
+\begin{figure}[!ht]\small
 \centering
 \begin{tikzpicture}[scale=0.4]
 \pgfplotsset{
@@ -1447,7 +1466,7 @@ time.
 domain.}\label{fig:loo}
 \end{figure}
 
-\npr{Maybe some words on how optimal solution found by chuffed relates to the ground truth?}
+%\npr{Maybe some words on how optimal solution found by chuffed relates to the ground truth?}
 
 \section{Related Work \label{SEC:pw}}
 
@@ -1516,7 +1535,7 @@ We, on the other hand, use exact algorithms for both parts and address them with
 
 In their follow up work, \cite{Taheriyan:Leveraging} suggest using graph 
 patterns to boost the performance of their system.
-To perform semantic modeling in such scenario, \cite{Taheriyan:Leveraging} had to revise their algorithm by introducing additional heuristics.
+To this end, \cite{Taheriyan:Leveraging} had to revise their algorithm by introducing additional heuristics.
 However, in our case we only had to add pattern variables and to modify the 
 objective function in the \minizinc{} model.
 No changes to the solver were required.

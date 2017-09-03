@@ -408,7 +408,7 @@ import yaml
 # =======================
 
 chuffed_lookup_path = os.path.join(project_path, "stp", "minizinc")
-result_csv = os.path.join(project_path, "stp", "resources", "results", "museum_optimal.csv")
+result_csv = os.path.join(project_path, "stp", "resources", "results", "museum_optimal3.csv")
 with open(result_csv, "w+") as f:
     csvf = csv.writer(f)
     csvf.writerow(["experiment", "octopus", "dataset", "name", "ssd",
@@ -431,10 +431,16 @@ with open(result_csv, "w+") as f:
                           "match_score", "cost", "objective", "cor_match_score", "cor_cost", "pattern_time"]]
 
     print("Starting benchmark")
+    done_list = ["s02", "s20", "s11", "s29", "s21", "s27", "s10", "s26", "s13", "s16", "s18", "s08", "s28", "s19",
+                 "s22", "s24"]
 
     for cur_id in sample_range:
         print("Currently selected ssd: ", cur_id)
         num = 28
+        ssd = new_ssds[cur_id]
+        if any(item in ssd.name for item in done_list):
+            continue
+
         train_sample = sample_range[:max(cur_id + num + 1 - len_sample, 0)] + sample_range[cur_id + 1: cur_id + 1 + num]
         print("     train sample size: ", num)
 
@@ -465,15 +471,15 @@ with open(result_csv, "w+") as f:
         chuffed_paths = [
             # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170718"),
             #  True, None, False, 1.0),
-            (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170722"), True, None, True, 1.0),
+            # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170722"), True, None, True, 1.0),
             # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
             #  False, octo_patterns, False, 1.0),
             (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
              False, octo_patterns, True, 1.0),
-            (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
-             False, octo_patterns, True, 5.0),
-            (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
-             False, octo_patterns, True, 10.0),
+            # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
+            #  False, octo_patterns, True, 5.0),
+            # (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
+            #  False, octo_patterns, True, 10.0),
             (os.path.join(chuffed_lookup_path, "chuffed-rel2onto_20170728"),
              False, octo_patterns, True, 20.0),
         ]
@@ -484,7 +490,6 @@ with open(result_csv, "w+") as f:
             train_labels += [d.full_label for d in new_ssds[i].data_nodes]
         train_labels = set(train_labels)
 
-        ssd = new_ssds[cur_id]
         dataset = [ds for ds in datasets if ds.filename == ssd.name + ".csv"][0]
         # we tell here the correct columns
         column_names = [c.name for c in ssd.columns]
