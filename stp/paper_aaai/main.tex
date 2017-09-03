@@ -99,7 +99,7 @@ length=10,amplitude=0.3,post length=4}]
 \author{}
 \maketitle
 \begin{abstract}
-The problem of integrating heterogeneous data sources in an ontology is of high 
+The problem of integrating heterogeneous data sources into an ontology is of high 
 relevance in the database field. Several techniques exist to approach this 
 problem. Nonetheless, side constraints on the data integration cannot be easily 
 integrated with these tools and thus the results may be inconsistent. We 
@@ -134,10 +134,14 @@ Given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automati
 ontology.\hfill$\square$
 
 In this paper we use Machine Learning techniques (ML) to learn mapping rules from previously mapped instances.
-To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
+To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
 
-Firstly, we build an \emph{integration graph} which includes the 
-attributes from the new source as well as ontology classes and properties. 
+Firstly, we build a graph which includes attributes from the new
+source as well as ontology classes and properties.
+We call it the \emph{integration graph}.
+This graph uses information gathered from the previously mapped data sources, and is further extended with information derived from the ontology.
+%Firstly, we build a \emph{integration graph} which includes the 
+%attributes from the new source as well as ontology classes and properties.
 Secondly, we apply machine learning techniques to 
 assign costs to its edges. 
 Lastly, we use Constraint Programming (CP) to 
@@ -148,7 +152,7 @@ Our contributions are:
 \begin{itemize}
 	\item A novel modeling framework for the \relonto{} problem which 
 	seamlessly incorporates machine learning and constraint programming.
-	\npr{symbolic AI, ontological reasoning, transitive closure}
+%	\npr{symbolic AI, ontological reasoning, transitive closure}
 	\item An efficient approach to handle attributes which cannot be matched to 
 	the ontology, through a new semantic labeling model and a new STP 
 	model with additional nodes.
@@ -245,6 +249,7 @@ means ``has a data property'' and
 \citeasnoun{Taheriyan2013}.
 }
 \label{FIG:onto}
+\vspace{-3mm}
 \end{figure}
 
 In our work we consider that an ontology $\mathcal{O}$ includes basic elements 
@@ -348,6 +353,7 @@ The semantic model may have several instances of the same ontology class, that i
 {};}' are class nodes, and `\tikz{ \node[data] () at (0,0)  {};}' are data 
 nodes).}
 \label{FIG:sem}
+\vspace{-3mm}
 \end{figure}
 
 In our setting we work with relational sources.
@@ -415,7 +421,7 @@ values in the column
 %(e.g, mean/max/min string length and numeric statistics)
 , etc. 
 A full list can be found in Appendix \ref{Ann:SemLab}.
-\npr{If I remove entropy descr, we are perfectly within page limit}
+%\npr{If I remove entropy descr, we are perfectly within page limit}
 %\ignore{
 One of the important features characterising information content of an attribute is Shannon's entropy.
 % of the attribute's concatenated rows
@@ -484,8 +490,7 @@ Adding the semantic types learned for the target source
 $(iii)$ Expanding the graph using the domain ontology.
 %\end{enumerate}
 
-Note how the alignment graph contains data nodes that correspond to semantic 
-types. 
+Note how the alignment graph contains data nodes that correspond to semantic types. 
 For instance, it could contain two nodes $City.name$ and $State.name$ rather than just one node $name$ connected to two 
 nodes $City$ and $State$. 
 We say these nodes are \emph{induced} into the 
@@ -626,6 +631,7 @@ appeared in the semantic models).
 {};}' are class nodes, and `\tikz{ \node[data] () at (0,0)  {};}' are data 
 nodes). We omit weights for clarity.}
 \label{FIG:ali}
+\vspace{-3mm}
 \end{figure}
 
 
@@ -699,9 +705,11 @@ Given a graph $G =
 (V, E)$ and a subset of its nodes $T \subseteq V$, a 
 Steiner Tree $G_s = (V_s, E_s )$ is a tree (connected acyclic graph) such that 
 $T \subseteq V_s \subseteq 
-V$ and $E_s \subseteq E$. In other words, $G_s$ spans all the nodes in $T$ and 
+V$ and $E_s \subseteq E$. 
+In other words, $G_s$ spans all the nodes in $T$ and 
 may include additional nodes from $V$, in particular to ensure the 
-connectedness of the constructed tree. The Steiner Tree Problem 
+connectedness of the constructed tree. 
+The Steiner Tree Problem 
 (STP) is stated as follows: given $G$ and a weight function $w_f : E 
 \mapsto \mathbb{R}$, find the Steiner Tree that minimizes the sum of the 
 weights of the edges in $E_s$ given by $w_f$. This was proven to be NP-hard 
@@ -724,8 +732,10 @@ $\mathcal{E}_\mathcal{O}^{s^\star} =
 \mathcal{E_O} \cup \mathcal{M}_\mathcal{O}^{s^\star}$.
 
 We associate a weighting function  $w_\mathcal{I} : E \mapsto \mathbb{R}^+$ to 
-the integration graph. For an edge $e \in \mathcal{E_O}$, $w_\mathcal{I}(e) = 
-w_\mathcal{O}(e)$. For an edge $e 
+the integration graph. 
+For an edge $e \in \mathcal{E_O}$, $w_\mathcal{I}(e) = 
+w_\mathcal{O}(e)$. F
+or an edge $e 
 \in \mathcal{M}_\mathcal{O}^{s^\star}$ connecting attribute $a_i$ to the node 
 $l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
 ln(\psi(a_i,l_j))$. %\ddg{CHECK!}
@@ -809,6 +819,7 @@ width=220]
 matches for clarity. Data node
 are the same as in Fig \ref{FIG:ali}.}
 \label{FIG:inte}
+\vspace{-3mm}
 \end{figure}
 
 Note that, although the alignment graph is directed, we disregard the
@@ -848,21 +859,20 @@ The solution $T^\star$ must satisfy the following constraints:
 	$\forall n \in \mathcal{D_{G_O}} \cap V^\star, degree(a) = 2$.
 %\end{enumerate}
 
-It is therefore natural to model this problem as a STP with side constraints, since the 
-two first requirements imply that $T^\star$ is a Steiner Tree of the 
-integration graph. By designing the weighting function $w_\mathcal{I}$ through 
+It is therefore natural to model this problem as a STP with side constraints.
+%, since the two first requirements imply that $T^\star$ is
+%a Steiner Tree of the integration graph. 
+By designing the weighting function $w_\mathcal{I}$ through 
 ML techniques, as shown in Section \ref{SEC:ML}, 
-our expectation is that the minimum weight Steiner Tree is a valid semantic 
-model for the new source.
+our expectation is that the minimum cost Steiner Tree is a valid and coherent semantic model for the new source.
 
 
 \subsection{Using Patterns}
 
-As explained in Subsection \ref{SSEC:pattern-mining}, we also tried to use 
-frequently appearing patterns in order to incentivise the solution tree 
+As explained in Subsection \ref{SSEC:pattern-mining}, we also use 
+graph patterns in order to incentivise the solution tree 
 $T^\star$ to contain subgraphs of the alignment graph that have been frequently 
 seen in the training set.
-
 To do this, we use the support of each of the obtained patterns as a prize. If 
 the tree contains a pattern, then its weight is automatically reduced by a the 
 value of the support of that pattern. We will see in the next section how this 
@@ -1146,7 +1156,7 @@ Such procedure ensures that each source is at least once in the training as well
 % architecture
 We have run all our experiments on a Dell server with 252 GB of memory, 2 CPUs 
 with 4 cores each.
-\npr{check characteristics, AWS machine is bigger}
+%\npr{check characteristics, AWS machine is bigger}
 In all our experiments we use a timeout threshold of 15s for \chuffed{}, which 
 runs on a single core (thus easy to deploy on any user's machine).
 
@@ -1361,8 +1371,10 @@ not based on the notion of similarity.
 	\end{tikzpicture}
 \subcaption{Recall (soccer)}\label{fig:soccerrec}
 \end{minipage}%
-\caption{Performance over the museum and soccer datasets. Average size of 
-integration graph: 88 nodes and 1129 nodes.\label{fig:perf}}
+\caption{Performance for the museum and soccer domains. 
+Average size of integration graphs for the museum domain: 88 nodes and 1129 edges2.
+Average run time for the museum domain: \serene{} 0.5s, \karma{} 0.5s, \serenepats{} 1s. \label{fig:perf}}
+\vspace{-3mm}
 \end{figure}
 
 
@@ -1412,9 +1424,8 @@ However, the sequential solutions are not always better, and hitting the
 optimal solution may take hours.
 
 We have also observed that \serenepats{} manages to find the ground truth on 
-many instances among its sequential solutions, but again it takes much more 
-time.
-
+many instances among its sequential solutions.
+This property of our approach can be used to configure various parameters for the model, e.g., scaling factors for pattern costs or match score.
 
 
 % change in performance if we look at sequentially found solutions
@@ -1464,6 +1475,7 @@ time.
 \end{tikzpicture}
 \caption{Performance of \serene{} for leave-one-out strategy on the museum 
 domain.}\label{fig:loo}
+\vspace{-3mm}
 \end{figure}
 
 %\npr{Maybe some words on how optimal solution found by chuffed relates to the ground truth?}
