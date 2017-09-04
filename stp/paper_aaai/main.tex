@@ -435,7 +435,7 @@ To evaluate $p_i$ in Shannon's entropy, we evaluate normalized character frequen
 The vocabulary of all characters consists of 100 printable characters (including $\backslash$n).
 Finally, we add the 100-dimensional vector of $p_i$ to the attribute feature vector.
 %}
-We also compute a set of features based on similarity metrics inspired by state-of-the-art works~\cite{Pham:semantic} or~\cite{Ritze:matching}.
+We also compute a set of features based on similarity metrics inspired by state-of-the-art works by ~\citeasnoun{Pham:semantic} or~\citeasnoun{Ritze:matching}.
 Among others, we compute mean cosine similarity for character distributions of attribute values and string similarity metrics for attribute names.
 %To extract features from attribute names, we compute string similarity metrics: minimum edit distance, two WordNet based similarity measures such as JCN~\cite{Jiang:Semantic} and LIN ~\cite{Lin:Information}, and $k$-nearest neighbors using Needle-Wunsch distance~\cite{Needleman:General}.
 %The minimum edit distance between two strings $s_1$ and $s_2$ is the minimum number of edit operations, such as insertion, deletion, substitution, which are required to transform one string into another~\cite{Manning:Introduction}.
@@ -1770,7 +1770,8 @@ array[1..2,edges] of int: endpairs = array2d(1..2,edges,tails++heads);
 array [edges] of int: ws;               % Weights of edges in alignment graph
 var 0..sum(ws): w;                      % Weight of the solution corresponding to the alignment part
 constraint steiner_tree(vs,es,adjacent,endpairs,w,ws);  % Steiner Tree constraint
-constraint forall (d in dnodes) (vs[d] <-> sum(e in edges where adjacent[d,e])(es[e]) == 1); %Only 1 edges per data node 
+constraint forall (d in dnodes) 
+                   (vs[d] <-> sum(e in edges where adjacent[d,e])(es[e]) == 1);% Only 1 edges per data node 
 
 %%%%%%% Matching Problem
 int: nbA;                                           % Nb of attribute nodes
@@ -1782,7 +1783,7 @@ array[atts,int] of int: match_costs;                % Weight of match edges
 constraint forall (a in atts) (match[a] in (attribute_domains[a]));   % Must match someone in the domain
 constraint forall (a in atts) (vs[match[a]]);       % The data node matched must be in the subgraph of the alignment
 constraint alldifferent(match);                     % Exact match
-var 0..sum(a in atts)(sum(n in index_set_2of2(match_costs))(match_costs[a,n])): wm;  %Total cost from matching part :
+var 0..sum(a in atts)(sum(n in index_set_2of2(match_costs))(match_costs[a,n])): wm;  % Total cost from matching part :
 constraint wm = sum(a in atts) (match_costs[a,match[a]]);
 
 	\end{lstlisting}
@@ -1808,19 +1809,19 @@ endif;
 
 
 %%%%%%% Patterns
-int: nb_patterns;                     %Number of patterns
+int: nb_patterns;                     % Number of patterns
 set of int: PATTS = 1..nb_patterns;
-array[PATTS] of int: patterns_w;      %Support of patterns
-array[PATTS] of set of int: patterns; %The actual patterns
-array[PATTS] of var bool: c_p;        %Is pattern chosen
+array[PATTS] of int: patterns_w;      % Support of patterns
+array[PATTS] of set of int: patterns; % The actual patterns
+array[PATTS] of var bool: c_p;        % Is pattern chosen
 constraint forall (p in PATTS) ((sum (e in patterns[p])   % All edges of a pattern are used <-> pattern is used
 							                  	(es[e]) == card(patterns[p])) <-> c_p[p]);
-var 0..sum(patterns_w): wp; % Total prize collected from patterns : 
+var 0..sum(patterns_w): wp;           % Total prize collected from patterns : 
 constraint if nb_patterns = 0 then wp = 0 else wp = sum(p in PATTS) (c_p[p] * patterns_w[p]) endif;
 
 
 %%%%%%% Final objective function 
-var int: obj = w + wm - wp; % Total cost of semantic model - prize collected from patterns
+var int: obj = w + wm - wp;           % Total cost of semantic model - prize collected from patterns
 
 
 %%%%%%% Search startegy
@@ -1830,7 +1831,7 @@ ann: cheap_matches = int_search([ match[a] == match_costs_sorted[a,i] |a in atts
 array[edges] of int: sorted_edges = arg_sort(ws);
 ann: cheap_edges = int_search([es[sorted_edges[nbE + 1 - e]] | e in edges],input_order,indomain_min,complete);
 
-ann: cheap_edges_fill_pattern; % Custom search strategy for patterns
+ann: cheap_edges_fill_pattern;        % Custom search strategy for patterns
 ann: custom(ann, array[int] of int, array[int] of var bool);
 array[int] of ann: cefp = 
 if nb_patterns == 0 then [] 

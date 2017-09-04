@@ -1,5 +1,5 @@
 
-\definecolor{lightgray}{rgb}{0.97, 0.97, 0.97}
+\definecolor{lightgray}{rgb}{0.98, 0.98, 0.98}
 %\definecolor{lightgray}{rgb}{0.83, 0.83, 0.83}
 %\definecolor{orange}{HTML}{FF7F00}
 
@@ -8,9 +8,10 @@
 {
 morekeywords={
 % minizinc keyworkds
-ann, annotation, any, array, assert, bool, constraint, else, endif, enum, float, forall, function,
+any, array, assert, bool, constraint, else, endif, enum, float, forall, 
+function,
 if, in, include, int, list, of, op, output, minimize, maximize, par, predicate, record, set,
-solve, string, test, then, tuple, type, var, where,
+solve, string, test, then, tuple, type, where,
 % minizinc functions
 abort, abs, acosh, array_intersect, array_union,
 array1d, array2d, array3d, array4d, array5d, array6d, asin, assert, atan, bool2int, card,
@@ -20,8 +21,8 @@ index_set_2of2, index_set_1of3, index_set_2of3, index_set_3of3, int2float, is_fi
 join, lb, lb_array, length, let, ln, log, log2, log10, min, max, pow, product, round, set2array,
 show, show_int, show_float, sin, sinh, sqrt, sum, tan, tanh, trace, ub, and ub_array},
 sensitive=false, % are the keywords case sensitive
-morecomment=[l][\bfseries\color{orange}]{::},
-morecomment=[l][\em\color{green}]{\%},
+morecomment=[l][\bfseries\color{cyan!90!black}]{::},
+morecomment=[l][\em\color{green!50!black}]{\%},
 %morecomment=[s]{/*}{*/},
 morestring=[b]",
 }
@@ -53,7 +54,19 @@ morestring=[b]",
   stepnumber=1,                    % the step between two line-numbers. If it's 1, each line will be numbered
   stringstyle=\color{red},     % string literal style
   tabsize=2,                       % sets default tabsize to 2 spaces
-  title=\lstname                   % show the filename of files included with \lstinputlisting; also try caption instead of title
+  title=\lstname,                   % show the filename of files included with 
+  %\lstinputlisting; also try caption instead of title
+  % keyword highlighting
+      classoffset=1, % starting new class
+      morekeywords={var},
+      otherkeywords={var},
+      keywordstyle=\itshape\bfseries\color{red!80!black},
+      classoffset=0,
+      classoffset=2, % starting new class
+      morekeywords={ann},
+      otherkeywords={ann},
+      keywordstyle=\bfseries\color{cyan!80!black},
+      classoffset=0
 }
 
 %\def\mzninline{\lstinline[basicstyle=\ttfamily,annotationstyle=\normalfont]}
