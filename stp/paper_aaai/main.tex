@@ -277,16 +277,16 @@ The semantic model may have several instances of the same ontology class, that i
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.95]
 \begin{scope}
 	\node[class] (pe) at (3,0)  {\small Person1};
 	\node[class] (co) at (6,0) {\small Org.1};
 	\node[class] (ci) at (1,0) {\small City1};
 	\node[class] (st) at (-1,0) {\small State1};
 	
-	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person1.name};
-	\node[data] (peb) at (4.3,-0.7) {\scriptsize Person1.birthDate};
-	\node[data] (cin) at (1,-0.7) {\scriptsize City1.name};
+	\node[data] (pen) at (2.3,-0.7) {\scriptsize Person1.name};
+	\node[data] (peb) at (4.2,-0.7) {\scriptsize Person1.birthDate};
+	\node[data] (cin) at (0.7,-0.7) {\scriptsize City1.name};
 	\node[data] (stn) at (-1,-0.7) {\scriptsize State1.name};
 	\node[data] (con) at (6,-0.7) {\scriptsize Org1.name};
 	
@@ -319,10 +319,10 @@ The semantic model may have several instances of the same ontology class, that i
 	\node[class] (co) at (1,0) {\small Org.2};
 	\node[class] (ev) at (6,0) {\small Event1};
 	
-	\node[data] (pen) at (2.5,-0.7) {\scriptsize Person2.name};
-	\node[data] (evs) at (4.2,-0.7) {\scriptsize Event1.startDate};
+	\node[data] (pen) at (2.2,-0.7) {\scriptsize Person2.name};
+	\node[data] (evs) at (4,-0.7) {\scriptsize Event1.startDate};
 	\node[data] (eve) at (6,-0.7) {\scriptsize Event1.endDate};
-	\node[data] (con) at (1,-0.7) {\scriptsize Org2.name};
+	\node[data] (con) at (0.7,-0.7) {\scriptsize Org2.name};
 	\node[data] (pln) at (-1,-0.7) {\scriptsize City2.name};
 	
 		
@@ -518,7 +518,7 @@ appeared in the semantic models).
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.9]
 
 	\node[class] (pe1) at (3,0)  {\small Person1};
 	\node[class] (co1) at (6,0) {\small Org.1};
@@ -526,10 +526,10 @@ appeared in the semantic models).
 	\node[class] (st1) at (-1,0) {\small State1};
 	
 	\node[data] (pen) at (2.3,0.7) {\scriptsize Person1.name};
-	\node[data] (peb) at (4.2,0.7) {\scriptsize Person1.birthDate};
+	\node[data] (peb) at (4.3,0.7) {\scriptsize Person1.birthDate};
 	\node[data] (cin) at (0.7,0.7) {\scriptsize City1.name};
 	\node[data] (stn) at (-1,0.7) {\scriptsize State1.name};
-	\node[data] (con) at (6,0.7) {\scriptsize Org1.name};
+	\node[data] (con) at (6.2,0.7) {\scriptsize Org1.name};
 	
 		
 	\path[hasaC,->] (pe1) edge [bend left= 0] 
@@ -565,7 +565,7 @@ appeared in the semantic models).
 	
 	\node[data] (pen) at (2.3,-0.7+\ysh) {\scriptsize Person2.name};
 	\node[data] (evs) at (4.2,-0.7+\ysh) {\scriptsize Event1.startDate};
-	\node[data] (eve) at (6,-0.7+\ysh) {\scriptsize Event1.endDate};
+	\node[data] (eve) at (6.3,-0.7+\ysh) {\scriptsize Event1.endDate};
 	\node[data] (con) at (0.7,-0.7+\ysh) {\scriptsize Org2.name};
 	\node[data] (pln) at (-1,-0.7+\ysh) {\scriptsize City2.name};
 	
@@ -746,7 +746,7 @@ An example of an integration graph can be found in Fig. \ref{FIG:inte}.
 
 \begin{figure}[ht]
 \centering
-\begin{tikzpicture}
+\begin{tikzpicture}[scale=0.9]
 	\node[class, rectangle, rounded corners] (CLASS) at (0,0) { \small{ 
 	Nodes of Alignment Graph}};
 	
@@ -787,7 +787,7 @@ width=220]
 {};
 \node[brown!40!red!40!white] 
 (source) at 
-(-4.1,-2) 
+(-4.5,-2) 
 {$s^\star$:};
 	\node[att] (a1) at (-3,-2) {\small Surname};
 	\node[att] (a2) at (-1,-2) {\small Workplace};
@@ -1622,6 +1622,7 @@ This is one of the features which we want to incorporate into \serene{}.
 }
 \bibliographystyle{aaai}
 \bibliography{main}
+
 
 \newpage
 \section*{Appendices}
