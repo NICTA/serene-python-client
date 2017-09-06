@@ -136,10 +136,10 @@ ontology.\hfill$\square$
 In this paper we use Machine Learning techniques (ML) to learn mapping rules from previously mapped instances.
 To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
 
-Firstly, we build a graph which includes attributes from the new
+Firstly, we build a graph which includes attributes (i.e. columns) from the new
 source as well as ontology classes and properties.
-We call it the \emph{integration graph}.
-This graph uses information gathered from the previously mapped data sources, and is further extended with information derived from the ontology.
+We name it \emph{integration graph}.
+It uses information gathered from the previously mapped data sources, and is further extended with information derived from the ontology.
 %Firstly, we build a \emph{integration graph} which includes the 
 %attributes from the new source as well as ontology classes and properties.
 Secondly, we apply machine learning techniques to 
@@ -162,7 +162,7 @@ Our contributions are:
 
 
 Section \ref{SEC:problem} formally states the problem. 
-In Section \ref{SEC:ML} we present how we convert the information given into a 
+In Section \ref{SEC:ML} we present how we convert learnt data into a 
 useful data representation. 
 Section \ref{SEC:STP} shows how we model the problem as a STP, 
 whereas Section \ref{SEC:CP} presents our implementation in CP. 
@@ -208,7 +208,7 @@ Section \ref{SEC:pw} compares with the previous work done to achieve this task.
 	node [midway, above, sloped] {partOf} (pl) ;
 	
 	\path[hasaC,->] (ci) edge  []
-	node [midway, above, sloped] {state} (st) ;
+	node [midway, above, sloped] {isIn} (st) ;
 	
 	\path[isa,->] (ci) -- node [] {} (pl) ;
 	\path[isa,->] (st) -- node [] {} (pl) ;
@@ -252,9 +252,8 @@ means ``has a data property'' and
 \vspace{-3mm}
 \end{figure}
 
-In our work we consider that an ontology $\mathcal{O}$ includes basic elements 
-as classes which represent a set of concepts, literal values, individuals which 
-are members of classes and properties~\cite{Spanos:semweb}.
+In our work we consider that an ontology $\mathcal{O}$ includes basic elements such 
+as classes (which represent concepts), literal values, individuals (members of classes) and properties~\cite{Spanos:semweb}.
 Properties are classified into \emph{object properties}, which relate two 
 individuals, 
 and \emph{datatype properties}, which relate individuals to literal values.
@@ -272,7 +271,7 @@ $ \mathcal{C}_m$ corresponds to classes in the ontology
 whereas $\mathcal{D}_m$ corresponds to data 
 properties. 
 Edges in the semantic model correspond to properties in the ontology, as 
-shown in Fig.~\ref{FIG:onto} and \ref{FIG:sem}.
+shown in Fig.~\ref{FIG:sem} (notice the same edges appear in Fig.~\ref{FIG:onto}).
 The semantic model may have several instances of the same ontology class, that is why class nodes are enumerated.
 
 \begin{figure}[ht]
@@ -300,7 +299,7 @@ The semantic model may have several instances of the same ontology class, that i
 	
 	
 	\path[hasaC,->] (ci) edge  []
-	node [midway, above, sloped] {state} (st) ;
+	node [midway, above, sloped] {isIn} (st) ;
 
 	
 
@@ -371,7 +370,7 @@ An \emph{attribute mapping} function $\phi : \mathcal{A}_s \mapsto
 \mathcal{D}_m$ is a function which maps the attributes of the source $s$ into the nodes of the semantic model $m$. 
 It can be a partial mapping, meaning that only some of the attributes
 are connected to the nodes of $m$.
-The attribute mapping function addresses the first part of the problem (semantic labeling).
+The attribute mapping function addresses the first part of the problem (i.e. the semantic labeling).
 
 We define a \emph{source description} as a triple $\delta = (s, m, \phi)$ where $s$ is a source, $m$ is a semantic model, and $\phi$ is an attribute mapping.
 Our problem can hence be stated as follows. We have an ontology 
@@ -393,8 +392,7 @@ $m^\star$ and the semantic model $m^\dag$ that the user considers correct.
 The semantic types $\mathcal{L_O} = \{l_1, l_2, ..., l_p\}$ of an ontology 
 correspond to all pairs $(c,d)$, where $c$ is a Class in $\mathcal{O}$, and $d$ 
 is a data property of that class (including inherited properties). 
-For example, from the ontology in Fig. \ref{FIG:onto}, we would get types such 
-as 
+For example, from the ontology in Fig. \ref{FIG:onto}, we would for example get
 (City,name) and (State,name).
 
 The first step to model the semantics of a new source $s^\star$ is to recognize the semantic types present in the source. 
@@ -493,7 +491,8 @@ For instance, it could contain two nodes $City.name$ and $State.name$ rather tha
 nodes $City$ and $State$. 
 We say these nodes are \emph{induced} into the 
 alignment graph by the semantic types.
-We denote them as $\mathcal{D_{G_O}}$ and call them the \emph{data nodes} of the alignment graph.
+We note them $\mathcal{D_{G_O}}$ and call them the \emph{data nodes} of the alignment graph.
+Class nodes are noted $\mathcal{C_{G_O}}$.
 
 The graph is weighted by a function $w_\mathcal{O} : \mathcal{E_O} \mapsto 
 \mathbb{R}$ such that edges which are present in
@@ -638,7 +637,7 @@ nodes). We omit weights for clarity.}
 Certain patterns of connections can be prevalent in the domain.
 For example, in Fig.~\ref{FIG:sem} both semantic models have class nodes ``City'', ``Organization'' and ``Person''.
 According to the ontology in Fig.~\ref{FIG:onto} there are multiple ways to connect these nodes.
-However, if we know that the ``Person'' works for the ``Organization'', then based on the known semantic models ``City'' is more likely to be the birth place of the ``Person'' rather than the location of the ``Organization''.
+However, if we know that the ``Person'' works for the ``Organization'', then based on the known semantic models (Fig.~\ref{FIG:sem}), ``City'' is more likely to be the birth place of the ``Person'' rather than the location of the ``Organization''.
 To increase the coherence of the generated semantic models, we would like to discover such patterns of connections.
 
 %As an extension to the problem, we consider using pattern mining techniques in order to identify patterns in the training set of semantic model that repeat themselves often. 
@@ -711,7 +710,7 @@ The Steiner Tree Problem
 (STP) is stated as follows: given $G$ and a weight function $w_f : E 
 \mapsto \mathbb{R}$, find the Steiner Tree that minimizes the sum of the 
 weights of the edges in $E_s$ given by $w_f$. This was proven to be NP-hard 
-by Karp \cite{Karp1972}.
+by \citeasnoun{Karp1972}.
 
 To formulate the \relonto{} schema mapping problem as a STP for a new source 
 $s^\star$, we construct the 
@@ -732,8 +731,7 @@ $\mathcal{E}_\mathcal{O}^{s^\star} =
 We associate a weighting function  $w_\mathcal{I} : E \mapsto \mathbb{R}^+$ to 
 the integration graph. 
 For an edge $e \in \mathcal{E_O}$, $w_\mathcal{I}(e) = 
-w_\mathcal{O}(e)$. F
-or an edge $e 
+w_\mathcal{O}(e)$. For an edge $e 
 \in \mathcal{M}_\mathcal{O}^{s^\star}$ connecting attribute $a_i$ to the node 
 $l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
 ln(\psi(a_i,l_j))$, making unlikely matches have a higher weight. %\ddg{CHECK!}
@@ -746,7 +744,7 @@ An example of an integration graph can be found in Fig. \ref{FIG:inte}.
 \centering
 \begin{tikzpicture}[scale=0.9]
 	\node[class, rectangle, rounded corners] (CLASS) at (0,0) { \small{ 
-	Nodes of Alignment Graph}};
+	Class nodes of Alignment Graph (i.e. $\mathcal{C_{G_O}}$)}};
 	
 	\node[data] (stn1) at (-3.9,-0.9) {\scriptsize S1.n};
 	\node[data] (cin1) at (-3.1,-0.9) {\scriptsize C1.n};
@@ -854,7 +852,9 @@ The solution $T^\star$ must satisfy the following constraints:
 	%\item $\forall n \in \mathcal{D_{G_O}}, degree(a) \in 
 	%\{0,2\}$
 	$(v)$ %\item 
-	$\forall n \in \mathcal{D_{G_O}} \cap V^\star, degree(a) = 2$.
+	$\forall n \in \mathcal{D_{G_O}} \cap V^\star, degree(n) = 2$,
+	$(vi)$ 
+	$V^\star \cap \mathcal{C_{G_O}} \neq \emptyset$.
 %\end{enumerate}
 
 It is therefore natural to model this problem as a STP with side constraints.
@@ -965,7 +965,7 @@ to an attribute, as not all of them are part of $T^\star$.
 
 Because there are global constraints in CP specialized in matching 
 \cite{regin1994filtering}, we split the problem into two parts: the 
-$\mathit{steiner}$ global constraint will only deal with the part of the 
+$\mathit{steiner}$ global constraint \cite{deuna2016steiner} will only deal with the part of the 
 integration graph that corresponds to the alignment graph, and the 
 $\mathit{alldifferent}$ global constraint will deal with the matching part of 
 the problem.
@@ -1169,8 +1169,8 @@ efficiently handle the \emph{unknown} class.}
 \ignore{We demonstrate its efficiency by comparing against the state-of-the-art 
 approach DSL~\cite{Pham:semantic}. } %Repeat from above
 Tab.~\ref{tab:semlab} provides evidence that our new semantic labeling model is better suited for the task when there are unmatched attributes in domains.
-DSL uses heuristic measures to capture the similarity of attributes within the same class.
-It is clear that we cannot directly speak about similarity for unmatched attributes, since they are rather dissimilar from known semantic types.
+DSL uses heuristic measures to capture the similarity of attributes within the same class, but 
+unmatched attributes are clearly dissimilar from known semantic types, thus similarity measures may be unsound in the presence of unmatched attributes.
 Our intuition as to why our approach performs better is that we have 
 incorporated features which are derived directly from attribute values and are 
 not based on the notion of similarity.
@@ -1541,12 +1541,12 @@ These nodes serve to capture the unmatched attributes from the source.
 Though we have modified \karma{} to treat these additional nodes as well, our 
 approach outperforms \karma{} since we have additional constraints for these 
 nodes and use an exact algorithm to solve the STP.
-\cite{taheriyan2016learning} treat the matching and STP parts of \relonto{} independently and use heuristic algorithms for both.
+\citeasnoun{taheriyan2016learning} treat the matching and STP parts of \relonto{} independently and use heuristic algorithms for both.
 We, on the other hand, use exact algorithms for both parts and address them within a unified CP model.
 
-In their follow up work, \cite{Taheriyan:Leveraging} suggest using graph 
+In their follow up work, \citeasnoun{Taheriyan:Leveraging} suggest using graph 
 patterns to boost the performance of their system.
-To this end, \cite{Taheriyan:Leveraging} had to revise their algorithm by introducing additional heuristics.
+To this end, they had to revise their algorithm by introducing additional heuristics.
 However, in our case we only had to add pattern variables and to modify the 
 objective function in the \minizinc{} model.
 No changes to the solver were required.
@@ -1570,7 +1570,7 @@ recall, and its precision can be enhanced by adding a scaling factor for
 pattern costs.
 
 Furthermore, our approach is extremely flexible and easy to extend with 
-specific side constraints thanks to the use of CP rather than a specific 
+arbitrary side constraints thanks to the use of CP rather than a specific 
 heuristic algorithm.
 \ignore{
 However, the solutions discovered by \serenepats{} later tend to be 
@@ -1839,19 +1839,17 @@ else [custom(cheap_edges_fill_pattern,[nbE]++[nb_patterns]++ws++[ card(patterns[
 
 % The solver will use these strategies in order:
 % 1) First try using the cheapest matches matches, until a match is found
-% 2) If there are patterns, use a specific search called "cheap_edges_first".
+% 2) If there are patterns, use a specific search called "cheap_edges_fill_pattern". (Implemented in Chuffed only)
 %    It will start adding edges in increasing order of cost, while trying to fill patterns that are "worth" filling.
 %    E.g. We already set es[x] = true for x in {e1,e2,e3}; if adding ws[e5] = 4 and ws[e7] = 6, but
 %    {e1,e2,e3,e7} form a pattern p of patterns_w[p] = 3, then ws[e7] - patterns_w[p] <  ws[e5], so e7 is selected first
 %    If there are no patterns, this strategy is ignored.
-% 3) Try to eliminate edges my decreasing cost: it will eliminate the more expensive edges first, until
+% 3) Try to eliminate edges by decreasing cost: it will eliminate the more expensive edges first, until
 %    the strictly necesary cheap edges are added by the propagators. This is used only when there are no 
 %    patterns, otherwise (2) already selects the edges.
 
 solve ::seq_search([cheap_matches]++cefp++[cheap_edges]) 
 minimize obj;
-
-
 	\end{lstlisting}
 	%\caption{\minizinc{} model (2/2).}
 %\end{figure*}
