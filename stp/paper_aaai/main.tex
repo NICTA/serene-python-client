@@ -417,9 +417,7 @@ the known semantic type with the corresponding feature vector.
 The feature vector, among others, includes characteristics
 such as a number 
 of whitespaces and other special characters, statistics of 
-values in the column 
-%(e.g, mean/max/min string length and numeric statistics)
-, etc. 
+values in the column. 
 A full list can be found in Appendix \ref{Ann:SemLab}.
 %\npr{If I remove entropy descr, we are perfectly within page limit}
 %\ignore{
@@ -738,7 +736,7 @@ w_\mathcal{O}(e)$. F
 or an edge $e 
 \in \mathcal{M}_\mathcal{O}^{s^\star}$ connecting attribute $a_i$ to the node 
 $l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
-ln(\psi(a_i,l_j))$. %\ddg{CHECK!}
+ln(\psi(a_i,l_j))$, making unlikely matches have a higher weight. %\ddg{CHECK!}
 An example of an integration graph can be found in Fig. \ref{FIG:inte}.
 
 
@@ -1150,7 +1148,7 @@ where $t$ is the total number of data sources in the domain and each experiment 
 The case with $M_{t-1}$ known semantic models corresponds to leave-one-out validation strategy. 
 For example, in the soccer domain for the source $s_1$ we run experiments 11 times using $M_1=\{m_2\}, M_2=\{m_2, m_3\}, \ldots, M_{11}=\{m_2, m_3, \ldots, m_{12}\}$
 We repeat the procedure for other data sources in the domain and then average the results.
-Such procedure ensures that each source is at least once in the training as well as testing datasets.
+This procedure ensures that each source is at least once in the training as well as testing datasets.
 
 
 % architecture
@@ -1434,7 +1432,7 @@ This property of our approach can be used to configure various parameters for th
 
 \begin{figure}[!ht]\small
 \centering
-\begin{tikzpicture}[scale=0.4]
+\begin{tikzpicture}[scale=0.39]
 \pgfplotsset{
     scale only axis,
     xmin=0, xmax=9
@@ -1765,7 +1763,7 @@ set of int: anodes;                     % Attribute nodes in alignment graph (no
 array [nodes] of var bool: vs;          % Is a node of the alignment graph in the solution?
 array [edges] of var bool: es;          % Is an edge of the alignment graph in the solution?
 array [nodes,edges] of bool: adjacent;  % adjacent[n,e] <=> node n is an endnode of edge e
-array [edges] of nodes: heads;          % endpoint 1 of each edge (The graph is undirected!!)
+array [edges] of nodes: heads;          % endpoint 1 of each edge (the graph is undirected)
 array [edges] of nodes: tails;          % endpoint 2 of each edge
 array[1..2,edges] of int: endpairs = array2d(1..2,edges,tails++heads);
 array [edges] of int: ws;               % Weights of edges in alignment graph
@@ -1777,14 +1775,14 @@ constraint forall (d in dnodes)
 %%%%%%% Matching Problem
 int: nbA;                                           % Nb of attribute nodes
 set of int: atts = 1..nbA;                 
-array [atts] of set of int: attribute_domains;      % Data nodes to which each attribute can attach  
+array [atts] of set of dnodes: attribute_domains;   % Data nodes to which each attribute can attach (usually all) 
 constraint forall(att in anodes) (vs[att] == true); % Attribute nodes (normally none) are in the graph.
-array [atts] of var int: match;                     % Match between Attributes and Data nodes
-array[atts,int] of int: match_costs;                % Weight of match edges
+array [atts] of var dnodes: match;                  % Match between Attributes and Data nodes
+array[atts,dnodes] of int: match_costs;             % Weight of match edges
 constraint forall (a in atts) (match[a] in (attribute_domains[a]));   % Must match someone in the domain
 constraint forall (a in atts) (vs[match[a]]);       % The data node matched must be in the subgraph of the alignment
 constraint alldifferent(match);                     % Exact match
-var 0..sum(a in atts)(sum(n in index_set_2of2(match_costs))(match_costs[a,n])): wm;  % Total cost from matching part :
+var 0..sum(a in atts)(sum(n in dnodes)(match_costs[a,n])): wm;  % Total cost from matching part :
 constraint wm = sum(a in atts) (match_costs[a,match[a]]);
 
 	\end{lstlisting}
@@ -1826,8 +1824,9 @@ var int: obj = w + wm - wp;           % Total cost of semantic model - prize col
 
 
 %%%%%%% Search startegy
-array[atts,int] of int: match_costs_sorted;  % Match of attributes, sorted by cost.
-ann: cheap_matches = int_search([ match[a] == match_costs_sorted[a,i] |a in atts, i in index_set_2of2(match_costs_sorted)], input_order,indomain_max,complete);
+array[atts,dnodes] of int: match_costs_sorted;  % Match of attributes, sorted by cost.
+ann: cheap_matches = int_search([ match[a] == match_costs_sorted[a,i] |a in atts, i in dnodes], 
+                                input_order,indomain_max,complete);
 
 array[edges] of int: sorted_edges = arg_sort(ws);
 ann: cheap_edges = int_search([es[sorted_edges[nbE + 1 - e]] | e in edges],input_order,indomain_min,complete);
@@ -1837,6 +1836,17 @@ ann: custom(ann, array[int] of int, array[int] of var bool);
 array[int] of ann: cefp = 
 if nb_patterns == 0 then [] 
 else [custom(cheap_edges_fill_pattern,[nbE]++[nb_patterns]++ws++[ card(patterns[p]) | p in PATTS]++patterns_w++array1d([ e | p in PATTS, e in patterns[p]]),es)] endif;
+
+% The solver will use these strategies in order:
+% 1) First try using the cheapest matches matches, until a match is found
+% 2) If there are patterns, use a specific search called "cheap_edges_first".
+%    It will start adding edges in increasing order of cost, while trying to fill patterns that are "worth" filling.
+%    E.g. We already set es[x] = true for x in {e1,e2,e3}; if adding ws[e5] = 4 and ws[e7] = 6, but
+%    {e1,e2,e3,e7} form a pattern p of patterns_w[p] = 3, then ws[e7] - patterns_w[p] <  ws[e5], so e7 is selected first
+%    If there are no patterns, this strategy is ignored.
+% 3) Try to eliminate edges my decreasing cost: it will eliminate the more expensive edges first, until
+%    the strictly necesary cheap edges are added by the propagators. This is used only when there are no 
+%    patterns, otherwise (2) already selects the edges.
 
 solve ::seq_search([cheap_matches]++cefp++[cheap_edges]) 
 minimize obj;
