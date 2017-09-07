@@ -392,7 +392,7 @@ $m^\star$ and the semantic model $m^\dag$ that the user considers correct.
 The semantic types $\mathcal{L_O} = \{l_1, l_2, ..., l_p\}$ of an ontology 
 correspond to all pairs $(c,d)$, where $c$ is a Class in $\mathcal{O}$, and $d$ 
 is a data property of that class (including inherited properties). 
-For example, from the ontology in Fig. \ref{FIG:onto}, we would for example get
+For example, from the ontology in Fig. \ref{FIG:onto}, we would get
 (City,name) and (State,name).
 
 The first step to model the semantics of a new source $s^\star$ is to recognize the semantic types present in the source. 
@@ -403,7 +403,7 @@ Firstly, there can be naming conflicts~\cite{Pinkel:rodi}, including those
 cases where users represent the same data in different ways.
 Secondly, semantically different attributes might have syntactically similar 
 content, for example, startDate versus endDate for the Event class.
-Thirdly, there may be considerable number of attributes which do not have any 
+Thirdly, there may be a considerable number of attributes which do not have any 
 corresponding property in the ontology, either by accident or deliberately.
 %\ddg{CHECK!}
 
@@ -412,7 +412,7 @@ problem.
 The known source descriptions $S_T$ provide us the training sample.
 We compute a feature vector for each attribute in a data source and associate 
 the known semantic type with the corresponding feature vector.
-The feature vector, among others, includes characteristics
+The feature vector includes, among others, characteristics
 such as a number 
 of whitespaces and other special characters, statistics of 
 values in the column. 
@@ -872,7 +872,7 @@ graph patterns in order to incentivise the solution tree
 $T^\star$ to contain subgraphs of the alignment graph that have been frequently 
 seen in the training set.
 To do this, we use the support of each of the obtained patterns as a prize. If 
-the tree contains a pattern, then its weight is automatically reduced by a the 
+the tree contains a pattern, then its weight is automatically reduced by the 
 value of the support of that pattern. We will see in the next section how this 
 information is integrated in the model.
 
@@ -960,7 +960,7 @@ Because attributes must be connected to exactly one node of the alignment
 graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$ 
 then the part of the problem between attribute nodes and the alignment graph is 
 actually a matching problem. Each attribute must match exactly to one node of 
-$\mathcal{D_{G_O}}$. Note that not all nodes in $\mathcal{D_{G_O}}$ must match 
+$\mathcal{D_{G_O}}$. Note that not all nodes in $\mathcal{D_{G_O}}$ need to match 
 to an attribute, as not all of them are part of $T^\star$.
 
 Because there are global constraints in CP specialized in matching 
@@ -983,7 +983,7 @@ $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in
 Additionally, for a given set of patterns $\mathcal{P}$ with a support function 
 $w_\mathcal{P} : \mathcal{P} \mapsto \mathbb{R}$, we have a set of Boolean 
 variables 
-$c_p, \forall p \in \mathcal{P}$ that tells us whether a pattern $p$ appears in 
+$c_p, \forall p \in \mathcal{P}$ that tell us whether a pattern $p$ appears in 
 $T^\star$ or not.
 The model is presented below.
 
