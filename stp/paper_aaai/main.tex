@@ -474,16 +474,16 @@ model, $\mathcal{G_O}$ contains both class and data nodes.
 The links correspond 
 to properties in  $\mathcal{O}$ and are weighted \cite{taheriyan2016learning}.
 
-The algorithm we use for the construction of the alignment graph 
+The algorithm we use to construct the alignment graph 
 $\mathcal{G_O}$ was given by~\citeasnoun{taheriyan2016learning}.
 Briefly, it has three parts:
 %\begin{enumerate}
 $(i)$ %\item 
-Adding the known semantic models
+adding the known semantic models,
 $(ii)$ %\item 
-Adding the semantic types learned for the target source
+adding the semantic types learned for the target source,
 %\item 
-$(iii)$ Expanding the graph using the domain ontology.
+$(iii)$ expanding the graph using the domain ontology.
 %\end{enumerate}
 
 Note how the alignment graph contains data nodes that correspond to semantic types. 
@@ -892,7 +892,7 @@ The latter will be connected to every other Class node in
 $\mathcal{V}_\mathcal{O}^{s^\star}$, including \emph{unknown}.
 We also add a set $U = \{unk_1,...,unk_{|\mathcal{A}_{s^\star}|}\}$ of 
 $|\mathcal{A}_{s^\star}|$ data 
-nodes to the integration graph each connected to exactly one node in 
+nodes to the integration graph, each connected to exactly one node in 
 $\mathcal{A}_{s^\star}$ and to the \emph{unknown} Class node.  
 
 If an attribute $a$ is matched to $unk_a$, then $unk_a$ will be linked to Class 
@@ -900,7 +900,7 @@ node \emph{unknown}.
 The rest of the attributes can then be matched normally 
 and build  a semantic model as usual. 
 To maintain connectedness of the 
-Steiner tree, the \emph{unknown} node and one of the other selected Class nodes 
+Steiner tree, the \emph{unknown} node and one of the other Class nodes in $T^\star$ 
 will 
 both be connected to the \emph{root} node. 
 Note that if all attributes find a 
@@ -1125,7 +1125,7 @@ We also perform a modification to the ground truth semantic models:
 if the true semantic label of an attribute $a$ is not present in any of the 
 previously mapped data sources, we substitute it with $unk_a$ and map it to the 
 \emph{unknown} class node.
-In such way we validate how well the systems can detect earlier unseen cases.
+This way we can validate how well the systems can detect earlier unseen cases.
 
 % semantic labeling models
 To illustrate that our semantic labeling model is better suited for the
@@ -1134,7 +1134,7 @@ we compare it against the state-of-the-art model \emph{DSL}~\cite{Pham:semantic}
 even better than SemanticTyper. 
 %\npr{not sure whether I should explain how this model works}
 We use \emph{mean reciprocal rank} (MRR) to evaluate semantic labeling models.
-This measure is useful to estimate how highly the true semantic label is ranked among top $k$ suggestions.
+This measure is useful to estimate how highly the true semantic label is ranked among the top $k$ suggestions.
 It is calculated the following way:
 $MRR = \frac{1}{n}\sum_{i=1}^{n}{\frac{1}{rank_i}},$
 where $rank_i$ is the rank of the correct semantic label for the attribute $a_i$ among the top $k$ predictions.
@@ -1378,14 +1378,14 @@ Average run time for the museum domain: \serene{} 0.5s, \karma{} 0.5s, \serenepa
 
 
 % karma vs serene vs serene-pats
-We evaluate our new system \serene{} and its modification \serenepats{}, which 
+We evaluate \serene{} and its modification \serenepats{}, which 
 uses graph patterns, against the state-of-the-art system \karma{}.
 All three systems have access to the same set of matches produced by our semantic labeling model.
-Fig.~\ref{fig:perf} show their performance on the museum and soccer domains.
+Fig.~\ref{fig:perf} shows their performance on the museum and soccer domains.
 We report average precision and recall for the systems with regard to variable 
 number of semantic models in the training set.
 For \serene{} and \serenepats{} we report the first solutions found by
-\chuffed{}. All three systems find solutions in less than a second in average.
+\chuffed{}. All three systems find solutions in less than a second on average.
 We use default parameters for \karma{} which were shown to yield the best 
 results~\cite{taheriyan2016learning}.
 As we can see, \serene{} produces on average the best semantic models in terms 
@@ -1400,8 +1400,8 @@ instances.
 %% sequential solution
 In Fig.~\ref{fig:loo} we show how the performance of \serene{} changes 
 across sequentially found solutions.
-\chuffed{} successively finds better solutions in terms of Eq. \ref{EQ:obj}, 
-however,
+\chuffed{} successively finds better solutions in terms of Eq. \ref{EQ:obj}.
+However,
 that does not translate directly into more precise semantic models.
 On average, we have observed that \serene{} yields very good results already 
 with the first solution found, and plateaus after the third solution.
@@ -1411,7 +1411,7 @@ a weighting scheme on the patterns, i.e., costs of patterns are scaled by a
 factor.
 In Fig.~\ref{fig:perf} we use a scaling factor 1 
 for pattern costs.
-When trying scaling factors 5, 10 or 20 for patterns costs from the museum 
+When trying scaling factors 5, 10 or 20 for pattern costs from the museum 
 domain we can generate semantic models which 
 are almost 90\% in precision and recall.
 This is a 20\% improvement in precision compared to the first solution found 
@@ -1481,7 +1481,7 @@ domain.}\label{fig:loo}
 
 \section{Related Work \label{SEC:pw}}
 
-Relational data sources are still one of the most popular ways to store enterprise or Web data, however, the issue with relational schema is the lack of a well-defined semantic description.
+Relational data sources are still one of the most popular ways to store enterprise or Web data. However, the issue with relational schema is the lack of a well-defined semantic description.
 A common ontology provides a way of representing the meaning of a relational 
 schema and can facilitate the integration of heterogeneous data sources within 
 a domain.
@@ -1522,7 +1522,7 @@ semantics of Web tables by incorporating data from the isA database KB.
 Hence, these approaches are limited to domains well represented in those knowledge bases.
 Also, they are not able to find the relation between attributes in the table if there is no direct connection between the attributes.
 Our approach, on the other hand, allows a model to be trained on any data and can infer complex semantic paths which might exist between attributes.
-However, it might be further bootstrapped by leveraging external knowledge bases.
+However, it could be further bootstrapped by leveraging external knowledge bases.
 This is especially beneficial at the start when the system does not have sufficient training data.
 
 As mentioned above, the approaches for mapping Web tables also perform semantic labeling.
@@ -1531,8 +1531,7 @@ However, they disregard the attributes which are not matched to the ontology
 (the so-called \emph{unknown} set of attributes) which are especially abundant 
 on the Web~\cite{Ritze:matching,Pham:semantic}.
 It is clear that we cannot directly speak about similarity for unmatched attributes, since they are rather dissimilar from known semantic types.
-That is why we have developed a new approach for semantic labeling which can efficiently handle the \emph{unknown} class.
-We demonstrate its efficiency by comparing against the state-of-the-art approach DSL~\cite{Pham:semantic}.
+Our approach differs from previous work in that we incorporate an efficient method to handle the \emph{unknown} class, compared to the state-of-the-art approach DSL~\cite{Pham:semantic}.
 
 We build upon the work of \citeasnoun{taheriyan2016learning} and use their 
 ideas for the construction of the alignment graph.
