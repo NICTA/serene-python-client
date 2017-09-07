@@ -124,13 +124,13 @@ In our case, we would like this global model to account not only for structural 
 In other words, we want to build a semantic model which describes the data sources in terms of concepts and relationships defined by an ontology \cite{taheriyan2016learning}.
 Henceforth, we focus on a specific data integration problem: automatically mapping a new relational data source onto a user provided ontology.
 
-\subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Workplace, Date}$\rangle$, and 
-$\langle$\textit{Company, Event, Begin, Until, Location}$\rangle$.
-We do not \textit{a priori} know if ``Date'' in the first table is a 
-date of birth or the date a person started working; or whether the 
-``Location'' on the second table refers to the location of the event, or the 
-address of the company. 
-Given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to classes of the 
+\subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Event, Date}$\rangle$, and 
+$\langle$\textit{Company, Festival, Address}$\rangle$.
+We do not \textit{a priori} know if ``Date'' is a 
+date of birth of the person or the start date of the event (c.f. Fig. \ref{FIG:onto}); or whether 
+``Address'' refers to the name of the place where the festival is located, or the 
+email address of the company. 
+Given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to  the 
 ontology.\hfill$\square$
 
 In this paper we use Machine Learning techniques (ML) to learn mapping rules from previously mapped instances.
