@@ -73,7 +73,7 @@ length=10,amplitude=0.3,post length=4}]
 \newcommand{\chuffed}{\textsc{Chuffed}}
 \newcommand{\relonto}{\textsc{Rel2Onto}}
 \newcommand{\karma}{\textsc{Karma}}
-\newcommand{\serene}{\textsc{Serene}}
+\newcommand{\serene}{\textsc{•}sc{Serene}}
 \newcommand{\serenepats}{\textsc{SerenePats}}
 
 \newcommand{\etal}{\textit{et al.}}
@@ -1204,9 +1204,9 @@ not based on the notion of similarity.
 		    xlabel={\emph{known semantic models}},
 		    ylabel={},
 		    xmin=1, xmax=28,
-		    ymin=0.2, ymax=0.9,
+		    ymin=0.3, ymax=0.9,
 		    xtick={1,5,10,15,20,25,28},
-		    ytick={0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
+		    ytick={0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
 		    legend pos=south east,
 		    ymajorgrids=true,
 		    grid style=dashed,
@@ -1246,9 +1246,9 @@ not based on the notion of similarity.
 		    xlabel={\emph{known semantic models}},
 		    %ylabel={recall},
 		    xmin=1, xmax=28,
-		    ymin=0.2, ymax=0.9,
+		    ymin=0.3, ymax=0.9,
 		    xtick={1,5,10,15,20,25,28},
-		    ytick={0.2,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
+		    ytick={0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
 		    ymajorgrids=true,
 		    grid style=dashed,
 		    		    style = {font=\huge},
@@ -1440,19 +1440,20 @@ This property of our approach can be used to configure various parameters for th
 
 \begin{axis}[
   axis y line*=left,
-  ymin=0.5, ymax=1,
+  ymin=0.6, ymax=1,
+  xmin=1, xmax=10,
   xlabel=Solution Number,
   ylabel=performance,
   		    		    style = {font=\huge}
 ]
 \addplot[smooth,mark=x,red]
   coordinates{
-    (0,0.776507549540743)(1,0.71093042754513)(2,0.822783653218436)(3,0.845760233918129)(4,0.879310344827586)(5,0.88695652173913)(6,0.885964912280702)(7,0.870689655172414)(8,0.878260869565217)(9,0.87719298245614)
+    (1,0.776507549540743)(2,0.71093042754513)(3,0.822783653218436)(4,0.845760233918129)(5,0.879310344827586)(6,0.88695652173913)(7,0.885964912280702)(8,0.870689655172414)(9,0.878260869565217)(10,0.87719298245614)
 
 }; \label{plot_one}
 \addplot[smooth,mark=*,green]
   coordinates{
-    (0,0.773180507486795)(1,0.677202255831871)(2,0.805899400726987)(3,0.838122605363985)(4,0.879310344827586)(5,0.879310344827586)(6,0.870689655172414)(7,0.870689655172414)(8,0.870689655172414)(9,0.862068965517241)
+    (1,0.773180507486795)(2,0.677202255831871)(3,0.805899400726987)(4,0.838122605363985)(5,0.879310344827586)(6,0.879310344827586)(7,0.870689655172414)(8,0.870689655172414)(9,0.870689655172414)(10,0.862068965517241)
 }; \label{plot_two}
 \end{axis}
 
@@ -1460,6 +1461,7 @@ This property of our approach can be used to configure various parameters for th
   axis y line*=right,
   axis x line=none,
   ymin=0, ymax=15,
+  xmin=1, xmax=10,
   legend pos=south east,
   ylabel=time (s),
   		    		    style = {font=\huge}
@@ -1468,7 +1470,7 @@ This property of our approach can be used to configure various parameters for th
 \addlegendimage{/pgfplots/refstyle=plot_two}\addlegendentry{recall}
 \addplot[smooth,mark=square,blue]
   coordinates{
-    (0,0.894338290115883)(1,2.39426428574782)(2,6.89703391393025)(3,10.3563708686829)(4,9.87668780326843)(5,9.92719115257263)(6,10.4045292949677)(7,14.3818371582031)(8,14.4026180458069)(9,14.8023208427429)
+    (1,0.894338290115883)(2,2.39426428574782)(3,6.89703391393025)(4,10.3563708686829)(5,9.87668780326843)(6,9.92719115257263)(7,10.4045292949677)(8,14.3818371582031)(9,14.4026180458069)(10,14.8023208427429)
 }; \addlegendentry{time}
 \end{axis}
 \end{tikzpicture}
@@ -1666,11 +1668,11 @@ We refer to a single value from the column as an entry. For example, in the tabl
 	prop-entries-with-at-sign& The proportion of entries with an '@' sign. \\
 	prop-entries-with-hyphen & The proportion of entries with a '-'. \\
 	\rowcolor{Gray}
-	prop-range-format        & The proportion of entries which follow some \\ numerical range format &  ([0-9]+)-([0-9]+) \\
-	\rowcolor{Gray}
+	prop-range-format numerical range format  & The proportion of entries which follow some ([0-9]+)-([0-9]+)\\ 
+
 	is-discrete              & A binary indicator if the column entries are discrete. \\
+	\rowcolor{Gray}
 	entropy-for-discrete-values & The entropy of the entries of a column.\\
-	\rowcolor{Gray}	
 	shannon-entropy          & Shannon's entropy for the vocabulary specified in the description of the feature 'char-dist-features'\\
 	\end{tabular}
 \end{table}
@@ -1709,7 +1711,7 @@ cosine similarity of t with training instances of each class.\\
 min-editdistance-from-class-examples                   & For some test instance t, this produces a vector of the minimum column name
 edit distance between t and all training instances of each class.
 Parameters:
-"cache-size": Size of cache for storing edit distances of words 
+"cache-size": Size of cache for storing edit distances of words; 
 "max-comparisons-per-class": Max number of training instances to compare
 against for each class.\\
 
@@ -1717,14 +1719,14 @@ against for each class.\\
 min-wordnet-jcn-distance-from-class-examples            & For some test instance t, this produces a vector of the minimum column name
 JCN WS4J distance between t and all training instances of each class.
 Parameters:
-"cache-size": Size of cache for storing wordnet distances of words 
+"cache-size": Size of cache for storing wordnet distances of words;
 "max-comparisons-per-class": Max number of training instances to compare
 against for each class.\\
 
 min-wordnet-lin-distance-from-class-examples            & For some test instance t, this produces a vector of the minimum column name
 LIN WS4J distance between t and all training instances of each class.
 Parameters:
-"cache-size": Size of cache for storing wordnet distances of words 
+"cache-size": Size of cache for storing wordnet distances of words; 
 "max-comparisons-per-class": Max number of training instances to compare
 against for each class.\\
 
@@ -1837,7 +1839,7 @@ if nb_patterns == 0 then []
 else [custom(cheap_edges_fill_pattern,[nbE]++[nb_patterns]++ws++[ card(patterns[p]) | p in PATTS]++patterns_w++array1d([ e | p in PATTS, e in patterns[p]]),es)] endif;
 
 % The solver will use these strategies in order:
-% 1) First try using the cheapest matches matches, until a match is found
+% 1) First try using the cheapest matches, until a match is found
 % 2) If there are patterns, use a specific search called "cheap_edges_fill_pattern". (Implemented in Chuffed only)
 %    It will start adding edges in increasing order of cost, while trying to fill patterns that are "worth" filling.
 %    E.g. We already set es[x] = true for x in {e1,e2,e3}; if adding ws[e5] = 4 and ws[e7] = 6, but
