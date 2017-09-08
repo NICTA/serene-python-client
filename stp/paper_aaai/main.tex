@@ -112,6 +112,7 @@ findings.
 \end{abstract}
 
 \section{Introduction}
+\ignore{
 The problem of integrating heterogeneous data sources is a long standing issue 
 in the database research field and is of high relevance in many real-world 
 domains (see e.g. 
@@ -123,6 +124,18 @@ the global model \cite{doan2012principles}.
 In our case, we would like this global model to account not only for structural properties of the original data sources, but also to include the semantics, which is usually implicitly present in the sources.
 In other words, we want to build a semantic model which describes the data sources in terms of concepts and relationships defined by an ontology \cite{taheriyan2016learning}.
 Henceforth, we focus on a specific data integration problem: automatically mapping a new relational data source onto a user provided ontology.
+}
+Relational data sources are still one of the most popular ways to store enterprise or Web data. However, the issue with relational schema is the lack of a well-defined semantic description.
+A common ontology provides a way of representing the meaning of a relational schema and can facilitate the integration of heterogeneous data sources within a domain.
+Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated, however, it becomes tedious with the growing number of heterogeneous schemata.
+
+Automatically integrating heterogeneous data sources is a long standing issue in the database research field and is of high relevance in many real-world 
+domains (see for example \cite{Rahm:2001:SAA:767149.767154,Dhamankar:imap,Taheriyan2013}).
+
+A standard approach to tackle this problem is to design a common ontology and to construct source descriptions which specify mappings between the sources and the ontology \cite{doan2012principles}.
+In this paper, we tackle the data integration problem consisting in automatically mapping a new relational data source onto a user provided ontology.
+To do so, we develop a new tool that automatically builds a semantic model which describes a relational data source in terms of concepts and relationships defined by an ontology \cite{taheriyan2016learning}.
+
 
 \subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Event, Date}$\rangle$, and 
 $\langle$\textit{Company, Festival, Address}$\rangle$.
@@ -1482,13 +1495,13 @@ domain.}\label{fig:loo}
 %\npr{Maybe some words on how optimal solution found by chuffed relates to the ground truth?}
 
 \section{Related Work \label{SEC:pw}}
-
+\ignore{
 Relational data sources are still one of the most popular ways to store enterprise or Web data. However, the issue with relational schema is the lack of a well-defined semantic description.
 A common ontology provides a way of representing the meaning of a relational 
 schema and can facilitate the integration of heterogeneous data sources within 
 a domain.
 Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated, however, it becomes tedious with the growing number of heterogeneous schemata.
-Hence, automatic or semi-automatic approaches for relational-to-ontology schema mapping are being actively developed.
+Hence, automatic or semi-automatic approaches for relational-to-ontology schema mapping are being actively developed.}
 
 
 The majority of approaches to solve the \relonto{} mapping problem are based on 
