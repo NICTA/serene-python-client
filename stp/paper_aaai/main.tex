@@ -747,7 +747,7 @@ the integration graph.
 For an edge $e \in \mathcal{E_O}$, $w_\mathcal{I}(e) = 
 w_\mathcal{O}(e)$. For an edge $e 
 \in \mathcal{M}_\mathcal{O}^{s^\star}$ connecting attribute $a_i$ to the node 
-$l_j$ induced by the semantic model, $w_\mathcal{I}(e) = - 
+$l_j$ induced by the semantic types, $w_\mathcal{I}(e) = - 
 ln(\psi(a_i,l_j))$, making unlikely matches have a higher weight. %\ddg{CHECK!}
 An example of an integration graph can be found in Fig. \ref{FIG:inte}.
 
@@ -1436,7 +1436,7 @@ solutions in terms of precision over time.
 However, the sequential solutions are not always better, and hitting the 
 optimal solution may take hours.
 
-We have also observed that \serenepats{} manages to find the ground truth on 
+We have also observed that \serene{} and \serenepats{} manage to find the ground truth on 
 many instances among its sequential solutions.
 This property of our approach can be used to configure various parameters for the model, e.g., scaling factors for pattern costs or match score.
 
