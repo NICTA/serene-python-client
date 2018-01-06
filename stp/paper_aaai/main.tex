@@ -180,7 +180,7 @@ In Section \ref{SEC:ML} we present how we convert learnt data into a
 useful data representation. 
 Section \ref{SEC:STP} shows how we model the problem as a STP, 
 whereas Section \ref{SEC:CP} presents our implementation in CP. 
-Section \ref{SEC:Res} shows our results. 
+Section \ref{SEC:Res} shows the results. 
 Section \ref{SEC:pw} compares with the previous work done to achieve this task. 
 
 \section{Problem Statement \label{SEC:problem}}
@@ -280,7 +280,7 @@ A subclass inherits all the properties of the parent class.
 
 A \emph{semantic model} $m$ is a directed graph with two types of nodes: 
 \emph{class nodes} and \emph{data nodes}. 
-We denote them as $\mathcal{C}_m$ and $\mathcal{D}_m$ respectively.
+We denote them as $\mathcal{C}_m$ and $\mathcal{D}_m$, respectively.
 $ \mathcal{C}_m$ corresponds to classes in the ontology 
 whereas $\mathcal{D}_m$ corresponds to data 
 properties. 
@@ -386,9 +386,9 @@ It can be a partial mapping, meaning that only some of the attributes
 are connected to the nodes of $m$.
 The attribute mapping function addresses the first part of the problem (i.e. the semantic labeling).
 
-We define a \emph{source description} as a triple $\delta = (s, m, \phi)$ where $s$ is a source, $m$ is a semantic model, and $\phi$ is an attribute mapping.
+We define a \emph{source description} as a triple $\delta = (s, m, \phi)$, where $s$ is a source, $m$ is a semantic model, and $\phi$ is an attribute mapping.
 Our problem can hence be stated as follows. We have an ontology 
-$\mathcal{O}$ and a set of source descriptions $S_T = \{(s_1, m_1, \phi_1),..., 
+$\mathcal{O}$ and a set of source descriptions $\Delta_T = \{(s_1, m_1, \phi_1),..., 
 (s_l, m_l, \phi_l)\}$.
 Given a new source $s^\star$, we want to build a semantic model $m^\star$ and an attribute mapping function $\phi^\star$ such that 
 $\delta^\star = (s^\star,m^\star,\phi^\star)$ is an \emph{appropriate} source description. 
@@ -423,7 +423,7 @@ corresponding property in the ontology, either by accident or deliberately.
 
 We formulate the problem of semantic labeling as a multi-class classification
 problem.
-The known source descriptions $S_T$ provide us the training sample.
+The known source descriptions $\Delta_T$ provide us the training sample.
 We compute a feature vector for each attribute in a data source and associate 
 the known semantic type with the corresponding feature vector.
 The feature vector includes, among others, characteristics
@@ -474,7 +474,7 @@ finding the semantic model.
 
 \subsection{Alignment Graph}
 
-To provide an integrated view over the known source descriptions $S_T$, we 
+To provide an integrated view over the known source descriptions $\Delta_T$, we 
 need to align their semantic models as well as all considered semantic 
 types. 
 This is achieved by constructing an \emph{alignment graph}. 
@@ -659,7 +659,7 @@ To increase the coherence of the generated semantic models, we would like to dis
 
 %\npr{reformulate for typed directed multigraphs and example based on Fig3}
 In our context, patterns are typed directed graphs.
-We mine these patterns from the set of semantic models in the training set $S_T$.
+We mine these patterns from the set of semantic models in the training set $\Delta_T$.
 This is known as Transactional Frequent Graph Pattern Mining, which
 includes the subgraph isomorphism problem, known to be NP-complete.
 The frequency of a pattern is the number of semantic models 
@@ -695,7 +695,7 @@ from~\cite{Taheriyan:Leveraging}.
 %applying the embedding function.
 
 %Our goal is to take a set of graphs (the semantic models from the training set 
-%$S_T$) and find patterns that appear often across that set of graphs. 
+%$\Delta_T$) and find patterns that appear often across that set of graphs. 
 %This is 
 %known as the Frequent Graph Pattern Mining, which contains the subgraph 
 %isomorphism, known to be NP-complete.  
@@ -938,8 +938,8 @@ set of \emph{variables}, $C$ is a set of $n$-ary
 (w.l.o.g.) minimized. 
 A valuation such that all variables in $\boldsymbol{v}$ map 
 to exactly one value, and all the constraints in $C$ are satisfied by the 
-valuation is a \emph{solution} to $P$. A solution $\theta$ is optimal if$\not 
-\exists \theta', \theta'(\boldsymbol{v}) < \theta(\boldsymbol{v})$.
+valuation is a \emph{solution} to $P$. A solution $\theta^*$ is optimal if$\not 
+\exists \theta, \theta(\boldsymbol{v}) < \theta^*(\boldsymbol{v})$.
 
 Constraint Programming (CP) allows the user to model a COP and give it 
 to a solver that will find solutions while optimizing 
@@ -964,16 +964,16 @@ specialized algorithms for performance.
 
 
 \subsection{\relonto{} in Constraint Programming}
-In order to model this problem we used the \minizinc{} language 
+In order to model the \relonto{} problem we used the \minizinc{} language 
 \cite{minizinc}, and the 
 \chuffed{} solver \cite{chu2011improving} because it has a global constraint 
 implemented for Steiner 
 Tree Problems \cite{deuna2016steiner}. The model can be found in Appendix \ref{Ann:MZ}.
 
 Because attributes must be connected to exactly one node of the alignment 
-graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$ 
+graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$, 
 then the part of the problem between attribute nodes and the alignment graph is 
-actually a matching problem. Each attribute must match exactly to one node of 
+actually a matching problem. Each attribute must match exactly one node of 
 $\mathcal{D_{G_O}}$. Note that not all nodes in $\mathcal{D_{G_O}}$ need to match 
 to an attribute, as not all of them are part of $T^\star$.
 
@@ -997,7 +997,7 @@ $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in
 Additionally, for a given set of patterns $\mathcal{P}$ with a support function 
 $w_\mathcal{P} : \mathcal{P} \mapsto \mathbb{R}$, we have a set of Boolean 
 variables 
-$c_p, \forall p \in \mathcal{P}$ that tell us whether a pattern $p$ appears in 
+$c_p, \forall p \in \mathcal{P}$, that tell us whether a pattern $p$ appears in 
 $T^\star$ or not.
 The model is presented below.
 
@@ -1124,10 +1124,10 @@ The first modification also ensures the fairness of evaluation since both
 
 % performance metrics
 The performance of these systems is estimated in terms of \emph{precision} and \emph{recall}.
-Assuming $m^\star$ is the predicted semantic model and $m^\dag$ is the correct semantic model, then:
-$$\mathit{prec} = \frac{|\mathit{rel}(m^\star)\cap 
-\mathit{rel}(m^\dag)|}{|\mathit{rel}(m^\star)|}, 
-\mathit{recall} = \frac{|\mathit{rel}(m^\star)\cap 
+Assuming $m^{p}$ is the predicted semantic model and $m^\dag$ is the correct semantic model, then:
+$$\mathit{prec} = \frac{|\mathit{rel}(m^{p})\cap 
+\mathit{rel}(m^\dag)|}{|\mathit{rel}(m^{p})|}, 
+\mathit{recall} = \frac{|\mathit{rel}(m^{p})\cap 
 \mathit{rel}(m^\dag)|}{|\mathit{rel}(m^\dag)|}$$
 where $rel(m)$ is the set of triples $(u,e,v)$ with $e$ being an edge from the vertex $u$ to the vertex $v$ in the semantic model $m$.
 \ignore{Since we want to estimate the accuracy of both the matching and STP 
@@ -1501,7 +1501,7 @@ Relational data sources are still one of the most popular ways to store enterpri
 A common ontology provides a way of representing the meaning of a relational 
 schema and can facilitate the integration of heterogeneous data sources within 
 a domain.
-Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated, however, it becomes tedious with the growing number of heterogeneous schemata.
+Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated; however, it becomes tedious with the growing number of heterogeneous schemata.
 Hence, automatic or semi-automatic approaches for relational-to-ontology schema mapping are being actively developed.}
 
 
