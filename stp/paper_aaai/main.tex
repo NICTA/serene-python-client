@@ -17,9 +17,9 @@
 \usepackage{color}
 \usepackage{xcolor}
 \definecolor{Gray}{gray}{0.96}
+\usepackage{algorithm}
 \usepackage{amsmath,amsthm,stmaryrd}
 \usepackage{algpseudocode}
-\usepackage{algorithm}
 \algrenewcommand\algorithmiccomment[2][\footnotesize]{{#1\hfill\(\triangleright\)
  #2}} %\normalsize
 \usepackage{amssymb}
@@ -31,7 +31,7 @@
 \usepackage{multirow}
 \usepackage{pgfplots}
 \pgfplotsset{width=10cm,compat=1.9}
-\usepgfplotslibrary{colorbrewer}
+%\usepgfplotslibrary{colorbrewer}
 
 
 \usepackage{listings}
@@ -138,7 +138,8 @@ In this paper, we approach the data integration problem consisting in automatica
 To do so, we develop a new system that automatically builds a semantic model which describes a relational data source in terms of concepts and relationships defined by an ontology \cite{taheriyan2016learning}.
 
 
-\subsubsection{Example} Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Event, Date}$\rangle$, and 
+%\subsubsection{Example} 
+Consider the situation where we have some simple relational database tables with columns $\langle$\textit{Surname, Event, Date}$\rangle$, and 
 $\langle$\textit{Company, Festival, Address}$\rangle$.
 We do not \textit{a priori} know if ``Date'' is a 
 date of birth of the person or the start date of the event (c.f. Fig. \ref{FIG:onto}); or whether 
@@ -147,7 +148,7 @@ email address of the company.
 Given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to  the 
 ontology.\hfill$\square$
 
-In this paper we use Machine Learning techniques (ML) to learn mapping rules from previously mapped instances.
+In this paper we use Machine Learning (ML) techniques and Constraint Programming (CP) to learn mapping rules from previously mapped instances.
 To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
 
 Firstly, we build a graph which includes attributes (i.e. columns) from the new
@@ -158,20 +159,20 @@ It uses information gathered from the previously mapped data sources, and is fur
 %attributes from the new source as well as ontology classes and properties.
 Secondly, we apply machine learning techniques to 
 assign costs to its edges. 
-Lastly, we use Constraint Programming (CP) to 
+Lastly, we use CP to 
 find a minimum cost Steiner Tree in the graph.
 The goal is to assign the costs on the edges in such a way that the resulting 
 Steiner Tree is a valid and coherent semantic model for the new source. 
 Our contributions are:
 \begin{itemize}
 	\item A novel modeling framework for the \relonto{} problem which 
-	seamlessly incorporates machine learning and constraint programming.
+	seamlessly incorporates techniques from the areas of machine learning, knowledge representation and constraint programming.
 %	\npr{symbolic AI, ontological reasoning, transitive closure}
 	\item An efficient approach to handle attributes which cannot be matched to 
 	the ontology, through a new semantic labeling model and a new STP 
-	model with additional nodes.
+	model with additional nodes in the integration graph.
 	\item A flexible and extensible approach to the problem, which is easy to 
-	reuse and adapt to specific situations.
+	reuse and adapt to specific situations. This is achieved since CP allows introduction of additional constraints with no changes to the solver. 
 \end{itemize}
 
 
@@ -287,6 +288,7 @@ properties.
 Edges in the semantic model correspond to properties in the ontology, as 
 shown in Fig.~\ref{FIG:sem} (notice the same edges appear in Fig.~\ref{FIG:onto}).
 The semantic model may have several instances of the same ontology class, that is why class nodes are enumerated.
+Semantic models can be formalized using a standard mapping language such as R2RML~\cite{r2rml}.
 
 \begin{figure}[ht]
 \centering
@@ -878,9 +880,7 @@ By designing the weighting function $w_\mathcal{I}$ through
 ML techniques, as shown in Section \ref{SEC:ML}, 
 our expectation is that the minimum cost Steiner Tree is a valid and coherent semantic model for the new source.
 
-
-\subsection{Using Patterns}
-
+\textbf{Patterns}.
 As explained in Subsection \ref{SSEC:pattern-mining}, we also use 
 graph patterns in order to incentivise the solution tree 
 $T^\star$ to contain subgraphs of the alignment graph that have been frequently 
@@ -890,7 +890,7 @@ the tree contains a pattern, then its weight is automatically reduced by the
 value of the support of that pattern. We will see in the next section how this 
 information is integrated in the model.
 
-\subsection{Unmatched Attributes}
+\textbf{Unmatched Attributes}.
 It is common that the data sources to be integrated will have columns that 
 simply cannot be matched to the ontology.
 This can happen when a column of a source table contains some information that 
@@ -1151,7 +1151,7 @@ We use \emph{mean reciprocal rank} (MRR) to evaluate semantic labeling models.
 This measure is useful to estimate how highly the true semantic label is ranked among the top $k$ suggestions.
 It is calculated the following way:
 $MRR = \frac{1}{n}\sum_{i=1}^{n}{\frac{1}{rank_i}},$
-where $rank_i$ is the rank of the correct semantic label for the attribute $a_i$ among the top $k$ predictions.
+where $rank_i$ is the rank of the correct semantic label for the attribute $a_i$ among the top $k$ predictions and $n$ is the number of attributes in the data source.
 
 
 % evaluation strategy
@@ -1162,7 +1162,7 @@ where $t$ is the total number of data sources in the domain and each experiment 
 The case with $M_{t-1}$ known semantic models corresponds to leave-one-out validation strategy. 
 For example, in the soccer domain for the source $s_1$ we run experiments 11 times using $M_1=\{m_2\}, M_2=\{m_2, m_3\}, \ldots, M_{11}=\{m_2, m_3, \ldots, m_{12}\}$
 We repeat the procedure for other data sources in the domain and then average the results.
-This procedure ensures that each source is at least once in the training as well as testing datasets.
+This procedure ensures that each source is at least once in the training and testing datasets.
 
 
 % architecture
@@ -1405,20 +1405,24 @@ results~\cite{taheriyan2016learning}.
 As we can see, \serene{} produces on average the best semantic models in terms 
 of precision while \serenepats{} generates slightly better models in terms of 
 recall.
-If we consider results separately per each instance and not on average, there 
-are few instances where \karma{} generates more precise models, however, our 
-new approaches produce much better models in terms of recall in all considered 
-instances. 
+The t-tests conducted for the obtained results confirm statistical significance of our improvements at the level $p<0.01$
+%If we consider results separately per each instance and not on average, there 
+%are few instances where \karma{} generates more precise models, however, our 
+%new approaches produce much better models in terms of recall in all considered 
+%instances. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% sequential solution
 In Fig.~\ref{fig:loo} we show how the performance of \serene{} changes 
 across sequentially found solutions.
-\chuffed{} successively finds better solutions in terms of Eq. \ref{EQ:obj}.
+\chuffed{}, which is the solver of \serene{}, successively finds better solutions in terms of Eq. \ref{EQ:obj}.
 However,
 that does not translate directly into more precise semantic models.
 On average, we have observed that \serene{} yields very good results already 
 with the first solution found, and plateaus after the third solution.
+Furthermore, we have explored how the systems perform if we manually filter out the unmatched attributes.
+In such scenario \serene{} also yields better solutions than \karma{}, and in many situations \serene{} can prove optimality of the found solutions.
+This observation provides further evidence towards the validity of our new modeling framework.   
 
 Additionally, we investigate how the performance is influenced by introducing 
 a weighting scheme on the patterns, i.e., costs of patterns are scaled by a 
@@ -1516,8 +1520,8 @@ Crudely speaking, these tools first apply a default direct mapping specified by 
 Further, the default ontology is enriched by using explicit and implicit schema constraints.
 Finally, ontology alignment techniques are applied to match the default ontology to the target ontology.
 The main advantage of these systems is the ability to run in a fully automatic setting.
-Our approach is complementary to the approaches from this group and at its current stage is semi-automatic.
-However, constraint programming offers a convenient framework to incorporate integrity constraints specified either within relational or ontological schema as additional constraints to govern the search for the solution.
+Our approach is complementary to these approaches and at its current stage is semi-automatic.
+However, CP offers a convenient framework to incorporate integrity constraints specified either within relational or ontological schema as additional constraints to govern the search for the solution.
 This opens an interesting direction for further research.
 
 A major issue with fully automatic systems is that constraints may be 
@@ -1551,14 +1555,13 @@ Our approach differs from previous work in that we incorporate an efficient meth
 
 We build upon the work of \citeasnoun{taheriyan2016learning} and use their 
 ideas for the construction of the alignment graph.
-The only difference is that we introduce the \emph{unknown} and \emph{root} class nodes and as many \emph{unknown} data nodes as there are attributes in the modeled data source.
+The difference at this step is that we introduce the \emph{unknown} and \emph{root} class nodes and as many \emph{unknown} data nodes as there are attributes in the modeled data source.
 These nodes serve to capture the unmatched attributes from the source.
 Though we have modified \karma{} to treat these additional nodes as well, our 
 approach outperforms \karma{} since we have additional constraints for these 
 nodes and use an exact algorithm to solve the STP.
 \citeasnoun{taheriyan2016learning} treat the matching and STP parts of \relonto{} independently and use heuristic algorithms for both.
 We, on the other hand, use exact algorithms for both parts and address them within a unified CP model.
-
 In their follow up work, \citeasnoun{Taheriyan:Leveraging} suggest using graph 
 patterns to boost the performance of their system.
 To this end, they had to revise their algorithm by introducing additional heuristics.
@@ -1572,6 +1575,12 @@ is worth noting that the scalability of our approach is under question.
 The main argument why exact solution for STP is feasible in our setting is that 
 we map data sources to a domain-specific ontology which is expected to be 
 limited in its size.}
+
+Another relevant problem within the Semantic Web community is ontology matching, or alignment~\cite{shvaiko2013}.
+This problem is similar to schema matching since it finds semantically related entities across different ontologies.
+Yet, it is different from \relonto{} since data sources in our case are not bound to any ontology.
+We think that our approach might be further extended to incorporate ontology matching techniques.
+
 
 \section{Conclusion}
 In this paper we have introduced a new approach, \serene{} (and its extension 
