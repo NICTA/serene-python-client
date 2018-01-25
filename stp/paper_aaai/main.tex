@@ -880,7 +880,7 @@ By designing the weighting function $w_\mathcal{I}$ through
 ML techniques, as shown in Section \ref{SEC:ML}, 
 our expectation is that the minimum cost Steiner Tree is a valid and coherent semantic model for the new source.
 
-\textbf{Patterns}.
+\textbf{Patterns:}
 As explained in Subsection \ref{SSEC:pattern-mining}, we also use 
 graph patterns in order to incentivise the solution tree 
 $T^\star$ to contain subgraphs of the alignment graph that have been frequently 
@@ -890,7 +890,7 @@ the tree contains a pattern, then its weight is automatically reduced by the
 value of the support of that pattern. We will see in the next section how this 
 information is integrated in the model.
 
-\textbf{Unmatched Attributes}.
+\textbf{Unmatched Attributes:}
 It is common that the data sources to be integrated will have columns that 
 simply cannot be matched to the ontology.
 This can happen when a column of a source table contains some information that 
@@ -1000,7 +1000,7 @@ variables
 $c_p, \forall p \in \mathcal{P}$, that tell us whether a pattern $p$ appears in 
 $T^\star$ or not.
 The model is presented below.
-
+\vspace*{-0.5em}
 \begin{flalign}
 	& \text{Minimize~~} w_{STP} + w_{ADIFF} - w_{PAT}
 	%\sum_{e \in \mathcal{E}_\mathcal{O}}c_e * 
@@ -1079,8 +1079,9 @@ The museum dataset~\cite{taheriyan2016learning} contains 29 sources which are ma
 The soccer dataset~\cite{Pham:semantic} is much smaller with only 12 data sources, and its domain ontology is an extension of the schema.org ontology.
 
 \begin{table}[ht]\small
+	\vspace*{-0.8em}
   \centering
-  \caption{Description of data sources.}\label{tab:data}
+  \caption{Description of data sources.\vspace*{-0.8em}}\label{tab:data}
 		\begin{tabular}{ccccc}
 		\hline
 		\multirow{2}{*}{\textbf{Domain}} & \# data & \# semantic & \# & \# unknown\\
@@ -1192,7 +1193,8 @@ not based on the notion of similarity.
 
 \begin{table}[!ht]\small
   \centering
-  \caption{Average performance of semantic labeling models for leave one out strategy.}
+  \vspace*{-0.8em}
+  \caption{Average performance of semantic labeling models for leave one out strategy.  \vspace*{-0.8em}}
   	\label{tab:semlab}
   	\begin{tabular}{c|cc|cc} 
   		\hline
