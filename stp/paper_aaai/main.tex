@@ -130,7 +130,7 @@ In other words, we want to build a semantic model which describes the data sourc
 Henceforth, we focus on a specific data integration problem: automatically mapping a new relational data source onto a user provided ontology.
 }
 Relational data sources are still one of the most popular ways to store enterprise or Web data. However, the issue with relational schema is the lack of a well-defined semantic description.
-A common ontology provides a way of representing the meaning of a relational schema and can facilitate the integration of heterogeneous data sources within a domain.
+A common ontology provides a way of representing the meaning of a relational schema and can facilitate the integration of heterogeneous data sources\forijcai{ within a domain}.
 Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated, however, it becomes tedious with the growing number of heterogeneous schemata.
 
 Automatically integrating heterogeneous data sources is a long standing issue in the database research field and is of high relevance in many real-world 
@@ -148,8 +148,8 @@ We do not \textit{a priori} know if ``Date'' is a
 date of birth of the person or the start date of the event (c.f. Fig. \ref{FIG:onto}); or whether 
 ``Address'' refers to the name of the place where the festival is located, or the 
 email address of the company. 
-Given an ontology like the one in Fig. \ref{FIG:onto}, we would like to automatically map the new data sources to  the 
-ontology.\hfill$\square$
+Given an ontology like in Fig. \ref{FIG:onto}, we would like to automatically map new data sources to  the 
+ontology.\forijcai{\hfill$\square$}
 
 In this paper we use Machine Learning (ML) techniques and Constraint Programming (CP) to learn mapping rules from previously mapped instances.
 To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
@@ -157,10 +157,10 @@ To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{})
 Firstly, we build a graph which includes attributes (i.e. columns) from the new
 source as well as ontology classes and properties.
 We name it \emph{integration graph}.
-It uses information gathered from the previously mapped data sources, and is further extended with information derived from the ontology.
+It uses information gathered from previously mapped data sources, and is further extended with information derived from the ontology.
 %Firstly, we build a \emph{integration graph} which includes the 
 %attributes from the new source as well as ontology classes and properties.
-Secondly, we apply machine learning techniques to 
+Secondly, we apply ML techniques to 
 assign costs to its edges. 
 Lastly, we use CP to 
 find a minimum cost Steiner Tree in the graph.
@@ -169,14 +169,14 @@ Steiner Tree is a valid and coherent semantic model for the new source.
 Our contributions are:
 %\begin{itemize}
 	%\item 
-	A novel modeling framework for the \relonto{} problem that use ML, KRR and CP techniques,
+	a novel modeling framework for the \relonto{} problem that uses ML, KRR and CP techniques;
 %	\npr{symbolic AI, ontological reasoning, transitive closure}
 	%\item
 	an efficient approach to handle attributes which cannot be matched to 
-	the ontology, \forijcai{arg1, through a new semantic labeling model and a new STP 
+	the ontology; \forijcai{through a new semantic labeling model and a new STP 
 	model with additional nodes in the integration graph.}
 	%\item 
-	a flexible and extensible approach to the problem, which is easy to 
+	a flexible and extensible approach to the problem, easy to 
 	reuse and adapt to specific situations through the use of CP.\forijcai{ allows introduction of additional constraints with no changes to the solver.} 
 %\end{itemize}
 
@@ -193,88 +193,6 @@ Section \ref{SEC:pw} compares with the previous work done to achieve this task.
 \section{Problem Statement \label{SEC:problem}}
 
 
-\begin{figure}[ht]
-\centering
-\scalebox{0.8}{
-\begin{tikzpicture}
-	\node[class] (pe) at (0,0)  {Person};
-	\node[class] (co) at (0,-2) {Organisation};
-	\node[class] (ev) at (3,0.2) {Event};
-	\node[class] (pl) at (5,-1) {Place};
-	\node[class] (ci) at (3,-2.5) {City};
-	\node[class] (st) at (5,-2.5) {State};
-	
-		
-	\path[hasaC,->] (pe) edge [bend left= -30] 
-	node [midway, above, sloped] {worksFor} (co) ;
-	\path[hasaC,->] (co) edge [bend left= -30] 
-	node [midway, above, sloped] {ceo} (pe) ;
-	
-	\path[hasaC,->] (co) edge [] 
-	node [near start, above, sloped] {location} (pl) ;
-	
-	\path[hasaC,->] (pe) edge [bend left = -20] 
-	node [midway, above, sloped] {bornIn} (pl) ;
-	\path[hasaC,->] (pe) edge [bend left = 0] 
-	node [midway, above, sloped] {livesIn} (pl) ;
-	
-	\path[hasaC,->] (ev) edge [bend left = -20] 
-	node [midway, above, sloped] {organizer} (pe) ;
-	\path[hasaC,->] (ev) edge [bend left = 0] 
-	node [midway, above, sloped] {location} (pl) ;
-	
-	
-	\path[hasaC,->] (pl) edge [out=20,in=0,looseness=8] 
-	node [midway, above, sloped] {nearby} (pl) ;
-	\path[hasaC,->] (pl) edge [out=45,in=65,looseness=8] 
-	node [midway, above, sloped] {partOf} (pl) ;
-	
-	\path[hasaC,->] (ci) edge  []
-	node [midway, above, sloped] {isIn} (st) ;
-	
-	\path[isa,->] (ci) -- node [] {} (pl) ;
-	\path[isa,->] (st) -- node [] {} (pl) ;
-	
-
-	\path[draw,hasaA,->] (pe) edge [decorate,out=140,in=0] 
-	node [midway, above, sloped] {name} (-0.9,0.5);
-	\path[draw,hasaA,->] (pe) edge [decorate,out=100,in=0] 
-	node [midway, above, sloped] {birthDate} (-0.9,1);	
-	
-	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, below, sloped] {name} (-1,-3);
-	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {phone} (0,-3.2);
-	\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {email} (1.4,-3);
-	
-	\path[draw,hasaA,->] (ev) edge [decorate,out=70,in=200] 
-	node [midway, above, sloped] {startDate} (3.8,1);
-	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {endDate} (4.5,0.8);
-	\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {title} (5,0.2);
-	
-	\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {name} (6.5,-1.8);
-	\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
-	node [midway, above, sloped] {postalCode} (6,-3);	
-	
-
-\end{tikzpicture}
-}
-\caption{Example of ontology
-(`\protect\tikz{ \protect\node[class, inner sep = 2] () at (0,0)  {};}' are Classes, `\protect\tikz{ \protect\path[hasaC,->] 
-(0,1) -- (3ex,1);}' means ``has an object property'', 
-`\protect\tikz{ \protect\path[hasaA,decoration={post length=0}] (0,0) edge[decorate] (3ex,0);}' 
-means ``has a data property'' and 
-`\protect\tikz{ \protect\path[isa,->] (0,1) -- (3ex,1);}' means ``subClassOf'' ). Example by
-\protect\citeasnoun{Taheriyan2013}.
-}
-\label{FIG:onto}
-\vspace{-3mm}
-\end{figure}
-
 In our work we consider that an ontology $\mathcal{O}$ includes basic elements such 
 as classes (which represent concepts), literal values, individuals (members of classes) and properties~\cite{Spanos:semweb}.
 Properties are classified into \emph{object properties}, which relate two 
@@ -287,6 +205,109 @@ For
 example, ``Cities'' and ``States'' are both ``Places''. 
 A subclass inherits all the properties of the parent class.
 
+\begin{figure}[!t]
+	\centering
+	\scalebox{0.8}{
+		\begin{tikzpicture}
+		\begin{scope}
+		\node[class] (pe) at (0,0)  {Person};
+		\node[class] (co) at (0,-2) {Organisation};
+		\node[class] (ev) at (3,0.2) {Event};
+		\node[class] (pl) at (5,-1) {Place};
+		\node[class] (ci) at (3,-2.5) {City};
+		\node[class] (st) at (5,-2.5) {State};
+		
+		
+		\path[hasaC,->] (pe) edge [bend left= -30] 
+		node [midway, above, sloped] {worksFor} (co) ;
+		\path[hasaC,->] (co) edge [bend left= -30] 
+		node [midway, above, sloped] {ceo} (pe) ;
+		
+		\path[hasaC,->] (co) edge [] 
+		node [near start, above, sloped] {location} (pl) ;
+		
+		\path[hasaC,->] (pe) edge [bend left = -20] 
+		node [midway, above, sloped] {bornIn} (pl) ;
+		\path[hasaC,->] (pe) edge [bend left = 0] 
+		node [midway, above, sloped] {livesIn} (pl) ;
+		
+		\path[hasaC,->] (ev) edge [bend left = -20] 
+		node [midway, above, sloped] {organizer} (pe) ;
+		\path[hasaC,->] (ev) edge [bend left = 0] 
+		node [midway, above, sloped] {location} (pl) ;
+		
+		
+		\path[hasaC,->] (pl) edge [out=20,in=0,looseness=8] 
+		node [midway, above, sloped] {nearby} (pl) ;
+		\path[hasaC,->] (pl) edge [out=45,in=65,looseness=8] 
+		node [midway, above, sloped] {partOf} (pl) ;
+		
+		\path[hasaC,->] (ci) edge  []
+		node [midway, above, sloped] {isIn} (st) ;
+		
+		\path[isa,->] (ci) -- node [] {} (pl) ;
+		\path[isa,->] (st) -- node [] {} (pl) ;
+		
+		
+		\path[draw,hasaA,->] (pe) edge [decorate,out=140,in=0] 
+		node [midway, above, sloped] {name} (-0.9,0.5);
+		\path[draw,hasaA,->] (pe) edge [decorate,out=100,in=0] 
+		node [midway, above, sloped] {birthDate} (-0.9,1);	
+		
+		\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
+		node [midway, below, sloped] {name} (-1,-3);
+		\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
+		node [midway, above, sloped] {phone} (0,-3.2);
+		\path[draw,hasaA,->] (co) edge [decorate,bend left = 0] 
+		node [midway, above, sloped] {email} (1.4,-3);
+		
+		\path[draw,hasaA,->] (ev) edge [decorate,out=70,in=200] 
+		node [midway, above, sloped] {startDate} (3.8,1);
+		\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
+		node [midway, above, sloped] {endDate} (4.5,0.8);
+		\path[draw,hasaA,->] (ev) edge [decorate,bend left = 0] 
+		node [midway, above, sloped] {title} (5,0.2);
+		
+		\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
+		node [midway, above, sloped] {name} (6.5,-1.8);
+		\path[draw,hasaA,->] (pl) edge [decorate,bend left = 0] 
+		node [midway, above, sloped] {postalCode} (6,-3);	
+		
+		\end{scope}
+		\begin{scope}[xshift=7cm]
+		\path[hasaC,->] (0,0)  to
+		(0.5,0) ;
+		\node[text=black,text width=2cm] (legend1) at (1.7,0)  
+		{\small 
+			``has an object property''};
+		
+		\path[hasaA,->] (0,-1.2)  to
+		(0.5,-1.2) ;
+		\node[text=black,text width=2cm] (legend1) at (1.7,-1.2)  
+		{\small 
+			``has a data property''};
+		
+		\path[isa,->] (0,-1.9)  to
+		(0.5,-1.9) ;
+		\node[text=black,text width=2cm] (legend1) at (1.7,-1.9)  
+		{\small 
+			``subClassOf''};
+		
+		\end{scope}
+		\end{tikzpicture}
+	}
+	\caption{Example of ontology \forijcai{
+			(`\protect\tikz{ \protect\node[class, inner sep = 2] () at (0,0)  {};}' are Classes, `\protect\tikz{ \protect\path[hasaC,->] 
+				(0,1) -- (3ex,1);}' means ``has an object property'', 
+			`\protect\tikz{ \protect\path[hasaA,decoration={post length=0}] (0,0) edge[decorate] (3ex,0);}' 
+			means ``has a data property'' and 
+			`\protect\tikz{ \protect\path[isa,->] (0,1) -- (3ex,1);}' means ``subClassOf'' ). Example }by
+		\protect\citeasnoun{Taheriyan2013}.
+	}
+	\label{FIG:onto}
+	\vspace{-3mm}
+\end{figure}
+
 A \emph{semantic model} $m$ is a directed graph with two types of nodes: 
 \emph{class nodes} and \emph{data nodes}. 
 We denote them as $\mathcal{C}_m$ and $\mathcal{D}_m$, respectively.
@@ -296,7 +317,7 @@ properties.
 Edges in the semantic model correspond to properties in the ontology, as 
 shown in Fig.~\ref{FIG:sem} (notice the same edges appear in Fig.~\ref{FIG:onto}).
 The semantic model may have several instances of the same ontology class, that is why class nodes are enumerated.
-Semantic models can be formalized using a standard mapping language such as R2RML~\cite{r2rml}.
+\forijcai{Semantic models can be formalized using a standard mapping language such as R2RML~\cite{r2rml}.}
 
 \begin{figure}[ht]
 \centering\scalebox{0.8}{
@@ -417,7 +438,7 @@ $m^\star$ and the semantic model $m^\dag$ that the user considers correct.
 The semantic types $\mathcal{L_O} = \{l_1, l_2, ..., l_p\}$ of an ontology 
 correspond to all pairs $(c,d)$, where $c$ is a Class in $\mathcal{O}$, and $d$ 
 is a data property of that class (including inherited properties). 
-For example, in Fig. \ref{FIG:onto}, we would get
+E.g., in Fig. \ref{FIG:onto}, we would get
 (City,name) and (State,name).
 
 The first step to model the semantics of a new source $s^\star$ is to recognize the semantic types present in the source. 
@@ -425,7 +446,7 @@ We call this step \emph{semantic labeling}, which assigns a confidence value to 
 \mathcal{L_O}$.
 Typically semantic labeling techniques encounter several problems such as:
 naming conflicts~\cite{Pinkel:rodi}, multiple data representations, and semantically different attributes might have syntactically similar 
-content.%, for example, startDate versus endDate for the Event class.
+content. %, for example, startDate versus endDate for the Event class.
 Also, there may be a considerable number of attributes which have no 
 corresponding property in the ontology (accidentaly or deliberately).
 %\ddg{CHECK!}
@@ -451,7 +472,7 @@ $H(X) = -\sum_{i}{p_i \log_{2}p_i},$ where $p_i$ is the probability of a charact
 characters in the vocabulary.
 %of all possible characters
 To evaluate $p_i$ in Shannon's entropy, we evaluate normalized character frequency distribution \emph{chardist} of an attribute, as character counts in concatenated rows of the attribute, normalized by the total length of the concatenated rows.
-The vocabulary of all characters consists of 100 printable characters (including $\backslash$n).
+The alphabet\forijcai{vocabulary of all characters} consists of 100 printable characters\forijcai{ (including $\backslash$n)}.
 Finally, we add the 100-dimensional vector of $p_i$ to the attribute feature vector.
 %}
 We also compute a set of features based on similarity metrics inspired by state-of-the-art works by ~\citeasnoun{Pham:semantic} or~\citeasnoun{Ritze:matching}.
@@ -484,9 +505,9 @@ finding the semantic model.
 \subsection{Alignment Graph}
 
 To provide an integrated view over the known source descriptions $\Delta_T$, we 
-align their semantic models as well as all considered semantic 
+align their semantic models as well as all semantic 
 types. 
-This is achieved by constructing an \emph{alignment graph}. 
+This is done by building an \emph{alignment graph}. 
 
 The alignment graph is a directed weighted graph $\mathcal{G_O} = 
 (\mathcal{V_O},\mathcal{E_O})$ built on top 
@@ -527,8 +548,8 @@ more attractive. }
 %\ddg{How exactly are they weighted?}
 An example alignment graph is illustrated in Fig.~\ref{FIG:ali}. 
 %Bigger examples can be found in \cite{Taheriyan2013}. 
-Black links are links supported by the known semantic models. 
-Blue links are inferred from the ontology.\forijcai{(the orange 
+\forijcai{Black links are links supported by the known semantic models. 
+Blue links are inferred from the ontology.(the orange 
 ones correspond to the ones added to connect Classes of the ontology that never 
 appeared in the semantic models).}
 % and can be assigned the 
@@ -538,6 +559,7 @@ appeared in the semantic models).}
 \begin{figure}[ht]
 \centering \scalebox{0.8}{
 \begin{tikzpicture}[scale=0.9]
+\begin{scope}[xshift=-10]
 
 	\node[class] (pe1) at (3,0)  {\small Person1};
 	\node[class] (co1) at (6,0) {\small Org.1};
@@ -643,6 +665,22 @@ appeared in the semantic models).}
 	\path[draw,isa,->,blue!70] (pl2) edge[out=50,in=180] (PL);
 	\path[draw,isa,->,blue!70] (st1) edge[out=-45,in=160] (PL);
 
+\end{scope}
+\begin{scope}[xshift=7cm]
+	\path[hasaC,->] (0,0)  to
+	 (0.5,0) ;
+	 \node[text=black,text width=2cm] (legend1) at (1.7,0)  
+	 {\small 
+	 	Link supported by known semantic models};
+	 
+	 	\path[isa,->,blue!70] (0,-1.2)  to
+	 	(0.5,-1.2) ;
+	 		 	\path[hasaC,->,blue!70] (0,-1.5)  to
+	 		 	(0.5,-1.5) ;
+	 	\node[text=black,text width=2cm] (legend1) at (1.7,-1.3)  
+	 	{\small 
+	 		Links inferred from ontology};
+\end{scope}
 \end{tikzpicture}}
 \caption{Example of alignment graph (`\protect\tikz{ \protect\node[class, inner sep = 2] () at (0,0)  
 {};}' \forijcai{`\protect\tikz{ \protect\node[class,orange,fill=orange!30!white,text=black, inner sep = 2] () at 
@@ -724,16 +762,16 @@ from~\cite{Taheriyan:Leveraging}.
 
 Given a graph $G =
 (V, E)$ and a subset of its nodes $T \subseteq V$, a 
-Steiner Tree $G_s = (V_s, E_s )$ is a tree (connected acyclic graph) such that 
+Steiner Tree $G_s = (V_s, E_s )$ is a tree \forijcai{(connected acyclic graph) }such that 
 $T \subseteq V_s \subseteq 
 V$ and $E_s \subseteq E$. 
-In other words, $G_s$ spans all the nodes in $T$ and 
-may include additional nodes from $V$, in particular to ensure the 
+That is\forijcai{In other words}, $G_s$ spans all the nodes in $T$ and 
+may include additional nodes from $V$\forijcai{, in particular} to ensure the 
 connectedness of the constructed tree. 
 The Steiner Tree Problem 
 (STP) is stated as follows: given $G$ and a weight function $w_f : E 
 \mapsto \mathbb{R}$, find the Steiner Tree that minimizes the sum of the 
-weights of the edges in $E_s$ given by $w_f$. This was proven to be NP-hard 
+weights of the edges in $E_s$\forijcai{ given by $w_f$}. This was proven to be NP-hard 
 by \citeasnoun{Karp1972}.
 
 To formulate the \relonto{} schema mapping problem as a STP for a new source 
@@ -767,6 +805,7 @@ An example of an integration graph can be found in Fig. \ref{FIG:inte}.
 \begin{figure}[ht]
 \centering \scalebox{0.8}{
 \begin{tikzpicture}[scale=0.9]
+\begin{scope}
 	\node[class, rectangle, rounded corners] (CLASS) at (0,0) { \small{ 
 	Class nodes of Alignment Graph (i.e. $\mathcal{C_{G_O}}$)}};
 	
@@ -833,11 +872,19 @@ width=220]
 	\path[draw] (a4) -- (con1);
 	\path[draw] (a4) -- (cin2);
 	\path[draw] (a4) -- (con2);
+	\end{scope}
+	\begin{scope}[xshift=5cm]
+\node[att] () at (0,0)  
+{};  
+\node[text=black,text width=1.5cm] (legend1) at (1.3,0)  
+{\small 
+	Attribute nodes};
+
+	\end{scope}
 \end{tikzpicture} }
-\caption{Example of integration graph. (`\protect\tikz{ \protect\node[att] () at (0,0)  
-{};}' are attribute nodes). We omit weights and only show the most likely 
-matches for clarity. Data node
-are the same as in Fig \ref{FIG:ali}.}
+\caption{Example of integration graph. We omit weights and only show the most likely 
+matches for clarity.\forijcai{ Data node
+are the same as in Fig. \ref{FIG:ali}.}}
 \label{FIG:inte}
 \vspace{-3mm}
 \end{figure}
@@ -895,7 +942,7 @@ $T^\star$ to contain subgraphs of the alignment graph that have been frequently
 seen in the training set.
 To do this, we use the support of each obtained patterns as a prize. If 
 the tree contains a pattern, then its weight is automatically reduced by the 
-value of the support of that pattern. Sec. \ref{SEC:rel2ontocp} shows how this is integrated in the model.
+value of the support of that pattern. \forijcai{Sec. \ref{SEC:rel2ontocp} shows how this is integrated in the model.}
 
 \textbf{Unmatched Attributes:}
 It is common that the data sources to be integrated will have columns that 
@@ -918,15 +965,13 @@ $\mathcal{A}_{s^\star}$ and to the \emph{unknown} Class node.
 
 If an attribute $a$ is matched to $unk_a$, then $unk_a$ will be linked to Class 
 node \emph{unknown}. 
-The rest of the attributes can then be matched normally 
-and build  a semantic model as usual. 
-To maintain connectedness of the 
-Steiner tree, the \emph{unknown} node and one of the other Class nodes in $T^\star$ 
+The other attributes can be matched normally 
+and build a semantic model as usual. 
+To maintain connectedness of $T^\star$, the \emph{unknown} node and one of the other Class nodes in $T^\star$ 
 will 
 both be connected to the \emph{root} node. 
 Note that if all attributes find a 
-match, then both the \emph{unknown} and \emph{root} nodes will not be selected in 
-the Steiner tree and the normal behavior will take place.
+match, then neither \emph{unknown} or \emph{root} will be selected and the normal behavior will take place.
 The weights of the edges between these special nodes are
 assigned the same way as for the rest of the edges.
 %\ddg{Explain the weights of the edges introduced by the unknown nodes}
@@ -947,10 +992,9 @@ A valuation such that all variables in $\boldsymbol{v}$ map
 to exactly one value, and all the constraints in $C$ are satisfied by the 
 valuation is a \emph{solution} to $P$. A solution $\theta^*$ is optimal if$\not 
 \exists \theta, \theta(\boldsymbol{v}) < \theta^*(\boldsymbol{v})$.
-
 CP allows the user to model a COP and give it 
-to a solver that will find solutions while optimizing 
-the objective function (and prove optimality).
+to a ``black-box'' solver to find solutions while optimizing 
+the objective function\forijcai{ (and prove optimality)}.
 
 Briefly, a CP solver assigns values to each variable of 
 $\boldsymbol{v}$ in turn. 
@@ -973,29 +1017,28 @@ specialized algorithms for performance.
 \subsection{\relonto{} in Constraint Programming\label{SEC:rel2ontocp}}
 We used the \minizinc{} language 
 \cite{minizinc}, and the 
-\chuffed{} solver. \cite{chu2011improving}\forijcai{ because it has a global constraint 
+\chuffed{} solver \cite{chu2011improving}. \forijcai{ because it has a global constraint 
 implemented for Steiner 
 Tree Problems \cite{deuna2016steiner}. The model can be found in Appendix \ref{Ann:MZ}}
 
-Because attributes must be connected to exactly one node of the alignment 
+Since attributes must be connected to exactly one node of the alignment 
 graph, and that node will be in $\mathcal{D_{G_O}} \cap V^\star$, 
 then the part of the problem between attribute nodes and the alignment graph is 
-actually a matching problem. Each attribute must match exactly one node of 
+\forijcai{actually} a matching problem. Each attribute must match exactly one node of 
 $\mathcal{D_{G_O}}$. Note that not all nodes in $\mathcal{D_{G_O}}$ need to match 
-to an attribute, as not all of them are part of $T^\star$.
+to an attribute, as they are not all part of $T^\star$.
 
-Since there are global constraints in CP specialized in matching 
+Because there are global constraints in CP specialized in matching 
 \cite{regin1994filtering}, we split the problem into two parts: the 
 $\mathit{steiner}$ global constraint \cite{deuna2016steiner} will only deal with the part of the 
 integration graph that corresponds to the alignment graph, and the 
 $\mathit{alldifferent}$ global constraint will deal with the matching part of 
 the problem.
 
-We use the following variables to represent the tree $T^\star$: Boolean 
+We use Boolean 
 variables $c_n,\forall n \in 
 \mathcal{V_O}$, $c_e, \forall e \in	\mathcal{E_O}$ and an array of variables 
-$match$ indexed by the set of attributes of $s^\star$. The combination of these 
-sets of variables define the value of $T^\star$: $c_n = \mathit{true}$ means 
+$match$ indexed by the set of attributes of $s^\star$ to represent the tree $T^\star$: $c_n = \mathit{true}$ means 
 that $n \in V^\star$, $c_e = \mathit{true}$ means that $e \in E^\star$ and 
 $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in 
 \mathcal{D_{G_O}}$) means that the edge $(a,d) \in 
@@ -1037,26 +1080,26 @@ The model is presented below.
 \vspace{-3mm}
 \end{flalign}
 
-Eq.~\ref{EQ:obj} is the objective function: we are minimizing the cost 
+Eq.~\ref{EQ:obj} is the objective function: we minimize the cost 
 of $T^\star$ while collecting prizes for each pattern we use. 
-Eq.~\ref{EQ:stp} enforces that the solution 
-$T^\star$ is indeed a tree defined by the $c_n$ and $c_e$ variables,
-subgraph of the alignment graph 
+Eq.~\ref{EQ:stp} enforces the solution 
+$T^\star$ to be a tree defined by the $c_n$ and $c_e$ variables,
+subgraph of $\mathcal{G_O}$%the alignment graph 
 and of total weight $w_{STP}$. 
-Eq.~\ref{EQ:deg1} and \ref{EQ:deg2} ensure 
-that if a data node of the alignment graph is selected, then at most one edge 
-reaches it (from the side of the alignment graph) and otherwise it is 
+Eqs.~\ref{EQ:deg1} and \ref{EQ:deg2} ensure 
+that if a data node of $\mathcal{G_O}$ is selected, then at most one edge 
+reaches it (from the side of $\mathcal{G_O}$) and otherwise it is 
 disconnected. 
 \ignore{Eq. \ref{EQ:matchdom} ensures that the domain of each 
 variable in 
-the array $match$ corresponds to a subset of data nodes of the alignment graph 
+the array $match$ corresponds to a subset of data nodes of $\mathcal{G_O}$ 
 for which there is an edge connecting to the attribute at hand. 
 Eq.~\ref{EQ:alld} ensure that each attribute is mapped to exactly one data node of 
-the alignment graph.}
-Eq.~\ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
+$\mathcal{G_O}$.}
+Eqs.~\ref{EQ:matchdom} and \ref{EQ:alld} ensure that 
 there is exactly one data node matched to an attribute. 
 Eq.~\ref{EQ:map} ensures that 
-if a data node of the alignment graph has been mapped to some attribute, then 
+if a data node of $\mathcal{G_O}$ has been mapped to some attribute, then 
 that data node must be in the solution tree, and vice-versa. 
 Eq.~\ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
 Eq.~\ref{EQ:patt} indicates that a pattern is used if and only if all its edges are selected in the tree. 
@@ -1064,7 +1107,7 @@ Eq.~\ref{EQ:pcost} computes the prizes collected by using patterns.
 Eq. \ref{EQ:unk} ensures that if the \emph{unknown} class node is used, then it 
 is connected to \emph{root}.
 Notice there is no further requirement for unmatched attributes, as the 
-$unk_i$ data nodes behave like normal data nodes, and the connectedness 
+$unk_i$ nodes behave like normal data nodes, and the connectedness 
 requirement will make sure that \emph{root} is connected to the rest of the 
 tree (i.e. the semantic model).
 
@@ -1081,9 +1124,8 @@ We choose a search strategy that will first try to match attributes using the ch
 %\subsection{Experimental Setup}
 
 % datasets for evaluation
-For the rest of the paper, we call our system \serene{} if no patterns are used in the model, and \serenepats{} otherwise.
-
-We run experiments on two domains: museum (29 sources, 20 labels, 443 attributes and 159 \emph{unknown}s) and soccer (12 sources, 18 labels, 138 attributes and 45 \emph{unknown}s).% (see Fig.~\ref{tab:data} for statistics).
+From now on, we call our system \serene{} if no patterns are used in the model, and \serenepats{} otherwise.
+We run experiments on two domains: museum (29 sources, 20 labels, 443 semantic attributes and 159 \emph{unknown} attributes) and soccer (12 sources, 18 labels, 138 attributes and 45 \emph{unknown}s).% (see Fig.~\ref{tab:data} for statistics).
 
 \forijcai{
 The museum dataset~\cite{taheriyan2016learning} contains 29 sources which are mapped to the EDM domain ontology.
@@ -1155,10 +1197,10 @@ previously mapped data sources, we substitute it with $unk_a$ and map it to the
 This way we can validate how well the systems can detect earlier unseen cases.
 
 % semantic labeling models
-To illustrate that our semantic labeling model is better suited for the
-matching task, 
-we compare it against the state-of-the-art model \emph{DSL}~\cite{Pham:semantic}.\forijcai{which was shown to perform 
-even better than SemanticTyper.} 
+\forijcai{To illustrate that our semantic labeling model is better suited for the
+matching task, }
+We compare our semantic labeling model against the state-of-the-art model \emph{DSL}~\cite{Pham:semantic}, which was shown to perform 
+even better than SemanticTyper.
 %\npr{not sure whether I should explain how this model works}
 We use \emph{mean reciprocal rank} (MRR) to evaluate semantic labeling models.
 This measure is useful to estimate how highly the true semantic label is ranked among the top $k$ suggestions.
@@ -1173,9 +1215,9 @@ Let $M_j$ be the set of $j$ known semantic models.
 For each data source $s_i$ in the domain we perform experiments $t-1$ times,
 where $t$ is the total number of data sources in the domain and each experiment has a different number of known semantic models $M_1, M_2, \ldots, M_{t-1}$.
 \forijcai{The case with $M_{t-1}$ known semantic models corresponds to leave-one-out validation strategy.} 
-For example, in the soccer domain for the source $s_1$ we run experiments 11 times using $M_1=\{m_2\}, M_2=\{m_2, m_3\}, \ldots, M_{11}=\{m_2, m_3, \ldots, m_{12}\}$
-We repeat the procedure for other data sources in the domain and then average the results.
-This procedure ensures that each source is at least once in the training and testing datasets.
+For example, in the soccer domain, for source $s_1$ we run experiments 11 times using $M_1=\{m_2\}, M_2=\{m_2, m_3\}, \ldots, M_{11}=\{m_2, m_3, \ldots, m_{12}\}$.
+We repeat the procedure for all sources in the domain and then average the results.
+This \forijcai{procedure} ensures that each source is at least once in the training and testing datasets.
 
 
 % architecture
@@ -1226,6 +1268,7 @@ not based on the notion of similarity.
 
 
 \begin{figure}[!b]
+	\vspace*{-3mm}
 \begin{minipage}[b]{.5\linewidth}
 \centering
 \hspace*{-15pt}
@@ -1410,7 +1453,7 @@ Average run time for the museum domain: \serene{} 0.5s, \karma{} 0.5s, \serenepa
 
 
 % karma vs serene vs serene-pats
-We evaluate \serene{} and \serenepats{} against the state-of-the-art system \karma{}.
+We then evaluate \serene{} and \serenepats{} against the state-of-the-art system \karma{}.
 All three systems have access to the same set of matches produced by our semantic labeling model.
 Fig.~\ref{fig:perf} shows their performance on the museum and soccer domains.
 We report average precision and recall for the systems with regard to variable 
@@ -1418,11 +1461,11 @@ number of semantic models in the training set.
 For \serene{} and \serenepats{} we report the first solutions found by
 \chuffed{}. All three systems find solutions in less than a second on average.
 We use default parameters for \karma{} which were shown to yield the best 
-results~\cite{taheriyan2016learning}.
+results\forijcai{~\cite{taheriyan2016learning}}.
 As we can see, \serene{} produces on average the best semantic models in terms 
 of precision while \serenepats{} generates slightly better models in terms of 
 recall.
-The t-tests conducted for the obtained results confirm statistical significance of our improvements at the level $p<0.01$
+The t-tests run for the obtained results confirm statistical significance of our improvements at the level $p<0.01$
 %If we consider results separately per each instance and not on average, there 
 %are few instances where \karma{} generates more precise models, however, our 
 %new approaches produce much better models in terms of recall in all considered 
@@ -1438,8 +1481,8 @@ that does not translate directly into more precise semantic models.
 On average, we have observed that \serene{} yields very good results already 
 with the first solution found, and plateaus after the third solution.
 Also, we have explored how the systems perform if we manually filter out the unmatched attributes.
-In such scenario \serene{} also yields better solutions than \karma{}, and can often prove optimality of the found solutions.
-This observation provides further evidence towards the validity of our new framework.   
+In such scenarios, \serene{} also yields better solutions than \karma{}, and can often prove optimality of the found solutions.
+This observation provides further evidence of the validity of our new framework.   
 
 Additionally, we investigate how the performance is influenced by introducing 
 a weighting scheme on the patterns, i.e., costs of patterns are scaled by a 
@@ -1467,7 +1510,7 @@ This property of our approach can be used to configure various parameters for th
 
 \begin{figure}[t]\small
 \centering
-\begin{tikzpicture}[scale=0.35]
+\begin{tikzpicture}[scale=0.3]
 \pgfplotsset{
     scale only axis,
     xmin=0, xmax=9
@@ -1509,6 +1552,7 @@ This property of our approach can be used to configure various parameters for th
 }; \addlegendentry{time}
 \end{axis}
 \end{tikzpicture}
+\vspace*{-3mm}
 \caption{Performance of \serene{} on the museum 
 domain.}\label{fig:loo}
 \vspace{-3mm}
@@ -1529,16 +1573,16 @@ Hence, automatic or semi-automatic approaches for relational-to-ontology schema 
 Most approaches to solve the \relonto{} problem are based on 
 heuristic rules and alignment of constraints specified within relational 
 schemata and ontologies.
-A very comprehensive overview and comparison of existing mapping generation 
-tools based on this approach is given by~\citeasnoun{Pinkel:rodi}
-and~\citeasnoun{Spanos:semweb}.
+\citeasnoun{Pinkel:rodi} and~\citeasnoun{Spanos:semweb} give
+a very comprehensive overview and comparison of existing mapping generation 
+tools based on this approach.
 As examples, there are BootOX~\cite{Jimenez:Bootox}, MIRROR~\cite{Luciano:Mirror} and  ontop~\cite{Fagin:Clio}.
-Crudely speaking, these tools first apply a default direct mapping specified by the W3C.
+Briefly, these tools first apply a default direct mapping specified by the W3C.
 Then, the default ontology is enriched by using explicit and implicit schema constraints.
 Finally, ontology alignment techniques are applied to match the default ontology to the target ontology.
-The main advantage of these systems is the ability to run in a fully automatic setting.
+The main advantage of these systems is that they are fully automatic\forijcai{ the ability to run in a fully automatic setting}.
 Our approach is complementary to them and at its current stage is semi-automatic.
-However, CP offers a convenient framework to incorporate integrity constraints specified either within relational or ontological schema as additional constraints to govern the search for the solution.
+However, CP offers a convenient framework to incorporate integrity constraints specified \forijcai{either} within relational or ontological schema as additional constraints to govern the search for the solution.
 \forijcai{This opens an interesting direction for further research.}
 
 A major issue with fully automatic systems is that constraints may be 
@@ -1549,7 +1593,7 @@ To overcome this issue,
 entities for cell values, semantic labels for attributes and relationships for 
 binary combinations of attributes.
 As in our approach, they decompose the process of mapping into two main stages: semantic labeling and finding relationships between matched semantic labels.
-\citeasnoun{Limaye:Annotating} enrich their data sources by using YAGO.
+\citeasnoun{Limaye:Annotating} enrich their data sources by using YAGO \cite{suchanek2007yago}.
 \citeasnoun{Mulwad:Semantic} extend this approach by leveraging information 
 from Wikitology Knowledge Base (KB).
 \citeasnoun{Venetis:Recovering} develop a scalable approach to recover the 
@@ -1565,9 +1609,9 @@ This is especially beneficial when the system does not have sufficient training 
 As mentioned above, the approaches for mapping Web tables also perform semantic labeling.
 They design various similarity metrics for attribute names and values.
 However, they disregard the attributes which are not matched to the ontology 
-(the so-called \emph{unknown} set of attributes) which are especially abundant 
+(the \forijcai{so-called} \emph{unknown} set of attributes) which are especially abundant 
 on the Web~\cite{Ritze:matching,Pham:semantic}.
-It is clear that we cannot directly speak about similarity for unmatched attributes, since they are rather dissimilar from known semantic types.
+Clearly we cannot speak about similarity for these attributes, since they are rather dissimilar from known semantic types.
 Our approach differs from previous work in that we incorporate an efficient method to handle the \emph{unknown} class, compared to the state-of-the-art approach DSL~\cite{Pham:semantic}.
 
 We build upon the work of \citeasnoun{taheriyan2016learning} and use their 
@@ -1600,18 +1644,17 @@ We think that our approach might be further extended to incorporate ontology mat
 
 
 \section{Conclusion}
-In this paper we have introduced a new approach\forijcai{, \serene{} (and its extension 
+We have introduced a new approach\forijcai{, \serene{} (and its extension 
 that uses frequent graph patterns, \serenepats{})} to solve the problem of 
 relational-to-ontology schema mapping.
-Our experiments demonstrate that 
+Our experiments show that 
 \serene{} generates on average more consistent semantic models in terms of 
 precision and recall compared to the state-of-the-art approach \karma{}.
 \serenepats{} produces, on average, better semantic models in terms of 
 recall, and its precision can be enhanced by adding a scaling factor for 
 pattern costs.
-
-Furthermore, our approach is extremely flexible and easy to extend with 
-arbitrary side constraints thanks to the use of CP rather than a specific 
+Furthermore, our approach is highly flexible and easy to extend with 
+arbitrary side constraints thanks to the use of CP instead of a specific 
 heuristic algorithm.
 \ignore{
 However, the solutions discovered by \serenepats{} later tend to be 
