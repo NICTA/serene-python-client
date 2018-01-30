@@ -154,7 +154,9 @@ ontology.\forijcai{\hfill$\square$}
 In this paper we use Machine Learning (ML) techniques and Constraint Programming (CP) to learn mapping rules from previously mapped instances.
 To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
 
-Firstly, we build a graph which includes attributes (i.e. columns) from the new
+Firstly, we build a graph which includes attributes
+% (i.e. columns) 
+from the new
 source as well as ontology classes and properties.
 We name it \emph{integration graph}.
 It uses information gathered from previously mapped data sources, and is further extended with information derived from the ontology.
@@ -169,7 +171,7 @@ Steiner Tree is a valid and coherent semantic model for the new source.
 Our contributions are:
 %\begin{itemize}
 	%\item 
-	a novel modeling framework for the \relonto{} problem that uses ML, KRR and CP techniques;
+	a novel modeling framework for the \relonto{} problem that uses knowledge representation, ML and CP techniques;
 %	\npr{symbolic AI, ontological reasoning, transitive closure}
 	%\item
 	an efficient approach to handle attributes which cannot be matched to 
@@ -1576,7 +1578,7 @@ Most approaches to solve the \relonto{} problem are based on
 heuristic rules and alignment of constraints specified within relational 
 schemata and ontologies.
 \citeasnoun{Pinkel:rodi} and~\citeasnoun{Spanos:semweb} give
-a very comprehensive overview and comparison of existing mapping generation 
+a comprehensive overview and comparison of existing mapping generation 
 tools based on this approach.
 As examples, there are BootOX~\cite{Jimenez:Bootox}, MIRROR~\cite{Luciano:Mirror} and  ontop~\cite{Fagin:Clio}.
 Briefly, these tools first apply a default direct mapping specified by the W3C.
@@ -1595,9 +1597,9 @@ To overcome this issue,
 entities for cell values, semantic labels for attributes and relationships for 
 binary combinations of attributes.
 As in our approach, they decompose the process of mapping into two main stages: semantic labeling and finding relationships between matched semantic labels.
-\citeasnoun{Limaye:Annotating} enrich their data sources by using YAGO \cite{suchanek2007yago}.
+\citeasnoun{Limaye:Annotating} enrich their data sources by using YAGO Knowledge Base (KB)\cite{suchanek2007yago}.
 \citeasnoun{Mulwad:Semantic} extend this approach by leveraging information 
-from Wikitology Knowledge Base (KB).
+from Wikitology KB.
 \citeasnoun{Venetis:Recovering} develop a scalable approach to recover the 
 semantics of Web tables by incorporating data from the isA database KB.
 \citeasnoun{Ritze:matching}, on the other hand, use DBPedia as their KB.
