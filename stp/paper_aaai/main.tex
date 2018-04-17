@@ -103,16 +103,25 @@ length=10,amplitude=0.3,post length=4}]
 \author{Submission 1228}
 \maketitle
 \begin{abstract}
-The problem of integrating heterogeneous data sources into an ontology is of high 
-relevance in the database field. Several techniques exist to approach this 
-problem. Nonetheless, side constraints on the data integration cannot be easily 
-integrated with these tools and thus the results may be inconsistent. We 
-present a new approach that combines Machine Learning and 
-Constraint Programming techniques, by modeling the data integration problem as 
-a Steiner Tree Problem in a weighted graph. We show that through this approach 
-we can achieve better precision, recall and speed compared to state-of-the-art 
-approaches. We provide a comprehensive set of experiments backing our 
-findings.
+%% REWRITTEN:
+
+The problem of integrating heterogeneous data sources into an ontology is highly relevant in the database field.
+Several techniques exist to approach the problem, but side constraints on the data cannot be easily implemented and thus the results may be inconsistent.
+In this paper we improve previous work by \citeasnoun{taheriyan2016learning} using Machine Learning (ML) to take into account inconsistencies in the data (unmatchable attributes) and encode the problem as a Steiner Tree, for which we use work by \citeasnoun{deuna2016steiner} in Constraint Programming (CP).
+Combining ML and CP achieves state-of-the-art precision, recall and speed, and provides a more flexible framework for variations of the problem.
+
+
+%% OLD:
+%The problem of integrating heterogeneous data sources into an ontology is of high 
+%relevance in the database field. Several techniques exist to approach this 
+%problem. Nonetheless, side constraints on the data integration cannot be easily 
+%integrated with these tools and thus the results may be inconsistent. We 
+%present a new approach that combines Machine Learning and 
+%Constraint Programming techniques, by modeling the data integration problem as 
+%a Steiner Tree Problem in a weighted graph. We show that through this approach 
+%we can achieve better precision, recall and speed compared to state-of-the-art 
+%approaches. We provide a comprehensive set of experiments backing our 
+%findings.
 \end{abstract}
 
 \section{Introduction}
