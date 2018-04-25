@@ -100,7 +100,7 @@ length=10,amplitude=0.3,post length=4}]
 % proceedings, working notes, and technical reports.
 %
 \title{Machine Learning and Constraint Programming for Relational-To-Ontology Schema Mapping }
-\author{Diego De U\~na$^1$ , Natalia R\"ummele$^2$, Graeme Gange$^1$, Peter Schachte$^1$ \and Peter J. Stuckey$^{1,3}$\\
+\author{Diego De U\~na$^1$ , Nataliia R\"ummele$^2$, Graeme Gange$^1$, Peter Schachte$^1$ \and Peter J. Stuckey$^{1,3}$\\
 $^1$Department of Computing and Information Systems --- The University of Melbourne\\
 $^2$Siemens, Germany ~~~~~
 $^3$Data61, CSIRO, Melbourne, Australia\\
@@ -1164,6 +1164,7 @@ The soccer dataset~\cite{Pham:semantic} is much smaller with only 12 data source
 		soccer & 12 & 18 & 138 & 42 \\
 		\hline
 		\end{tabular} 
+		\vspace*{-3em}
 \end{table}
 }
 
@@ -1282,7 +1283,7 @@ not based on the notion of similarity.
   		\hline
 		\end{tabular} 
 		}
-%\vspace*{-3mm}
+\vspace*{-3mm}
 \end{table}
 
 
@@ -1491,6 +1492,28 @@ The t-tests run for the obtained results confirm statistical significance of our
 %new approaches produce much better models in terms of recall in all considered 
 %instances. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{table}[!ht]\small
+  \centering 
+  \vspace*{-0.8em}
+  \caption{Performance with unknowns manually removed% for leave one out strategy.
+  	  \vspace*{-0.8em}}
+  	\label{tab:nounkn}
+  	\scalebox{0.8}{
+  	\begin{tabular}{c|cc|cc} 
+  		\hline
+  		\multirow{2}{*}{Model} & \multicolumn{2}{c|}{Precision} & 
+  		\multicolumn{2}{c}{Recall}\\
+  		 & museum & soccer & museum & soccer\\
+  		\hline
+  		\karma{} &  0.72 & 0.87 & 0.54 & 0.61 \\
+ 		\serene{} & 0.82 & 0.86 & 0.62 & 0.75 \\
+		\serenepats{} & 0.6 & 0.86 & 0.64 & 0.75 \\  		
+  		\hline
+		\end{tabular} 
+		}
+\vspace*{-3mm}
+\end{table}
+
 
 %% sequential solution
 In Fig.~\ref{fig:loo} we show how the performance of \serene{} changes 
@@ -1498,10 +1521,10 @@ across sequentially found solutions.
 \chuffed{}, the solver of \serene{}, successively finds better solutions in terms of Eq. \ref{EQ:obj}.
 However,
 that does not translate directly into more precise semantic models.
-On average, we have observed that \serene{} yields very good results already 
+On average, \serene{} yields very good results already 
 with the first solution found, and plateaus after the third solution.
-Also, we have explored how the systems perform if we manually filter out the unmatched attributes.
-In such scenarios, \serene{} also yields better solutions than \karma{}, and can often prove optimality of the found solutions.
+In Tab.~\ref{tab:nounkn} we show how the systems perform if we manually remove the unmatched attributes.
+In such scenarios, \serene{} also yields better solutions than \karma{}, especially in terms of recall, and can often prove optimality of the found solutions.
 This observation provides further evidence of the validity of our new framework.   
 
 Additionally, we investigate how the performance is influenced by introducing 
@@ -1519,6 +1542,7 @@ Contrarily to \serene{}, \serenepats{} with scaled factors produced better
 solutions in terms of precision over time.
 However, the sequential solutions are not always better, and hitting the 
 optimal solution may take hours.
+
 
 We have also observed that \serene{} and \serenepats{} manage to find the ground truth on 
 many instances among its sequential solutions.
@@ -1749,7 +1773,7 @@ We refer to a single value from the column as an entry. For example, in the tabl
     	Jane & 30 & F\\
   		\hline
 		\end{tabular} 
-%\vspace*{-3mm}
+\vspace*{-3mm}
 \end{table}
 
 
@@ -1777,6 +1801,7 @@ We refer to a single value from the column as an entry. For example, in the tabl
 	entropy-for-discrete-values & The entropy of the entries of a column.\\
 	shannon-entropy          & Shannon's entropy for the vocabulary specified in the description of the feature 'char-dist-features'\\
 	\end{tabular}
+	\vspace*{-3mm}
 \end{table}
 
 
