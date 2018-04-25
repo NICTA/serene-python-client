@@ -113,7 +113,7 @@ d.deunagomez@student.unimelb.edu.au, nataliia.ruemmele@siemens.com\\ \{gkgange,s
 
 The problem of integrating heterogeneous data sources into an ontology is highly relevant in the database field.
 Several techniques exist to approach the problem, but side constraints on the data cannot be easily implemented and thus the results may be inconsistent.
-In this paper we improve previous work by \citeasnoun{taheriyan2016learning} using Machine Learning (ML) to take into account inconsistencies in the data (unmatchable attributes) and encode the problem as a Steiner Tree, for which we use work by \citeasnoun{deuna2016steiner} in Constraint Programming (CP).
+In this paper we improve previous work by \citeasnoun{taheriyan2016learning} using Machine Learning (ML) to take into account inconsistencies in the data (unmatchable attributes) and encode the problem as a variation of the Steiner Tree, for which we use work by \citeasnoun{deuna2016steiner} in Constraint Programming (CP).
 Combining ML and CP achieves state-of-the-art precision, recall and speed, and provides a more flexible framework for variations of the problem.
 
 
@@ -423,17 +423,18 @@ Hence, a \emph{data source} $s$ is a $n$-ary relation with a set of attributes
 $\mathcal{A}_s = (a_1,...,a_n)$.
 We want to map them to the target ontology $\mathcal{O}$.
 
-Following the traditional data integration framework~\cite{doan2012principles}, we decompose the problem into two parts: schema matching and schema mapping.
-Schema matching, which we refer to as \emph{semantic labeling}, finds 
+Following the traditional data integration framework~\cite{doan2012principles}, we decompose the problem into two parts.
+%: schema matching and schema mapping.
+First, \emph{semantic labeling} finds 
 correspondences between attributes from data sources and data nodes of the 
 target ontology.
-In the schema mapping part we want to generate the semantic models of data sources by identifying the connecting paths for the matched data nodes.
+Second, in the \emph{schema mapping} part we want to generate the semantic models of data sources by identifying the connecting paths for the matched data nodes.
 
 An \emph{attribute mapping} function $\phi : \mathcal{A}_s \mapsto 
-\mathcal{D}_m$ is a function which maps the attributes of the source $s$ into the nodes of the semantic model $m$. 
-It can be a partial mapping, meaning that only some of the attributes
-are connected to the nodes of $m$.
-The attribute mapping function addresses the first part of the problem (i.e. the semantic labeling).
+\mathcal{D}_m$ maps the attributes of the source $s$ into the nodes of the semantic model $m$. 
+It can be a partial mapping, (i.e. only some of the attributes
+are connected to the nodes of $m$).
+This function addresses the first part of the problem (i.e. the semantic labeling).
 
 We define a \emph{source description} as a triple $\delta = (s, m, \phi)$, where $s$ is a source, $m$ is a semantic model, and $\phi$ is an attribute mapping.
 Our problem can hence be stated as follows. We have an ontology 
@@ -476,7 +477,7 @@ the known semantic type with the corresponding feature vector.
 The feature vector includes, among others, characteristics
 such as a number 
 of whitespaces and other special characters, statistics of 
-values in the column\footnote{Full list of features: https://git.io/vN92f (anonymously hosted)}. 
+values in the column. 
 \forijcai{A full list can be found in Appendix \ref{Ann:SemLab}.}
 %\npr{If I remove entropy descr, we are perfectly within page limit}
 %\ignore{
@@ -1247,7 +1248,7 @@ runs on a single core.
 
 \subsection{Experimental Results}
 
-To evaluate our new system \serene{}, we show that its semantic labeling model 
+To evaluate our new system \serene{}\footnote{All code and full list of features available at \url{http://github.com/NICTA/serene-benchmark}}, we show that its semantic labeling model 
 produces more accurate matches for attributes and that the CP formulation leads 
 to better semantic models in terms of precision and recall.
 
