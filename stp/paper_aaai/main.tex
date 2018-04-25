@@ -92,7 +92,7 @@ length=10,amplitude=0.3,post length=4}]
 
 \pdfinfo{
 /Title (Machine Learning and Constraint Programming for Relational-To-Ontology Schema Mapping)
-/Author (Diego De Una , Natalia Rummele, Graeme Gange, Peter Schachte and Peter J. Stuckey)
+/Author (Diego De Una , Nataliia Ruemmele, Graeme Gange, Peter Schachte and Peter J. Stuckey)
 /Keywords (Machine Lerning Application, Constraint Programming, Ontology, Relational, Steiner Tree)}
 \setcounter{secnumdepth}{2}  
  \begin{document}
@@ -149,7 +149,7 @@ A common ontology provides a way of representing the meaning of a relational sch
 Indicating semantic correspondences manually might be appropriate if only few data sources need to be integrated, however, it becomes tedious with the growing number of heterogeneous schemata.
 
 Automatically integrating heterogeneous data sources is a long standing issue in the database research field and is of high relevance in many real-world 
-domains (see for example \cite{Rahm:2001:SAA:767149.767154,Dhamankar:imap,Taheriyan2013}).
+domains \cite{Rahm:2001:SAA:767149.767154,Dhamankar:imap,Taheriyan2013}.
 
 A standard approach to tackle this problem is to design a common ontology and to construct source descriptions which specify mappings between the sources and the ontology \cite{doan2012principles}.
 In this paper, we approach the data integration problem consisting in automatically mapping a new relational data source onto a user provided ontology.
@@ -167,7 +167,7 @@ Given an ontology like in Fig. \ref{FIG:onto}, we would like to automatically ma
 ontology.\forijcai{\hfill$\square$}
 
 In this paper we use Machine Learning (ML) techniques and Constraint Programming (CP) to learn mapping rules from previously mapped instances.
-To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Minimum cost Steiner Tree Problem (STP) with side constraints \cite{deuna2016steiner}.
+To this end we formulate the Relational-To-Ontology Mapping Problem (\relonto{}) as a Steiner Tree Problem (STP) with side constraints.
 
 Firstly, we build a graph which includes attributes
 % (i.e. columns) 
@@ -177,10 +177,8 @@ We name it \emph{integration graph}.
 It uses information gathered from previously mapped data sources, and is further extended with information derived from the ontology.
 %Firstly, we build a \emph{integration graph} which includes the 
 %attributes from the new source as well as ontology classes and properties.
-Secondly, we apply ML techniques to 
-assign costs to its edges. 
-Lastly, we use CP to 
-find a minimum cost Steiner Tree in the graph.
+Secondly, we apply ML techniques to assign costs to its edges, by borrowing ideas from previous work by \citeasnoun{taheriyan2016learning}. 
+Lastly, we use CP to find a minimum cost Steiner Tree in the graph by building a novel CP model and using solving techniques developed by \citeasnoun{deuna2016steiner}.
 The goal is to assign the costs on the edges in such a way that the resulting 
 Steiner Tree is a valid and coherent semantic model for the new source. 
 Our contributions are:
@@ -575,7 +573,7 @@ appeared in the semantic models).}
 
 
 \begin{figure}[ht]
-	\vspace*{-3mm}
+	\vspace*{-1mm}
 \centering \scalebox{0.8}{
 \begin{tikzpicture}[scale=0.9]
 \begin{scope}[xshift=-10]
@@ -821,8 +819,8 @@ An example of an integration graph can be found in Fig. \ref{FIG:inte}.
 
 
 
-\begin{figure}[ht]
-	\vspace*{-3mm}
+\begin{figure}[t]
+	%\vspace*{-3mm}
 \centering \scalebox{0.8}{
 \begin{tikzpicture}[scale=0.9]
 \begin{scope}
@@ -894,9 +892,9 @@ width=220]
 	\path[draw] (a4) -- (con2);
 	\end{scope}
 	\begin{scope}[xshift=5cm]
-\node[att] () at (0,0)  
+\node[att] () at (0,-1)  
 {};  
-\node[text=black,text width=1.5cm] (legend1) at (1.3,0)  
+\node[text=black,text width=1.5cm] (legend1) at (1.3,-1)  
 {\small 
 	Attribute nodes};
 
@@ -906,7 +904,7 @@ width=220]
 matches for clarity.\forijcai{ Data node
 are the same as in Fig. \ref{FIG:ali}.}}
 \label{FIG:inte}
-\vspace{-3mm}
+\vspace{-5mm}
 \end{figure}
 
 Note that, although the alignment graph is directed, we disregard the
@@ -987,9 +985,7 @@ If an attribute $a$ is matched to $unk_a$, then $unk_a$ will be linked to Class
 node \emph{unknown}. 
 The other attributes can be matched normally 
 and build a semantic model as usual. 
-To maintain connectedness of $T^\star$, the \emph{unknown} node and one of the other Class nodes in $T^\star$ 
-will 
-both be connected to the \emph{root} node. 
+To maintain connectivity of $T^\star$, the \emph{unknown} node and any  of the other Class nodes in $T^\star$ will both be connected to the \emph{root} node (in the optimal solution only one will be connected to the root). 
 Note that if all attributes find a 
 match, then neither \emph{unknown} or \emph{root} will be selected and the normal behavior will take place.
 The weights of the edges between these special nodes are
@@ -1055,11 +1051,8 @@ integration graph that corresponds to the alignment graph, and the
 $\mathit{alldifferent}$ global constraint will deal with the matching part of 
 the problem.
 
-We use Boolean 
-variables $c_n,\forall n \in 
-\mathcal{V_O}$, $c_e, \forall e \in	\mathcal{E_O}$ and an array of variables 
-$match$ indexed by the set of attributes of $s^\star$ to represent the tree $T^\star$: $c_n = \mathit{true}$ means 
-that $n \in V^\star$, $c_e = \mathit{true}$ means that $e \in E^\star$ and 
+We use Boolean variables $c_x$ for any node $x \in 
+\mathcal{V_O}$, $c_y$ for any edge $y \in \mathcal{E_O}$ and an array of variables $match$ indexed by the set of attributes of $s^\star$ to represent the tree $T^\star$. The semantics of the variables are: $c_x = \mathit{true} \Leftrightarrow x \in V^\star$, $c_y = \mathit{true} \Leftrightarrow y \in E^\star$ and 
 $match[a] = d$ (for $a \in \mathcal{A}_{s^\star}$ and $d \in 
 \mathcal{D_{G_O}}$) means that the edge $(a,d) \in 
 \mathcal{M}_\mathcal{O}^{s^\star}$ is part of $T^\star$.
@@ -1070,7 +1063,7 @@ variables
 $c_p, \forall p \in \mathcal{P}$, that tell us whether a pattern $p$ appears in 
 $T^\star$ or not.
 The model is presented below.
-\vspace*{-0.5em}
+\vspace*{-0.3em}
 \begin{flalign}
 	& \text{Minimize~~} w_{STP} + w_{ADIFF} - w_{PAT}
 	%\sum_{e \in \mathcal{E}_\mathcal{O}}c_e * 
@@ -1104,7 +1097,7 @@ Eq.~\ref{EQ:obj} is the objective function: we minimize the cost
 of $T^\star$ while collecting prizes for each pattern we use. 
 Eq.~\ref{EQ:stp} enforces the solution 
 $T^\star$ to be a tree defined by the $c_n$ and $c_e$ variables,
-subgraph of $\mathcal{G_O}$%the alignment graph 
+subgraph of $\mathcal{G_O}$ %the alignment graph 
 and of total weight $w_{STP}$. 
 Eqs.~\ref{EQ:deg1} and \ref{EQ:deg2} ensure 
 that if a data node of $\mathcal{G_O}$ is selected, then at most one edge 
@@ -1121,14 +1114,14 @@ there is exactly one data node matched to an attribute.
 Eq.~\ref{EQ:map} ensures that 
 if a data node of $\mathcal{G_O}$ has been mapped to some attribute, then 
 that data node must be in the solution tree, and vice-versa. 
-Eq.~\ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the matches.
+Eq.~\ref{EQ:matchcost} computes the cost $w_{ADIFF}$ of the selected match edges in $\mathcal{M}^{s^\star}_\mathcal{O}$.
 Eq.~\ref{EQ:patt} indicates that a pattern is used if and only if all its edges are selected in the tree. 
 Eq.~\ref{EQ:pcost} computes the prizes collected by using patterns.
 Eq. \ref{EQ:unk} ensures that if the \emph{unknown} class node is used, then it 
-is connected to \emph{root}.
+is connected to \emph{root} through the edge $(\mathit{unknown},\mathit{root})$.
 Notice there is no further requirement for unmatched attributes, as the 
-$unk_i$ nodes behave like normal data nodes, and the connectedness 
-requirement will make sure that \emph{root} is connected to the rest of the 
+$unk_i$ nodes behave like normal data nodes, and the connectivity 
+requirement ensures that \emph{root} is connected to the rest of the 
 tree (i.e. the semantic model).
 
 \forijcai{
@@ -1249,7 +1242,7 @@ runs on a single core.
 
 \subsection{Experimental Results}
 
-To evaluate our new system \serene{}\footnote{All code and full list of features available at \url{http://github.com/NICTA/serene-benchmark}}, we show that its semantic labeling model 
+To evaluate our new system \serene{}\footnote{ \url{http://github.com/NICTA/serene-benchmark}}, we show that its semantic labeling model 
 produces more accurate matches for attributes and that the CP formulation leads 
 to better semantic models in terms of precision and recall.
 
@@ -1267,7 +1260,7 @@ not based on the notion of similarity.
 
 \begin{table}[!ht]\small
   \centering 
-  \vspace*{-0.8em}
+  %\vspace*{-0.9em}
   \caption{Average performance of semantic labeling models% for leave one out strategy.
   	  \vspace*{-0.8em}}
   	\label{tab:semlab}
@@ -1328,9 +1321,11 @@ not based on the notion of similarity.
 		    coordinates {
 		    (1,0.58839328678273)(2,0.607758082933845)(3,0.58226798181609)(4,0.591999006493134)(5,0.636658963454311)(6,0.609378189548976)(7,0.65198352100422)(8,0.639237266085298)(9,0.646381524706678)(10,0.658451931832802)(11,0.651981340743635)(12,0.639000646239548)(13,0.638100886472842)(14,0.652718769812707)(15,0.65270159785683)(16,0.665279840041019)(17,0.663658936249597)(18,0.675430261986635)(19,0.662138443878962)(20,0.662006475337153)(21,0.664124779844034)(22,0.661879115723149)(23,0.670248656767086)(24,0.677264055645277)(25,0.676979334359473)(26,0.687880411346927)(27,0.67459653454876)(28,0.68627902145454)
 };
+\legend{\karma{},\serene{},\serenepats{}}
 		
 		\end{axis}
 \end{tikzpicture}
+\vspace*{-1mm}
 \subcaption{Precision (museum)}\label{fig:museumprec}
 \end{minipage}%
 \begin{minipage}[b]{.5\linewidth}
@@ -1344,9 +1339,9 @@ not based on the notion of similarity.
 		    xtick={1,5,10,15,20,25,28},
 		    ytick={0.3,0.4,0.5,0.6,0.7,0.8,0.9,1},
 		    ymajorgrids=true,
-		    grid style=dashed,
-		    		    style = {font=\huge},
-		    legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
+		    grid style=dashed, legend pos=south east,
+		    		    style = {font=\huge}
+		    %legend style={at={(0.5,1.1)},anchor=south, legend columns=-1}
 		]
 
 		\addplot[
@@ -1370,10 +1365,10 @@ not based on the notion of similarity.
 		    coordinates {
 		    (1,0.596084829534507)(2,0.640760186457491)(3,0.62082780704382)(4,0.636003942692136)(5,0.692664734541117)(6,0.701974230777832)(7,0.728319438123534)(8,0.750185705723487)(9,0.736888107321033)(10,0.742404159647386)(11,0.743250566844835)(12,0.732378757282814)(13,0.729581368486718)(14,0.7525692913614)(15,0.751549245497265)(16,0.767850111275969)(17,0.762600014025882)(18,0.778934826315818)(19,0.764342969952451)(20,0.767198788345341)(21,0.761867162993121)(22,0.765611676236013)(23,0.768814394670878)(24,0.779481328123055)(25,0.783142085550363)(26,0.789525770002408)(27,0.774378390471089)(28,0.790117094780008)
 };
-		 %\legend{karma,serene,serene-pats}
-
+\legend{\karma{},\serene{},\serenepats{}}
 		\end{axis}
 	\end{tikzpicture}
+	\vspace*{-1mm}
 \subcaption{Recall (museum)}\label{fig:museumrec}
 \end{minipage}%
 
@@ -1390,7 +1385,7 @@ not based on the notion of similarity.
 		    ytick={0.5,0.6,0.7,0.8,0.9,1},
 		    legend pos=south east,
 		    ymajorgrids=true,
-		    grid style=dashed,
+		    grid style=dashed, legend pos=south east,
 		    		    		    style = {font=\huge},
 		]
 
@@ -1415,10 +1410,11 @@ not based on the notion of similarity.
 		    coordinates {
 		    (1,0.66759959719914)(2,0.629014687197419)(3,0.692208378950833)(4,0.744652988406557)(5,0.773486992410165)(6,0.756607637648352)(7,0.803820434917082)(8,0.793054493090329)(9,0.792256229657042)(10,0.822093203062231)(11,0.828181360184871)
 		    };
-		%\legend{karma,serene,serene-pats}
+		    \legend{\karma{},\serene{},\serenepats{}}
 
 		\end{axis}
 \end{tikzpicture}
+\vspace*{-1mm}
 \subcaption{Precision (soccer)}\label{fig:soccerprec}
 \end{minipage}%
 \begin{minipage}[b]{0.5\linewidth}
@@ -1462,6 +1458,7 @@ not based on the notion of similarity.
 
 		\end{axis}
 	\end{tikzpicture}
+	\vspace*{-1mm}
 \subcaption{Recall (soccer)}\label{fig:soccerrec}
 \end{minipage}%
 \vspace*{-3mm}
@@ -1492,9 +1489,13 @@ The t-tests run for the obtained results confirm statistical significance of our
 %new approaches produce much better models in terms of recall in all considered 
 %instances. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+In Tab.~\ref{tab:nounkn} we show how the systems perform if we manually remove the unmatched attributes.
+In such scenarios, \serene{} also yields better solutions than \karma{}, especially in terms of recall, and can often prove optimality of the found solutions.
+This observation provides further evidence of the validity of our new framework.  
 \begin{table}[!ht]\small
   \centering 
-  \vspace*{-0.8em}
+  \vspace*{-0.6em}
   \caption{Performance with unknowns manually removed% for leave one out strategy.
   	  \vspace*{-0.8em}}
   	\label{tab:nounkn}
@@ -1511,7 +1512,7 @@ The t-tests run for the obtained results confirm statistical significance of our
   		\hline
 		\end{tabular} 
 		}
-\vspace*{-3mm}
+\vspace*{-2mm}
 \end{table}
 
 
@@ -1523,9 +1524,7 @@ However,
 that does not translate directly into more precise semantic models.
 On average, \serene{} yields very good results already 
 with the first solution found, and plateaus after the third solution.
-In Tab.~\ref{tab:nounkn} we show how the systems perform if we manually remove the unmatched attributes.
-In such scenarios, \serene{} also yields better solutions than \karma{}, especially in terms of recall, and can often prove optimality of the found solutions.
-This observation provides further evidence of the validity of our new framework.   
+ 
 
 Additionally, we investigate how the performance is influenced by introducing 
 a weighting scheme on the patterns, i.e., costs of patterns are scaled by a 
@@ -1599,7 +1598,7 @@ This property of our approach can be used to configure various parameters for th
 \vspace*{-3mm}
 \caption{Performance of \serene{} on the museum 
 domain.}\label{fig:loo}
-\vspace{-3mm}
+\vspace{-5mm}
 \end{figure}
 
 %\npr{Maybe some words on how optimal solution found by chuffed relates to the ground truth?}
