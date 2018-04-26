@@ -36,3 +36,24 @@ It might be the case that [Graphviz](http://www.graphviz.org/Download.php) needs
     - chuffed
 2. Install MiniZinc
 3. Provide correct paths in the configuration file `config.yaml`
+
+You can also install the [Docker container](/docker/Dockerfile).
+
+# Semantic Labeling
+To get a better understanding how the semantic labeling system, please refer to [our paper](http://events.linkeddata.org/ldow2018/papers/LDOW2018_paper_6.pdf):
+```
+@inproceedings{ruemmele2018evaluating,
+	title={Evaluating approaches for supervised semantic labeling},
+	author={R\"ummele, N.\ and Tyshetskiy, Y.\ and Collins, A.},
+	booktitle={Proc.\ of the Workshop on Linked Data on the Web},
+	year={2018}
+}
+```
+The github repo to evaluate different semantic labeling systems is [serene-benchmark](http://github.com/NICTA/serene-benchmark).
+The configuration of Serene's semantic labeling system is provided [here](http://github.com/NICTA/serene-benchmark/blob/experimental/doc/features.txt).
+
+
+# Semantic Modeling
+
+The MiniZinc model for the rel2onto problem can be found [here](/stp/minizinc/model.mzn).
+ 
