@@ -1490,9 +1490,12 @@ The t-tests run for the obtained results confirm statistical significance of our
 %instances. 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-In Tab.~\ref{tab:nounkn} we show how the systems perform if we manually remove the unmatched attributes.
+In Tab.~\ref{tab:nounkn} we show how the systems perform if we manually remove the unmatched attributes for the leave-one-out setting.
 In such scenarios, \serene{} also yields better solutions than \karma{}, especially in terms of recall, and can often prove optimality of the found solutions.
-This observation provides further evidence of the validity of our new framework.  
+%This observation provides further evidence of the validity of our new framework.
+The first solutions found by \serenepats{} tend to be bigger than those of \serene{}: hence the precision suffers, but the recall is better.
+We have further observed that given enough time \serenepats{} finds much better solutions both in precision and recall.
+ 
 \begin{table}[!ht]\small
   \centering 
   \vspace*{-0.6em}
@@ -1524,7 +1527,6 @@ However,
 that does not translate directly into more precise semantic models.
 On average, \serene{} yields very good results already 
 with the first solution found, and plateaus after the third solution.
- 
 
 Additionally, we investigate how the performance is influenced by introducing 
 a weighting scheme on the patterns, i.e., costs of patterns are scaled by a 
@@ -1684,7 +1686,6 @@ Another relevant problem within the Semantic Web community is ontology matching,
 This problem is similar to schema matching since it finds semantically related entities across different ontologies.
 Yet, it is different from \relonto{} since data sources in our case are not bound to any ontology.
 We think that our approach might be further extended to incorporate ontology matching techniques.
-
 
 \section{Conclusion}
 We have introduced a new approach\forijcai{, \serene{} (and its extension 
