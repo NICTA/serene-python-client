@@ -497,7 +497,7 @@ Among others, we compute mean cosine similarity for character distributions of a
 %The minimum edit distance between two strings $s_1$ and $s_2$ is the minimum number of edit operations, such as insertion, deletion, substitution, which are required to transform one string into another~\cite{Manning:Introduction}.
 %We compute the similarity between attribute name and all class instances in the training data.
 %The number of thus extracted features depends on the number of semantic labels in the training data.
-We train a random forest on the obtained sample. 
+We train a random forest on the obtained sample.
 
 In this way, we learn the mapping $\psi : \mathcal{A}_s \times \mathcal{L_O} 
 \mapsto [0, 1]$,
@@ -1242,7 +1242,7 @@ runs on a single core.
 
 \subsection{Experimental Results}
 
-To evaluate our new system \serene{}\footnote{ http://github.com/NICTA/serene-python-client/tree/stp/stp}, we show that its semantic labeling model 
+To evaluate our new system \serene{}\footnote{ \url{http://github.com/NICTA/serene-python-client/tree/stp/stp}}, we show that its semantic labeling model 
 produces more accurate matches for attributes and that the CP formulation leads 
 to better semantic models in terms of precision and recall.
 
@@ -1255,7 +1255,7 @@ DSL uses heuristic measures to capture the similarity of attributes within the s
 unmatched attributes are clearly dissimilar from known semantic types, thus similarity measures may be unsound in the presence of unmatched attributes.
 Our intuition as to why our approach performs better is that we have 
 incorporated features which are derived directly from attribute values and are 
-not based on the notion of similarity.
+not based on the notion of similarity~\cite{ruemmele2018evaluating}.
 %\npr{Good enough explanation?}
 
 \begin{table}[!ht]\small
